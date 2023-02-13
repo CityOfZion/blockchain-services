@@ -1,0 +1,7 @@
+export const DORA_NEO_LEGACY_NODES = 'get_all_nodes'
+export const DORA_NEO_LEGACY_HISTORY_TRANSACTIONS = 'get_address_abstracts'
+export const DORA_NEO_LEGACY_BALANCE = 'balance'
+export const DORA_NEO_LEGACY_CONTRACT = 'contract'
+export const DORA_NEO_LEGACY_TRANSACTION = 'transaction'
+export const DORA_NEO_LEGACY_ASSET = 'asset'
+export const DORA_NEO_LEGACY_UNCLAIMED = 'get_unclaimed'

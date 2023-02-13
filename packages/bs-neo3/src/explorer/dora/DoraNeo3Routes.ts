@@ -1,0 +1,6 @@
+export const DORA_TRANSACTION = 'transaction'
+export const DORA_NODES = 'get_all_nodes'
+export const DORA_TRANSACTIONS = 'address_txfull'
+export const DORA_BALANCE = 'balance'
+export const DORA_CONTRACT = 'contract'
+export const DORA_ASSET = 'asset'

@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DORA_NEO_LEGACY_UNCLAIMED = exports.DORA_NEO_LEGACY_ASSET = exports.DORA_NEO_LEGACY_TRANSACTION = exports.DORA_NEO_LEGACY_CONTRACT = exports.DORA_NEO_LEGACY_BALANCE = exports.DORA_NEO_LEGACY_HISTORY_TRANSACTIONS = exports.DORA_NEO_LEGACY_NODES = void 0;
+exports.DORA_NEO_LEGACY_NODES = 'get_all_nodes';
+exports.DORA_NEO_LEGACY_HISTORY_TRANSACTIONS = 'get_address_abstracts';
+exports.DORA_NEO_LEGACY_BALANCE = 'balance';
+exports.DORA_NEO_LEGACY_CONTRACT = 'contract';
+exports.DORA_NEO_LEGACY_TRANSACTION = 'transaction';
+exports.DORA_NEO_LEGACY_ASSET = 'asset';
+exports.DORA_NEO_LEGACY_UNCLAIMED = 'get_unclaimed';
