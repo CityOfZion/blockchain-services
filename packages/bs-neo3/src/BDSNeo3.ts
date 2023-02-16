@@ -1,31 +1,32 @@
-import { BalanceResponse, BlockchainNetwork, BlockchainDataService, ConsensusNodeResponse, ContractResponse, TokenInfoResponse, TransactionHistoryResponse, TransactionResponse, TransactionTransfer, BDSClaimable, UnclaimedResponse, } from "@cityofzion/blockchain-service";
+import { BalanceResponse, BlockchainNetwork, BlockchainDataService, ConsensusNodeResponse, ContractResponse, TokenInfoResponse, TransactionHistoryResponse, TransactionResponse, TransactionTransfer, BDSClaimable, UnclaimedResponse, TransactionNotifications, } from "@cityofzion/blockchain-service";
 import { rpc } from "@cityofzion/neon-js";
-import axios from 'axios'
-import { DoraNeo3Asset, DoraNeo3Balance, DoraNeo3ConsensusNode, DoraNeo3Contract, DoraNeo3Transaction, DoraNeo3TransactionHistory } from "./explorer/dora/DoraNeo3Responses";
-import { DORA_BALANCE, DORA_CONTRACT, DORA_NODES, DORA_TRANSACTION, DORA_TRANSACTIONS, } from "./explorer/dora/DoraNeo3Routes";
-
+import { api } from '@cityofzion/dora-ts'
+import { TypedResponse } from "@cityofzion/dora-ts/dist/interfaces/api/common";
 export class BDSNeo3 implements BlockchainDataService, BDSClaimable {
     explorer: string = 'https://dora.coz.io'
     network: BlockchainNetwork = 'mainnet'
-    private request = axios.create({ baseURL: `https://dora.coz.io/api/v1/neo3/${this.network}` })
     setNetwork(network: BlockchainNetwork): void {
         this.network = network
     }
     async getTransaction(txid: string): Promise<TransactionResponse> {
-        const { data } = await this.request.get<DoraNeo3Transaction>(`/${DORA_TRANSACTION}/${txid}`)
-        const transaction = await this.findTransactionByTxid(txid, data.sender)
-        if (!data || !transaction) throw new Error("query getTransaction failed");
-        const result: TransactionResponse = {
-            block: data.block,
-            time: data.time,
-            txid: data.hash,
-            netfee: data.netfee,
-            sysfee: data.sysfee,
-            totfee: (Number(data.netfee) + Number(data.sysfee)).toString(),
-            notifications: transaction.notifications,
-            transfers: transaction.transfers
+        try {
+            const data = await api.NeoRest.transaction(txid, this.network)
+            const transaction = await this.findTransactionByTxid(txid, data.sender)
+            if (!data || !transaction) throw new Error("query getTransaction failed");
+            const result: TransactionResponse = {
+                block: data.block,
+                time: data.time,
+                txid: data.hash,
+                netfee: data.netfee,
+                sysfee: data.sysfee,
+                totfee: (Number(data.netfee) + Number(data.sysfee)).toString(),
+                notifications: transaction.notifications,
+                transfers: transaction.transfers
+            }
+            return result
+        } catch (error) {
+            throw error;
         }
-        return result
     }
     private async findTransactionByTxid(txid: string, address: string) {
         try {
@@ -49,12 +50,12 @@ export class BDSNeo3 implements BlockchainDataService, BDSClaimable {
         }
     }
     async getHistoryTransactions(address: string, page: number = 1): Promise<TransactionHistoryResponse> {
-        const { data } = await this.request.get<DoraNeo3TransactionHistory>(`/${DORA_TRANSACTIONS}/${address}/${page}`)
-        if (!data) throw new Error("query getHistoryTransactions failed");
-        const result: TransactionHistoryResponse = {
-            totalCount: data.totalCount,
-            transactions: data.items.map<TransactionResponse>(item => {
-                return {
+        try {
+            const data = await api.NeoRest.addressTXFull(address, page, this.network)
+            if (!data) throw new Error("query getHistoryTransactions failed");
+            const result: TransactionHistoryResponse = {
+                totalCount: data.totalCount,
+                transactions: data.items.map<TransactionResponse>(item => ({
                     block: item.block,
                     time: item.time,
                     txid: item.hash,
@@ -67,51 +68,76 @@ export class BDSNeo3 implements BlockchainDataService, BDSClaimable {
                             from: transfer.from,
                             to: transfer.to,
                             hash: transfer.scripthash
-                        }
+                        };
                     }),
-                    notifications: item.notifications
-                }
+                    notifications: item.notifications.map<TransactionNotifications>(notification => ({
+                        contract: notification.contract,
+                        event_name: notification.event_name,
+                        state: notification.state as any as TypedResponse[]
+                    }))
+                }))
+            }
+            data.items.forEach(item => {
+                item.transfers
             })
+            return result
+        } catch (error) {
+            throw error;
         }
-        return result
     }
     async getContract(contractHash: string): Promise<ContractResponse> {
-        const { data } = await this.request.get<DoraNeo3Contract>(`/${DORA_CONTRACT}/${contractHash}`)
-        if (!data) throw new Error("query getContract failed");
-        const result: ContractResponse = {
-            hash: data.hash,
-            methods: data.manifest.abi.methods,
-            name: data.manifest.name
+        try {
+            const data = await api.NeoRest.contract(contractHash, this.network)
+            if (!data) throw new Error("query getContract failed");
+            const result: ContractResponse = {
+                hash: data.hash,
+                methods: data.manifest.abi.methods,
+                name: data.manifest.name
+            }
+            return result
+        } catch (error) {
+            throw error;
         }
-        return result
     }
 
     async getTokenInfo(tokenHash: string): Promise<TokenInfoResponse> {
-        const { data } = await this.request.get<DoraNeo3Asset>(`/${DORA_CONTRACT}/${tokenHash}`);
-        if (!data) throw new Error("query getTokenInfo failed");
-        const result: TokenInfoResponse = {
-            decimals: Number(data.decimals),
-            symbol: data.symbol
+        try {
+            const data = await api.NeoRest.asset(tokenHash, this.network)
+            if (!data) throw new Error("query getTokenInfo failed");
+            const result: TokenInfoResponse = {
+                decimals: Number(data.decimals),
+                symbol: data.symbol
+            }
+            return result
+        } catch (error) {
+            throw error;
         }
-        return result
     }
     async getBalance(address: string): Promise<BalanceResponse[]> {
-        const { data } = await this.request.get<DoraNeo3Balance[]>(`/${DORA_BALANCE}/${address}`)
-        if (!data) throw new Error("query getBalance failed");
-        const result: BalanceResponse[] = data.map<BalanceResponse>(balance => {
-            return {
-                amount: Number(balance.balance),
-                hash: balance.asset,
-                name: balance.asset_name,
-                symbol: balance.symbol,
-            }
-        })
-        return result
+        try {
+            const data = await api.NeoRest.balance(address, this.network)
+            if (!data) throw new Error("query getBalance failed");
+            const result: BalanceResponse[] = data.map<BalanceResponse>(balance => {
+                return {
+                    amount: Number(balance.balance),
+                    hash: balance.asset,
+                    name: balance.asset_name,
+                    symbol: balance.symbol,
+                }
+            })
+            return result
+        } catch (error) {
+            throw error;
+        }
     }
     async getAllNodes(): Promise<ConsensusNodeResponse[]> {
-        const { data } = await this.request.get<DoraNeo3ConsensusNode[]>(`/${DORA_NODES}`)
-        const result: ConsensusNodeResponse[] = data
-        return result
+        try {
+            const data = await api.NeoRest.getAllNodes()
+            const result: ConsensusNodeResponse[] = data
+            return result
+        } catch (error) {
+            throw error;
+        }
     }
     async getHigherNode(): Promise<ConsensusNodeResponse> {
         const nodes = await this.getAllNodes()
@@ -126,13 +152,17 @@ export class BDSNeo3 implements BlockchainDataService, BDSClaimable {
 
     //Implementation of BDSClaimable
     async getUnclaimed(address: string): Promise<UnclaimedResponse> {
-        const url = (await this.getHigherNode()).url
-        const rpcClient = new rpc.RPCClient(url)
-        const response = await rpcClient.getUnclaimedGas(address)
-        const result: UnclaimedResponse = {
-            address,
-            unclaimed: Number(response),
+        try {
+            const url = (await this.getHigherNode()).url
+            const rpcClient = new rpc.RPCClient(url)
+            const response = await rpcClient.getUnclaimedGas(address)
+            const result: UnclaimedResponse = {
+                address,
+                unclaimed: Number(response),
+            }
+            return result;
+        } catch (error) {
+            throw error;
         }
-        return result;
     }
 }
