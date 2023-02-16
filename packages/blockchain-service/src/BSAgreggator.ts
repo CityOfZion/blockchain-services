@@ -1,8 +1,8 @@
 import { exception } from './excpetions'
 import { BlockchainService, Claimable } from "./interfaces";
 export class BSAgreggator<BSCustom extends BlockchainService = BlockchainService, BSCustomName extends string = string> {
-    protected blockchainservices: Record<BSCustomName, BSCustom>
-    private bsList: BlockchainService[]
+    readonly blockchainservices: Record<BSCustomName, BSCustom>
+    private bsList: BlockchainService<BSCustomName>[]
     constructor(blockchainservices: Record<BSCustomName, BSCustom>) {
         this.blockchainservices = blockchainservices
         this.bsList = Object.values(blockchainservices)
@@ -37,21 +37,25 @@ export class BSAgreggator<BSCustom extends BlockchainService = BlockchainService
         if (this.haveBlockchainServices()) exception.invalidBlockchainService(JSON.stringify(this.blockchainservices))
         return this.bsList.some(bs => bs.validateEncryptedKey(encryptedKey))
     }
-    getBlockchainByAddress(address: string) {
+    getBlockchainByAddress(address: string): BlockchainService<BSCustomName> | null {
         if (this.haveBlockchainServices()) exception.invalidBlockchainService(JSON.stringify(this.blockchainservices))
         return this.bsList.find(bs => bs.validateAddress(address)) ?? null
     }
-    getBlockchainByWif(wif: string) {
+    getBlockchainByWif(wif: string): BlockchainService<BSCustomName> | null {
         if (this.haveBlockchainServices()) exception.invalidBlockchainService(JSON.stringify(this.blockchainservices))
         return this.bsList.find(bs => bs.validateWif(wif)) ?? null
     }
-    getBlockchainByEncryptedKey(encryptedKey: string) {
+    getBlockchainByEncryptedKey(encryptedKey: string): BlockchainService<BSCustomName> | null {
         if (this.haveBlockchainServices()) exception.invalidBlockchainService(JSON.stringify(this.blockchainservices))
         return this.bsList.find(bs => bs.validateEncryptedKey(encryptedKey)) ?? null
     }
     getBlockchainsClaimable() {
-        const methodName = {claim: 'claim', getUnclaimed: 'getUnclaimed'}
-        const claimableBlockchains = this.bsList.filter(blockchain => methodName.claim in blockchain && methodName.getUnclaimed in blockchain.dataService) as Array<BlockchainService & Claimable>
+        const methodName = {claim: 'claim', getUnclaimed: 'getUnclaimed', tokenClaim: 'tokenClaim'}
+        const claimableBlockchains = this.bsList.filter(
+            blockchain => methodName.claim in blockchain &&
+            methodName.getUnclaimed in blockchain.dataService && 
+            methodName.tokenClaim in blockchain
+        ) as Array<BlockchainService<BSCustomName> & Claimable>
         return claimableBlockchains
     }
 }

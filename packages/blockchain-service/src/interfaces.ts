@@ -1,11 +1,14 @@
 //Interfaces and Types related to what every blockchains have in common
 export type SendTransactionParam = {
-    amount: number
-    tokenHash: string
     senderAccount: Account
-    receiverAddress: string
+    transactionIntents: IntentTransactionParam[]
     priorityFee?: number
 }
+export type IntentTransactionParam = {
+    receiverAddress: string;
+    tokenHash: string;
+    amount: number;
+};
 export interface Account {
     getWif(): string
     getAddress(): string
@@ -21,15 +24,25 @@ export type ExchangeInfo = {
     amount: number
 }
 export interface Claimable {
-    claim(address: string, account: Account): Promise<{ txid: string, symbol: string, hash: string }>
+    claim(account: Account): Promise<{ txid: string, symbol: string, hash: string }>
     dataService: BlockchainDataService & BDSClaimable
+    tokenClaim: {hash: string, symbol: string, decimals: number}
 }
-export interface BlockchainService {
+
+export type Token = {
+    name: string
+    symbol: string
+    hash: string
+    decimals: number
+}
+
+export interface BlockchainService<BSCustomName extends string = string> {
     readonly dataService: BlockchainDataService
-    readonly blockchain: string
+    readonly blockchainName: BSCustomName
     readonly derivationPath: string
     readonly feeToken: { hash: string, symbol: string, decimals: number }
     readonly exchange: Exchange
+    readonly tokens: Token[]
     sendTransaction(param: SendTransactionParam): Promise<string>
     generateMnemonic(): string
     generateWif(mnemonic: string, index: number): string
