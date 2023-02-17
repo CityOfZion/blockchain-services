@@ -3,6 +3,8 @@
         "module": "commonjs",
         "target": "es2015",
         "declaration": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true
     }
 }

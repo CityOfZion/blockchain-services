@@ -1,34 +1,47 @@
-import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions } from '@cityofzion/blockchain-service'
+import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam } from '@cityofzion/blockchain-service'
 import { api, rpc, tx, u, wallet } from '@cityofzion/neon-js'
 import * as AsteroidSDK from '@moonlight-io/asteroid-sdk-js'
 import { gasInfoNeo3, neoInfoNeo3 } from './constants'
 import { claimGasExceptions } from './excpetions'
 import { explorerOptions } from './explorer'
-export class BSNeo3 implements BlockchainService, Claimable {
+import tokens from './assets/tokens.json'
+export class BSNeo3<BSCustomName extends string = string> implements BlockchainService, Claimable {
+    blockchainName: BSCustomName
     dataService: BlockchainDataService & BDSClaimable = explorerOptions.dora
-    blockchain: string = "neo3"
     derivationPath: string = "m/44'/888'/0'/0/?"
     feeToken: { hash: string; symbol: string; decimals: number; } = gasInfoNeo3
     exchange: Exchange = exchangeOptions.flamingo
+    tokenClaim: { hash: string; symbol: string; decimals: number } = neoInfoNeo3
+    tokens: Token[] = tokens
     private keychain = new AsteroidSDK.Keychain()
-    async sendTransaction(param: SendTransactionParam): Promise<string> {
-        const { senderAccount } = param
-        const node = await this.dataService.getHigherNode()
-        const facade = await api.NetworkFacade.fromConfig({ node: node.url })
-        const intents = this.buildTransfer(param)
-        const signing = this.signTransfer(senderAccount)
-        const result = await facade.transferToken(intents, signing)
-        return result
+    constructor(blockchainName: BSCustomName) {
+        this.blockchainName = blockchainName
     }
-    private buildTransfer({ amount, receiverAddress, senderAccount, tokenHash }: SendTransactionParam) {
+    async sendTransaction(param: SendTransactionParam): Promise<string> {
+        try {
+            const { senderAccount, transactionIntents } = param
+            const node = await this.dataService.getHigherNode()
+            const facade = await api.NetworkFacade.fromConfig({ node: node.url })
+            const intents = this.buildTransfer(transactionIntents, senderAccount)
+            const signing = this.signTransfer(senderAccount)
+            const result = await facade.transferToken(intents, signing)
+            return result;
+        } catch (error) {
+            throw error;
+        }
+    }
+    private buildTransfer(transactionIntents: IntentTransactionParam[], account: Account) {
         const intents: api.Nep17TransferIntent[] = []
-        const account = new wallet.Account(senderAccount.getWif())
-        intents.push({
-            to: receiverAddress,
-            contractHash: tokenHash,
-            from: account,
-            decimalAmt: amount
-        })
+        const neoAccount = new wallet.Account(account.getWif())
+        for (const transactionIntent of transactionIntents) {
+            const { amount, receiverAddress, tokenHash } = transactionIntent
+            intents.push({
+                to: receiverAddress,
+                contractHash: tokenHash,
+                from: neoAccount,
+                decimalAmt: amount,
+            })
+        }
         return intents
     }
     private signTransfer(account: Account) {
@@ -76,7 +89,7 @@ export class BSNeo3 implements BlockchainService, Claimable {
         const node = await this.dataService.getHigherNode()
         const url = node.url
         const rpcClient = new rpc.NeoServerRpcClient(url)
-        const intents = this.buildTransfer(param)
+        const intents = this.buildTransfer(param.transactionIntents, param.senderAccount)
         const txBuilder = new api.TransactionBuilder()
         for (const intent of intents) {
             if (intent.decimalAmt) {
@@ -127,8 +140,8 @@ export class BSNeo3 implements BlockchainService, Claimable {
         return result
     }
     //Claimable interface implementation
-    async claim(address: string, account: Account): Promise<{ txid: string; symbol: string; hash: string; }> {
-        const balance = await this.dataService.getBalance(address)
+    async claim(account: Account): Promise<{ txid: string; symbol: string; hash: string; }> {
+        const balance = await this.dataService.getBalance(account.getAddress())
         const neoHash = neoInfoNeo3.hash
         const neoBalance = balance.find(balance => balance.hash === neoHash)
         const gasBalance = balance.find(balance => balance.hash === gasInfoNeo3.hash)
@@ -137,10 +150,8 @@ export class BSNeo3 implements BlockchainService, Claimable {
         if (!neoBalance || !gasBalance) throw new Error(`Problem to claim`);
 
         const dataToClaim: SendTransactionParam = {
-            amount: neoBalance.amount,
-            receiverAddress: address,
-            senderAccount: account,
-            tokenHash: neoBalance.hash
+            transactionIntents: [{ amount: neoBalance.amount, receiverAddress: account.getAddress(), tokenHash: neoBalance.hash }],
+            senderAccount: account
         }
 
         const feeToClaim = await this.calculateTransferFee(dataToClaim)
