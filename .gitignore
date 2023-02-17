@@ -34,6 +34,8 @@ build/Release
 node_modules/
 jspm_packages/
 dist/
+docs/
+
 # Optional npm cache directory
 .npm
 
