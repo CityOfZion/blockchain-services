@@ -5,12 +5,13 @@ import { explorerNeoLegacyOption } from './explorer'
 import { nativeAssetsNeoLegacy, unclaimedTokenNeoLegacy } from './constants'
 const [gasToken, neoToken] = nativeAssetsNeoLegacy
 import tokens from './asset/tokens.json'
+import { CryptoCompare } from './exchange/CryptoCompare'
 export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable {
     dataService: BlockchainDataService & BDSClaimable = explorerNeoLegacyOption.dora
     blockchainName: BSCustomName;
     derivationPath: string = "m/44'/888'/0'/0/?"
     feeToken: { hash: string; symbol: string; decimals: number; };
-    exchange: Exchange;
+    exchange: Exchange = new CryptoCompare()
     tokenClaim: { hash: string; symbol: string; decimals: number } = neoToken
     tokens: Token[] = tokens
     private keychain = new AsteroidSDK.Keychain()

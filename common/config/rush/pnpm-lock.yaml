@@ -20,7 +20,7 @@ importers:
 
   ../../packages/bs-neo-legacy:
     specifiers:
-      '@cityofzion/blockchain-service': workspace:*
+      '@cityofzion/blockchain-service': /Users/kenedyribeiro/neon-wallet-mobile/blockchain-services/packages/blockchain-service
       '@cityofzion/dora-ts': 0.0.11
       '@cityofzion/neon-js': ^4.8.3
       '@moonlight-io/asteroid-sdk-js': git+https://github.com/Moonlight-io/asteroid-sdk-js
@@ -41,7 +41,7 @@ importers:
 
   ../../packages/bs-neo3:
     specifiers:
-      '@cityofzion/blockchain-service': workspace:*
+      '@cityofzion/blockchain-service': /Users/kenedyribeiro/neon-wallet-mobile/blockchain-services/packages/blockchain-service
       '@cityofzion/dora-ts': 0.0.11
       '@cityofzion/neon-js': ^5.3.0
       '@moonlight-io/asteroid-sdk-js': git+https://github.com/Moonlight-io/asteroid-sdk-js

@@ -1,10 +1,10 @@
 import axios from 'axios'
-import { Currency, Exchange } from '../../interfaces'
+import { Currency, Exchange, TokenPricesResponse } from '../../interfaces'
 import { FlamingoTokenInfoPricesResponse } from './FlamingoResponses'
 import { FLAMINGO_FIAT_EXCHANGE_RATE, FLAMINGO_TOKENINFO_PRICES } from './FlamingoRoutes'
 export class Flamingo implements Exchange {
     private request = axios.create({ baseURL: 'https://api.flamingo.finance' })
-    async getTokenPrices(currency: Currency) {
+    async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
         const { data: prices } = await this.request.get<FlamingoTokenInfoPricesResponse>(`/${FLAMINGO_TOKENINFO_PRICES}`)
         let currencyRatio: number = 1
         if (currency !== 'USD') {
@@ -13,7 +13,7 @@ export class Flamingo implements Exchange {
         }
         return prices.map(price => ({
             amount: price.usd_price * currencyRatio,
-            Symbol: price.symbol
+            symbol: price.symbol
         }))
     }
 }

@@ -131,11 +131,11 @@ export interface BlockchainDataService {
 }
 //****************************************************************************
 //Interface and Types related to Exchanges
-export type ToeknPricesResponse = {
+export type TokenPricesResponse = {
     amount: number;
-    Symbol: string;
+    symbol: string;
 }
 export interface Exchange {
-    getTokenPrices(currency: Currency): Promise<ToeknPricesResponse[]>
+    getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]>
 }
 //*****************************************************************************
