@@ -1,4 +1,4 @@
-import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam } from '@cityofzion/blockchain-service'
+import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam, NeoNameService, NNSRecordTypes } from '@cityofzion/blockchain-service'
 import { api, rpc, tx, u, wallet } from '@cityofzion/neon-js'
 import * as AsteroidSDK from '@moonlight-io/asteroid-sdk-js'
 import { gasInfoNeo3, neoInfoNeo3 } from './constants'
@@ -8,7 +8,7 @@ import tokens from './assets/tokens.json'
 
 const NEO_NS_HASH = "0x50ac1c37690cc2cfc594472833cf57505d5f46de";
 
-export class BSNeo3<BSCustomName extends string = string> implements BlockchainService, Claimable {
+export class BSNeo3<BSCustomName extends string = string> implements BlockchainService, Claimable, NeoNameService {
     blockchainName: BSCustomName
     dataService: BlockchainDataService & BDSClaimable = explorerOptions.dora
     derivationPath: string = "m/44'/888'/0'/0/?"
@@ -173,16 +173,10 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
         }
         return result;
     }
-    /*
-      1 - IPV4 address record
-      5 - Canonical name record
-      16 - Text record
-      28 - IPV6 address record
-    */
     // Gets the record of a second-level domain or its subdomains with the specific type.
     async getNeoNsRecord(
       domainName: string,
-      type: "1" | "5" | "16" | "28"
+      type: typeof NNSRecordTypes
     ): Promise<any> {
         const url = (await this.dataService.getHigherNode()).url;
         const rpcClient = new rpc.NeoServerRpcClient(url);
