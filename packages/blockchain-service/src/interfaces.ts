@@ -29,6 +29,36 @@ export interface Claimable {
     tokenClaim: {hash: string, symbol: string, decimals: number}
 }
 
+export enum NNSRecordTypes {
+    IPV4 = "1",
+    CANONICAL_NAME = "5",
+    TEXT = "16",
+    IPV6 = "28",
+}
+
+export type NNSResponse = {
+    jsonrpc: string;
+    id: number;
+    result: {
+      script: string;
+      state: string;
+      gasconsumed: string;
+      exception: string;
+      stack: {
+        type: string;
+        value: string;
+      }[];
+  };
+};
+
+export interface NeoNameService {
+    getNeoNsRecord(
+      domainName: string,
+      type: typeof NNSRecordTypes
+    ): Promise<NNSResponse>;
+    getOwnerOfNeoNsRecord(domainName: string): Promise<NNSResponse>;
+}
+
 export type Token = {
     name: string
     symbol: string

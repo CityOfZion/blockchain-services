@@ -1,11 +1,14 @@
-import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam } from '@cityofzion/blockchain-service'
+import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam, NeoNameService, NNSRecordTypes } from '@cityofzion/blockchain-service'
 import { api, rpc, tx, u, wallet } from '@cityofzion/neon-js'
 import * as AsteroidSDK from '@moonlight-io/asteroid-sdk-js'
 import { gasInfoNeo3, neoInfoNeo3 } from './constants'
 import { claimGasExceptions } from './excpetions'
 import { explorerOptions } from './explorer'
 import tokens from './assets/tokens.json'
-export class BSNeo3<BSCustomName extends string = string> implements BlockchainService, Claimable {
+
+const NEO_NS_HASH = "0x50ac1c37690cc2cfc594472833cf57505d5f46de";
+
+export class BSNeo3<BSCustomName extends string = string> implements BlockchainService, Claimable, NeoNameService {
     blockchainName: BSCustomName
     dataService: BlockchainDataService & BDSClaimable = explorerOptions.dora
     derivationPath: string = "m/44'/888'/0'/0/?"
@@ -169,5 +172,34 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
             txid
         }
         return result;
+    }
+    // Gets the record of a second-level domain or its subdomains with the specific type.
+    async getNeoNsRecord(
+      domainName: string,
+      type: typeof NNSRecordTypes
+    ): Promise<any> {
+        const url = (await this.dataService.getHigherNode()).url;
+        const rpcClient = new rpc.NeoServerRpcClient(url);
+        return rpcClient.invokeFunction(NEO_NS_HASH, "getRecord", [
+            {
+                type: "String",
+                value: domainName,
+            },
+            {
+                type: "Integer",
+                value: type,
+            },
+        ]);
+    }
+    // Gets the domain owner. If the domain has expired, an error message is returned instead of the owner.
+    async getOwnerOfNeoNsRecord(domainName: string): Promise<any> {
+        const url = (await this.dataService.getHigherNode()).url;
+        const rpcClient = new rpc.NeoServerRpcClient(url);
+        return rpcClient.invokeFunction(NEO_NS_HASH, "ownerOf", [
+            {
+                type: "ByteArray",
+                value: domainName,
+            },
+        ]);
     }
 }
