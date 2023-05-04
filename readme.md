@@ -1,3 +1,4 @@
 # Blockchain Service
 
-The ***blockchain-services*** it's a tool to auxiliary the applications use the blockchains of a way less complicated
+Responsible to normalize blockchain operations allowing to use different blockchain technologies abstracting the
+complexity of each one with a single interface.

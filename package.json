@@ -1,6 +1,6 @@
 {
-  "name": "blockchain-services",
-  "version": "1.0.0",
+  "name": "@cityofzion/blockchain-services",
+  "version": "0.1.0",
   "description": "Coz Blockchain Services",
   "main": "index.js",
   "repository": {
