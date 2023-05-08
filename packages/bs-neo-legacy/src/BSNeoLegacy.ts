@@ -1,11 +1,11 @@
-import { Account, BDSClaimable, BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, Claimable, Exchange, IntentTransactionParam, SendTransactionParam, Token } from '@cityofzion/blockchain-service'
+import { Account, BDSClaimable, BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, CalculateTransferFeeResponse, ClaimResponse, Claimable, Exchange, IntentTransactionParam, SendTransactionParam, Token } from '@cityofzion/blockchain-service'
 import * as AsteroidSDK from '@moonlight-io/asteroid-sdk-js'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { explorerNeoLegacyOption } from './explorer'
 import { nativeAssetsNeoLegacy, unclaimedTokenNeoLegacy } from './constants'
 const [gasToken, neoToken] = nativeAssetsNeoLegacy
 import tokens from './asset/tokens.json'
-export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable {
+export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable  {
     dataService: BlockchainDataService & BDSClaimable = explorerNeoLegacyOption.dora
     blockchainName: BSCustomName;
     derivationPath: string = "m/44'/888'/0'/0/?"
@@ -21,12 +21,12 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     async sendTransaction(param: SendTransactionParam): Promise<string> {
         const url = (await this.dataService.getHigherNode()).url
         const apiProvider = new api.neoscan.instance("MainNet")
-        const account = new wallet.Account(param.senderAccount.getWif())
+        const account = new wallet.Account(param.senderAccount.wif)
         const intentsWithTye = this.setTypeIntents(param.transactionIntents)
         const isNativeTransaction = intentsWithTye.every(intent => intent.type === 'native')
         const priorityFee = param.priorityFee ?? 0
         const [gasAsset] = this.nativeAssets
-        const gasBalance = (await this.dataService.getBalance(param.senderAccount.getAddress())).find(balance => balance.hash === gasAsset.hash)
+        const gasBalance = (await this.dataService.getBalance(param.senderAccount.address)).find(balance => balance.hash === gasAsset.hash)
         if (gasBalance?.amount < priorityFee) throw new Error("Don't have funds to pay the transaction");
         const transactionOperations = {
             native: () => {
@@ -71,7 +71,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
         const sb = new sc.ScriptBuilder()
         transactionIntents.forEach(transaction => {
             if (!this.isNativeTransaction(transaction)) {
-                const senderHash = u.reverseHex(wallet.getScriptHashFromAddress(senderAccount.getAddress()))
+                const senderHash = u.reverseHex(wallet.getScriptHashFromAddress(senderAccount.address))
                 const receiveHash = u.reverseHex(wallet.getScriptHashFromAddress(transaction.receiverAddress))
                 const adjustedAmount = new u.Fixed8(transaction.amount).toRawNumber()
                 sb.emitAppCall(transaction.tokenHash.replace('0x', ''), "transfer", [
@@ -105,7 +105,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
         const childKey = this.keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
         return childKey.getWIF()
     }
-    generateAccount(mnemonic: string, index: number): { wif: string; address: string; } {
+    generateAccount(mnemonic: string, index: number): Account {
         const wif = this.generateWif(mnemonic, index)
         const { address } = new wallet.Account(wif)
         const result: { wif: string; address: string; } = { address, wif }
@@ -114,7 +114,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     generateAccountFromWif(wif: string): string {
         return new wallet.Account(wif).address
     }
-    async decryptKey(encryptedKey: string, password: string): Promise<{ wif: string; address: string; }> {
+    async decryptKey(encryptedKey: string, password: string): Promise<Account> {
         const wif = await wallet.decrypt(encryptedKey, password)
         const { address } = new wallet.Account(wif)
         const result: { wif: string; address: string; } = { address, wif }
@@ -129,21 +129,21 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     validateWif(wif: string): boolean {
         return wallet.isWIF(wif)
     }
-    calculateTransferFee(param: SendTransactionParam, details?: boolean): Promise<{ result: number; details?: CalculateTransferFeeDetails; }> {
+    calculateTransferFee(): Promise<CalculateTransferFeeResponse> {
         throw new Error(`Doesn't have fee to make a transaction on ${this.blockchainName}`);
     }
     //Implementation Claim interface
-    async claim(account: Account): Promise<{ txid: string; symbol: string; hash: string }> {
-        const neoAccount = new wallet.Account(account.getWif())
-        const balances = await this.dataService.getBalance(account.getAddress())
+    async claim(account: Account): Promise<ClaimResponse> {
+        const neoAccount = new wallet.Account(account.wif)
+        const balances = await this.dataService.getBalance(account.address)
         const neoBalance = balances.find(balance => balance.symbol === 'NEO')
         const apiProvider = new api.neoscan.instance("MainNet")
         const neoNativeAsset = this.nativeAssets.find(nativeAsset => nativeAsset.symbol === neoBalance?.symbol)
         if (!neoNativeAsset || !neoBalance) throw new Error("Neo it's necessary to do a claim");
-        const hasClaim = await this.dataService.getUnclaimed(account.getAddress())
+        const hasClaim = await this.dataService.getUnclaimed(account.address)
         if (hasClaim.unclaimed <= 0) throw new Error(`Doesn't have gas to claim`);
         const url = (await this.dataService.getHigherNode()).url
-        const claims = await api.neoCli.getClaims(url, account.getAddress())
+        const claims = await api.neoCli.getClaims(url, account.address)
         const claimGasResponse = await api.claimGas({
             claims,
             api: apiProvider,

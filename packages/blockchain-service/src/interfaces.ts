@@ -9,10 +9,6 @@ export type IntentTransactionParam = {
     tokenHash: string;
     amount: number;
 };
-export interface Account {
-    getWif(): string
-    getAddress(): string
-}
 
 export type CalculateTransferFeeDetails = {
     systemFee?: string
@@ -23,40 +19,22 @@ export type ExchangeInfo = {
     symbol: string
     amount: number
 }
+export type ClaimResponse = { txid: string, symbol: string, hash: string }
 export interface Claimable {
-    claim(account: Account): Promise<{ txid: string, symbol: string, hash: string }>
+    claim(account: Account): Promise<ClaimResponse>
     dataService: BlockchainDataService & BDSClaimable
     tokenClaim: {hash: string, symbol: string, decimals: number}
 }
-
 export enum NNSRecordTypes {
     IPV4 = "1",
     CANONICAL_NAME = "5",
     TEXT = "16",
     IPV6 = "28",
 }
-
-export type NNSResponse = {
-    jsonrpc: string;
-    id: number;
-    result: {
-      script: string;
-      state: string;
-      gasconsumed: string;
-      exception: string;
-      stack: {
-        type: string;
-        value: string;
-      }[];
-  };
-};
-
 export interface NeoNameService {
-    getNeoNsRecord(
-      domainName: string,
-      type: typeof NNSRecordTypes
-    ): Promise<NNSResponse>;
-    getOwnerOfNeoNsRecord(domainName: string): Promise<NNSResponse>;
+    getNNSRecord(domainName: string, type: NNSRecordTypes): Promise<string>;
+    getOwnerOfNNS(domainName: string): Promise<string>;
+    validateNNSFormat(domainName: string): boolean
 }
 
 export type Token = {
@@ -65,6 +43,11 @@ export type Token = {
     hash: string
     decimals: number
 }
+export type Account = { 
+    wif: string
+    address: string
+}
+export type CalculateTransferFeeResponse = { result: number, details?: CalculateTransferFeeDetails }
 
 export interface BlockchainService<BSCustomName extends string = string> {
     readonly dataService: BlockchainDataService
@@ -76,13 +59,13 @@ export interface BlockchainService<BSCustomName extends string = string> {
     sendTransaction(param: SendTransactionParam): Promise<string>
     generateMnemonic(): string
     generateWif(mnemonic: string, index: number): string
-    generateAccount(mnemonic: string, index: number): { wif: string, address: string }
+    generateAccount(mnemonic: string, index: number): Account
     generateAccountFromWif(wif: string): string
-    decryptKey(encryptedKey: string, password: string): Promise<{ wif: string, address: string }>
+    decryptKey(encryptedKey: string, password: string): Promise<Account>
     validateAddress(address: string): boolean
     validateEncryptedKey(encryptedKey: string): boolean
     validateWif(wif: string): boolean
-    calculateTransferFee(param: SendTransactionParam, details?: boolean): Promise<{ result: number, details?: CalculateTransferFeeDetails }>
+    calculateTransferFee(param: SendTransactionParam, details?: boolean): Promise<CalculateTransferFeeResponse>
 }
 //****************************************************************************
 //Interfaces and Types related to blockchain queries

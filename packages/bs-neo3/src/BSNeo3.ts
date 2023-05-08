@@ -1,10 +1,13 @@
-import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam, NeoNameService, NNSRecordTypes } from '@cityofzion/blockchain-service'
+import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam, NeoNameService, NNSRecordTypes, CalculateTransferFeeResponse } from '@cityofzion/blockchain-service'
 import { api, rpc, tx, u, wallet } from '@cityofzion/neon-js'
 import * as AsteroidSDK from '@moonlight-io/asteroid-sdk-js'
 import { gasInfoNeo3, neoInfoNeo3 } from './constants'
-import { claimGasExceptions } from './excpetions'
+import { claimGasExceptions } from './exceptions'
 import { explorerOptions } from './explorer'
 import tokens from './assets/tokens.json'
+import { NeonInvoker } from '@cityofzion/neon-invoker'
+import {NeonParser} from "@cityofzion/neon-parser"
+import { ABI_TYPES, HINT_TYPES } from '@cityofzion/neo3-parser'
 
 const NEO_NS_HASH = "0x50ac1c37690cc2cfc594472833cf57505d5f46de";
 
@@ -35,7 +38,7 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
     }
     private buildTransfer(transactionIntents: IntentTransactionParam[], account: Account) {
         const intents: api.Nep17TransferIntent[] = []
-        const neoAccount = new wallet.Account(account.getWif())
+        const neoAccount = new wallet.Account(account.wif)
         for (const transactionIntent of transactionIntents) {
             const { amount, receiverAddress, tokenHash } = transactionIntent
             intents.push({
@@ -48,7 +51,7 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
         return intents
     }
     private signTransfer(account: Account) {
-        const neoAccount = new wallet.Account(account.getWif())
+        const neoAccount = new wallet.Account(account.address)
         const result: api.signingConfig = {
             signingCallback: api.signWithAccount(neoAccount)
         }
@@ -65,7 +68,7 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
         const childKey = this.keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
         return childKey.getWIF()
     }
-    generateAccount(mnemonic: string, index: number): { wif: string; address: string; } {
+    generateAccount(mnemonic: string, index: number): Account {
         const wif = this.generateWif(mnemonic, index)
         const { address } = new wallet.Account(wif)
         return { address, wif }
@@ -74,7 +77,7 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
         const { address } = new wallet.Account(wif)
         return address
     }
-    async decryptKey(encryptedKey: string, password: string): Promise<{ wif: string; address: string; }> {
+    async decryptKey(encryptedKey: string, password: string): Promise<Account> {
         const wif = await wallet.decrypt(encryptedKey, password)
         const { address } = new wallet.Account(wif)
         return { address, wif }
@@ -88,7 +91,7 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
     validateWif(wif: string): boolean {
         return wallet.isWIF(wif)
     }
-    async calculateTransferFee(param: SendTransactionParam): Promise<{ result: number; details?: CalculateTransferFeeDetails | undefined; }> {
+    async calculateTransferFee(param: SendTransactionParam): Promise<CalculateTransferFeeResponse> {
         const node = await this.dataService.getHigherNode()
         const url = node.url
         const rpcClient = new rpc.NeoServerRpcClient(url)
@@ -113,7 +116,7 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
             }
         }
         const txn = txBuilder.build()
-        const accountScriptHash = wallet.getScriptHashFromAddress(param.senderAccount.getAddress())
+        const accountScriptHash = wallet.getScriptHashFromAddress(param.senderAccount.address)
         const invokeFunctionResponse = await rpcClient.invokeScript(
             u.HexString.fromHex(txn.script),
             [
@@ -144,16 +147,16 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
     }
     //Claimable interface implementation
     async claim(account: Account): Promise<{ txid: string; symbol: string; hash: string; }> {
-        const balance = await this.dataService.getBalance(account.getAddress())
+        const balance = await this.dataService.getBalance(account.address)
         const neoHash = neoInfoNeo3.hash
         const neoBalance = balance.find(balance => balance.hash === neoHash)
         const gasBalance = balance.find(balance => balance.hash === gasInfoNeo3.hash)
-        const neoAccount = new wallet.Account(account.getWif())
+        const neoAccount = new wallet.Account(account.wif)
 
         if (!neoBalance || !gasBalance) throw new Error(`Problem to claim`);
 
         const dataToClaim: SendTransactionParam = {
-            transactionIntents: [{ amount: neoBalance.amount, receiverAddress: account.getAddress(), tokenHash: neoBalance.hash }],
+            transactionIntents: [{ amount: neoBalance.amount, receiverAddress: account.address, tokenHash: neoBalance.hash }],
             senderAccount: account
         }
 
@@ -174,32 +177,52 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
         return result;
     }
     // Gets the record of a second-level domain or its subdomains with the specific type.
-    async getNeoNsRecord(
+    async getNNSRecord(
       domainName: string,
-      type: typeof NNSRecordTypes
+      type: NNSRecordTypes
     ): Promise<any> {
-        const url = (await this.dataService.getHigherNode()).url;
-        const rpcClient = new rpc.NeoServerRpcClient(url);
-        return rpcClient.invokeFunction(NEO_NS_HASH, "getRecord", [
-            {
-                type: "String",
-                value: domainName,
-            },
-            {
-                type: "Integer",
-                value: type,
-            },
-        ]);
+        const higherNode = await this.dataService.getHigherNode()
+        const parser = NeonParser
+        const invoker = await NeonInvoker.init(higherNode.url)
+        const response = await invoker.testInvoke({
+            invocations: [{
+                scriptHash: NEO_NS_HASH,
+                operation: "getRecord",
+                args: [{ type: "String", value: domainName }, { type: "Integer", value: type }]
+            }]
+        })
+
+        if (response.stack.length === 0) {
+            throw new Error(response.exception ?? 'unrecognized response')
+        }
+
+        const parsed = parser.parseRpcResponse(response.stack[0] as any)
+        return parsed
     }
-    // Gets the domain owner. If the domain has expired, an error message is returned instead of the owner.
-    async getOwnerOfNeoNsRecord(domainName: string): Promise<any> {
-        const url = (await this.dataService.getHigherNode()).url;
-        const rpcClient = new rpc.NeoServerRpcClient(url);
-        return rpcClient.invokeFunction(NEO_NS_HASH, "ownerOf", [
-            {
-                type: "ByteArray",
-                value: domainName,
-            },
-        ]);
+
+    async getOwnerOfNNS(domainName: string): Promise<any> {
+        const higherNode = await this.dataService.getHigherNode()
+        const parser = NeonParser
+        const invoker = await NeonInvoker.init(higherNode.url)
+        const response = await invoker.testInvoke({
+            invocations: [{
+                scriptHash: NEO_NS_HASH,
+                operation: "ownerOf",
+                args: [{ type: "String", value: domainName }]
+            }]
+        })
+
+        if (response.stack.length === 0) {
+            throw new Error(response.exception ?? 'unrecognized response')
+        }
+
+        const parsed = parser.parseRpcResponse(response.stack[0] as any, {type: ABI_TYPES.HASH160.name})
+        const address = parser.accountInputToAddress(parsed.replace("0x", ""))
+        return address
+    }
+    
+    validateNNSFormat(domainName: string): boolean {
+        if (!domainName.endsWith('.neo')) return false
+        return true
     }
 }
