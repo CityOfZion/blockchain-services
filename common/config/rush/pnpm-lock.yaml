@@ -20,7 +20,7 @@ importers:
 
   ../../packages/bs-neo-legacy:
     specifiers:
-      '@cityofzion/blockchain-service': workspace:*
+      '@cityofzion/blockchain-service': 0.2.0
       '@cityofzion/dora-ts': 0.0.11
       '@cityofzion/neon-js': ^4.8.3
       '@moonlight-io/asteroid-sdk-js': git+https://github.com/Moonlight-io/asteroid-sdk-js
@@ -29,7 +29,7 @@ importers:
       typedoc: 0.23.24
       typescript: 4.9.5
     dependencies:
-      '@cityofzion/blockchain-service': link:../blockchain-service
+      '@cityofzion/blockchain-service': 0.2.0
       '@cityofzion/dora-ts': 0.0.11
       '@cityofzion/neon-js': 4.9.0
       '@moonlight-io/asteroid-sdk-js': github.com/Moonlight-io/asteroid-sdk-js/7f067dc2f6be0bf77cabc10771c204035770be52
@@ -41,7 +41,7 @@ importers:
 
   ../../packages/bs-neo3:
     specifiers:
-      '@cityofzion/blockchain-service': workspace:*
+      '@cityofzion/blockchain-service': 0.2.0
       '@cityofzion/dora-ts': 0.0.11
       '@cityofzion/neo3-parser': 1.6.0
       '@cityofzion/neon-invoker': 1.4.0
@@ -53,7 +53,7 @@ importers:
       typedoc: 0.23.24
       typescript: 4.9.5
     dependencies:
-      '@cityofzion/blockchain-service': link:../blockchain-service
+      '@cityofzion/blockchain-service': 0.2.0
       '@cityofzion/dora-ts': 0.0.11
       '@cityofzion/neo3-parser': 1.6.0
       '@cityofzion/neon-invoker': 1.4.0
@@ -67,6 +67,14 @@ importers:
       typescript: 4.9.5
 
 packages:
+
+  /@cityofzion/blockchain-service/0.2.0:
+    resolution: {integrity: sha512-M+YHJJIm1WvI/8xtBXXwOw27ew3bsUAM/KVEY91P0G8XrHB/jS/P9RG+zlsQGtJVBLRXghUtPkDZmMfQdB/h2w==}
+    dependencies:
+      axios: 1.3.2
+    transitivePeerDependencies:
+      - debug
+    dev: false
 
   /@cityofzion/dora-ts/0.0.11:
     resolution: {integrity: sha512-LJWGU29BHPTHkt0i/OwhNdMfUGM/rgAa4rqlDwBy95spxSoUHGSoAtOD5k4aSVKmLFwq77ghNna0Lpc7lEuHBA==}
