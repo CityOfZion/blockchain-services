@@ -43,7 +43,10 @@ importers:
     specifiers:
       '@cityofzion/blockchain-service': workspace:*
       '@cityofzion/dora-ts': 0.0.11
-      '@cityofzion/neon-js': ^5.3.0
+      '@cityofzion/neo3-parser': 1.6.0
+      '@cityofzion/neon-invoker': 1.4.0
+      '@cityofzion/neon-js': ^5.4.0
+      '@cityofzion/neon-parser': 1.6.2
       '@moonlight-io/asteroid-sdk-js': git+https://github.com/Moonlight-io/asteroid-sdk-js
       axios: 1.3.2
       ts-node: 10.9.1
@@ -52,7 +55,10 @@ importers:
     dependencies:
       '@cityofzion/blockchain-service': link:../blockchain-service
       '@cityofzion/dora-ts': 0.0.11
-      '@cityofzion/neon-js': 5.3.0
+      '@cityofzion/neo3-parser': 1.6.0
+      '@cityofzion/neon-invoker': 1.4.0
+      '@cityofzion/neon-js': 5.4.0
+      '@cityofzion/neon-parser': 1.6.2
       '@moonlight-io/asteroid-sdk-js': github.com/Moonlight-io/asteroid-sdk-js/7f067dc2f6be0bf77cabc10771c204035770be52
       axios: 1.3.2
     devDependencies:
@@ -68,6 +74,14 @@ packages:
       axios: 0.21.1
     transitivePeerDependencies:
       - debug
+    dev: false
+
+  /@cityofzion/neo3-invoker/1.4.0:
+    resolution: {integrity: sha512-BOqJA2e6Kq3QPL/kaMYEjpPCeh9fdKTzRjEi9oIxi0MY5B7nj4rhAVl4l2A06jGNboi+VhToo/gJ/ZVzW/GaeQ==}
+    dev: false
+
+  /@cityofzion/neo3-parser/1.6.0:
+    resolution: {integrity: sha512-K+j3qaZEuq1cxit+fFziwAAc0hMQTdACbtllU1HUKJZ89dw7z/FY3Bmg12cyZ8tXuiktCloXvUT0Mg/IzoYqdg==}
     dev: false
 
   /@cityofzion/neon-api/4.9.0_@cityofzion+neon-core@4.9.0:
@@ -92,6 +106,14 @@ packages:
       '@cityofzion/neon-core': ^5.0.0
     dependencies:
       '@cityofzion/neon-core': 5.3.0
+    dev: false
+
+  /@cityofzion/neon-api/5.4.0_@cityofzion+neon-core@5.4.0:
+    resolution: {integrity: sha512-FHjdq2RnZLK37Hpd71yhVMkmbhl/iyPrmmAiEKb4mf5/rLtbNaKEEEJsxRkSNasio9+14cd7+BecIZ/35L1Sbg==}
+    peerDependencies:
+      '@cityofzion/neon-core': ^5.0.0
+    dependencies:
+      '@cityofzion/neon-core': 5.4.0
     dev: false
 
   /@cityofzion/neon-core/4.9.0:
@@ -136,6 +158,34 @@ packages:
       - encoding
     dev: false
 
+  /@cityofzion/neon-core/5.4.0:
+    resolution: {integrity: sha512-m5B0X71KXDY1WJPMu9oM7lyKp0b5qkLaLyYC+68LgV7/f0wlnA3BQ/40rYutb2b5p+NKlEElm3IRPbdA3INcrA==}
+    engines: {node: '>=16.19.0'}
+    dependencies:
+      bn.js: 5.2.1
+      bs58: 5.0.0
+      buffer: 6.0.3
+      cross-fetch: 3.1.5
+      crypto-js: 4.1.1
+      elliptic: 6.5.4
+      ethereum-cryptography: 2.0.0
+      lodash: 4.17.21
+      loglevel: 1.8.1
+      loglevel-plugin-prefix: 0.8.4
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
+  /@cityofzion/neon-invoker/1.4.0:
+    resolution: {integrity: sha512-lopkzz3/lCFylzK3n5RoUR5H2CbIXLQK+GnRvzrCFk/fLF24uGVB2GrKwdnVJgvNXRUXjziRABtB5WC6iLgmlA==}
+    dependencies:
+      '@cityofzion/neo3-invoker': 1.4.0
+      '@cityofzion/neon-core': 5.3.0
+      '@cityofzion/neon-js': 5.3.0
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
   /@cityofzion/neon-js/4.9.0:
     resolution: {integrity: sha512-YYeMbQGZJkC8Wq2UQt98OUys8f8tPCaXMplbV8GwiJEdG+PJJOFGg3NkvrDGUfcuasff0dcn8LWjXTPKPp+Gyw==}
     dependencies:
@@ -157,12 +207,30 @@ packages:
       - encoding
     dev: false
 
+  /@cityofzion/neon-js/5.4.0:
+    resolution: {integrity: sha512-PeK5F4xSQyiqkrq/0TvBUl08wdim4ZPVD+XrUUNCIDuyJGeFkaleKlVsSqR5ZY2kofLNpdHsgXXMjiu/HrEdzQ==}
+    dependencies:
+      '@cityofzion/neon-api': 5.4.0_@cityofzion+neon-core@5.4.0
+      '@cityofzion/neon-core': 5.4.0
+    transitivePeerDependencies:
+      - encoding
+    dev: false
+
   /@cityofzion/neon-nep5/4.9.0:
     resolution: {integrity: sha512-MSRXHl+UGYnh8f9FC7zZvMNRblnl496VxG3tjA+GIShtLR6u75/FK7syVXua9h8/khljL7qqSfnNqA+sy7q+eg==}
     dependencies:
       '@cityofzion/neon-core': 4.9.0
     transitivePeerDependencies:
       - debug
+    dev: false
+
+  /@cityofzion/neon-parser/1.6.2:
+    resolution: {integrity: sha512-1wG6qfRR3PNYm3eFqf0/sRSjLBJLVYDnXFnaWvgc31PzTrcCifUUR9ZJr2YWINmV9qnGuGCKlL2Cz+vkFfOA1g==}
+    dependencies:
+      '@cityofzion/neo3-parser': 1.6.0
+      '@cityofzion/neon-js': 5.3.0
+    transitivePeerDependencies:
+      - encoding
     dev: false
 
   /@cspotcode/source-map-support/0.8.1:
@@ -187,6 +255,35 @@ packages:
       '@jridgewell/resolve-uri': 3.1.0
       '@jridgewell/sourcemap-codec': 1.4.14
     dev: true
+
+  /@noble/curves/1.0.0:
+    resolution: {integrity: sha512-2upgEu0iLiDVDZkNLeFV2+ht0BAVgQnEmCk6JsOch9Rp8xfkMCbvbAZlA2pBHQc73dbl+vFOXfqkf4uemdn0bw==}
+    dependencies:
+      '@noble/hashes': 1.3.0
+    dev: false
+
+  /@noble/hashes/1.3.0:
+    resolution: {integrity: sha512-ilHEACi9DwqJB0pw7kv+Apvh50jiiSyR/cQ3y4W7lOR5mhvn/50FLUfsnfJz0BDZtl/RR16kXvptiv6q1msYZg==}
+    dev: false
+
+  /@scure/base/1.1.1:
+    resolution: {integrity: sha512-ZxOhsSyxYwLJj3pLZCefNitxsj093tb2vq90mp2txoYeBqbcjDjqFhyM8eUjq/uFm6zJ+mUuqxlS2FkuSY1MTA==}
+    dev: false
+
+  /@scure/bip32/1.3.0:
+    resolution: {integrity: sha512-bcKpo1oj54hGholplGLpqPHRbIsnbixFtc06nwuNM5/dwSXOq/AAYoIBRsBmnZJSdfeNW5rnff7NTAz3ZCqR9Q==}
+    dependencies:
+      '@noble/curves': 1.0.0
+      '@noble/hashes': 1.3.0
+      '@scure/base': 1.1.1
+    dev: false
+
+  /@scure/bip39/1.2.0:
+    resolution: {integrity: sha512-SX/uKq52cuxm4YFXWFaVByaSHJh2w3BnokVSeUJVCv6K7WulT9u2BuNRBhuFl8vAuYnzx9bEu9WgpcNYTrYieg==}
+    dependencies:
+      '@noble/hashes': 1.3.0
+      '@scure/base': 1.1.1
+    dev: false
 
   /@tsconfig/node10/1.0.9:
     resolution: {integrity: sha512-jNsYVVxU8v5g43Erja32laIDHXeoNvFEpX33OK4d6hljo3jDhCBDhx5dhCCTMWUojscpAagGiRkBKxpdl9fxqA==}
@@ -339,6 +436,10 @@ packages:
     resolution: {integrity: sha512-D7iWRBvnZE8ecXiLj/9wbxH7Tk79fAh8IHaTNq1RWRixsS02W+5qS+iE9yq6RYl0asXx5tw0bLhmT5pIfbSquw==}
     dev: false
 
+  /bn.js/5.2.1:
+    resolution: {integrity: sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==}
+    dev: false
+
   /brace-expansion/2.0.1:
     resolution: {integrity: sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==}
     dependencies:
@@ -467,6 +568,15 @@ packages:
       inherits: 2.0.4
       minimalistic-assert: 1.0.1
       minimalistic-crypto-utils: 1.0.1
+    dev: false
+
+  /ethereum-cryptography/2.0.0:
+    resolution: {integrity: sha512-g25m4EtfQGjstWgVE1aIz7XYYjf3kH5kG17ULWVB5dH6uLahsoltOhACzSxyDV+fhn4gbR4xRrOXGe6r2uh4Bg==}
+    dependencies:
+      '@noble/curves': 1.0.0
+      '@noble/hashes': 1.3.0
+      '@scure/bip32': 1.3.0
+      '@scure/bip39': 1.2.0
     dev: false
 
   /event-target-shim/5.0.1:

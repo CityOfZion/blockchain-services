@@ -1,5 +1,5 @@
 
-export const exception = {
+export const exceptions = {
     invalidBlockchainService: (message?: string) => {
         throw new Error(`Invalid blockchainServices => ${message}`);
     },
