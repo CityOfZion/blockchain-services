@@ -10,7 +10,7 @@
     "build": "tsc && typedoc src/index.ts"
   },
   "dependencies": {
-    "@cityofzion/neon-js": "^5.4.0",
+    "@cityofzion/neon-js": "5.3.0",
     "@cityofzion/neon-invoker": "1.4.0",
     "@cityofzion/neon-parser": "1.6.2",
     "@cityofzion/neo3-parser": "1.6.0",
