@@ -1,86 +1,28 @@
-import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam, NeoNameService, NNSRecordTypes, CalculateTransferFeeResponse } from '@cityofzion/blockchain-service'
+import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, TokenInfo, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam, NeoNameService, NNSRecordTypes, CalculateTransferFeeResponse } from '@cityofzion/blockchain-service'
 import { api, rpc, tx, u, wallet } from '@cityofzion/neon-js'
-import * as AsteroidSDK from '@moonlight-io/asteroid-sdk-js'
+import {BIP39Encoded} from '@cityofzion/wallet-sdk'
 import { gasInfoNeo3, neoInfoNeo3 } from './constants'
 import { claimGasExceptions } from './exceptions'
 import { explorerOptions } from './explorer'
 import tokens from './assets/tokens.json'
 import { NeonInvoker } from '@cityofzion/neon-invoker'
 import {NeonParser} from "@cityofzion/neon-parser"
-import { ABI_TYPES, HINT_TYPES } from '@cityofzion/neo3-parser'
+import { ABI_TYPES } from '@cityofzion/neo3-parser'
 
 const NEO_NS_HASH = "0x50ac1c37690cc2cfc594472833cf57505d5f46de";
 
 export class BSNeo3<BSCustomName extends string = string> implements BlockchainService, Claimable, NeoNameService {
     blockchainName: BSCustomName
     dataService: BlockchainDataService & BDSClaimable = explorerOptions.dora
-    derivationPath: string = "m/44'/888'/0'/0/?"
-    feeToken: { hash: string; symbol: string; decimals: number; } = gasInfoNeo3
+    feeToken: TokenInfo = gasInfoNeo3
     exchange: Exchange = exchangeOptions.flamingo
-    tokenClaim: { hash: string; symbol: string; decimals: number } = neoInfoNeo3
+    tokenClaim: TokenInfo = neoInfoNeo3
     tokens: Token[] = tokens
-    private keychain = new AsteroidSDK.Keychain()
+
+    private derivationPath: string = "m/44'/888'/0'/0/?"
+
     constructor(blockchainName: BSCustomName) {
         this.blockchainName = blockchainName
-    }
-    async sendTransaction(param: SendTransactionParam): Promise<string> {
-        try {
-            const { senderAccount, transactionIntents } = param
-            const node = await this.dataService.getHigherNode()
-            const facade = await api.NetworkFacade.fromConfig({ node: node.url })
-            const intents = this.buildTransfer(transactionIntents, senderAccount)
-            const signing = this.signTransfer(senderAccount)
-            const result = await facade.transferToken(intents, signing)
-            return result;
-        } catch (error) {
-            throw error;
-        }
-    }
-    private buildTransfer(transactionIntents: IntentTransactionParam[], account: Account) {
-        const intents: api.Nep17TransferIntent[] = []
-        const neoAccount = new wallet.Account(account.wif)
-        for (const transactionIntent of transactionIntents) {
-            const { amount, receiverAddress, tokenHash } = transactionIntent
-            intents.push({
-                to: receiverAddress,
-                contractHash: tokenHash,
-                from: neoAccount,
-                decimalAmt: amount,
-            })
-        }
-        return intents
-    }
-    private signTransfer(account: Account) {
-        const neoAccount = new wallet.Account(account.address)
-        const result: api.signingConfig = {
-            signingCallback: api.signWithAccount(neoAccount)
-        }
-        return result
-    }
-    generateMnemonic(): string {
-        this.keychain.generateMnemonic(128)
-        const list = this.keychain.mnemonic?.toString()
-        if (!list) throw new Error("Failed to generate mnemonic");
-        return list
-    }
-    generateWif(mnemonic: string, index: number): string {
-        this.keychain.importMnemonic(mnemonic)
-        const childKey = this.keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
-        return childKey.getWIF()
-    }
-    generateAccount(mnemonic: string, index: number): Account {
-        const wif = this.generateWif(mnemonic, index)
-        const { address } = new wallet.Account(wif)
-        return { address, wif }
-    }
-    generateAccountFromWif(wif: string): string {
-        const { address } = new wallet.Account(wif)
-        return address
-    }
-    async decryptKey(encryptedKey: string, password: string): Promise<Account> {
-        const wif = await wallet.decrypt(encryptedKey, password)
-        const { address } = new wallet.Account(wif)
-        return { address, wif }
     }
     validateAddress(address: string): boolean {
         return wallet.isAddress(address)
@@ -90,6 +32,33 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
     }
     validateWif(wif: string): boolean {
         return wallet.isWIF(wif)
+    }
+    validateNNSFormat(domainName: string): boolean {
+        if (!domainName.endsWith('.neo')) return false
+        return true
+    }
+    generateMnemonic(): string[] {
+        const bip39 = new BIP39Encoded()
+        const {phonetic} = bip39.generateMnemonic({length: 12})
+        if (!phonetic) throw new Error("Failed to generate mnemonic");
+        return phonetic
+    }
+    generateAccount(mnemonic: string[], index: number): Account {
+        const bip39 = new BIP39Encoded({ mnemonic })
+        const keychain = bip39.getKeychain('neo')
+        const childKey = keychain.generateChildKey(this.derivationPath.replace('?', index.toString()))
+        const wif =  childKey.getWIF()
+        const { address } = new wallet.Account(wif)
+        return { address, wif }
+    }
+    generateAccountFromWif(wif: string): Account {
+        const { address } = new wallet.Account(wif)
+        return { address, wif }
+    }
+    async decryptKey(encryptedKey: string, password: string): Promise<Account> {
+        const wif = await wallet.decrypt(encryptedKey, password)
+        const { address } = new wallet.Account(wif)
+        return { address, wif }
     }
     async calculateTransferFee(param: SendTransactionParam): Promise<CalculateTransferFeeResponse> {
         const node = await this.dataService.getHigherNode()
@@ -144,6 +113,19 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
             }
         }
         return result
+    }
+    async sendTransaction(param: SendTransactionParam): Promise<string> {
+        try {
+            const { senderAccount, transactionIntents } = param
+            const node = await this.dataService.getHigherNode()
+            const facade = await api.NetworkFacade.fromConfig({ node: node.url })
+            const intents = this.buildTransfer(transactionIntents, senderAccount)
+            const signing = this.signTransfer(senderAccount)
+            const result = await facade.transferToken(intents, signing)
+            return result;
+        } catch (error) {
+            throw error;
+        }
     }
     //Claimable interface implementation
     async claim(account: Account): Promise<{ txid: string; symbol: string; hash: string; }> {
@@ -220,9 +202,25 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
         const address = parser.accountInputToAddress(parsed.replace("0x", ""))
         return address
     }
-    
-    validateNNSFormat(domainName: string): boolean {
-        if (!domainName.endsWith('.neo')) return false
-        return true
+    private buildTransfer(transactionIntents: IntentTransactionParam[], account: Account) {
+        const intents: api.Nep17TransferIntent[] = []
+        const neoAccount = new wallet.Account(account.wif)
+        for (const transactionIntent of transactionIntents) {
+            const { amount, receiverAddress, tokenHash } = transactionIntent
+            intents.push({
+                to: receiverAddress,
+                contractHash: tokenHash,
+                from: neoAccount,
+                decimalAmt: amount,
+            })
+        }
+        return intents
+    }
+    private signTransfer(account: Account) {
+        const neoAccount = new wallet.Account(account.address)
+        const result: api.signingConfig = {
+            signingCallback: api.signWithAccount(neoAccount)
+        }
+        return result
     }
 }

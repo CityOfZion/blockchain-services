@@ -9,7 +9,7 @@ export type IntentTransactionParam = {
     tokenHash: string;
     amount: number;
 };
-
+export type TokenInfo = {hash: string, symbol: string, decimals: number}
 export type CalculateTransferFeeDetails = {
     systemFee?: string
     networkFee?: string
@@ -23,7 +23,7 @@ export type ClaimResponse = { txid: string, symbol: string, hash: string }
 export interface Claimable {
     claim(account: Account): Promise<ClaimResponse>
     dataService: BlockchainDataService & BDSClaimable
-    tokenClaim: {hash: string, symbol: string, decimals: number}
+    tokenClaim: TokenInfo
 }
 export enum NNSRecordTypes {
     IPV4 = "1",
@@ -52,15 +52,13 @@ export type CalculateTransferFeeResponse = { result: number, details?: Calculate
 export interface BlockchainService<BSCustomName extends string = string> {
     readonly dataService: BlockchainDataService
     readonly blockchainName: BSCustomName
-    readonly derivationPath: string
-    readonly feeToken: { hash: string, symbol: string, decimals: number }
+    readonly feeToken: TokenInfo
     readonly exchange: Exchange
     readonly tokens: Token[]
     sendTransaction(param: SendTransactionParam): Promise<string>
-    generateMnemonic(): string
-    generateWif(mnemonic: string, index: number): string
-    generateAccount(mnemonic: string, index: number): Account
-    generateAccountFromWif(wif: string): string
+    generateMnemonic(): string[]
+    generateAccount(mnemonic: string[], index: number): Account
+    generateAccountFromWif(wif: string): Account
     decryptKey(encryptedKey: string, password: string): Promise<Account>
     validateAddress(address: string): boolean
     validateEncryptedKey(encryptedKey: string): boolean
@@ -144,11 +142,11 @@ export interface BlockchainDataService {
 }
 //****************************************************************************
 //Interface and Types related to Exchanges
-export type ToeknPricesResponse = {
+export type TokenPricesResponse = {
     amount: number;
     Symbol: string;
 }
 export interface Exchange {
-    getTokenPrices(currency: Currency): Promise<ToeknPricesResponse[]>
+    getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]>
 }
 //*****************************************************************************

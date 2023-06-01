@@ -1,5 +1,4 @@
 import { BalanceResponse, BlockchainNetwork, BlockchainDataService, ConsensusNodeResponse, ContractResponse, TokenInfoResponse, TransactionHistoryResponse, TransactionResponse, TransactionTransfer, BDSClaimable, UnclaimedResponse } from '@cityofzion/blockchain-service'
-import { rpc } from '@cityofzion/neon-js';
 import axios from 'axios'
 import { DoraNeoLegacyEntriesEntity, DoraNeoLegacyTransaction } from './explorer/dora/DoraResponsesNeoLegacy';
 import { DORA_NEO_LEGACY_TRANSACTION } from './explorer/dora/DoraRoutesNeoLegacy';

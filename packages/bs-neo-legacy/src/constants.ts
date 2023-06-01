@@ -1,10 +1,12 @@
+import { TokenInfo } from "@cityofzion/blockchain-service"
+
 export const unclaimedTokenNeoLegacy = {
     symbol: 'GAS',
     name: 'GAS',
     hash: '0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
 }
 
-export const nativeAssetsNeoLegacy: { symbol: string; hash: string; decimals: number }[] = [
+export const nativeAssetsNeoLegacy: TokenInfo[] = [
     {
         decimals: 8,
         symbol: 'GAS',
