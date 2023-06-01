@@ -1,10 +1,9 @@
-import { Account, BDSClaimable, BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, CalculateTransferFeeResponse, ClaimResponse, Claimable, Exchange, IntentTransactionParam, SendTransactionParam, Token, TokenInfo } from '@cityofzion/blockchain-service'
+import { Account, keychain, BDSClaimable, BlockchainDataService, BlockchainService, CalculateTransferFeeResponse, ClaimResponse, Claimable, Exchange, IntentTransactionParam, SendTransactionParam, Token, TokenInfo } from '@cityofzion/blockchain-service'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { explorerNeoLegacyOption } from './explorer'
 import { nativeAssetsNeoLegacy, unclaimedTokenNeoLegacy } from './constants'
 const [, neoToken] = nativeAssetsNeoLegacy
 import tokens from './asset/tokens.json'
-import { BIP39Encoded } from '@cityofzion/wallet-sdk'
 
 export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable  {
     dataService: BlockchainDataService & BDSClaimable = explorerNeoLegacyOption.dora
@@ -30,15 +29,13 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
         return wallet.isWIF(wif)
     }
     generateMnemonic(): string[] {
-        const bip39 = new BIP39Encoded()
-        const {phonetic} = bip39.generateMnemonic({length: 12})
-        if (!phonetic) throw new Error("Failed to generate mnemonic");
-        return phonetic
+        keychain.generateMnemonic(128)
+        if (!keychain.mnemonic) throw new Error("Failed to generate mnemonic")
+        return keychain.mnemonic.toString().split(' ')
     }
     generateAccount(mnemonic: string[], index: number): Account {
-        const bip39 = new BIP39Encoded({ mnemonic })
-        const keychain = bip39.getKeychain('neo')
-        const childKey = keychain.generateChildKey(this.derivationPath.replace('?', index.toString()))
+        keychain.importMnemonic(mnemonic.join(' '))
+        const childKey = keychain.generateChildKey("neo", this.derivationPath.replace('?', index.toString()))
         const wif =  childKey.getWIF()
         const { address } = new wallet.Account(wif)
         return { address, wif }

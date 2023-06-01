@@ -1,6 +1,5 @@
-import { BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, TokenInfo, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam, NeoNameService, NNSRecordTypes, CalculateTransferFeeResponse } from '@cityofzion/blockchain-service'
+import { BlockchainDataService, keychain, BlockchainService, CalculateTransferFeeDetails, SendTransactionParam, TokenInfo, Claimable, Account, Exchange, BDSClaimable, exchangeOptions, Token, IntentTransactionParam, NeoNameService, NNSRecordTypes, CalculateTransferFeeResponse } from '@cityofzion/blockchain-service'
 import { api, rpc, tx, u, wallet } from '@cityofzion/neon-js'
-import {BIP39Encoded} from '@cityofzion/wallet-sdk'
 import { gasInfoNeo3, neoInfoNeo3 } from './constants'
 import { claimGasExceptions } from './exceptions'
 import { explorerOptions } from './explorer'
@@ -38,15 +37,13 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
         return true
     }
     generateMnemonic(): string[] {
-        const bip39 = new BIP39Encoded()
-        const {phonetic} = bip39.generateMnemonic({length: 12})
-        if (!phonetic) throw new Error("Failed to generate mnemonic");
-        return phonetic
+        keychain.generateMnemonic(128)
+        if (!keychain.mnemonic) throw new Error("Failed to generate mnemonic")
+        return keychain.mnemonic.toString().split(' ')
     }
     generateAccount(mnemonic: string[], index: number): Account {
-        const bip39 = new BIP39Encoded({ mnemonic })
-        const keychain = bip39.getKeychain('neo')
-        const childKey = keychain.generateChildKey(this.derivationPath.replace('?', index.toString()))
+        keychain.importMnemonic(mnemonic.join(' '))
+        const childKey = keychain.generateChildKey("neo", this.derivationPath.replace('?', index.toString()))
         const wif =  childKey.getWIF()
         const { address } = new wallet.Account(wif)
         return { address, wif }
