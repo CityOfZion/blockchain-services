@@ -1,22 +1,60 @@
-import { Account, BDSClaimable, BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, CalculateTransferFeeResponse, ClaimResponse, Claimable, Exchange, IntentTransactionParam, SendTransactionParam, Token } from '@cityofzion/blockchain-service'
-import * as AsteroidSDK from '@moonlight-io/asteroid-sdk-js'
+import { Account, BDSClaimable, BlockchainDataService, BlockchainService, CalculateTransferFeeDetails, CalculateTransferFeeResponse, ClaimResponse, Claimable, Exchange, IntentTransactionParam, SendTransactionParam, Token, TokenInfo } from '@cityofzion/blockchain-service'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { explorerNeoLegacyOption } from './explorer'
 import { nativeAssetsNeoLegacy, unclaimedTokenNeoLegacy } from './constants'
-const [gasToken, neoToken] = nativeAssetsNeoLegacy
+const [, neoToken] = nativeAssetsNeoLegacy
 import tokens from './asset/tokens.json'
+import { BIP39Encoded } from '@cityofzion/wallet-sdk'
+
 export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable  {
     dataService: BlockchainDataService & BDSClaimable = explorerNeoLegacyOption.dora
     blockchainName: BSCustomName;
-    derivationPath: string = "m/44'/888'/0'/0/?"
-    feeToken: { hash: string; symbol: string; decimals: number; };
+    feeToken: TokenInfo;
     exchange: Exchange;
-    tokenClaim: { hash: string; symbol: string; decimals: number } = neoToken
+    tokenClaim: TokenInfo = neoToken
     tokens: Token[] = tokens
-    private keychain = new AsteroidSDK.Keychain()
-    private nativeAssets: { symbol: string; hash: string; decimals: number }[] = nativeAssetsNeoLegacy
+
+    private nativeAssets: TokenInfo[] = nativeAssetsNeoLegacy
+    private derivationPath: string = "m/44'/888'/0'/0/?"
+
     constructor(blockchainName: BSCustomName) {
         this.blockchainName = blockchainName
+    }
+    validateAddress(address: string): boolean {
+        return wallet.isAddress(address)
+    }
+    validateEncryptedKey(encryptedKey: string): boolean {
+        return wallet.isNEP2(encryptedKey)
+    }
+    validateWif(wif: string): boolean {
+        return wallet.isWIF(wif)
+    }
+    generateMnemonic(): string[] {
+        const bip39 = new BIP39Encoded()
+        const {phonetic} = bip39.generateMnemonic({length: 12})
+        if (!phonetic) throw new Error("Failed to generate mnemonic");
+        return phonetic
+    }
+    generateAccount(mnemonic: string[], index: number): Account {
+        const bip39 = new BIP39Encoded({ mnemonic })
+        const keychain = bip39.getKeychain('neo')
+        const childKey = keychain.generateChildKey(this.derivationPath.replace('?', index.toString()))
+        const wif =  childKey.getWIF()
+        const { address } = new wallet.Account(wif)
+        return { address, wif }
+    }
+    generateAccountFromWif(wif: string): Account {
+        const { address } = new wallet.Account(wif)
+        return { address, wif }
+    }
+    async decryptKey(encryptedKey: string, password: string): Promise<Account> {
+        const wif = await wallet.decrypt(encryptedKey, password)
+        const { address } = new wallet.Account(wif)
+        const result: { wif: string; address: string; } = { address, wif }
+        return result
+    }
+    calculateTransferFee(): Promise<CalculateTransferFeeResponse> {
+        throw new Error(`Doesn't have fee to make a transaction on ${this.blockchainName}`);
     }
     async sendTransaction(param: SendTransactionParam): Promise<string> {
         const url = (await this.dataService.getHigherNode()).url
@@ -57,6 +95,33 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
         if (!result.tx) throw new Error("Failed to send transaction");
         return result.tx.hash
     }
+    //Implementation Claim interface
+    async claim(account: Account): Promise<ClaimResponse> {
+        const neoAccount = new wallet.Account(account.wif)
+        const balances = await this.dataService.getBalance(account.address)
+        const neoBalance = balances.find(balance => balance.symbol === 'NEO')
+        const apiProvider = new api.neoscan.instance("MainNet")
+        const neoNativeAsset = this.nativeAssets.find(nativeAsset => nativeAsset.symbol === neoBalance?.symbol)
+        if (!neoNativeAsset || !neoBalance) throw new Error("Neo it's necessary to do a claim");
+        const hasClaim = await this.dataService.getUnclaimed(account.address)
+        if (hasClaim.unclaimed <= 0) throw new Error(`Doesn't have gas to claim`);
+        const url = (await this.dataService.getHigherNode()).url
+        const claims = await api.neoCli.getClaims(url, account.address)
+        const claimGasResponse = await api.claimGas({
+            claims,
+            api: apiProvider,
+            account: neoAccount,
+            url
+        })
+
+        const result: { txid: string; symbol: string; hash: string } = {
+            txid: claimGasResponse.response.txid,
+            hash: unclaimedTokenNeoLegacy.hash,
+            symbol: unclaimedTokenNeoLegacy.symbol
+        }
+
+        return result
+    }
     private buildNativeTransaction(transactionIntents: IntentTransactionParam[]) {
         let intents: ReturnType<typeof api.makeIntent> = []
         transactionIntents.forEach(transaction => {
@@ -93,70 +158,5 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     }
     private isNativeTransaction(transactionParam: IntentTransactionParam) {
         return this.nativeAssets.some(asset => asset.hash === transactionParam.tokenHash)
-    }
-    generateMnemonic(): string {
-        this.keychain.generateMnemonic(128)
-        const list = this.keychain.mnemonic?.toString()
-        if (!list) throw new Error("Failed to generate mnemonic");
-        return list
-    }
-    generateWif(mnemonic: string, index: number): string {
-        this.keychain.importMnemonic(mnemonic)
-        const childKey = this.keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
-        return childKey.getWIF()
-    }
-    generateAccount(mnemonic: string, index: number): Account {
-        const wif = this.generateWif(mnemonic, index)
-        const { address } = new wallet.Account(wif)
-        const result: { wif: string; address: string; } = { address, wif }
-        return result
-    }
-    generateAccountFromWif(wif: string): string {
-        return new wallet.Account(wif).address
-    }
-    async decryptKey(encryptedKey: string, password: string): Promise<Account> {
-        const wif = await wallet.decrypt(encryptedKey, password)
-        const { address } = new wallet.Account(wif)
-        const result: { wif: string; address: string; } = { address, wif }
-        return result
-    }
-    validateAddress(address: string): boolean {
-        return wallet.isAddress(address)
-    }
-    validateEncryptedKey(encryptedKey: string): boolean {
-        return wallet.isNEP2(encryptedKey)
-    }
-    validateWif(wif: string): boolean {
-        return wallet.isWIF(wif)
-    }
-    calculateTransferFee(): Promise<CalculateTransferFeeResponse> {
-        throw new Error(`Doesn't have fee to make a transaction on ${this.blockchainName}`);
-    }
-    //Implementation Claim interface
-    async claim(account: Account): Promise<ClaimResponse> {
-        const neoAccount = new wallet.Account(account.wif)
-        const balances = await this.dataService.getBalance(account.address)
-        const neoBalance = balances.find(balance => balance.symbol === 'NEO')
-        const apiProvider = new api.neoscan.instance("MainNet")
-        const neoNativeAsset = this.nativeAssets.find(nativeAsset => nativeAsset.symbol === neoBalance?.symbol)
-        if (!neoNativeAsset || !neoBalance) throw new Error("Neo it's necessary to do a claim");
-        const hasClaim = await this.dataService.getUnclaimed(account.address)
-        if (hasClaim.unclaimed <= 0) throw new Error(`Doesn't have gas to claim`);
-        const url = (await this.dataService.getHigherNode()).url
-        const claims = await api.neoCli.getClaims(url, account.address)
-        const claimGasResponse = await api.claimGas({
-            claims,
-            api: apiProvider,
-            account: neoAccount,
-            url
-        })
-
-        const result: { txid: string; symbol: string; hash: string } = {
-            txid: claimGasResponse.response.txid,
-            hash: unclaimedTokenNeoLegacy.hash,
-            symbol: unclaimedTokenNeoLegacy.symbol
-        }
-
-        return result
     }
 }
