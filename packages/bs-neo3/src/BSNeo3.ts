@@ -24,7 +24,7 @@ export class BSNeo3<BSCustomName extends string = string> implements BlockchainS
         this.blockchainName = blockchainName
     }
     validateAddress(address: string): boolean {
-        return wallet.isAddress(address)
+        return wallet.isAddress(address, 53)
     }
     validateEncryptedKey(encryptedKey: string): boolean {
         return wallet.isNEP2(encryptedKey)

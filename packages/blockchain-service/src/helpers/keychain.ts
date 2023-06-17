@@ -1,12 +1,6 @@
-import * as AsteroidSDK from '@moonlight-io/asteroid-sdk-js'
-
-let SDK = AsteroidSDK
-
 // @ts-ignore
-if (typeof window !== 'undefined') {
-  SDK = require('../polyfills/asteroid-sdk');
-}
+const SDK = typeof window !== 'undefined' ? require('../polyfills/asteroid-sdk') : require('@moonlight-io/asteroid-sdk-js')
 
-export { SDK }
+export {SDK}
 export const keychain = new SDK.Keychain()
 
