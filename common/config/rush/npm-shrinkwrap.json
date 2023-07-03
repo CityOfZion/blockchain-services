@@ -690,13 +690,12 @@
     },
     "@rush-temp/bs-neo-legacy": {
       "version": "file:projects/bs-neo-legacy.tgz",
-      "integrity": "sha512-nOaiTYo1jDyAUiNTrw5/s6MZTEJEAUI3ecy3mq/VKSbjSR+Zro2fe15cE2Ib9EHahdRMJBTCQqGb0/98HeX4Mw==",
+      "integrity": "sha512-3V1azxY8Fqu9OnU7OinVEJl4IJfcJtlIsLRhUDoF/8ejuB9jZk5zxaJFJ5i4C+vQZ9BHwiR4xfemU0lZvOxCUg==",
       "requires": {
         "@cityofzion/dora-ts": "0.0.11",
         "@cityofzion/neon-js": "^4.8.3",
         "axios": "1.3.2",
         "ts-node": "10.9.1",
-        "typedoc": "0.23.24",
         "typescript": "4.9.5"
       },
       "dependencies": {
@@ -804,7 +803,7 @@
     },
     "@rush-temp/bs-neo3": {
       "version": "file:projects/bs-neo3.tgz",
-      "integrity": "sha512-RveYQHXvsEkbMuqAKfFYczSs4sSMBaXBKUMmjf2FCGBBr9geaQl4eCqzTl2qGc7xswq0tdzb8AJJGV6xfxEy/w==",
+      "integrity": "sha512-/J2fbcJDEFzwm+dZxxqmFUili54HelhAt+meFSbuo9TYkJM7yUj+kxcb5nblPbP4h/9Aog1bQsxiP7rCXtaaQQ==",
       "requires": {
         "@cityofzion/dora-ts": "0.0.11",
         "@cityofzion/neo3-parser": "1.6.0",
@@ -812,7 +811,6 @@
         "@cityofzion/neon-js": "5.3.0",
         "@cityofzion/neon-parser": "1.6.2",
         "ts-node": "10.9.1",
-        "typedoc": "0.23.24",
         "typescript": "4.9.5"
       },
       "dependencies": {
