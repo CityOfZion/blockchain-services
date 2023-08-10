@@ -1,4 +1,4 @@
-export * from './BDSNeo3'
+export * from './DoraBDSNeo3'
+export * from './RpcBDSNeo3'
 export * from './BSNeo3'
 export * from './constants'
-export * from './explorer'

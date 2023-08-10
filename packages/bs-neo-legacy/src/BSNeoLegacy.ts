@@ -1,159 +1,170 @@
-import { Account, keychain, BDSClaimable, BlockchainDataService, BlockchainService, CalculateTransferFeeResponse, ClaimResponse, Claimable, Exchange, IntentTransactionParam, SendTransactionParam, Token, TokenInfo } from '@cityofzion/blockchain-service'
+import {
+  Account,
+  keychain,
+  BDSClaimable,
+  BlockchainDataService,
+  BlockchainService,
+  CalculateTransferFeeResponse,
+  Claimable,
+  Exchange,
+  Token,
+  Network,
+  PartialBy,
+  TransferParam,
+} from '@cityofzion/blockchain-service'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
-import { explorerNeoLegacyOption } from './explorer'
-import { nativeAssetsNeoLegacy, unclaimedTokenNeoLegacy } from './constants'
-const [, neoToken] = nativeAssetsNeoLegacy
-import tokens from './asset/tokens.json'
+import { DEFAULT_URL_BY_NETWORK_TYPE, LEGACY_NETWORK_BY_NETWORK_TYPE, NATIVE_ASSETS, TOKENS } from './constants'
+import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
 
-export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable  {
-    dataService: BlockchainDataService & BDSClaimable = explorerNeoLegacyOption.dora
-    blockchainName: BSCustomName;
-    feeToken: TokenInfo;
-    exchange: Exchange;
-    tokenClaim: TokenInfo = neoToken
-    tokens: Token[] = tokens
+export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable {
+  dataService!: BlockchainDataService & BDSClaimable
+  blockchainName: BSCustomName
+  feeToken: Token
+  // Implement an Exchange interface for the legacy blockchain
+  exchange!: Exchange
+  tokenClaim: Token
+  tokens: Token[]
+  network!: Network
+  legacyNetwork: string
 
-    private nativeAssets: TokenInfo[] = nativeAssetsNeoLegacy
-    private derivationPath: string = "m/44'/888'/0'/0/?"
+  private derivationPath: string = "m/44'/888'/0'/0/?"
 
-    constructor(blockchainName: BSCustomName) {
-        this.blockchainName = blockchainName
-    }
-    validateAddress(address: string): boolean {
-        return wallet.isAddress(address)
-    }
-    validateEncryptedKey(encryptedKey: string): boolean {
-        return wallet.isNEP2(encryptedKey)
-    }
-    validateWif(wif: string): boolean {
-        return wallet.isWIF(wif)
-    }
-    generateMnemonic(): string[] {
-        keychain.generateMnemonic(128)
-        if (!keychain.mnemonic) throw new Error("Failed to generate mnemonic")
-        return keychain.mnemonic.toString().split(' ')
-    }
-    generateAccount(mnemonic: string[], index: number): Account {
-        keychain.importMnemonic(mnemonic.join(' '))
-        const childKey = keychain.generateChildKey("neo", this.derivationPath.replace('?', index.toString()))
-        const wif =  childKey.getWIF()
-        const { address } = new wallet.Account(wif)
-        return { address, wif }
-    }
-    generateAccountFromWif(wif: string): Account {
-        const { address } = new wallet.Account(wif)
-        return { address, wif }
-    }
-    async decryptKey(encryptedKey: string, password: string): Promise<Account> {
-        const wif = await wallet.decrypt(encryptedKey, password)
-        const { address } = new wallet.Account(wif)
-        const result: { wif: string; address: string; } = { address, wif }
-        return result
-    }
-    calculateTransferFee(): Promise<CalculateTransferFeeResponse> {
-        throw new Error(`Doesn't have fee to make a transaction on ${this.blockchainName}`);
-    }
-    async sendTransaction(param: SendTransactionParam): Promise<string> {
-        const url = (await this.dataService.getHigherNode()).url
-        const apiProvider = new api.neoscan.instance("MainNet")
-        const account = new wallet.Account(param.senderAccount.wif)
-        const intentsWithTye = this.setTypeIntents(param.transactionIntents)
-        const isNativeTransaction = intentsWithTye.every(intent => intent.type === 'native')
-        const priorityFee = param.priorityFee ?? 0
-        const [gasAsset] = this.nativeAssets
-        const gasBalance = (await this.dataService.getBalance(param.senderAccount.address)).find(balance => balance.hash === gasAsset.hash)
-        if (gasBalance?.amount < priorityFee) throw new Error("Don't have funds to pay the transaction");
-        const transactionOperations = {
-            native: () => {
-                return api.sendAsset({
-                    account,
-                    api: apiProvider,
-                    url,
-                    intents: this.buildNativeTransaction(param.transactionIntents),
-                    fees: priorityFee
-                })
-            },
-            nep5: () => {
-                const extraIntentsNep5 = intentsWithTye.filter(it => it.type === 'native').map(it => {
-                    const { type, ...rest } = it
-                    return rest
-                })
-                return api.doInvoke({
-                    intents: extraIntentsNep5.length > 0 ? this.buildNativeTransaction(extraIntentsNep5) : undefined,
-                    account,
-                    api: apiProvider,
-                    script: this.buildNep5Transaction(param.transactionIntents, param.senderAccount).str,
-                    url,
-                    fees: priorityFee
-                })
-            }
-        }
-        const result = isNativeTransaction ? await transactionOperations.native() : await transactionOperations.nep5()
-        if (!result.tx) throw new Error("Failed to send transaction");
-        return result.tx.hash
-    }
-    //Implementation Claim interface
-    async claim(account: Account): Promise<ClaimResponse> {
-        const neoAccount = new wallet.Account(account.wif)
-        const balances = await this.dataService.getBalance(account.address)
-        const neoBalance = balances.find(balance => balance.symbol === 'NEO')
-        const apiProvider = new api.neoscan.instance("MainNet")
-        const neoNativeAsset = this.nativeAssets.find(nativeAsset => nativeAsset.symbol === neoBalance?.symbol)
-        if (!neoNativeAsset || !neoBalance) throw new Error("Neo it's necessary to do a claim");
-        const hasClaim = await this.dataService.getUnclaimed(account.address)
-        if (hasClaim.unclaimed <= 0) throw new Error(`Doesn't have gas to claim`);
-        const url = (await this.dataService.getHigherNode()).url
-        const claims = await api.neoCli.getClaims(url, account.address)
-        const claimGasResponse = await api.claimGas({
-            claims,
-            api: apiProvider,
-            account: neoAccount,
-            url
-        })
+  constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
+    if (network.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
 
-        const result: { txid: string; symbol: string; hash: string } = {
-            txid: claimGasResponse.response.txid,
-            hash: unclaimedTokenNeoLegacy.hash,
-            symbol: unclaimedTokenNeoLegacy.symbol
-        }
+    this.blockchainName = blockchainName
+    this.legacyNetwork = LEGACY_NETWORK_BY_NETWORK_TYPE[network.type]
+    this.tokens = TOKENS[network.type]
+    this.tokenClaim = this.tokens.find(token => token.symbol === 'GAS')!
+    this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
+    this.setNetwork(network)
+  }
 
-        return result
-    }
-    private buildNativeTransaction(transactionIntents: IntentTransactionParam[]) {
-        let intents: ReturnType<typeof api.makeIntent> = []
-        transactionIntents.forEach(transaction => {
-            const nativeAsset = this.nativeAssets.find(asset => asset.hash === transaction.tokenHash)
-            if (nativeAsset) {
-                intents = [...intents, ...api.makeIntent({ [nativeAsset.symbol]: transaction.amount }, transaction.receiverAddress)]
-            }
-        })
-        return intents
-    }
-    private buildNep5Transaction(transactionIntents: IntentTransactionParam[], senderAccount: Account) {
-        const sb = new sc.ScriptBuilder()
-        transactionIntents.forEach(transaction => {
-            if (!this.isNativeTransaction(transaction)) {
-                const senderHash = u.reverseHex(wallet.getScriptHashFromAddress(senderAccount.address))
-                const receiveHash = u.reverseHex(wallet.getScriptHashFromAddress(transaction.receiverAddress))
-                const adjustedAmount = new u.Fixed8(transaction.amount).toRawNumber()
-                sb.emitAppCall(transaction.tokenHash.replace('0x', ''), "transfer", [
-                    senderHash,
-                    receiveHash,
-                    sc.ContractParam.integer(adjustedAmount.toString())
-                ])
-            }
-        })
-        return sb
-    }
-    private setTypeIntents(transactionIntents: IntentTransactionParam[]) {
-        type TransactionIntentResponse = IntentTransactionParam & { type: 'native' | 'nep5' }
+  setNetwork(param: PartialBy<Network, 'url'>) {
+    if (param.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
 
-        const intents: TransactionIntentResponse[] = transactionIntents.map<TransactionIntentResponse>(transaction => {
-            return { ...transaction, type: this.isNativeTransaction(transaction) ? 'native' : 'nep5' }
-        })
-        return intents
+    const network = {
+      type: param.type,
+      url: param.url ?? DEFAULT_URL_BY_NETWORK_TYPE[param.type],
     }
-    private isNativeTransaction(transactionParam: IntentTransactionParam) {
-        return this.nativeAssets.some(asset => asset.hash === transactionParam.tokenHash)
+    this.network = network
+    this.dataService = new DoraBDSNeoLegacy(network)
+  }
+
+  validateAddress(address: string): boolean {
+    return wallet.isAddress(address)
+  }
+
+  validateEncryptedKey(encryptedKey: string): boolean {
+    return wallet.isNEP2(encryptedKey)
+  }
+
+  validateWif(wif: string): boolean {
+    return wallet.isWIF(wif)
+  }
+
+  generateMnemonic(): string[] {
+    keychain.generateMnemonic(128)
+    if (!keychain.mnemonic) throw new Error('Failed to generate mnemonic')
+    return keychain.mnemonic.toString().split(' ')
+  }
+
+  generateAccount(mnemonic: string[], index: number): Account {
+    keychain.importMnemonic(mnemonic.join(' '))
+    const childKey = keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
+    const wif = childKey.getWIF()
+    const { address } = new wallet.Account(wif)
+    return { address, wif }
+  }
+
+  generateAccountFromWif(wif: string): Account {
+    const { address } = new wallet.Account(wif)
+    return { address, wif }
+  }
+
+  async decryptKey(encryptedKey: string, password: string): Promise<Account> {
+    const wif = await wallet.decrypt(encryptedKey, password)
+    const { address } = new wallet.Account(wif)
+    const result: { wif: string; address: string } = { address, wif }
+    return result
+  }
+
+  async transfer(param: TransferParam): Promise<string> {
+    const apiProvider = new api.neoCli.instance(this.network.url)
+    const account = new wallet.Account(param.senderAccount.wif)
+    const priorityFee = param.priorityFee ?? 0
+
+    const nativeIntents: ReturnType<typeof api.makeIntent> = []
+    const nep5ScriptBuilder = new sc.ScriptBuilder()
+
+    for (const intent of param.intents) {
+      const tokenHashFixed = intent.tokenHash.replace('0x', '')
+
+      const nativeAsset = NATIVE_ASSETS.find(asset => asset.hash === tokenHashFixed)
+      if (nativeAsset) {
+        nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: intent.amount }, intent.receiverAddress))
+        continue
+      }
+
+      nep5ScriptBuilder.emitAppCall(tokenHashFixed, 'transfer', [
+        u.reverseHex(wallet.getScriptHashFromAddress(account.address)),
+        u.reverseHex(wallet.getScriptHashFromAddress(intent.receiverAddress)),
+        sc.ContractParam.integer(
+          new u.Fixed8(intent.amount)
+            .div(Math.pow(10, 8 - (intent.tokenDecimals ?? 8)))
+            .toRawNumber()
+            .toString()
+        ),
+      ])
     }
+
+    let response
+
+    if (nep5ScriptBuilder.isEmpty()) {
+      response = await api.sendAsset({
+        account,
+        api: apiProvider,
+        url: this.network.url,
+        intents: nativeIntents,
+        fees: priorityFee,
+      })
+    } else {
+      console.log(nativeIntents)
+      response = await api.doInvoke({
+        intents: nativeIntents.length > 0 ? nativeIntents : undefined,
+        account,
+        api: apiProvider,
+        script: nep5ScriptBuilder.str,
+        url: this.network.url,
+        fees: priorityFee,
+      })
+    }
+
+    if (!response.tx) throw new Error('Failed to send transaction')
+    return response.tx.hash
+  }
+
+  async claim(account: Account): Promise<string> {
+    const neoAccount = new wallet.Account(account.wif)
+
+    const balances = await this.dataService.getBalance(account.address)
+    const neoBalance = balances.find(balance => balance.symbol === 'NEO')
+    if (!neoBalance) throw new Error('It is necessary to have NEO to claim')
+
+    const unclaimed = await this.dataService.getUnclaimed(account.address)
+    if (unclaimed <= 0) throw new Error(`Doesn't have gas to claim`)
+
+    const apiProvider = new api.neoCli.instance(this.legacyNetwork)
+    const claims = await apiProvider.getClaims(account.address)
+
+    const response = await api.claimGas({
+      claims,
+      api: apiProvider,
+      account: neoAccount,
+      url: this.network.url,
+    })
+
+    if (!response.tx) throw new Error('Failed to claim')
+    return response.tx.hash
+  }
 }
