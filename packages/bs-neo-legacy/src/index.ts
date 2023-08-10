@@ -1,3 +1,3 @@
 export * from './BSNeoLegacy'
-export * from './BDSNeoLegacy'
-export * from './explorer'
+export * from './DoraBDSNeoLegacy'
+export * from './constants'

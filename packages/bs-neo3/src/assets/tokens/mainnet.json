@@ -1,0 +1,116 @@
+[
+  {
+    "symbol": "LRB",
+    "name": "LyrebirdToken",
+    "hash": "0x8c07b4c9f5bc170a3922eac4f5bb7ef17b0acc8b",
+    "decimals": 8
+  },
+  {
+    "symbol": "USDL",
+    "name": "LyrebirdUSDToken",
+    "hash": "0xa8c51aa0c177187aeed3db88bdfa908ccbc9b1a5",
+    "decimals": 8
+  },
+  {
+    "symbol": "FLM",
+    "name": "FLM",
+    "hash": "0xf0151f528127558851b39c2cd8aa47da7418ab28",
+    "decimals": 8
+  },
+  {
+    "symbol": "fCAKE",
+    "name": "fCAKE",
+    "hash": "0xe65b462b90516012826f8a9c4c285d8c750e3a77",
+    "decimals": 18
+  },
+  {
+    "symbol": "WING",
+    "name": "WING",
+    "hash": "0xeeccd60ed722111f8400434dac3ba42c14d8beb1",
+    "decimals": 9
+  },
+  {
+    "symbol": "fWETH",
+    "name": "fWETH",
+    "hash": "0xc14b601252aa5dfa6166cf35fe5ccd2e35f3fdf5",
+    "decimals": 18
+  },
+  {
+    "symbol": "fWBTC",
+    "name": "fWBTC",
+    "hash": "0xd6abe115ecb75e1fa0b42f5e85934ce8c1ae2893",
+    "decimals": 8
+  },
+  {
+    "symbol": "SWTH",
+    "name": "SWTHToken",
+    "hash": "0x78e1330db47634afdb5ea455302ba2d12b8d549f",
+    "decimals": 8
+  },
+  {
+    "symbol": "pONT",
+    "name": "pONT",
+    "hash": "0x8122bc2212ec971690a044b37a6f52a9349b702b",
+    "decimals": 9
+  },
+  {
+    "symbol": "fUSDT",
+    "name": "fUSDT",
+    "hash": "0xcd48b160c1bbc9d74997b803b9a7ad50a4bef020",
+    "decimals": 6
+  },
+  {
+    "symbol": "FLUND",
+    "name": "FLUND",
+    "hash": "0xa9603a59e21d29e37ac39cf1b5f5abf5006b22a3",
+    "decimals": 8
+  },
+  {
+    "symbol": "GM",
+    "name": "GhostMarketToken",
+    "hash": "0x9b049f1283515eef1d3f6ac610e1595ed25ca3e9",
+    "decimals": 8
+  },
+  {
+    "symbol": "NUDES",
+    "name": "Nudes",
+    "hash": "0x340720c7107ef5721e44ed2ea8e314cce5c130fa",
+    "decimals": 8
+  },
+  {
+    "symbol": "CANDY",
+    "name": "NeoCandy",
+    "hash": "0x88da18a5bca86ec8206d9b4960a7d0c4355a432f",
+    "decimals": 9
+  },
+  {
+    "symbol": "DOGER",
+    "name": "DogeRift",
+    "hash": "0x322b5a366ca724801a1aa01e669b5f3d7f8c7f6f",
+    "decimals": 8
+  },
+  {
+    "symbol": "DOGEF",
+    "name": "DogeFood",
+    "hash": "0xa3291b66f70d4687fc0e41977d8acb0699f235ae",
+    "decimals": 8
+  },
+  {
+    "symbol": "SOM",
+    "name": "Som",
+    "hash": "0x2d4c6cf0417209a7eb410160344e224e74f87195",
+    "decimals": 8
+  },
+  {
+    "symbol": "LAMBO",
+    "name": "BoomerFund",
+    "hash": "0xafdd6abedf066ff8c5fbc868cc89f80eac467142",
+    "decimals": 8
+  },
+  {
+    "symbol": "bNEO",
+    "hash": "0x48c40d4666f93408be1bef038b6722404d9a4c2a",
+    "decimals": 8,
+    "name": "BurgerNEO"
+  }
+]
