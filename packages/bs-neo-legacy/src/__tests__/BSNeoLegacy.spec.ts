@@ -1,3 +1,4 @@
+import { Currency } from '@cityofzion/blockchain-service'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import { wallet } from '@cityofzion/neon-js'
 
@@ -62,6 +63,27 @@ describe('BSNeoLegacy', () => {
     const encryptedKey = await wallet.encrypt(account.wif, password)
     const decryptedAccount = await bsNeoLegacy.decryptKey(encryptedKey, password)
     expect(decryptedAccount).toEqual(account)
+  }, 10000)
+
+  it('Should return a list with prices of tokens using USD', async () => {
+    bsNeoLegacy.network.type = 'mainnet'
+    const currency: Currency = 'USD'
+    const tokenPriceList = await bsNeoLegacy.exchange.getTokenPrices(currency)
+    expect(tokenPriceList.length).toBeGreaterThan(0)
+  })
+
+  it('Should return a list with prices of tokens using BRL', async () => {
+    bsNeoLegacy.network.type = 'mainnet'
+    const currency: Currency = 'BRL'
+    const tokenPriceList = await bsNeoLegacy.exchange.getTokenPrices(currency)
+    expect(tokenPriceList.length).toBeGreaterThan(0)
+  })
+
+  it('Should return a list with prices of tokens using EUR', async () => {
+    bsNeoLegacy.network.type = 'mainnet'
+    const currency: Currency = 'EUR'
+    const tokenPriceList = await bsNeoLegacy.exchange.getTokenPrices(currency)
+    expect(tokenPriceList.length).toBeGreaterThan(0)
   })
 
   it.skip('Should be able to transfer a native asset', async () => {
