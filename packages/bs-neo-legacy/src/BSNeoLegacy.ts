@@ -4,7 +4,6 @@ import {
   BDSClaimable,
   BlockchainDataService,
   BlockchainService,
-  CalculateTransferFeeResponse,
   Claimable,
   Exchange,
   Token,
@@ -15,12 +14,12 @@ import {
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { DEFAULT_URL_BY_NETWORK_TYPE, LEGACY_NETWORK_BY_NETWORK_TYPE, NATIVE_ASSETS, TOKENS } from './constants'
 import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
+import { CryptoCompareExchange } from './exchange/CryptoCompareExchange'
 
 export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable {
   dataService!: BlockchainDataService & BDSClaimable
   blockchainName: BSCustomName
   feeToken: Token
-  // Implement an Exchange interface for the legacy blockchain
   exchange!: Exchange
   tokenClaim: Token
   tokens: Token[]
@@ -49,6 +48,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     }
     this.network = network
     this.dataService = new DoraBDSNeoLegacy(network)
+    this.exchange = new CryptoCompareExchange(network)
   }
 
   validateAddress(address: string): boolean {

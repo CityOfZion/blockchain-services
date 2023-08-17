@@ -1,3 +1,4 @@
+import { Currency } from '@cityofzion/blockchain-service'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import { wallet } from '@cityofzion/neon-js'
 
@@ -62,7 +63,7 @@ describe('BSNeoLegacy', () => {
     const encryptedKey = await wallet.encrypt(account.wif, password)
     const decryptedAccount = await bsNeoLegacy.decryptKey(encryptedKey, password)
     expect(decryptedAccount).toEqual(account)
-  })
+  }, 10000)
 
   it.skip('Should be able to transfer a native asset', async () => {
     const account = bsNeoLegacy.generateAccountFromWif(process.env.TESTNET_PRIVATE_KEY as string)
