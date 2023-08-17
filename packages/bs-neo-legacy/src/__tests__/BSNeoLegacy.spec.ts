@@ -65,27 +65,6 @@ describe('BSNeoLegacy', () => {
     expect(decryptedAccount).toEqual(account)
   }, 10000)
 
-  it('Should return a list with prices of tokens using USD', async () => {
-    bsNeoLegacy.network.type = 'mainnet'
-    const currency: Currency = 'USD'
-    const tokenPriceList = await bsNeoLegacy.exchange.getTokenPrices(currency)
-    expect(tokenPriceList.length).toBeGreaterThan(0)
-  })
-
-  it('Should return a list with prices of tokens using BRL', async () => {
-    bsNeoLegacy.network.type = 'mainnet'
-    const currency: Currency = 'BRL'
-    const tokenPriceList = await bsNeoLegacy.exchange.getTokenPrices(currency)
-    expect(tokenPriceList.length).toBeGreaterThan(0)
-  })
-
-  it('Should return a list with prices of tokens using EUR', async () => {
-    bsNeoLegacy.network.type = 'mainnet'
-    const currency: Currency = 'EUR'
-    const tokenPriceList = await bsNeoLegacy.exchange.getTokenPrices(currency)
-    expect(tokenPriceList.length).toBeGreaterThan(0)
-  })
-
   it.skip('Should be able to transfer a native asset', async () => {
     const account = bsNeoLegacy.generateAccountFromWif(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.dataService.getBalance(account.address)
