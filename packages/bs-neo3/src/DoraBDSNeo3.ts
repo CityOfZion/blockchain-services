@@ -127,7 +127,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
     const data = await api.NeoRest.balance(address, this.network.type)
 
     const promises = data.map<Promise<BalanceResponse>>(async balance => {
-      const tokenInfo = await api.NeoRest.asset(data[0].asset, this.network.type)
+      const tokenInfo = await api.NeoRest.asset(balance.asset, this.network.type)
       return {
         amount: Number(balance.balance),
         hash: balance.asset,
