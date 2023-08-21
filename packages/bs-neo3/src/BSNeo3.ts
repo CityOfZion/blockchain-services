@@ -13,6 +13,9 @@ import {
   PartialBy,
   TransferParam,
   CalculableFee,
+  NftDataService,
+  NFTResponse,
+  NFTSResponse,
 } from '@cityofzion/blockchain-service'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Neon from '@cityofzion/neon-core'
@@ -25,10 +28,10 @@ import { RPCBDSNeo3 } from './RpcBDSNeo3'
 import { DoraBDSNeo3 } from './DoraBDSNeo3'
 import { DEFAULT_URL_BY_NETWORK_TYPE, NEO_NS_HASH, TOKENS } from './constants'
 import { FlamingoExchange } from './FlamingoExchange'
+import { GhostMarketNDS } from './GhostMarketNDS'
 
 export class BSNeo3<BSCustomName extends string = string>
-  implements BlockchainService, Claimable, NeoNameService, CalculableFee
-{
+  implements BlockchainService, Claimable, NeoNameService, CalculableFee, NftDataService {
   blockchainName: BSCustomName
   dataService!: BlockchainDataService & BDSClaimable
   feeToken: Token
@@ -38,6 +41,7 @@ export class BSNeo3<BSCustomName extends string = string>
   network!: Network
 
   private derivationPath: string = "m/44'/888'/0'/0/?"
+  private ghostMarket: GhostMarketNDS
 
   constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
     this.blockchainName = blockchainName
@@ -46,6 +50,22 @@ export class BSNeo3<BSCustomName extends string = string>
     this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.tokenClaim = this.tokens.find(token => token.symbol === 'GAS')!
     this.setNetwork(network)
+    this.ghostMarket = new GhostMarketNDS(this)
+  }
+  async getNFTS(address: string, page: number = 1): Promise<NFTSResponse> {
+    const nftPageLimit = 18
+    return await this.ghostMarket.getNFTS({
+      owners: [address],
+      size: nftPageLimit,
+      page,
+      getTotal: true,
+    })
+  }
+  async getNFT(tokenID: string, hash: string): Promise<NFTResponse> {
+    return await this.ghostMarket.getNFT({
+      contract: hash,
+      ["tokenIds[]"]: [tokenID]
+    })
   }
 
   setNetwork(param: PartialBy<Network, 'url'>) {

@@ -136,3 +136,21 @@ export interface BlockchainDataService {
 export interface BDSClaimable {
   getUnclaimed(address: string): Promise<number>
 }
+export interface NFTResponse {
+  id: string
+  contractHash: string
+  collectionName?: string
+  collectionImage?: string
+  symbol: string
+  image?: string
+  name?: string
+  isSVG?: boolean
+}
+export interface NFTSResponse {
+  totalPages: number
+  items: NFTResponse[]
+}
+export interface NftDataService {
+  getNFTS(address: string, page: number): Promise<NFTSResponse>
+  getNFT(tokenID: string, hash: string): Promise<NFTResponse>
+}
