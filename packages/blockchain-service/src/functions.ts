@@ -1,13 +1,17 @@
-import { BlockchainService, CalculableFee, Claimable, NeoNameService } from './interfaces'
+import { BlockchainService, BSCalculableFee, BSClaimable, BSWithNameService, BSWithNft } from './interfaces'
 
-export function hasNNS(service: BlockchainService): service is NeoNameService & BlockchainService {
+export function hasNameService(service: BlockchainService): service is BSWithNameService & BlockchainService {
   return 'getNNSRecord' in service && 'getOwnerOfNNS' in service && 'validateNNSFormat' in service
 }
 
-export function isClaimable(service: BlockchainService): service is Claimable & BlockchainService {
-  return 'claim' in service && 'tokenClaim' in service && 'getUnclaimed' in service.dataService
+export function isClaimable(service: BlockchainService): service is BSClaimable & BlockchainService {
+  return 'claim' in service && 'claimToken' in service && 'getUnclaimed' in service.blockchainDataService
 }
 
-export function isCalculableFee(service: BlockchainService): service is CalculableFee & BlockchainService {
+export function isCalculableFee(service: BlockchainService): service is BSCalculableFee & BlockchainService {
   return 'calculateTransferFee' in service
+}
+
+export function hasNft(service: BlockchainService): service is BSWithNft & BlockchainService {
+  return 'nftDataService' in service
 }

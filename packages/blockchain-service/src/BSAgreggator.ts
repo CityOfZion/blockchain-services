@@ -1,5 +1,5 @@
 import { BlockchainAlreadyExist, InvalidBlockchainService } from './exceptions'
-import { BlockchainService, Claimable } from "./interfaces";
+import { BlockchainService } from "./interfaces";
 export class BSAgreggator<BSCustom extends BlockchainService = BlockchainService, BSCustomName extends string = string> {
     readonly blockchainservices: Record<BSCustomName, BSCustom>
     private bsList: BlockchainService<BSCustomName>[]
@@ -32,17 +32,17 @@ export class BSAgreggator<BSCustom extends BlockchainService = BlockchainService
 
     validateTextAllBlockchains(text: string) {
         if (this.haveBlockchainServices()) throw new InvalidBlockchainService(JSON.stringify(this.blockchainservices))
-        return this.bsList.some(bs => [bs.validateAddress(text), bs.validateEncryptedKey(text), bs.validateWif(text)].some(it => it === true))
+        return this.bsList.some(bs => [bs.validateAddress(text), bs.validateEncrypted(text), bs.validateKey(text)].some(it => it === true))
     }
 
     validateWifAllBlockchains(wif: string) {
         if (this.haveBlockchainServices()) throw new InvalidBlockchainService(JSON.stringify(this.blockchainservices))
-        return this.bsList.some(bs => bs.validateWif(wif))
+        return this.bsList.some(bs => bs.validateKey(wif))
     }
 
     validateEncryptedKeyAllBlockchains(encryptedKey: string) {
         if (this.haveBlockchainServices()) throw new InvalidBlockchainService(JSON.stringify(this.blockchainservices))
-        return this.bsList.some(bs => bs.validateEncryptedKey(encryptedKey))
+        return this.bsList.some(bs => bs.validateEncrypted(encryptedKey))
     }
 
     getBlockchainByAddress(address: string): BlockchainService<BSCustomName> | null {
@@ -52,21 +52,11 @@ export class BSAgreggator<BSCustom extends BlockchainService = BlockchainService
 
     getBlockchainByWif(wif: string): BlockchainService<BSCustomName> | null {
         if (this.haveBlockchainServices()) throw new InvalidBlockchainService(JSON.stringify(this.blockchainservices))
-        return this.bsList.find(bs => bs.validateWif(wif)) ?? null
+        return this.bsList.find(bs => bs.validateKey(wif)) ?? null
     }
 
     getBlockchainByEncryptedKey(encryptedKey: string): BlockchainService<BSCustomName> | null {
         if (this.haveBlockchainServices()) throw new InvalidBlockchainService(JSON.stringify(this.blockchainservices))
-        return this.bsList.find(bs => bs.validateEncryptedKey(encryptedKey)) ?? null
-    }
-
-    getBlockchainsClaimable() {
-        const methodName = { claim: 'claim', getUnclaimed: 'getUnclaimed', tokenClaim: 'tokenClaim' }
-        const claimableBlockchains = this.bsList.filter(
-            blockchain => methodName.claim in blockchain &&
-                methodName.getUnclaimed in blockchain.dataService &&
-                methodName.tokenClaim in blockchain
-        ) as Array<BlockchainService<BSCustomName> & Claimable>
-        return claimableBlockchains
+        return this.bsList.find(bs => bs.validateEncrypted(encryptedKey)) ?? null
     }
 }

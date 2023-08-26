@@ -3,8 +3,8 @@ import {
   BDSClaimable,
   BlockchainDataService,
   BlockchainService,
-  Claimable,
-  Exchange,
+  BSClaimable,
+  ExchangeDataService,
   Token,
   Network,
   PartialBy,
@@ -12,21 +12,26 @@ import {
 } from '@cityofzion/blockchain-service'
 import { AsteroidSDK } from '@cityofzion/bs-asteroid-sdk'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
-import { DEFAULT_URL_BY_NETWORK_TYPE, LEGACY_NETWORK_BY_NETWORK_TYPE, NATIVE_ASSETS, TOKENS } from './constants'
+import {
+  DEFAULT_URL_BY_NETWORK_TYPE,
+  DERIVATION_PATH,
+  LEGACY_NETWORK_BY_NETWORK_TYPE,
+  NATIVE_ASSETS,
+  TOKENS,
+} from './constants'
 import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
-import { CryptoCompareExchange } from './exchange/CryptoCompareExchange'
+import { CryptoCompareEDSNeoLegacy } from './CryptoCompareEDSNeoLegacy'
 
-export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, Claimable {
-  dataService!: BlockchainDataService & BDSClaimable
+export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, BSClaimable {
+  blockchainDataService!: BlockchainDataService & BDSClaimable
   blockchainName: BSCustomName
   feeToken: Token
-  exchange!: Exchange
-  tokenClaim: Token
+  exchangeDataService!: ExchangeDataService
+  claimToken: Token
   tokens: Token[]
   network!: Network
   legacyNetwork: string
 
-  private derivationPath: string = "m/44'/888'/0'/0/?"
   private keychain = new AsteroidSDK.Keychain()
 
   constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
@@ -35,7 +40,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     this.blockchainName = blockchainName
     this.legacyNetwork = LEGACY_NETWORK_BY_NETWORK_TYPE[network.type]
     this.tokens = TOKENS[network.type]
-    this.tokenClaim = this.tokens.find(token => token.symbol === 'GAS')!
+    this.claimToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.setNetwork(network)
   }
@@ -48,20 +53,20 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
       url: param.url ?? DEFAULT_URL_BY_NETWORK_TYPE[param.type],
     }
     this.network = network
-    this.dataService = new DoraBDSNeoLegacy(network)
-    this.exchange = new CryptoCompareExchange(network)
+    this.blockchainDataService = new DoraBDSNeoLegacy(network.type)
+    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network.type)
   }
 
   validateAddress(address: string): boolean {
     return wallet.isAddress(address)
   }
 
-  validateEncryptedKey(encryptedKey: string): boolean {
-    return wallet.isNEP2(encryptedKey)
+  validateEncrypted(key: string): boolean {
+    return wallet.isNEP2(key)
   }
 
-  validateWif(wif: string): boolean {
-    return wallet.isWIF(wif)
+  validateKey(key: string): boolean {
+    return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
   generateMnemonic(): string[] {
@@ -72,18 +77,21 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
 
   generateAccount(mnemonic: string[], index: number): Account {
     this.keychain.importMnemonic(mnemonic.join(' '))
-    const childKey = this.keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
-    const wif = childKey.getWIF()
-    const { address } = new wallet.Account(wif)
-    return { address, wif }
+    const childKey = this.keychain.generateChildKey('neo', DERIVATION_PATH.replace('?', index.toString()))
+    const key = childKey.getWIF()
+    const { address } = new wallet.Account(key)
+    return { address, key, type: 'wif' }
   }
 
-  generateAccountFromWif(wif: string): Account {
-    const { address } = new wallet.Account(wif)
-    return { address, wif }
+  generateAccountFromKey(key: string): Account {
+    const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
+    if (!type) throw new Error('Invalid key')
+
+    const { address } = new wallet.Account(key)
+    return { address, key, type }
   }
 
-  async decryptKey(encryptedKey: string, password: string): Promise<Account> {
+  async decrypt(encryptedKey: string, password: string): Promise<Account> {
     let BsReactNativeDecrypt: any
 
     try {
@@ -91,7 +99,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
       BsReactNativeDecrypt = NativeModules.BsReactNativeDecrypt
     } catch {
       const key = await wallet.decrypt(encryptedKey, password)
-      return this.generateAccountFromWif(key)
+      return this.generateAccountFromKey(key)
     }
 
     if (!BsReactNativeDecrypt) {
@@ -99,18 +107,24 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     }
 
     const privateKey = await BsReactNativeDecrypt.decryptNeoLegacy(encryptedKey, password)
-    return this.generateAccountFromWif(privateKey)
+    return this.generateAccountFromKey(privateKey)
   }
 
-  async transfer(param: TransferParam): Promise<string> {
+  async transfer({
+    intent: transferIntent,
+    senderAccount,
+    priorityFee = 0,
+    tipIntent,
+  }: TransferParam): Promise<string> {
     const apiProvider = new api.neoCli.instance(this.network.url)
-    const account = new wallet.Account(param.senderAccount.wif)
-    const priorityFee = param.priorityFee ?? 0
+    const account = new wallet.Account(senderAccount.key)
 
     const nativeIntents: ReturnType<typeof api.makeIntent> = []
     const nep5ScriptBuilder = new sc.ScriptBuilder()
 
-    for (const intent of param.intents) {
+    const intents = [transferIntent, ...(tipIntent ? [tipIntent] : [])]
+
+    for (const intent of intents) {
       const tokenHashFixed = intent.tokenHash.replace('0x', '')
 
       const nativeAsset = NATIVE_ASSETS.find(asset => asset.hash === tokenHashFixed)
@@ -158,13 +172,13 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
   }
 
   async claim(account: Account): Promise<string> {
-    const neoAccount = new wallet.Account(account.wif)
+    const neoAccount = new wallet.Account(account.key)
 
-    const balances = await this.dataService.getBalance(account.address)
-    const neoBalance = balances.find(balance => balance.symbol === 'NEO')
+    const balances = await this.blockchainDataService.getBalance(account.address)
+    const neoBalance = balances.find(balance => balance.token.symbol === 'NEO')
     if (!neoBalance) throw new Error('It is necessary to have NEO to claim')
 
-    const unclaimed = await this.dataService.getUnclaimed(account.address)
+    const unclaimed = await this.blockchainDataService.getUnclaimed(account.address)
     if (unclaimed <= 0) throw new Error(`Doesn't have gas to claim`)
 
     const apiProvider = new api.neoCli.instance(this.legacyNetwork)

@@ -1,7 +1,8 @@
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 export type Account = {
-  wif: string
+  key: string
+  type: 'wif' | 'privateKey'
   address: string
 }
 export interface Token {
@@ -23,7 +24,8 @@ export type IntentTransferParam = {
 }
 export type TransferParam = {
   senderAccount: Account
-  intents: IntentTransferParam[]
+  intent: IntentTransferParam
+  tipIntent?: IntentTransferParam
   priorityFee?: number
 }
 
@@ -32,44 +34,42 @@ export type TokenPricesResponse = {
   symbol: string
 }
 export type Currency = 'USD' | 'BRL' | 'EUR'
-export interface Exchange {
-  readonly network: Network
+export interface ExchangeDataService {
   getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]>
 }
 export interface BlockchainService<BSCustomName extends string = string> {
-  readonly dataService: BlockchainDataService
+  readonly blockchainDataService: BlockchainDataService
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
-  readonly exchange: Exchange
+  readonly exchangeDataService: ExchangeDataService
   readonly tokens: Token[]
   network: Network
   setNetwork: (network: PartialBy<Network, 'url'>) => void
   generateMnemonic(): string[]
   generateAccount(mnemonic: string[], index: number): Account
-  generateAccountFromWif(wif: string): Account
-  decryptKey(encryptedKey: string, password: string): Promise<Account>
+  generateAccountFromKey(key: string): Account
+  decrypt(keyOrJson: string, password: string): Promise<Account>
   validateAddress(address: string): boolean
-  validateEncryptedKey(encryptedKey: string): boolean
-  validateWif(wif: string): boolean
+  validateEncrypted(keyOrJson: string): boolean
+  validateKey(key: string): boolean
   transfer(param: TransferParam): Promise<string>
 }
 
-export type CalculateTransferFeeResponse = {
-  total: number
-  systemFee: number
-  networkFee: number
+export interface BSCalculableFee {
+  calculateTransferFee(param: TransferParam, details?: boolean): Promise<string>
 }
-export interface CalculableFee {
-  calculateTransferFee(param: TransferParam, details?: boolean): Promise<CalculateTransferFeeResponse>
-}
-export interface Claimable {
-  dataService: BlockchainDataService & BDSClaimable
-  tokenClaim: Token
+export interface BSClaimable {
+  blockchainDataService: BlockchainDataService & BDSClaimable
+  claimToken: Token
   claim(account: Account): Promise<string>
 }
-export interface NeoNameService {
-  getOwnerOfNNS(domainName: string): Promise<string>
-  validateNNSFormat(domainName: string): boolean
+export interface BSWithNameService {
+  resolveNameServiceDomain(domainName: string): Promise<string>
+  validateNameServiceDomainFormat(domainName: string): boolean
+}
+
+export interface BSWithNft {
+  nftDataService: NftDataService
 }
 
 export type TransactionNotifications = {
@@ -80,25 +80,26 @@ export type TransactionNotifications = {
   }[]
 }
 export type TransactionTransferAsset = {
-  amount: string
+  amount: number
   to: string
   from: string
-  type: 'asset'
+  type: 'token'
+  contractHash: string
+  token?: Token
 }
 export type TransactionTransferNft = {
   tokenId: string
   to: string
   from: string
   type: 'nft'
+  contractHash: string
 }
 export type TransactionResponse = {
   hash: string
   block: number
-  time: string
+  time: number
   transfers: (TransactionTransferAsset | TransactionTransferNft)[]
-  sysfee?: string
-  netfee?: string
-  totfee?: string
+  fee?: number
   notifications: TransactionNotifications[]
 }
 export type ContractParameter = {
@@ -120,15 +121,11 @@ export type ContractResponse = {
 }
 export type BalanceResponse = {
   amount: number
-  hash: string
-  symbol: string
-  name: string
-  decimals: number
+  token: Token
 }
 export interface BlockchainDataService {
-  readonly network: Network
   getTransaction(txid: string): Promise<TransactionResponse>
-  getHistoryTransactions(address: string, page: number): Promise<TransactionHistoryResponse>
+  getTransactionsByAddress(address: string, page: number): Promise<TransactionHistoryResponse>
   getContract(contractHash: string): Promise<ContractResponse>
   getTokenInfo(tokenHash: string): Promise<Token>
   getBalance(address: string): Promise<BalanceResponse[]>
@@ -136,7 +133,7 @@ export interface BlockchainDataService {
 export interface BDSClaimable {
   getUnclaimed(address: string): Promise<number>
 }
-export interface NFTResponse {
+export interface NftResponse {
   id: string
   contractHash: string
   collectionName?: string
@@ -146,11 +143,23 @@ export interface NFTResponse {
   name?: string
   isSVG?: boolean
 }
-export interface NFTSResponse {
-  totalPages: number
-  items: NFTResponse[]
+export interface NftsResponse {
+  items: NftResponse[]
+  nextCursor?: string
+  total?: number
+}
+
+export type GetNftsByAddressParams = {
+  address: string
+  page?: number
+  cursor?: string
+  size?: number
+}
+export type GetNftParam = {
+  tokenId: string
+  contractHash: string
 }
 export interface NftDataService {
-  getNFTS(address: string, page: number): Promise<NFTSResponse>
-  getNFT(tokenID: string, hash: string): Promise<NFTResponse>
+  getNftsByAddress(params: GetNftsByAddressParams): Promise<NftsResponse>
+  getNft(params: GetNftParam): Promise<NftResponse>
 }

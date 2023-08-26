@@ -2,10 +2,11 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "lib": ["ESNext"],
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "types": ["jest"]
   },
   "include": ["src"],
-  "exclude": ["node_modules", "src/__tests__"],
+  "exclude": ["node_modules"],
   "typedocOptions": {
     "entryPoints": ["./src/index.ts"],
     "out": "docs",

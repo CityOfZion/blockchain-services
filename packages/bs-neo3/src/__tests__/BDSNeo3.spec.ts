@@ -1,9 +1,11 @@
 import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
 import { DoraBDSNeo3 } from '../DoraBDSNeo3'
 import { RPCBDSNeo3 } from '../RpcBDSNeo3'
+import { TOKENS } from '../constants'
 
-let doraBDSNeo3 = new DoraBDSNeo3({ type: 'testnet', url: 'https://testnet1.neo.coz.io:443' })
-let rpcBDSNeo3 = new RPCBDSNeo3({ type: 'testnet', url: 'https://testnet1.neo.coz.io:443' })
+const gasToken = TOKENS.testnet.find(t => t.symbol === 'GAS')!
+let doraBDSNeo3 = new DoraBDSNeo3({ type: 'testnet', url: 'https://testnet1.neo.coz.io:443' }, gasToken, gasToken)
+let rpcBDSNeo3 = new RPCBDSNeo3({ type: 'testnet', url: 'https://testnet1.neo.coz.io:443' }, gasToken, gasToken)
 
 describe('BDSNeo3', () => {
   it.each([doraBDSNeo3, rpcBDSNeo3])(
@@ -18,23 +20,22 @@ describe('BDSNeo3', () => {
           hash,
           notifications: [],
           transfers: [],
-          time: expect.any(String),
-          netfee: expect.any(String),
-          sysfee: expect.any(String),
-          totfee: expect.any(String),
+          time: expect.any(Number),
+          fee: expect.any(Number),
         })
       )
     }
   )
 
   it.each([doraBDSNeo3, rpcBDSNeo3])(
-    'Should be able to get history transactions - %s',
+    'Should be able to get transactions of address - %s',
     async (bdsNeo3: BlockchainDataService) => {
       const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
       try {
-        const transaction = await bdsNeo3.getHistoryTransactions(address, 1)
-        expect(transaction).toEqual(
-          expect.arrayContaining(
+        const response = await bdsNeo3.getTransactionsByAddress(address, 1)
+
+        response.transactions.forEach(transaction => {
+          expect(transaction).toEqual(
             expect.objectContaining({
               block: expect.any(Number),
               hash: expect.any(String),
@@ -51,19 +52,17 @@ describe('BDSNeo3', () => {
               ]),
               transfers: expect.arrayContaining([
                 expect.objectContaining({
-                  amount: expect.any(String),
+                  amount: expect.any(Number),
                   from: expect.any(String),
                   to: expect.any(String),
                   type: 'asset',
                 }),
               ]),
-              time: expect.any(String),
-              netfee: expect.any(String),
-              sysfee: expect.any(String),
-              totfee: expect.any(String),
+              time: expect.any(Number),
+              fee: expect.any(Number),
             })
           )
-        )
+        })
       } catch {}
     }
   )
@@ -103,18 +102,17 @@ describe('BDSNeo3', () => {
   it.each([doraBDSNeo3, rpcBDSNeo3])('Should be able to get balance - %s', async (bdsNeo3: BlockchainDataService) => {
     const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
     const balance = await bdsNeo3.getBalance(address)
-
-    expect(balance).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          amount: expect.any(Number),
+    balance.forEach(balance => {
+      expect(balance).toEqual({
+        amount: expect.any(Number),
+        token: {
           hash: expect.any(String),
           name: expect.any(String),
           symbol: expect.any(String),
           decimals: expect.any(Number),
-        }),
-      ])
-    )
+        },
+      })
+    })
   })
 
   it.each([doraBDSNeo3, rpcBDSNeo3])(
@@ -122,6 +120,7 @@ describe('BDSNeo3', () => {
     async (bdsNeo3: BlockchainDataService & BDSClaimable) => {
       const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
       const unclaimed = await bdsNeo3.getUnclaimed(address)
+      console.log(unclaimed)
       expect(unclaimed).toEqual(expect.any(Number))
     }
   )

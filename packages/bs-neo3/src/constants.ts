@@ -15,3 +15,15 @@ export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
   testnet: 'https://testnet1.neo.coz.io:443',
   custom: 'http://127.0.0.1:50012',
 }
+
+export const GHOSTMARKET_URL_BY_NETWORK_TYPE: Partial<Record<NetworkType, string>> = {
+  mainnet: 'https://api.ghostmarket.io/api/v2',
+  testnet: 'https://api-testnet.ghostmarket.io/api/v2',
+}
+
+export const GHOSTMARKET_CHAIN_BY_NETWORK_TYPE: Partial<Record<NetworkType, string>> = {
+  mainnet: 'n3',
+  testnet: 'n3t',
+}
+
+export const DERIVATION_PATH = "m/44'/888'/0'/0/?"
