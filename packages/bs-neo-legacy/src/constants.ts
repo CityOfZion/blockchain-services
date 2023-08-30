@@ -19,3 +19,5 @@ export const DEFAULT_URL_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>,
   mainnet: 'http://seed9.ngd.network:10332',
   testnet: 'http://seed5.ngd.network:20332',
 }
+
+export const DERIVATION_PATH = "m/44'/888'/0'/0/?"

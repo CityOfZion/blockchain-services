@@ -12,9 +12,19 @@ import {
 } from '@cityofzion/blockchain-service'
 import { rpc, u } from '@cityofzion/neon-core'
 import { NeonInvoker } from '@cityofzion/neon-invoker'
+import { TOKENS } from './constants'
 
 export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
-  constructor(readonly network: Network) {}
+  protected readonly tokenCache: Map<string, Token> = new Map()
+  protected readonly feeToken: Token
+  protected readonly claimToken: Token
+  readonly network: Network
+
+  constructor(network: Network, feeToken: Token, claimToken: Token) {
+    this.network = network
+    this.feeToken = feeToken
+    this.claimToken = claimToken
+  }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
     const rpcClient = new rpc.RPCClient(this.network.url)
@@ -23,16 +33,18 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
     return {
       hash: response.hash,
       block: response.validuntilblock,
-      netfee: response.netfee,
-      sysfee: response.sysfee,
-      totfee: (Number(response.netfee) + Number(response.sysfee)).toString(),
+      fee: Number(
+        u.BigInteger.fromNumber(response.netfee ?? 0)
+          .add(u.BigInteger.fromNumber(response.sysfee ?? 0))
+          .toDecimal(this.feeToken.decimals)
+      ),
       notifications: [],
       transfers: [],
-      time: response.blocktime.toString(),
+      time: response.blocktime,
     }
   }
 
-  async getHistoryTransactions(_address: string, _page: number): Promise<TransactionHistoryResponse> {
+  async getTransactionsByAddress(_address: string, _page: number): Promise<TransactionHistoryResponse> {
     throw new Error('Method not supported.')
   }
 
@@ -56,6 +68,12 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
+    const localToken = TOKENS[this.network.type].find(token => token.hash === tokenHash)
+    if (localToken) return localToken
+
+    if (this.tokenCache.has(tokenHash)) {
+      return this.tokenCache.get(tokenHash)!
+    }
     const rpcClient = new rpc.RPCClient(this.network.url)
     const contractState = await rpcClient.getContractState(tokenHash)
 
@@ -76,13 +94,16 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
 
     const decimals = Number(response.stack[0].value)
     const symbol = u.base642utf8(response.stack[1].value as string)
-
-    return {
+    const token = {
       name: contractState.manifest.name,
       symbol,
       hash: contractState.hash,
       decimals,
     }
+
+    this.tokenCache.set(tokenHash, token)
+
+    return token
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
@@ -90,34 +111,11 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
     const response = await rpcClient.getNep17Balances(address)
 
     const promises = response.balance.map<Promise<BalanceResponse>>(async balance => {
-      const {
-        manifest: { name },
-      } = await rpcClient.getContractState(balance.assethash)
-
-      const invoker = await NeonInvoker.init({
-        rpcAddress: this.network.url,
-      })
-
-      const response = await invoker.testInvoke({
-        invocations: [
-          {
-            scriptHash: balance.assethash,
-            operation: 'decimals',
-            args: [],
-          },
-          { scriptHash: balance.assethash, operation: 'symbol', args: [] },
-        ],
-      })
-
-      const decimals = Number(response.stack[0].value)
-      const symbol = u.base642utf8(response.stack[1].value as string)
+      const token = await this.getTokenInfo(balance.assethash)
 
       return {
-        amount: Number(u.BigInteger.fromNumber(balance.amount).toDecimal(decimals)),
-        hash: balance.assethash,
-        name,
-        symbol,
-        decimals,
+        amount: Number(u.BigInteger.fromNumber(balance.amount).toDecimal(token.decimals ?? 0)),
+        token,
       }
     })
     const balances = await Promise.all(promises)
@@ -128,6 +126,6 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   async getUnclaimed(address: string): Promise<number> {
     const rpcClient = new rpc.RPCClient(this.network.url)
     const response = await rpcClient.getUnclaimedGas(address)
-    return Number(response)
+    return Number(u.BigInteger.fromNumber(response).toDecimal(this.claimToken.decimals))
   }
 }

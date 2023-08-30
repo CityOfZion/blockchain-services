@@ -8,55 +8,63 @@ import {
   TransactionTransferAsset,
   Token,
   Network,
+  NetworkType,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
+import { TOKENS } from './constants'
 
 export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
-  network: Network
+  readonly networkType: NetworkType
+  private readonly tokenCache: Map<string, Token> = new Map()
 
-  constructor(network: Network) {
-    if (network.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
-    this.network = network
+  constructor(networkType: NetworkType) {
+    if (networkType === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
+    this.networkType = networkType
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    const data = await api.NeoLegacyREST.transaction(hash, this.network.type)
-    const transfers = data.vout
-      ? (data.vout as any[]).map<TransactionTransferAsset>((transfer, _index, array) => ({
-          amount: transfer.value,
-          from: array[array.length - 1]?.address,
-          hash: transfer.asset,
-          to: transfer.address,
-          type: 'asset',
-        }))
-      : []
+    const data = await api.NeoLegacyREST.transaction(hash, this.networkType)
+    const vout: any[] = data.vout ?? []
+
+    const promises = vout.map<Promise<TransactionTransferAsset>>(async (transfer, _index, array) => {
+      const token = await this.getTokenInfo(transfer.asset)
+      return {
+        amount: Number(transfer.value),
+        from: array[array.length - 1]?.address,
+        contractHash: transfer.asset,
+        to: transfer.address,
+        type: 'token',
+        token,
+      }
+    })
+    const transfers = await Promise.all(promises)
 
     return {
       hash: data.txid,
       block: data.block,
-      netfee: data.net_fee ?? '0',
-      sysfee: data.sys_fee ?? '0',
-      totfee: (Number(data.sys_fee) + Number(data.net_fee)).toString(),
-      time: data.time,
+      fee: Number(data.sys_fee ?? 0) + Number(data.net_fee ?? 0),
+      time: Number(data.time),
       notifications: [], //neoLegacy doesn't have notifications
       transfers,
     }
   }
 
-  async getHistoryTransactions(address: string, page: number = 1): Promise<TransactionHistoryResponse> {
-    const data = await api.NeoLegacyREST.getAddressAbstracts(address, page, this.network.type)
+  async getTransactionsByAddress(address: string, page: number = 1): Promise<TransactionHistoryResponse> {
+    const data = await api.NeoLegacyREST.getAddressAbstracts(address, page, this.networkType)
     const transactions = new Map<string, TransactionResponse>()
 
-    data.entries.forEach(entry => {
+    const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return
 
+      const token = await this.getTokenInfo(entry.asset)
       const transfer: TransactionTransferAsset = {
-        amount: entry.amount.toString(),
+        amount: Number(entry.amount),
         from: entry.address_from ?? 'Mint',
         to: entry.address_to ?? 'Burn',
-        type: 'asset',
+        type: 'token',
+        contractHash: entry.asset,
+        token,
       }
-
       const existingTransaction = transactions.get(entry.txid)
       if (existingTransaction) {
         existingTransaction.transfers.push(transfer)
@@ -66,14 +74,12 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
       transactions.set(entry.txid, {
         block: entry.block_height,
         hash: entry.txid,
-        netfee: '0',
-        sysfee: '0',
-        totfee: '0',
-        time: entry.time.toString(),
+        time: entry.time,
         transfers: [transfer],
         notifications: [],
       })
     })
+    await Promise.all(promises)
 
     return {
       totalCount: data.total_entries,
@@ -82,7 +88,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
-    const response = await api.NeoLegacyREST.contract(contractHash, this.network.type)
+    const response = await api.NeoLegacyREST.contract(contractHash, this.networkType)
     return {
       hash: response.hash,
       name: response.name,
@@ -91,28 +97,35 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const data = await api.NeoLegacyREST.asset(tokenHash, this.network.type)
+    const localToken = TOKENS[this.networkType].find(token => token.hash === tokenHash)
+    if (localToken) return localToken
 
-    return {
+    if (this.tokenCache.has(tokenHash)) {
+      return this.tokenCache.get(tokenHash)!
+    }
+
+    const data = await api.NeoLegacyREST.asset(tokenHash, this.networkType)
+    const token = {
       decimals: data.decimals,
       symbol: data.symbol,
       hash: data.scripthash,
       name: data.name,
     }
+
+    this.tokenCache.set(tokenHash, token)
+
+    return token
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const data = await api.NeoLegacyREST.balance(address, this.network.type)
+    const data = await api.NeoLegacyREST.balance(address, this.networkType)
 
     const promises = data.map<Promise<BalanceResponse>>(async balance => {
-      const { decimals } = await this.getTokenInfo(balance.asset)
+      const token = await this.getTokenInfo(balance.asset)
 
       return {
-        hash: balance.asset,
         amount: Number(balance.balance),
-        name: balance.asset_name,
-        symbol: balance.symbol,
-        decimals,
+        token,
       }
     })
 
@@ -122,7 +135,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getUnclaimed(address: string): Promise<number> {
-    const { unclaimed } = await api.NeoLegacyREST.getUnclaimed(address, this.network.type)
+    const { unclaimed } = await api.NeoLegacyREST.getUnclaimed(address, this.networkType)
     return unclaimed
   }
 }

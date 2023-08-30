@@ -1,16 +1,13 @@
-import { Currency } from '@cityofzion/blockchain-service'
-import { BSNeoLegacy } from '../BSNeoLegacy'
-import { CryptoCompareEDSNeoLegacy } from '../CryptoCompareEDSNeoLegacy'
+import { FlamingoEDSNeo3 } from '../FlamingoEDSNeo3'
 
-let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
+let flamingoEDSNeo3: FlamingoEDSNeo3
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy('mainnet')
+    flamingoEDSNeo3 = new FlamingoEDSNeo3('mainnet')
   })
-
   it('Should return a list with prices of tokens using USD', async () => {
-    const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('USD')
+    const tokenPriceList = await flamingoEDSNeo3.getTokenPrices('USD')
 
     tokenPriceList.forEach(tokenPrice => {
       expect(tokenPrice).toEqual({
@@ -21,8 +18,8 @@ describe('FlamingoEDSNeo3', () => {
   })
 
   it('Should return a list with prices of tokens using BRL', async () => {
-    const tokenPriceListInUSD = await cryptoCompareEDSNeoLegacy.getTokenPrices('USD')
-    const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('BRL')
+    const tokenPriceListInUSD = await flamingoEDSNeo3.getTokenPrices('USD')
+    const tokenPriceList = await flamingoEDSNeo3.getTokenPrices('BRL')
 
     tokenPriceList.forEach((tokenPrice, index) => {
       expect(tokenPrice.amount).toBeGreaterThan(tokenPriceListInUSD[index].amount)
@@ -34,8 +31,8 @@ describe('FlamingoEDSNeo3', () => {
   })
 
   it('Should return a list with prices of tokens using EUR', async () => {
-    const tokenPriceListInUSD = await cryptoCompareEDSNeoLegacy.getTokenPrices('USD')
-    const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('EUR')
+    const tokenPriceListInUSD = await flamingoEDSNeo3.getTokenPrices('USD')
+    const tokenPriceList = await flamingoEDSNeo3.getTokenPrices('EUR')
 
     tokenPriceList.forEach((tokenPrice, index) => {
       expect(tokenPrice.amount).toBeLessThan(tokenPriceListInUSD[index].amount)

@@ -1,7 +1,8 @@
 import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
 import { DoraBDSNeoLegacy } from '../DoraBDSNeoLegacy'
+import { TOKENS } from '../constants'
 
-let doraBDSNeoLegacy = new DoraBDSNeoLegacy({ type: 'testnet', url: 'http://seed5.ngd.network:20332' })
+let doraBDSNeoLegacy = new DoraBDSNeoLegacy('testnet')
 
 describe('BDSNeoLegacy', () => {
   it.each([doraBDSNeoLegacy])('Should be able to get transaction - %s', async (bdsNeoLegacy: BlockchainDataService) => {
@@ -14,16 +15,14 @@ describe('BDSNeoLegacy', () => {
         notifications: [],
         transfers: expect.arrayContaining([
           expect.objectContaining({
-            amount: expect.any(String),
+            amount: expect.any(Number),
             from: expect.any(String),
             to: expect.any(String),
-            type: 'asset',
+            type: 'token',
           }),
         ]),
-        time: expect.any(String),
-        netfee: expect.any(String),
-        sysfee: expect.any(String),
-        totfee: expect.any(String),
+        time: expect.any(Number),
+        fee: expect.any(Number),
       })
     )
   })
@@ -33,9 +32,9 @@ describe('BDSNeoLegacy', () => {
     async (bdsNeoLegacy: BlockchainDataService) => {
       const address = 'AeGgZTTWPzyVtNiQRcpngkV75Xip1hznmi'
       try {
-        const transaction = await bdsNeoLegacy.getHistoryTransactions(address, 1)
-        expect(transaction).toEqual(
-          expect.arrayContaining(
+        const response = await bdsNeoLegacy.getTransactionsByAddress(address, 1)
+        response.transactions.forEach(transaction => {
+          expect(transaction).toEqual(
             expect.objectContaining({
               block: expect.any(Number),
               hash: expect.any(String),
@@ -52,19 +51,17 @@ describe('BDSNeoLegacy', () => {
               ]),
               transfers: expect.arrayContaining([
                 expect.objectContaining({
-                  amount: expect.any(String),
+                  amount: expect.any(Number),
                   from: expect.any(String),
                   to: expect.any(String),
                   type: 'asset',
                 }),
               ]),
-              time: expect.any(String),
-              netfee: expect.any(String),
-              sysfee: expect.any(String),
-              totfee: expect.any(String),
+              time: expect.any(Number),
+              fee: expect.any(Number),
             })
           )
-        )
+        })
       } catch {}
     }
   )
@@ -93,17 +90,18 @@ describe('BDSNeoLegacy', () => {
   it.each([doraBDSNeoLegacy])('Should be able to get balance - %s', async (bdsNeoLegacy: BlockchainDataService) => {
     const address = 'AeGgZTTWPzyVtNiQRcpngkV75Xip1hznmi'
     const balance = await bdsNeoLegacy.getBalance(address)
-    expect(balance).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          amount: expect.any(Number),
+
+    balance.forEach(balance => {
+      expect(balance).toEqual({
+        amount: expect.any(Number),
+        token: {
           hash: expect.any(String),
           name: expect.any(String),
           symbol: expect.any(String),
           decimals: expect.any(Number),
-        }),
-      ])
-    )
+        },
+      })
+    })
   })
 
   it.each([doraBDSNeoLegacy])(
