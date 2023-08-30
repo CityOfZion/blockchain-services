@@ -84,21 +84,22 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
   }
 
   async decryptKey(encryptedKey: string, password: string): Promise<Account> {
-    let key: string
+    let BsReactNativeDecrypt: any
+
     try {
       const { NativeModules } = require('react-native')
-
-      if (!NativeModules.BsReactNativeDecrypt) {
-        throw new Error('React native decrypt module is not installed')
-      }
-
-      key = await NativeModules.BsReactNativeDecrypt.decryptNeoLegacy(encryptedKey, password)
+      BsReactNativeDecrypt = NativeModules.BsReactNativeDecrypt
     } catch {
-      key = await wallet.decrypt(encryptedKey, password)
+      const key = await wallet.decrypt(encryptedKey, password)
+      return this.generateAccountFromWif(key)
     }
 
-    const { address, WIF } = new wallet.Account(key)
-    return { address, wif: WIF }
+    if (!BsReactNativeDecrypt) {
+      throw new Error('@CityOfZion/bs-react-native-decrypt is not installed')
+    }
+
+    const privateKey = await BsReactNativeDecrypt.decryptNeoLegacy(encryptedKey, password)
+    return this.generateAccountFromWif(privateKey)
   }
 
   async transfer(param: TransferParam): Promise<string> {
