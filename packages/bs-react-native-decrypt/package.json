@@ -1,0 +1,76 @@
+{
+  "name": "@cityofzion/bs-react-native-decrypt",
+  "version": "0.6.0",
+  "description": "Native Decrypt for Neo Blockchain",
+  "main": "dist/commonjs/index",
+  "module": "dist/module/index",
+  "types": "dist/typescript/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "files": [
+    "src",
+    "lib",
+    "android",
+    "ios",
+    "cpp",
+    "*.podspec",
+    "!lib/typescript/example",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "scripts": {
+    "build": "bob build"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "repository": "https://github.com/CityOfZion/blockchain-services",
+  "author": "Coz",
+  "license": "MIT",
+  "homepage": "https://github.com/CityOfZion/blockchain-services",
+  "devDependencies": {
+    "@types/react": "17.0.21",
+    "@types/react-native": "0.70.0",
+    "pod-install": "^0.1.0",
+    "react": "18.2.0",
+    "react-native": "0.72.4",
+    "react-native-builder-bob": "^0.21.3",
+    "turbo": "^1.10.7",
+    "typescript": "^5.0.2"
+  },
+  "resolutions": {
+    "@types/react": "17.0.21"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "engines": {
+    "node": ">= 16.0.0"
+  },
+  "packageManager": "^yarn@1.22.15",
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "dist",
+    "targets": [
+      "commonjs",
+      "module",
+      [
+        "typescript",
+        {
+          "project": "tsconfig.json"
+        }
+      ]
+    ]
+  }
+}

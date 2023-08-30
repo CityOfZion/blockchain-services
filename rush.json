@@ -8,6 +8,16 @@
   },
   "projects": [
     {
+      "packageName": "@cityofzion/bs-asteroid-sdk",
+      "projectFolder": "packages/bs-asteroid-sdk",
+      "shouldPublish": true
+    },
+    {
+      "packageName": "@cityofzion/bs-react-native-decrypt",
+      "projectFolder": "packages/bs-react-native-decrypt",
+      "shouldPublish": true
+    },
+    {
       "packageName": "@cityofzion/bs-neo3",
       "projectFolder": "packages/bs-neo3",
       "shouldPublish": true

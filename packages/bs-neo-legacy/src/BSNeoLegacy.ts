@@ -1,6 +1,5 @@
 import {
   Account,
-  keychain,
   BDSClaimable,
   BlockchainDataService,
   BlockchainService,
@@ -11,6 +10,7 @@ import {
   PartialBy,
   TransferParam,
 } from '@cityofzion/blockchain-service'
+import { AsteroidSDK } from '@cityofzion/bs-asteroid-sdk'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { DEFAULT_URL_BY_NETWORK_TYPE, LEGACY_NETWORK_BY_NETWORK_TYPE, NATIVE_ASSETS, TOKENS } from './constants'
 import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
@@ -27,6 +27,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
   legacyNetwork: string
 
   private derivationPath: string = "m/44'/888'/0'/0/?"
+  private keychain = new AsteroidSDK.Keychain()
 
   constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
     if (network.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
@@ -64,14 +65,14 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
   }
 
   generateMnemonic(): string[] {
-    keychain.generateMnemonic(128)
-    if (!keychain.mnemonic) throw new Error('Failed to generate mnemonic')
-    return keychain.mnemonic.toString().split(' ')
+    this.keychain.generateMnemonic(128)
+    if (!this.keychain.mnemonic) throw new Error('Failed to generate mnemonic')
+    return this.keychain.mnemonic.toString().split(' ')
   }
 
   generateAccount(mnemonic: string[], index: number): Account {
-    keychain.importMnemonic(mnemonic.join(' '))
-    const childKey = keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
+    this.keychain.importMnemonic(mnemonic.join(' '))
+    const childKey = this.keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
     const wif = childKey.getWIF()
     const { address } = new wallet.Account(wif)
     return { address, wif }
@@ -83,10 +84,21 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
   }
 
   async decryptKey(encryptedKey: string, password: string): Promise<Account> {
-    const wif = await wallet.decrypt(encryptedKey, password)
-    const { address } = new wallet.Account(wif)
-    const result: { wif: string; address: string } = { address, wif }
-    return result
+    let key: string
+    try {
+      const { NativeModules } = require('react-native')
+
+      if (!NativeModules.BsReactNativeDecrypt) {
+        throw new Error('React native decrypt module is not installed')
+      }
+
+      key = await NativeModules.BsReactNativeDecrypt.decryptNeoLegacy(encryptedKey, password)
+    } catch {
+      key = await wallet.decrypt(encryptedKey, password)
+    }
+
+    const { address, WIF } = new wallet.Account(key)
+    return { address, wif: WIF }
   }
 
   async transfer(param: TransferParam): Promise<string> {

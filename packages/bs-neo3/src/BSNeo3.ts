@@ -1,6 +1,5 @@
 import {
   BlockchainDataService,
-  keychain,
   BlockchainService,
   Claimable,
   Account,
@@ -29,9 +28,11 @@ import { DoraBDSNeo3 } from './DoraBDSNeo3'
 import { DEFAULT_URL_BY_NETWORK_TYPE, NEO_NS_HASH, TOKENS } from './constants'
 import { FlamingoExchange } from './FlamingoExchange'
 import { GhostMarketNDS } from './GhostMarketNDS'
+import { AsteroidSDK } from '@cityofzion/bs-asteroid-sdk'
 
 export class BSNeo3<BSCustomName extends string = string>
-  implements BlockchainService, Claimable, NeoNameService, CalculableFee, NftDataService {
+  implements BlockchainService, Claimable, NeoNameService, CalculableFee, NftDataService
+{
   blockchainName: BSCustomName
   dataService!: BlockchainDataService & BDSClaimable
   feeToken: Token
@@ -41,6 +42,7 @@ export class BSNeo3<BSCustomName extends string = string>
   network!: Network
 
   private derivationPath: string = "m/44'/888'/0'/0/?"
+  private keychain = new AsteroidSDK.Keychain()
   private ghostMarket: GhostMarketNDS
 
   constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
@@ -64,7 +66,7 @@ export class BSNeo3<BSCustomName extends string = string>
   async getNFT(tokenID: string, hash: string): Promise<NFTResponse> {
     return await this.ghostMarket.getNFT({
       contract: hash,
-      ["tokenIds[]"]: [tokenID]
+      ['tokenIds[]']: [tokenID],
     })
   }
 
@@ -102,14 +104,14 @@ export class BSNeo3<BSCustomName extends string = string>
   }
 
   generateMnemonic(): string[] {
-    keychain.generateMnemonic(128)
-    if (!keychain.mnemonic) throw new Error('Failed to generate mnemonic')
-    return keychain.mnemonic.toString().split(' ')
+    this.keychain.generateMnemonic(128)
+    if (!this.keychain.mnemonic) throw new Error('Failed to generate mnemonic')
+    return this.keychain.mnemonic.toString().split(' ')
   }
 
   generateAccount(mnemonic: string[], index: number): Account {
-    keychain.importMnemonic(mnemonic.join(' '))
-    const childKey = keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
+    this.keychain.importMnemonic(mnemonic.join(' '))
+    const childKey = this.keychain.generateChildKey('neo', this.derivationPath.replace('?', index.toString()))
     const wif = childKey.getWIF()
     const { address } = new wallet.Account(wif)
     return { address, wif }
@@ -121,9 +123,21 @@ export class BSNeo3<BSCustomName extends string = string>
   }
 
   async decryptKey(encryptedKey: string, password: string): Promise<Account> {
-    const wif = await wallet.decrypt(encryptedKey, password)
-    const { address } = new wallet.Account(wif)
-    return { address, wif }
+    let key: string
+    try {
+      const { NativeModules } = require('react-native')
+
+      if (!NativeModules.BsReactNativeDecrypt) {
+        throw new Error('React native decrypt module is not installed')
+      }
+
+      key = await NativeModules.BsReactNativeDecrypt.decryptNeo3(encryptedKey, password)
+    } catch {
+      key = await wallet.decrypt(encryptedKey, password)
+    }
+
+    const { address, WIF } = new wallet.Account(key)
+    return { address, wif: WIF }
   }
 
   async calculateTransferFee(param: TransferParam): Promise<CalculateTransferFeeResponse> {

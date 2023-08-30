@@ -1,0 +1,18 @@
+{
+  "name": "@cityofzion/bs-asteroid-sdk",
+  "version": "0.6.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "https://github.com/CityOfZion/blockchain-services",
+  "author": "Coz",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@moonlight-io/asteroid-sdk-js": "git+https://github.com/Moonlight-io/asteroid-sdk-js"
+  },
+  "devDependencies": {
+    "typescript": "4.9.5"
+  }
+}
