@@ -201,15 +201,17 @@ export const bitqueryGetTokenInfoQuery = gql<BitQueryGetContractResponse, BitQue
 type BitQueryGetBalanceResponse = {
   ethereum: {
     address: {
-      balances: {
-        currency: {
-          address: string
-          symbol: string
-          name: string
-          decimals: number
-        }
-        value: number
-      }[]
+      balances:
+        | {
+            currency: {
+              address: string
+              symbol: string
+              name: string
+              decimals: number
+            }
+            value: number
+          }[]
+        | null
     }[]
   }
 }

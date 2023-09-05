@@ -9,8 +9,8 @@ import {
   Network,
   PartialBy,
   TransferParam,
+  AccountWithDerivationPath,
 } from '@cityofzion/blockchain-service'
-import { AsteroidSDK } from '@cityofzion/bs-asteroid-sdk'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import {
   DEFAULT_URL_BY_NETWORK_TYPE,
@@ -21,26 +21,30 @@ import {
 } from './constants'
 import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
 import { CryptoCompareEDSNeoLegacy } from './CryptoCompareEDSNeoLegacy'
+import { keychain } from '@cityofzion/bs-asteroid-sdk'
 
 export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, BSClaimable {
+  readonly blockchainName: BSCustomName
+  readonly feeToken: Token
+  readonly claimToken: Token
+  readonly burnToken: Token
+  readonly derivationPath: string
+
   blockchainDataService!: BlockchainDataService & BDSClaimable
-  blockchainName: BSCustomName
-  feeToken: Token
   exchangeDataService!: ExchangeDataService
-  claimToken: Token
   tokens: Token[]
   network!: Network
   legacyNetwork: string
-
-  private keychain = new AsteroidSDK.Keychain()
 
   constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
     if (network.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
 
     this.blockchainName = blockchainName
     this.legacyNetwork = LEGACY_NETWORK_BY_NETWORK_TYPE[network.type]
+    this.derivationPath = DERIVATION_PATH
     this.tokens = TOKENS[network.type]
     this.claimToken = this.tokens.find(token => token.symbol === 'GAS')!
+    this.burnToken = this.tokens.find(token => token.symbol === 'NEO')!
     this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.setNetwork(network)
   }
@@ -53,7 +57,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
       url: param.url ?? DEFAULT_URL_BY_NETWORK_TYPE[param.type],
     }
     this.network = network
-    this.blockchainDataService = new DoraBDSNeoLegacy(network.type)
+    this.blockchainDataService = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken)
     this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network.type)
   }
 
@@ -69,18 +73,13 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
-  generateMnemonic(): string[] {
-    this.keychain.generateMnemonic(128)
-    if (!this.keychain.mnemonic) throw new Error('Failed to generate mnemonic')
-    return this.keychain.mnemonic.toString().split(' ')
-  }
-
-  generateAccount(mnemonic: string[], index: number): Account {
-    this.keychain.importMnemonic(mnemonic.join(' '))
-    const childKey = this.keychain.generateChildKey('neo', DERIVATION_PATH.replace('?', index.toString()))
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): AccountWithDerivationPath {
+    keychain.importMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
+    const path = this.derivationPath.replace('?', index.toString())
+    const childKey = keychain.generateChildKey('neo', path)
     const key = childKey.getWIF()
     const { address } = new wallet.Account(key)
-    return { address, key, type: 'wif' }
+    return { address, key, type: 'wif', derivationPath: path }
   }
 
   generateAccountFromKey(key: string): Account {
@@ -110,14 +109,10 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     return this.generateAccountFromKey(privateKey)
   }
 
-  async transfer({
-    intent: transferIntent,
-    senderAccount,
-    priorityFee = 0,
-    tipIntent,
-  }: TransferParam): Promise<string> {
+  async transfer({ intent: transferIntent, senderAccount, tipIntent, ...params }: TransferParam): Promise<string> {
     const apiProvider = new api.neoCli.instance(this.network.url)
     const account = new wallet.Account(senderAccount.key)
+    const priorityFee = Number(params.priorityFee ?? 0)
 
     const nativeIntents: ReturnType<typeof api.makeIntent> = []
     const nep5ScriptBuilder = new sc.ScriptBuilder()
@@ -129,7 +124,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
 
       const nativeAsset = NATIVE_ASSETS.find(asset => asset.hash === tokenHashFixed)
       if (nativeAsset) {
-        nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: intent.amount }, intent.receiverAddress))
+        nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
         continue
       }
 
@@ -156,7 +151,6 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
         fees: priorityFee,
       })
     } else {
-      console.log(nativeIntents)
       response = await api.doInvoke({
         intents: nativeIntents.length > 0 ? nativeIntents : undefined,
         account,
@@ -179,7 +173,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     if (!neoBalance) throw new Error('It is necessary to have NEO to claim')
 
     const unclaimed = await this.blockchainDataService.getUnclaimed(account.address)
-    if (unclaimed <= 0) throw new Error(`Doesn't have gas to claim`)
+    if (Number(unclaimed) <= 0) throw new Error(`Doesn't have gas to claim`)
 
     const apiProvider = new api.neoCli.instance(this.legacyNetwork)
     const claims = await apiProvider.getClaims(account.address)

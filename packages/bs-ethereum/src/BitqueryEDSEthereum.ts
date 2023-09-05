@@ -49,7 +49,7 @@ export class BitqueryEDSEthereum implements ExchangeDataService {
     const prices = result.data.ethereum.dexTrades.map(
       (trade): TokenPricesResponse => ({
         symbol: trade.baseCurrency.symbol,
-        amount: trade.quotePrice * currencyRatio,
+        price: trade.quotePrice * currencyRatio,
       })
     )
 

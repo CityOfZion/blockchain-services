@@ -1,5 +1,6 @@
 import {
   Account,
+  AccountWithDerivationPath,
   BSCalculableFee,
   BSWithNameService,
   BSWithNft,
@@ -13,6 +14,9 @@ import {
   TransferParam,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
+import * as ethersJsonWallets from '@ethersproject/json-wallets'
+import * as ethersBytes from '@ethersproject/bytes'
+import * as ethersBigNumber from '@ethersproject/bignumber'
 import { DEFAULT_URL_BY_NETWORK_TYPE, DERIVATION_PATH, NATIVE_ASSETS, TOKENS } from './constants'
 import { BitqueryEDSEthereum } from './BitqueryEDSEthereum'
 import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
@@ -22,16 +26,19 @@ import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
 export class BSEthereum<BSCustomName extends string = string>
   implements BlockchainService, BSWithNft, BSWithNameService, BSCalculableFee
 {
+  readonly blockchainName: BSCustomName
+  readonly feeToken: Token
+  readonly derivationPath: string
+
   blockchainDataService!: BlockchainDataService
-  blockchainName: BSCustomName
-  feeToken: Token
   exchangeDataService!: ExchangeDataService
   tokens: Token[]
-  network!: Network
   nftDataService!: NftDataService
+  network!: Network
 
   constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
     this.blockchainName = blockchainName
+    this.derivationPath = DERIVATION_PATH
     this.tokens = TOKENS[network.type]
 
     this.feeToken = this.tokens.find(token => token.symbol === 'ETH')!
@@ -48,7 +55,7 @@ export class BSEthereum<BSCustomName extends string = string>
     if (network.type === 'custom') {
       this.blockchainDataService = new RpcBDSEthereum(network)
     } else {
-      this.blockchainDataService = new BitqueryBDSEthereum(network.type)
+      this.blockchainDataService = new BitqueryBDSEthereum(network)
     }
 
     this.exchangeDataService = new BitqueryEDSEthereum(network.type)
@@ -56,11 +63,11 @@ export class BSEthereum<BSCustomName extends string = string>
   }
 
   validateAddress(address: string): boolean {
-    return ethers.isAddress(address)
+    return ethers.utils.isAddress(address)
   }
 
   validateEncrypted(json: string): boolean {
-    return ethers.isKeystoreJson(json)
+    return ethersJsonWallets.isCrowdsaleWallet(json) || ethersJsonWallets.isKeystoreWallet(json)
   }
 
   validateKey(key: string): boolean {
@@ -68,7 +75,8 @@ export class BSEthereum<BSCustomName extends string = string>
       if (!key.startsWith('0x')) {
         key = '0x' + key
       }
-      if (ethers.dataLength(key) !== 32) return false
+      if (ethersBytes.hexDataLength(key) !== 32) return false
+
       return true
     } catch (error) {
       return false
@@ -76,28 +84,19 @@ export class BSEthereum<BSCustomName extends string = string>
   }
 
   validateNameServiceDomainFormat(domainName: string): boolean {
-    return ethers.isValidName(domainName)
+    if (!domainName.endsWith('.eth')) return false
+    return true
   }
 
-  generateMnemonic(): string[] {
-    const wallet = ethers.Wallet.createRandom()
-    if (!wallet.mnemonic) throw new Error('No mnemonic found')
-
-    return wallet.mnemonic.phrase.split(' ')
-  }
-
-  generateAccount(mnemonic: string[], index: number): Account {
-    const wallet = ethers.HDNodeWallet.fromPhrase(
-      mnemonic.join(' '),
-      undefined,
-      DERIVATION_PATH.replace('?', index.toString()),
-      undefined
-    )
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): AccountWithDerivationPath {
+    const path = this.derivationPath.replace('?', index.toString())
+    const wallet = ethers.Wallet.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic, path)
 
     return {
       address: wallet.address,
       key: wallet.privateKey,
       type: 'privateKey',
+      derivationPath: path,
     }
   }
 
@@ -120,57 +119,64 @@ export class BSEthereum<BSCustomName extends string = string>
   }
 
   async transfer({ senderAccount, intent }: TransferParam): Promise<string> {
-    const provider = new ethers.JsonRpcProvider(this.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
     const wallet = new ethers.Wallet(senderAccount.key, provider)
 
-    let transaction: ethers.TransactionResponse
+    let transaction: ethers.providers.TransactionResponse
+    const decimals = intent.tokenDecimals ?? 18
+    const amount = ethersBigNumber.parseFixed(intent.amount, decimals)
 
     const isNative = NATIVE_ASSETS.some(asset => asset.hash === intent.tokenHash)
     if (!isNative) {
-      ethers.parseUnits
-      const abi = new ethers.Interface(['function transfer(address _to, uint256 _value) public returns (bool success)'])
-      const contract = new ethers.Contract(intent.tokenHash, abi, wallet)
-      const transferFunc = contract.getFunction('transfer')
-      const amount = ethers.FixedNumber.fromString(intent.amount.toFixed(intent.tokenDecimals ?? 18)).value
-      transaction = await transferFunc.send(intent.receiverAddress, amount)
+      const contract = new ethers.Contract(
+        intent.tokenHash,
+        ['function transfer(address to, uint amount) returns (bool)'],
+        wallet
+      )
+      transaction = await contract.transfer(intent.receiverAddress, amount)
     } else {
       transaction = await wallet.sendTransaction({
         to: intent.receiverAddress,
-        value: ethers.FixedNumber.fromString(intent.amount.toFixed(intent.tokenDecimals ?? 18)).value,
+        value: amount,
       })
     }
 
     const transactionMined = await transaction.wait()
     if (!transactionMined) throw new Error('Transaction not mined')
 
-    return transactionMined.hash
+    return transactionMined.transactionHash
   }
 
   async calculateTransferFee({ senderAccount, intent }: TransferParam, details?: boolean | undefined): Promise<string> {
-    const provider = new ethers.JsonRpcProvider(this.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
     const wallet = new ethers.Wallet(senderAccount.key, provider)
 
-    let estimated: bigint
+    let estimated: ethers.BigNumber
 
     const isNative = NATIVE_ASSETS.some(asset => asset.hash === intent.tokenHash)
+    const decimals = intent.tokenDecimals ?? 18
+    const amount = ethersBigNumber.parseFixed(intent.amount, decimals)
+
     if (!isNative) {
-      const abi = new ethers.Interface(['function transfer(address _to, uint256 _value) public returns (bool success)'])
-      const contract = new ethers.Contract(intent.tokenHash, abi, wallet)
-      const amount = ethers.parseUnits(intent.amount.toString(), intent.tokenDecimals ?? 0)
-      const transferFunc = contract.getFunction('transfer')
-      estimated = await transferFunc.estimateGas(intent.receiverAddress, amount)
+      const contract = new ethers.Contract(
+        intent.tokenHash,
+        ['function transfer(address to, uint amount) returns (bool)'],
+        wallet
+      )
+
+      estimated = await contract.estimateGas.transfer(intent.receiverAddress, amount)
     } else {
       estimated = await wallet.estimateGas({
         to: intent.receiverAddress,
-        value: ethers.parseEther(intent.amount.toFixed(intent.tokenDecimals ?? 0)),
+        value: amount,
       })
     }
 
-    return ethers.formatEther(estimated)
+    return ethers.utils.formatEther(estimated)
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {
-    const provider = new ethers.JsonRpcProvider(this.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
     const address = await provider.resolveName(domainName)
     if (!address) throw new Error('No address found for domain name')
     return address

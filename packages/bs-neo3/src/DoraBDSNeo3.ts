@@ -1,7 +1,8 @@
 import {
   BalanceResponse,
   ContractResponse,
-  TransactionHistoryResponse,
+  TransactionsByAddressParams,
+  TransactionsByAddressResponse,
   TransactionResponse,
   TransactionNotifications,
   Network,
@@ -10,9 +11,14 @@ import {
   TransactionTransferAsset,
 } from '@cityofzion/blockchain-service'
 import { wallet, u } from '@cityofzion/neon-js'
-import { api } from '@cityofzion/dora-ts'
+import { NeoRESTApi } from '@cityofzion/dora-ts/dist/api'
 import { RPCBDSNeo3 } from './RpcBDSNeo3'
 import { TOKENS } from './constants'
+
+const NeoRest = new NeoRESTApi({
+  doraUrl: 'https://dora.coz.io',
+  endpoint: '/api/v2/neo3',
+})
 
 export class DoraBDSNeo3 extends RPCBDSNeo3 {
   readonly network: Network
@@ -27,23 +33,28 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    const data = await api.NeoRest.transaction(hash, this.network.type)
-    return {
-      block: data.block,
-      time: Number(data.time),
-      hash: data.hash,
-      fee: Number(
-        u.BigInteger.fromNumber(data.netfee ?? 0)
+    try {
+      const data = await NeoRest.transaction(hash, this.network.type)
+      return {
+        block: data.block,
+        time: Number(data.time),
+        hash: data.hash,
+        fee: u.BigInteger.fromNumber(data.netfee ?? 0)
           .add(u.BigInteger.fromNumber(data.sysfee ?? 0))
-          .toDecimal(this.feeToken.decimals)
-      ),
-      notifications: [],
-      transfers: [],
+          .toDecimal(this.feeToken.decimals),
+        notifications: [],
+        transfers: [],
+      }
+    } catch {
+      throw new Error(`Transaction not found: ${hash}`)
     }
   }
 
-  async getTransactionsByAddress(address: string, page: number = 1): Promise<TransactionHistoryResponse> {
-    const data = await api.NeoRest.addressTXFull(address, page, this.network.type)
+  async getTransactionsByAddress({
+    address,
+    page = 1,
+  }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
+    const data = await NeoRest.addressTXFull(address, page, this.network.type)
     const transactions = await Promise.all(
       data.items.map(async (item): Promise<TransactionResponse> => {
         const filteredTransfers = item.notifications.filter(
@@ -62,8 +73,8 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
               const token = await this.getTokenInfo(contractHash)
               const [, , { value: amount }] = properties
               return {
-                amount: Number(u.BigInteger.fromNumber(amount).toDecimal(token.decimals ?? 0)),
-                from: from,
+                amount: u.BigInteger.fromNumber(amount).toDecimal(token.decimals ?? 0),
+                from: convertedFrom,
                 to: convertedTo,
                 contractHash,
                 type: 'token',
@@ -74,7 +85,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
             return {
               from: convertedFrom,
               to: convertedTo,
-              tokenId: this.convertByteStringToInteger(properties[4].value),
+              tokenId: properties[3].value,
               contractHash,
               type: 'nft',
             }
@@ -91,11 +102,9 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
           block: item.block,
           time: Number(item.time),
           hash: item.hash,
-          fee: Number(
-            u.BigInteger.fromNumber(item.netfee ?? 0)
-              .add(u.BigInteger.fromNumber(item.sysfee ?? 0))
-              .toDecimal(this.feeToken.decimals)
-          ),
+          fee: u.BigInteger.fromNumber(item.netfee ?? 0)
+            .add(u.BigInteger.fromNumber(item.sysfee ?? 0))
+            .toDecimal(this.feeToken.decimals),
           transfers,
           notifications,
         }
@@ -105,15 +114,20 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
     return {
       totalCount: data.totalCount,
       transactions,
+      limit: 15,
     }
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
-    const data = await api.NeoRest.contract(contractHash, this.network.type)
-    return {
-      hash: data.hash,
-      methods: data.manifest.abi?.methods ?? [],
-      name: data.manifest.name,
+    try {
+      const data = await NeoRest.contract(contractHash, this.network.type)
+      return {
+        hash: data.hash,
+        methods: data.manifest.abi?.methods ?? [],
+        name: data.manifest.name,
+      }
+    } catch {
+      throw new Error(`Contract not found: ${contractHash}`)
     }
   }
 
@@ -125,41 +139,42 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
       return this.tokenCache.get(tokenHash)!
     }
 
-    const { decimals, symbol, name, scripthash } = await api.NeoRest.asset(tokenHash, this.network.type)
-    const token = {
-      decimals: Number(decimals),
-      symbol,
-      name,
-      hash: scripthash,
-    }
-    this.tokenCache.set(tokenHash, token)
+    try {
+      const { decimals, symbol, name, scripthash } = await NeoRest.asset(tokenHash, this.network.type)
+      const token = {
+        decimals: Number(decimals),
+        symbol,
+        name,
+        hash: scripthash,
+      }
+      this.tokenCache.set(tokenHash, token)
 
-    return token
+      return token
+    } catch {
+      throw new Error(`Token not found: ${tokenHash}`)
+    }
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const response = await api.NeoRest.balance(address, this.network.type)
+    const response = await NeoRest.balance(address, this.network.type)
 
-    const promises = response.map<Promise<BalanceResponse>>(async balance => {
-      const token = await this.getTokenInfo(balance.asset)
-      return {
-        amount: Number(balance.balance),
-        token,
-      }
+    const promises = response.map<Promise<BalanceResponse | undefined>>(async balance => {
+      try {
+        const token = await this.getTokenInfo(balance.asset)
+        return {
+          amount: u.BigInteger.fromNumber(balance.balance).toDecimal(token.decimals),
+          token,
+        }
+      } catch {}
     })
     const balances = await Promise.all(promises)
-    return balances
+    const filteredBalances = balances.filter(balance => balance !== undefined) as BalanceResponse[]
+    return filteredBalances
   }
 
   private convertByteStringToAddress(byteString: string): string {
     const account = new wallet.Account(u.reverseHex(u.HexString.fromBase64(byteString).toString()))
 
     return account.address
-  }
-
-  private convertByteStringToInteger(byteString: string): string {
-    const integer = u.BigInteger.fromHex(u.reverseHex(u.HexString.fromBase64(byteString).toString())).toString()
-
-    return integer
   }
 }

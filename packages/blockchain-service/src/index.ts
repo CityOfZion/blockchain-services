@@ -1,3 +1,3 @@
 export * from './interfaces'
-export * from './BSAgreggator'
+export * from './BSAggregator'
 export * from './functions'

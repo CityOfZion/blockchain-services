@@ -1,5 +1,3 @@
-import { Currency } from '@cityofzion/blockchain-service'
-import { BSNeoLegacy } from '../BSNeoLegacy'
 import { CryptoCompareEDSNeoLegacy } from '../CryptoCompareEDSNeoLegacy'
 
 let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
@@ -14,7 +12,7 @@ describe('FlamingoEDSNeo3', () => {
 
     tokenPriceList.forEach(tokenPrice => {
       expect(tokenPrice).toEqual({
-        amount: expect.any(Number),
+        price: expect.any(Number),
         symbol: expect.any(String),
       })
     })
@@ -25,9 +23,9 @@ describe('FlamingoEDSNeo3', () => {
     const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('BRL')
 
     tokenPriceList.forEach((tokenPrice, index) => {
-      expect(tokenPrice.amount).toBeGreaterThan(tokenPriceListInUSD[index].amount)
+      expect(tokenPrice.price).toBeGreaterThan(tokenPriceListInUSD[index].price)
       expect(tokenPrice).toEqual({
-        amount: expect.any(Number),
+        price: expect.any(Number),
         symbol: expect.any(String),
       })
     })
@@ -38,9 +36,9 @@ describe('FlamingoEDSNeo3', () => {
     const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('EUR')
 
     tokenPriceList.forEach((tokenPrice, index) => {
-      expect(tokenPrice.amount).toBeLessThan(tokenPriceListInUSD[index].amount)
+      expect(tokenPrice.price).toBeLessThan(tokenPriceListInUSD[index].price)
       expect(tokenPrice).toEqual({
-        amount: expect.any(Number),
+        price: expect.any(Number),
         symbol: expect.any(String),
       })
     })

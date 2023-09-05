@@ -3,7 +3,7 @@ import { BSEthereum } from '../BSEthereum'
 import { Account } from '@cityofzion/blockchain-service'
 
 let bsEthereum: BSEthereum
-let wallet: ethers.HDNodeWallet
+let wallet: ethers.Wallet
 let account: Account
 
 describe('BSEthereum', () => {
@@ -49,16 +49,8 @@ describe('BSEthereum', () => {
     expect(bsEthereum.validateNameServiceDomainFormat(invalidDomain)).toBeFalsy()
   })
 
-  it('Should be able to generate a mnemonic', () => {
-    expect(() => {
-      const mnemonic = bsEthereum.generateMnemonic()
-      expect(mnemonic).toHaveLength(12)
-    }).not.toThrowError()
-  })
-
   it('Should be able to generate a account from mnemonic', () => {
-    const mnemonic = bsEthereum.generateMnemonic()
-    const account = bsEthereum.generateAccount(mnemonic, 0)
+    const account = bsEthereum.generateAccountFromMnemonic(wallet.mnemonic.phrase, 0)
 
     expect(bsEthereum.validateAddress(account.address)).toBeTruthy()
     expect(bsEthereum.validateKey(account.key)).toBeTruthy()
@@ -82,14 +74,14 @@ describe('BSEthereum', () => {
     const fee = await bsEthereum.calculateTransferFee({
       senderAccount: account,
       intent: {
-        amount: 0.00000001,
+        amount: '0.1',
         receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
         tokenDecimals: 18,
-        tokenHash: '-',
+        tokenHash: '0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc',
       },
     })
 
-    expect(fee).toEqual(expect.any(String))
+    expect(fee).toEqual(expect.any(Number))
   })
 
   it.skip('Should be able to transfer a native token', async () => {
@@ -98,7 +90,7 @@ describe('BSEthereum', () => {
     const transactionHash = await bsEthereum.transfer({
       senderAccount: account,
       intent: {
-        amount: 0.00000001,
+        amount: '0.00000001',
         receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
         tokenDecimals: 18,
         tokenHash: '-',
@@ -114,7 +106,7 @@ describe('BSEthereum', () => {
     const transactionHash = await bsEthereum.transfer({
       senderAccount: account,
       intent: {
-        amount: 0.00000001,
+        amount: '0.00000001',
         receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
         tokenDecimals: 18,
         tokenHash: '0xba62bcfcaafc6622853cca2be6ac7d845bc0f2dc',
@@ -127,5 +119,5 @@ describe('BSEthereum', () => {
   it('Should be able to resolve a name service domain', async () => {
     const address = await bsEthereum.resolveNameServiceDomain('alice.eth')
     expect(address).toEqual('0xa974890156A3649A23a6C0f2ebd77D6F7A7333d4')
-  })
+  }, 10000)
 })

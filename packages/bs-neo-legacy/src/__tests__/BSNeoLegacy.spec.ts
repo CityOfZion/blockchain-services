@@ -1,6 +1,6 @@
-import { Currency } from '@cityofzion/blockchain-service'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import { wallet } from '@cityofzion/neon-js'
+import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 
 let bsNeoLegacy: BSNeoLegacy
 
@@ -33,48 +33,41 @@ describe('BSNeoLegacy', () => {
     expect(bsNeoLegacy.validateKey(invalidWif)).toBeFalsy()
   })
 
-  it('Should be able to generate a mnemonic', () => {
-    expect(() => {
-      const mnemonic = bsNeoLegacy.generateMnemonic()
-      expect(mnemonic).toHaveLength(12)
-    }).not.toThrowError()
-  })
-
   it('Should be able to gererate a account from mnemonic', () => {
-    const mnemonic = bsNeoLegacy.generateMnemonic()
-    const account = bsNeoLegacy.generateAccount(mnemonic, 0)
+    const mnemonic = generateMnemonic()
+    const account = bsNeoLegacy.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(bsNeoLegacy.validateAddress(account.address)).toBeTruthy()
     expect(bsNeoLegacy.validateKey(account.key)).toBeTruthy()
   })
 
   it('Should be able to generate a account from wif', () => {
-    const mnemonic = bsNeoLegacy.generateMnemonic()
-    const account = bsNeoLegacy.generateAccount(mnemonic, 0)
+    const mnemonic = generateMnemonic()
+    const account = bsNeoLegacy.generateAccountFromMnemonic(mnemonic, 0)
 
     const accountFromWif = bsNeoLegacy.generateAccountFromKey(account.key)
-    expect(account).toEqual(accountFromWif)
+    expect(account).toEqual(expect.objectContaining(accountFromWif))
   })
 
   it('Should be able to decrypt a encrypted key', async () => {
-    const mnemonic = bsNeoLegacy.generateMnemonic()
-    const account = bsNeoLegacy.generateAccount(mnemonic, 0)
+    const mnemonic = generateMnemonic()
+    const account = bsNeoLegacy.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await wallet.encrypt(account.key, password)
     const decryptedAccount = await bsNeoLegacy.decrypt(encryptedKey, password)
-    expect(decryptedAccount).toEqual(account)
+    expect(account).toEqual(expect.objectContaining(decryptedAccount))
   }, 10000)
 
   it.skip('Should be able to transfer a native asset', async () => {
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const gasBalance = balance.find(b => b.token.symbol === 'GAS')!
-    expect(gasBalance?.amount).toBeGreaterThan(0.00000001)
+    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
 
     const transactionHash = await bsNeoLegacy.transfer({
       senderAccount: account,
       intent: {
-        amount: 0.00000001,
+        amount: '0.00000001',
         receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
         tokenHash: gasBalance.token.hash,
         tokenDecimals: gasBalance.token.decimals,
@@ -89,12 +82,12 @@ describe('BSNeoLegacy', () => {
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
-    expect(LXBalance?.amount).toBeGreaterThan(0.00000001)
+    expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000001)
 
     const transactionHash = await bsNeoLegacy.transfer({
       senderAccount: account,
       intent: {
-        amount: 0.00000001,
+        amount: '0.00000001',
         receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
         tokenHash: LXBalance.token.hash,
         tokenDecimals: LXBalance.token.decimals,
@@ -109,20 +102,20 @@ describe('BSNeoLegacy', () => {
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
-    expect(LXBalance?.amount).toBeGreaterThan(0.00000001)
+    expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000001)
     const gasBalance = balance.find(item => item.token.symbol === bsNeoLegacy.feeToken.symbol)!
-    expect(gasBalance?.amount).toBeGreaterThan(0.00000001)
+    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
 
     const transactionHash = await bsNeoLegacy.transfer({
       senderAccount: account,
       intent: {
-        amount: 0.00000001,
+        amount: '0.00000001',
         receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
         tokenHash: LXBalance.token.hash,
         tokenDecimals: LXBalance.token.decimals,
       },
       tipIntent: {
-        amount: 0.00000001,
+        amount: '0.00000001',
         receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
         tokenHash: gasBalance.token.hash,
         tokenDecimals: gasBalance.token.decimals,

@@ -18,6 +18,11 @@
       "shouldPublish": true
     },
     {
+      "packageName": "@cityofzion/bs-ethereum",
+      "projectFolder": "packages/bs-ethereum",
+      "shouldPublish": true
+    },
+    {
       "packageName": "@cityofzion/bs-neo3",
       "projectFolder": "packages/bs-neo3",
       "shouldPublish": true

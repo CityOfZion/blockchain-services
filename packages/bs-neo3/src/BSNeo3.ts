@@ -13,6 +13,7 @@ import {
   BSCalculableFee,
   NftDataService,
   BSWithNft,
+  AccountWithDerivationPath,
 } from '@cityofzion/blockchain-service'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Neon from '@cityofzion/neon-core'
@@ -26,27 +27,30 @@ import { DoraBDSNeo3 } from './DoraBDSNeo3'
 import { DEFAULT_URL_BY_NETWORK_TYPE, DERIVATION_PATH, NEO_NS_HASH, TOKENS } from './constants'
 import { FlamingoEDSNeo3 } from './FlamingoEDSNeo3'
 import { GhostMarketNDSNeo3 } from './GhostMarketNDSNeo3'
-import { AsteroidSDK } from '@cityofzion/bs-asteroid-sdk'
+import { keychain } from '@cityofzion/bs-asteroid-sdk'
 
 export class BSNeo3<BSCustomName extends string = string>
   implements BlockchainService, BSClaimable, BSWithNameService, BSCalculableFee, BSWithNft
 {
-  blockchainName: BSCustomName
+  readonly blockchainName: BSCustomName
+  readonly feeToken: Token
+  readonly claimToken: Token
+  readonly burnToken: Token
+  readonly derivationPath: string
+
   blockchainDataService!: BlockchainDataService & BDSClaimable
   nftDataService!: NftDataService
-  feeToken: Token
   exchangeDataService!: ExchangeDataService
-  claimToken: Token
   tokens: Token[]
   network!: Network
-
-  private keychain = new AsteroidSDK.Keychain()
 
   constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
     this.blockchainName = blockchainName
     this.tokens = TOKENS[network.type]
 
+    this.derivationPath = DERIVATION_PATH
     this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
+    this.burnToken = this.tokens.find(token => token.symbol === 'NEO')!
     this.claimToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.setNetwork(network)
   }
@@ -85,18 +89,13 @@ export class BSNeo3<BSCustomName extends string = string>
     return true
   }
 
-  generateMnemonic(): string[] {
-    this.keychain.generateMnemonic(128)
-    if (!this.keychain.mnemonic) throw new Error('Failed to generate mnemonic')
-    return this.keychain.mnemonic.toString().split(' ')
-  }
-
-  generateAccount(mnemonic: string[], index: number): Account {
-    this.keychain.importMnemonic(mnemonic.join(' '))
-    const childKey = this.keychain.generateChildKey('neo', DERIVATION_PATH.replace('?', index.toString()))
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): AccountWithDerivationPath {
+    keychain.importMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
+    const path = this.derivationPath.replace('?', index.toString())
+    const childKey = keychain.generateChildKey('neo', path)
     const key = childKey.getWIF()
     const { address } = new wallet.Account(key)
-    return { address, key, type: 'wif' }
+    return { address, key, type: 'wif', derivationPath: path }
   }
 
   generateAccountFromKey(key: string): Account {
