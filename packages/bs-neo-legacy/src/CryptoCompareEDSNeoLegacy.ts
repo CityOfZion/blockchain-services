@@ -34,7 +34,7 @@ export class CryptoCompareEDSNeoLegacy implements ExchangeDataService {
 
     return Object.entries(prices.RAW).map(([symbol, price]) => ({
       symbol,
-      amount: price[currency].PRICE,
+      price: price[currency].PRICE,
     }))
   }
 }

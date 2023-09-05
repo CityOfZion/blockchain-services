@@ -1,6 +1,7 @@
 import { wallet } from '@cityofzion/neon-js'
 import { sleep } from './utils/sleep'
 import { BSNeo3 } from '../BSNeo3'
+import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 
 let bsNeo3: BSNeo3
 
@@ -43,34 +44,34 @@ describe('BSNeo3', () => {
 
   it('Should be able to generate a mnemonic', () => {
     expect(() => {
-      const mnemonic = bsNeo3.generateMnemonic()
+      const mnemonic = generateMnemonic()
       expect(mnemonic).toHaveLength(12)
     }).not.toThrowError()
   })
 
   it('Should be able to gererate a account from mnemonic', () => {
-    const mnemonic = bsNeo3.generateMnemonic()
-    const account = bsNeo3.generateAccount(mnemonic, 0)
+    const mnemonic = generateMnemonic()
+    const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(bsNeo3.validateAddress(account.address)).toBeTruthy()
     expect(bsNeo3.validateKey(account.key)).toBeTruthy()
   })
 
   it('Should be able to generate a account from wif', () => {
-    const mnemonic = bsNeo3.generateMnemonic()
-    const account = bsNeo3.generateAccount(mnemonic, 0)
+    const mnemonic = generateMnemonic()
+    const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
 
     const accountFromWif = bsNeo3.generateAccountFromKey(account.key)
-    expect(account).toEqual(accountFromWif)
+    expect(account).toEqual(expect.objectContaining(accountFromWif))
   })
 
   it('Should be able to decrypt a encrypted key', async () => {
-    const mnemonic = bsNeo3.generateMnemonic()
-    const account = bsNeo3.generateAccount(mnemonic, 0)
+    const mnemonic = generateMnemonic()
+    const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await wallet.encrypt(account.key, password)
     const decryptedAccount = await bsNeo3.decrypt(encryptedKey, password)
-    expect(decryptedAccount).toEqual(account)
+    expect(account).toEqual(expect.objectContaining(decryptedAccount))
   }, 20000)
 
   it.skip('Should be able to calculate transfer fee', async () => {
@@ -79,7 +80,7 @@ describe('BSNeo3', () => {
     const fee = await bsNeo3.calculateTransferFee({
       senderAccount: account,
       intent: {
-        amount: 0.00000001,
+        amount: '0.00000001',
         receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
         tokenHash: bsNeo3.feeToken.hash,
         tokenDecimals: bsNeo3.feeToken.decimals,
@@ -97,12 +98,12 @@ describe('BSNeo3', () => {
     const account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeo3.blockchainDataService.getBalance(account.address)
     const gasBalance = balance.find(b => b.token.symbol === bsNeo3.feeToken.symbol)
-    expect(gasBalance?.amount).toBeGreaterThan(0.00000001)
+    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
 
     const transactionHash = await bsNeo3.transfer({
       senderAccount: account,
       intent: {
-        amount: 0.00000001,
+        amount: '0.00000001',
         receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
         tokenHash: bsNeo3.feeToken.hash,
         tokenDecimals: bsNeo3.feeToken.decimals,
@@ -121,7 +122,7 @@ describe('BSNeo3', () => {
     while (tries < maxTries) {
       try {
         const unclaimed = await bsNeo3.blockchainDataService.getUnclaimed(account.address)
-        if (unclaimed <= 0) continue
+        if (Number(unclaimed) <= 0) continue
 
         const transactionHash = await bsNeo3.claim(account)
         expect(transactionHash).toEqual(expect.any(String))

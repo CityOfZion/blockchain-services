@@ -3,14 +3,14 @@ import { BitqueryBDSEthereum } from '../BitqueryBDSEthereum'
 import { RpcBDSEthereum } from '../RpcBDSEthereum'
 import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
 
-let bitqueryBDSEthereum = new BitqueryBDSEthereum('testnet')
-let rpcBDSEthereum = new RpcBDSEthereum({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet })
+const bitqueryBDSEthereum = new BitqueryBDSEthereum({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet })
+const rpcBDSEthereum = new RpcBDSEthereum({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet })
 
-describe.only('BDSEthereum', () => {
+describe('BDSEthereum', () => {
   it.each([rpcBDSEthereum, bitqueryBDSEthereum])(
     'Should be able to get transaction - %s',
     async (BDSEthereum: BlockchainDataService) => {
-      const hash = '0xf375bdb7cd119b65b9808655c7786ca47d5761c98aeaa7d63cbad63d6fd99f24'
+      const hash = '0x43fa3015d077a13888409cfbd6228df8900abcd5314ff11ea6ce0c49e8b7c94d'
       const transaction = await BDSEthereum.getTransaction(hash)
 
       expect(transaction).toEqual(
@@ -27,19 +27,20 @@ describe.only('BDSEthereum', () => {
             from: expect.any(String),
             to: expect.any(String),
             contractHash: expect.any(String),
-            amount: expect.any(Number),
+            amount: expect.any(String),
             type: expect.any(String),
           })
         )
       })
-    }
+    },
+    10000
   )
 
-  it.only.each([bitqueryBDSEthereum])(
+  it.each([bitqueryBDSEthereum])(
     'Should be able to get transactions of address - %s',
     async (BDSEthereum: BlockchainDataService) => {
-      const address = '0xFACf5446B71dB33E920aB1769d9427146183aEcd'
-      const response = await BDSEthereum.getTransactionsByAddress(address, 1)
+      const address = '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89'
+      const response = await BDSEthereum.getTransactionsByAddress({ address: address, page: 1 })
       response.transactions.forEach(transaction => {
         expect(transaction).toEqual(
           expect.objectContaining({
@@ -47,7 +48,7 @@ describe.only('BDSEthereum', () => {
             hash: expect.any(String),
             notifications: [],
             time: expect.any(Number),
-            fee: expect.any(Number),
+            fee: expect.any(String),
           })
         )
 
@@ -57,7 +58,7 @@ describe.only('BDSEthereum', () => {
               from: expect.any(String),
               to: expect.any(String),
               contractHash: expect.any(String),
-              amount: expect.any(Number),
+              amount: expect.any(String),
               type: expect.any(String),
             })
           )
@@ -85,28 +86,28 @@ describe.only('BDSEthereum', () => {
   it.each([bitqueryBDSEthereum])(
     'Should be able to get token info - %s',
     async (BDSEthereum: BlockchainDataService) => {
-      const hash = '0x9813037ee2218799597d83d4a5b6f3b6778218d9'
+      const hash = '0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc'
       const token = await BDSEthereum.getTokenInfo(hash)
 
       expect(token).toEqual({
-        symbol: 'BONE',
-        name: 'BONE SHIBASWAP',
-        hash: '0x9813037ee2218799597d83d4a5b6f3b6778218d9',
+        hash: '0xba62bcfcaafc6622853cca2be6ac7d845bc0f2dc',
+        name: 'FaucetToken',
+        symbol: 'FAU',
         decimals: 18,
       })
     }
   )
 
-  it.only.each([bitqueryBDSEthereum])(
+  it.each([bitqueryBDSEthereum, rpcBDSEthereum])(
     'Should be able to get balance - %s',
     async (BDSEthereum: BlockchainDataService) => {
-      const address = '0xFACf5446B71dB33E920aB1769d9427146183aEcd'
+      const address = '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89'
       const balance = await BDSEthereum.getBalance(address)
-      console.log(JSON.stringify(balance, null, 2))
+
       balance.forEach(balance => {
         expect(balance).toEqual(
           expect.objectContaining({
-            amount: expect.any(Number),
+            amount: expect.any(String),
             token: {
               hash: expect.any(String),
               name: expect.any(String),

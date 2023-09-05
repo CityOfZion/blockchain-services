@@ -33,7 +33,7 @@ export class FlamingoEDSNeo3 implements ExchangeDataService {
     }
 
     return prices.map(price => ({
-      amount: price.usd_price * currencyRatio,
+      price: price.usd_price * currencyRatio,
       symbol: price.symbol,
     }))
   }

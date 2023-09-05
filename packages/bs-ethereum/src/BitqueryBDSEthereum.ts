@@ -1,13 +1,14 @@
 import {
   BalanceResponse,
-  BlockchainDataService,
   ContractResponse,
   NetworkType,
   Token,
-  TransactionHistoryResponse,
+  TransactionsByAddressParams,
+  TransactionsByAddressResponse,
   TransactionResponse,
   TransactionTransferAsset,
   TransactionTransferNft,
+  Network,
 } from '@cityofzion/blockchain-service'
 import { Client, cacheExchange, fetchExchange, gql } from '@urql/core'
 import fetch from 'node-fetch'
@@ -19,14 +20,17 @@ import {
   bitqueryGetTransactionQuery,
   bitqueryGetTransactionsByAddressQuery,
 } from './graphql'
+import { RpcBDSEthereum } from './RpcBDSEthereum'
 
-export class BitqueryBDSEthereum implements BlockchainDataService {
+export class BitqueryBDSEthereum extends RpcBDSEthereum {
   private readonly client: Client
   private readonly networkType: Exclude<NetworkType, 'custom'>
 
-  constructor(networkType: NetworkType) {
-    if (networkType === 'custom') throw new Error('Custom network not supported')
-    this.networkType = networkType
+  constructor(network: Network) {
+    super(network)
+
+    if (network.type === 'custom') throw new Error('Custom network not supported')
+    this.networkType = network.type
 
     this.client = new Client({
       url: BITQUERY_URL,
@@ -64,13 +68,16 @@ export class BitqueryBDSEthereum implements BlockchainDataService {
       block: height,
       time: unixtime,
       hash: transactionHash,
-      fee: gasValue,
+      fee: String(gasValue),
       transfers,
       notifications: [],
     }
   }
 
-  async getTransactionsByAddress(address: string, page: number): Promise<TransactionHistoryResponse> {
+  async getTransactionsByAddress({
+    address,
+    page = 1,
+  }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
     const limit = 10
     const offset = limit * (page - 1)
 
@@ -86,7 +93,7 @@ export class BitqueryBDSEthereum implements BlockchainDataService {
     if (result.error) throw new Error(result.error.message)
     if (!result.data) throw new Error('Address does not have transactions')
 
-    const totalCount = result.data.ethereum.sentCount.count + result.data.ethereum.receiverCount.count
+    const totalCount = (result.data.ethereum.sentCount.count ?? 0) + (result.data.ethereum.receiverCount.count ?? 0)
     const mixedTransfers = [...(result?.data?.ethereum?.sent ?? []), ...(result?.data?.ethereum?.received ?? [])]
 
     const transactions = new Map<string, TransactionResponse>()
@@ -104,7 +111,7 @@ export class BitqueryBDSEthereum implements BlockchainDataService {
         block: transfer.block.height,
         hash: transfer.transaction.hash,
         time: transfer.block.timestamp.unixtime,
-        fee: transfer.transaction.gasValue,
+        fee: String(transfer.transaction.gasValue),
         transfers: [transactionTransfer],
         notifications: [],
       })
@@ -112,6 +119,7 @@ export class BitqueryBDSEthereum implements BlockchainDataService {
 
     return {
       totalCount,
+      limit: limit * 2,
       transactions: Array.from(transactions.values()),
     }
   }
@@ -132,7 +140,7 @@ export class BitqueryBDSEthereum implements BlockchainDataService {
       .toPromise()
 
     if (result.error) throw new Error(result.error.message)
-    if (!result.data) throw new Error('Token not found')
+    if (!result.data || result.data.ethereum.smartContractCalls.length <= 0) throw new Error('Token not found')
 
     const {
       address: { address },
@@ -158,11 +166,11 @@ export class BitqueryBDSEthereum implements BlockchainDataService {
       .toPromise()
 
     if (result.error) throw new Error(result.error.message)
-    if (!result.data) throw new Error('Balance not found')
+    const data = result.data?.ethereum.address[0].balances ?? []
 
-    const balances = result.data.ethereum.address[0].balances.map(
+    const balances = data.map(
       ({ value, currency: { address, decimals, name, symbol } }): BalanceResponse => ({
-        amount: value,
+        amount: value.toString(),
         token: {
           hash: address,
           symbol,
@@ -196,7 +204,7 @@ export class BitqueryBDSEthereum implements BlockchainDataService {
       from: sender.address,
       to: receiver.address,
       contractHash: address,
-      amount: amount,
+      amount: amount.toString(),
       token: {
         decimals: decimals,
         hash: address,

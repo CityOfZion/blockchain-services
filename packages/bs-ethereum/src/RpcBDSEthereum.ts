@@ -3,10 +3,10 @@ import {
   BlockchainDataService,
   ContractResponse,
   Network,
-  NetworkType,
   Token,
-  TransactionHistoryResponse,
   TransactionResponse,
+  TransactionsByAddressParams,
+  TransactionsByAddressResponse,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { TOKENS } from './constants'
@@ -19,7 +19,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    const provider = new ethers.JsonRpcProvider(this.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
     const transaction = await provider.getTransaction(hash)
     if (!transaction || !transaction.blockHash || !transaction.to) throw new Error('Transaction not found')
@@ -37,7 +37,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
       transfers: [
         {
           type: 'token',
-          amount: Number(ethers.formatEther(transaction.value)),
+          amount: ethers.utils.formatEther(transaction.value),
           contractHash: '-',
           from: transaction.from,
           to: transaction.to,
@@ -48,7 +48,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
     }
   }
 
-  async getTransactionsByAddress(address: string, page: number): Promise<TransactionHistoryResponse> {
+  async getTransactionsByAddress(_params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
     throw new Error("RPC doesn't support get transactions history of address")
   }
 
@@ -65,7 +65,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const provider = new ethers.JsonRpcProvider(this.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
     const balance = await provider.getBalance(address)
 
     const tokens = TOKENS[this.network.type]
@@ -73,9 +73,14 @@ export class RpcBDSEthereum implements BlockchainDataService {
 
     return [
       {
-        amount: Number(ethers.formatEther(balance)),
+        amount: ethers.utils.formatEther(balance),
         token,
       },
     ]
+  }
+
+  async getBlockHeight(): Promise<number> {
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+    return await provider.getBlockNumber()
   }
 }
