@@ -41,6 +41,7 @@ describe('BDSEthereum', () => {
     async (BDSEthereum: BlockchainDataService) => {
       const address = '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89'
       const response = await BDSEthereum.getTransactionsByAddress({ address: address, page: 1 })
+      expect(response.totalCount).toBeGreaterThan(0)
       response.transactions.forEach(transaction => {
         expect(transaction).toEqual(
           expect.objectContaining({

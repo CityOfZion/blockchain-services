@@ -36,10 +36,10 @@ type BitQueryGetTransactionsByAddressResponse = {
     received: BitqueryTransaction[]
     sentCount: {
       count: number
-    }
+    }[]
     receiverCount: {
       count: number
-    }
+    }[]
   }
 }
 
@@ -56,7 +56,10 @@ export const bitqueryGetTransactionsByAddressQuery = gql<
 >`
   query getTransactions($address: String!, $limit: Int!, $offset: Int!, $network: EthereumNetwork!) {
     ethereum(network: $network) {
-      sent: transfers(options: { limit: $limit, offset: $offset }, sender: { is: $address }) {
+      sent: transfers(
+        options: { limit: $limit, offset: $offset, desc: "block.timestamp.unixtime" }
+        sender: { is: $address }
+      ) {
         block {
           timestamp {
             unixtime
@@ -83,7 +86,10 @@ export const bitqueryGetTransactionsByAddressQuery = gql<
         }
         entityId
       }
-      received: transfers(options: { limit: $limit, offset: $offset }, receiver: { is: $address }) {
+      received: transfers(
+        options: { limit: $limit, offset: $offset, desc: "block.timestamp.unixtime" }
+        receiver: { is: $address }
+      ) {
         block {
           timestamp {
             unixtime
