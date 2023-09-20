@@ -1,5 +1,5 @@
 import { Currency, ExchangeDataService, NetworkType, TokenPricesResponse } from '@cityofzion/blockchain-service'
-import { Client, cacheExchange, fetchExchange, gql } from '@urql/core'
+import { Client, fetchExchange } from '@urql/core'
 import fetch from 'node-fetch'
 import { BITQUERY_API_KEY, BITQUERY_URL } from './constants'
 import dayjs from 'dayjs'
@@ -16,7 +16,7 @@ export class BitqueryEDSEthereum implements ExchangeDataService {
 
     this.client = new Client({
       url: BITQUERY_URL,
-      exchanges: [cacheExchange, fetchExchange],
+      exchanges: [fetchExchange],
       fetch,
       fetchOptions: {
         headers: {

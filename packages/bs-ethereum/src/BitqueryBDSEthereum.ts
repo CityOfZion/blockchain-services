@@ -10,7 +10,7 @@ import {
   TransactionTransferNft,
   Network,
 } from '@cityofzion/blockchain-service'
-import { Client, cacheExchange, fetchExchange, gql } from '@urql/core'
+import { Client, fetchExchange } from '@urql/core'
 import fetch from 'node-fetch'
 import { BITQUERY_API_KEY, BITQUERY_NETWORK_BY_NETWORK_TYPE, BITQUERY_URL, TOKENS } from './constants'
 import {
@@ -34,7 +34,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
 
     this.client = new Client({
       url: BITQUERY_URL,
-      exchanges: [cacheExchange, fetchExchange],
+      exchanges: [fetchExchange],
       fetch,
       fetchOptions: {
         headers: {
@@ -93,7 +93,8 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     if (result.error) throw new Error(result.error.message)
     if (!result.data) throw new Error('Address does not have transactions')
 
-    const totalCount = (result.data.ethereum.sentCount.count ?? 0) + (result.data.ethereum.receiverCount.count ?? 0)
+    const totalCount =
+      (result.data.ethereum.sentCount[0].count ?? 0) + (result.data.ethereum.receiverCount[0].count ?? 0)
     const mixedTransfers = [...(result?.data?.ethereum?.sent ?? []), ...(result?.data?.ethereum?.received ?? [])]
 
     const transactions = new Map<string, TransactionResponse>()

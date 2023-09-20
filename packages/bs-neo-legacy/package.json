@@ -1,6 +1,6 @@
 {
   "name": "@cityofzion/bs-neo-legacy",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Coz",
@@ -10,8 +10,8 @@
     "test": "jest --config jest.config.ts"
   },
   "dependencies": {
-    "@cityofzion/blockchain-service": "0.7.1",
-    "@cityofzion/bs-asteroid-sdk": "0.7.1",
+    "@cityofzion/blockchain-service": "0.7.2",
+    "@cityofzion/bs-asteroid-sdk": "0.7.2",
     "@cityofzion/dora-ts": "0.0.11",
     "@cityofzion/neon-js": "4.8.3"
   },

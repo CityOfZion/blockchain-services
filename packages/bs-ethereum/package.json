@@ -1,6 +1,6 @@
 {
   "name": "@cityofzion/bs-ethereum",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/CityOfZion/blockchain-services",
@@ -11,7 +11,7 @@
     "test": "jest --config jest.config.ts"
   },
   "dependencies": {
-    "@cityofzion/blockchain-service": "0.7.1",
+    "@cityofzion/blockchain-service": "0.7.2",
     "ethers": "5.7.2",
     "@urql/core": "~4.1.1",
     "graphql": "~16.8.0",

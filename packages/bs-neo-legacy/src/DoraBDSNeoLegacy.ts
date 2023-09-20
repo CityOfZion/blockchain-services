@@ -149,7 +149,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
       } catch {}
 
       return {
-        amount: (Number(balance.balance) / 10 ** token.decimals).toFixed(token.decimals),
+        amount: Number(balance.balance).toFixed(token.decimals),
         token,
       }
     })
