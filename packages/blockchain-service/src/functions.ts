@@ -1,4 +1,11 @@
-import { BlockchainService, BSCalculableFee, BSClaimable, BSWithNameService, BSWithNft } from './interfaces'
+import {
+  BlockchainService,
+  BSCalculableFee,
+  BSClaimable,
+  BSWithExplorerService,
+  BSWithNameService,
+  BSWithNft,
+} from './interfaces'
 
 export function hasNameService(service: BlockchainService): service is BlockchainService & BSWithNameService {
   return 'resolveNameServiceDomain' in service && 'validateNameServiceDomainFormat' in service
@@ -14,4 +21,30 @@ export function isCalculableFee(service: BlockchainService): service is Blockcha
 
 export function hasNft(service: BlockchainService): service is BlockchainService & BSWithNft {
   return 'nftDataService' in service
+}
+
+export function hasExplorerService(service: BlockchainService): service is BlockchainService & BSWithExplorerService {
+  return 'explorerService' in service
+}
+
+function wait(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+export async function waitForTransaction(service: BlockchainService, txId: string): Promise<boolean> {
+  const maxAttempts = 30
+  const waitMs = service.blockchainDataService.maxTimeToConfirmTransactionInMs / maxAttempts
+
+  let attempts = 1
+  do {
+    try {
+      await service.blockchainDataService.getTransaction(txId)
+      return true
+    } catch {}
+
+    attempts++
+    await wait(waitMs)
+  } while (attempts < maxAttempts)
+
+  return false
 }

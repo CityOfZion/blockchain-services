@@ -21,6 +21,8 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   private readonly feeToken: Token
   private readonly tokenCache: Map<string, Token> = new Map()
 
+  maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
+
   constructor(network: Network, feeToken: Token, claimToken: Token) {
     if (network.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
     this.network = network

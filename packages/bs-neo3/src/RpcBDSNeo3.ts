@@ -21,6 +21,8 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   protected readonly claimToken: Token
   readonly network: Network
 
+  maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
+
   constructor(network: Network, feeToken: Token, claimToken: Token) {
     this.network = network
     this.feeToken = feeToken

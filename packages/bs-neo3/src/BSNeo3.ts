@@ -14,6 +14,8 @@ import {
   NftDataService,
   BSWithNft,
   AccountWithDerivationPath,
+  BSWithExplorerService,
+  ExplorerService,
 } from '@cityofzion/blockchain-service'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Neon from '@cityofzion/neon-core'
@@ -28,9 +30,10 @@ import { DEFAULT_URL_BY_NETWORK_TYPE, DERIVATION_PATH, NEO_NS_HASH, TOKENS } fro
 import { FlamingoEDSNeo3 } from './FlamingoEDSNeo3'
 import { GhostMarketNDSNeo3 } from './GhostMarketNDSNeo3'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
+import { DoraESNeo3 } from './DoraESNeo3'
 
 export class BSNeo3<BSCustomName extends string = string>
-  implements BlockchainService, BSClaimable, BSWithNameService, BSCalculableFee, BSWithNft
+  implements BlockchainService, BSClaimable, BSWithNameService, BSCalculableFee, BSWithNft, BSWithExplorerService
 {
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
@@ -41,6 +44,7 @@ export class BSNeo3<BSCustomName extends string = string>
   blockchainDataService!: BlockchainDataService & BDSClaimable
   nftDataService!: NftDataService
   exchangeDataService!: ExchangeDataService
+  explorerService!: ExplorerService
   tokens: Token[]
   network!: Network
 
@@ -70,6 +74,7 @@ export class BSNeo3<BSCustomName extends string = string>
 
     this.exchangeDataService = new FlamingoEDSNeo3(network.type)
     this.nftDataService = new GhostMarketNDSNeo3(network.type)
+    this.explorerService = new DoraESNeo3(network.type)
   }
 
   validateAddress(address: string): boolean {

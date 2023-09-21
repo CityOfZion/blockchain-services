@@ -14,6 +14,8 @@ import { TOKENS } from './constants'
 export class RpcBDSEthereum implements BlockchainDataService {
   private readonly network: Network
 
+  maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
+
   constructor(network: Network) {
     this.network = network
   }

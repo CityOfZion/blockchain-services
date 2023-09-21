@@ -10,6 +10,8 @@ import {
   PartialBy,
   TransferParam,
   AccountWithDerivationPath,
+  BSWithExplorerService,
+  ExplorerService,
 } from '@cityofzion/blockchain-service'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import {
@@ -22,8 +24,11 @@ import {
 import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
 import { CryptoCompareEDSNeoLegacy } from './CryptoCompareEDSNeoLegacy'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
+import { DoraESNeoLegacy } from './DoraESNeoLegacy'
 
-export class BSNeoLegacy<BSCustomName extends string = string> implements BlockchainService, BSClaimable {
+export class BSNeoLegacy<BSCustomName extends string = string>
+  implements BlockchainService, BSClaimable, BSWithExplorerService
+{
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
   readonly claimToken: Token
@@ -32,6 +37,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
 
   blockchainDataService!: BlockchainDataService & BDSClaimable
   exchangeDataService!: ExchangeDataService
+  explorerService!: ExplorerService
   tokens: Token[]
   network!: Network
   legacyNetwork: string
@@ -59,6 +65,7 @@ export class BSNeoLegacy<BSCustomName extends string = string> implements Blockc
     this.network = network
     this.blockchainDataService = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken)
     this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network.type)
+    this.explorerService = new DoraESNeoLegacy(network.type)
   }
 
   validateAddress(address: string): boolean {
