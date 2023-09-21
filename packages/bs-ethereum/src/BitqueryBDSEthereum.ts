@@ -26,6 +26,8 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   private readonly client: Client
   private readonly networkType: Exclude<NetworkType, 'custom'>
 
+  maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 8
+
   constructor(network: Network) {
     super(network)
 

@@ -72,6 +72,10 @@ export interface BSWithNameService {
   validateNameServiceDomainFormat(domainName: string): boolean
 }
 
+export interface BSWithExplorerService {
+  explorerService: ExplorerService
+}
+
 export interface BSWithNft {
   nftDataService: NftDataService
 }
@@ -133,6 +137,7 @@ export type BalanceResponse = {
   token: Token
 }
 export interface BlockchainDataService {
+  maxTimeToConfirmTransactionInMs: number
   getTransaction(txid: string): Promise<TransactionResponse>
   getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse>
   getContract(contractHash: string): Promise<ContractResponse>
@@ -172,4 +177,13 @@ export type GetNftParam = {
 export interface NftDataService {
   getNftsByAddress(params: GetNftsByAddressParams): Promise<NftsResponse>
   getNft(params: GetNftParam): Promise<NftResponse>
+}
+
+export type BuildNftUrlParams = {
+  contractHash: string
+  tokenId: string
+}
+export interface ExplorerService {
+  buildTransactionUrl(hash: string): string
+  buildNftUrl(params: BuildNftUrlParams): string
 }
