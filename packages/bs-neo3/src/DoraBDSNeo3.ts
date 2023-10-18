@@ -162,7 +162,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
       try {
         const token = await this.getTokenInfo(balance.asset)
         return {
-          amount: u.BigInteger.fromNumber(balance.balance).toDecimal(token.decimals),
+          amount: balance.balance.toString(),
           token,
         }
       } catch {}
