@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Inserted within the TokenPricesResponse type the token hash",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}
