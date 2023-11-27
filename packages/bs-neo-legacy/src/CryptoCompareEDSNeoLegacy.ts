@@ -24,7 +24,8 @@ export class CryptoCompareEDSNeoLegacy implements ExchangeDataService {
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
     if (this.networkType !== 'mainnet') throw new Error('Exchange is only available on mainnet')
 
-    const tokenSymbols = TOKENS[this.networkType].map(token => token.symbol)
+    const tokens = TOKENS[this.networkType]
+    const tokenSymbols = tokens.map(token => token.symbol)
     const { data: prices } = await this.axiosInstance.get<CryptoCompareDataResponse>('/data/pricemultifull', {
       params: {
         fsyms: tokenSymbols.join(','),
@@ -32,9 +33,18 @@ export class CryptoCompareEDSNeoLegacy implements ExchangeDataService {
       },
     })
 
-    return Object.entries(prices.RAW).map(([symbol, price]) => ({
-      symbol,
-      price: price[currency].PRICE,
-    }))
+    return Object.entries(prices.RAW)
+      .map(([symbol, priceObject]) => {
+        const price = priceObject[currency].PRICE
+        const token = tokens.find(token => token.symbol === symbol)
+        if (!token || !price) return
+
+        return {
+          symbol,
+          price,
+          hash: token?.hash,
+        }
+      })
+      .filter((price): price is TokenPricesResponse => price !== undefined)
   }
 }

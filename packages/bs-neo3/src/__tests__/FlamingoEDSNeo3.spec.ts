@@ -13,6 +13,7 @@ describe('FlamingoEDSNeo3', () => {
       expect(tokenPrice).toEqual({
         price: expect.any(Number),
         symbol: expect.any(String),
+        hash: expect.any(String),
       })
     })
   })
@@ -26,6 +27,7 @@ describe('FlamingoEDSNeo3', () => {
       expect(tokenPrice).toEqual({
         price: expect.any(Number),
         symbol: expect.any(String),
+        hash: expect.any(String),
       })
     })
   })
@@ -39,6 +41,7 @@ describe('FlamingoEDSNeo3', () => {
       expect(tokenPrice).toEqual({
         price: expect.any(Number),
         symbol: expect.any(String),
+        hash: expect.any(String),
       })
     })
   })

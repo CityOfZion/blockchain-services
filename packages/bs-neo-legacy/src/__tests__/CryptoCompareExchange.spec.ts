@@ -9,11 +9,11 @@ describe('FlamingoEDSNeo3', () => {
 
   it('Should return a list with prices of tokens using USD', async () => {
     const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('USD')
-
     tokenPriceList.forEach(tokenPrice => {
       expect(tokenPrice).toEqual({
         price: expect.any(Number),
         symbol: expect.any(String),
+        hash: expect.any(String),
       })
     })
   })
@@ -27,6 +27,7 @@ describe('FlamingoEDSNeo3', () => {
       expect(tokenPrice).toEqual({
         price: expect.any(Number),
         symbol: expect.any(String),
+        hash: expect.any(String),
       })
     })
   })
@@ -40,6 +41,7 @@ describe('FlamingoEDSNeo3', () => {
       expect(tokenPrice).toEqual({
         price: expect.any(Number),
         symbol: expect.any(String),
+        hash: expect.any(String),
       })
     })
   })

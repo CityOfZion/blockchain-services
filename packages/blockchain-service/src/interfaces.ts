@@ -35,6 +35,7 @@ export type TransferParam = {
 export type TokenPricesResponse = {
   price: number
   symbol: string
+  hash: string
 }
 export type Currency = 'USD' | 'BRL' | 'EUR'
 export interface ExchangeDataService {
