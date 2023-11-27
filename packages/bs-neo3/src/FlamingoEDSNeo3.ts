@@ -10,6 +10,7 @@ import axios, { AxiosInstance } from 'axios'
 type FlamingoTokenInfoPricesResponse = {
   symbol: string
   usd_price: number
+  hash: string
 }[]
 
 export class FlamingoEDSNeo3 implements ExchangeDataService {
@@ -35,6 +36,7 @@ export class FlamingoEDSNeo3 implements ExchangeDataService {
     return prices.map(price => ({
       price: price.usd_price * currencyRatio,
       symbol: price.symbol,
+      hash: price.hash,
     }))
   }
 

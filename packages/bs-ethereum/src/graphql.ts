@@ -187,7 +187,7 @@ type BitQueryGetTokenInfoVariables = {
 export const bitqueryGetTokenInfoQuery = gql<BitQueryGetContractResponse, BitQueryGetTokenInfoVariables>`
   query getTokenInfo($hash: String!, $network: EthereumNetwork!) {
     ethereum(network: $network) {
-      smartContractCalls(smartContractAddress: { is: $hash }) {
+      smartContractCalls(smartContractAddress: { is: $hash }, options: { limit: 1 }) {
         smartContract {
           address {
             address
