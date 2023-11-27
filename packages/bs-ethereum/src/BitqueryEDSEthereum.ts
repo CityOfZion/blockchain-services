@@ -50,6 +50,7 @@ export class BitqueryEDSEthereum implements ExchangeDataService {
       (trade): TokenPricesResponse => ({
         symbol: trade.baseCurrency.symbol,
         price: trade.quotePrice * currencyRatio,
+        hash: trade.baseCurrency.address,
       })
     )
 
