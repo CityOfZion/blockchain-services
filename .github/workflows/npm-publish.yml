@@ -38,8 +38,6 @@ jobs:
         run: rush rebuild
       - name: Publish Projects
         run: rush publish --apply --target-branch main --publish --npm-auth-token ${{ secrets.NPM_TOKEN }} --add-commit-details --include-all
-      - name: Deploy GitHub Pages
-        uses: actions/deploy-pages@v2
       - name: Commit and Push package.json version update
         run: |
           git add .
