@@ -207,6 +207,7 @@ export const bitqueryGetTokenInfoQuery = gql<BitQueryGetContractResponse, BitQue
 type BitQueryGetBalanceResponse = {
   ethereum: {
     address: {
+      balance: number
       balances:
         | {
             currency: {
@@ -229,6 +230,7 @@ export const bitqueryGetBalanceQuery = gql<BitQueryGetBalanceResponse, BitQueryG
   query getBalance($address: String!, $network: EthereumNetwork!) {
     ethereum(network: $network) {
       address(address: { is: $address }) {
+        balance
         balances {
           currency {
             address
