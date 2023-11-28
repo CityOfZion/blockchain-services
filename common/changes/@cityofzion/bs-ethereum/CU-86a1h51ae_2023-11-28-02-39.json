@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Fixed issue with the getBalance method that returned negative numbers and the wrong ETH value",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}
