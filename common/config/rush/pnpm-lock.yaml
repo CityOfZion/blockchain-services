@@ -33,8 +33,8 @@ importers:
   ../../packages/bs-ethereum:
     dependencies:
       '@cityofzion/blockchain-service':
-        specifier: workspace:*
-        version: link:../blockchain-service
+        specifier: ^0.8.0
+        version: 0.8.0
       '@ethersproject/bignumber':
         specifier: 5.7.0
         version: 5.7.0
@@ -1702,6 +1702,10 @@ packages:
   /@bcoe/v8-coverage@0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
+
+  /@cityofzion/blockchain-service@0.8.0:
+    resolution: {integrity: sha512-8OaX0hXTK/vqV1QYbPeZoVjB9AM8YPbnzKMx4kdmm7zKHXppfFeUnMMXbjnx/4GuvOLs4IjAw+6Q78J9FDHe9A==}
+    dev: false
 
   /@cityofzion/dora-ts@0.0.11:
     resolution: {integrity: sha512-LJWGU29BHPTHkt0i/OwhNdMfUGM/rgAa4rqlDwBy95spxSoUHGSoAtOD5k4aSVKmLFwq77ghNna0Lpc7lEuHBA==}
