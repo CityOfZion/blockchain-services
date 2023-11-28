@@ -12,7 +12,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { Client, fetchExchange } from '@urql/core'
 import fetch from 'node-fetch'
-import { BITQUERY_API_KEY, BITQUERY_NETWORK_BY_NETWORK_TYPE, BITQUERY_URL, TOKENS } from './constants'
+import { BITQUERY_API_KEY, BITQUERY_NETWORK_BY_NETWORK_TYPE, BITQUERY_URL, NATIVE_ASSETS, TOKENS } from './constants'
 import {
   BitqueryTransaction,
   bitqueryGetBalanceQuery,
@@ -170,9 +170,19 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
 
     if (result.error) throw new Error(result.error.message)
     const data = result.data?.ethereum.address[0].balances ?? []
+    const ethBalance = result.data?.ethereum.address[0].balance ?? 0
 
-    const balances = data.map(
-      ({ value, currency: { address, decimals, name, symbol } }): BalanceResponse => ({
+    const balances: BalanceResponse[] = [
+      {
+        amount: ethBalance.toString(),
+        token: NATIVE_ASSETS.find(asset => asset.symbol === 'ETH')!,
+      },
+    ]
+
+    data.forEach(({ value, currency: { address, decimals, name, symbol } }) => {
+      if (value < 0) return
+
+      balances.push({
         amount: value.toString(),
         token: {
           hash: address,
@@ -181,7 +191,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
           decimals,
         },
       })
-    )
+    })
 
     return balances
   }
