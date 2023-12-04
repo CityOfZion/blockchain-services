@@ -116,6 +116,10 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     return this.generateAccountFromKey(privateKey)
   }
 
+  encrypt(key: string, password: string): Promise<string> {
+    return wallet.encrypt(key, password)
+  }
+
   async transfer({ intent: transferIntent, senderAccount, tipIntent, ...params }: TransferParam): Promise<string> {
     const apiProvider = new api.neoCli.instance(this.network.url)
     const account = new wallet.Account(senderAccount.key)

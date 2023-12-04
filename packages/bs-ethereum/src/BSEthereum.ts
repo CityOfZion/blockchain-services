@@ -118,6 +118,11 @@ export class BSEthereum<BSCustomName extends string = string>
     }
   }
 
+  async encrypt(key: string, password: string): Promise<string> {
+    const wallet = new ethers.Wallet(key)
+    return wallet.encrypt(password)
+  }
+
   async transfer({ senderAccount, intent }: TransferParam): Promise<string> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
     const wallet = new ethers.Wallet(senderAccount.key, provider)
