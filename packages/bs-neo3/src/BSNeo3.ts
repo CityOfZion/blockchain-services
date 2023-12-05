@@ -130,6 +130,10 @@ export class BSNeo3<BSCustomName extends string = string>
     return this.generateAccountFromKey(privateKey)
   }
 
+  encrypt(key: string, password: string): Promise<string> {
+    return wallet.encrypt(key, password)
+  }
+
   async calculateTransferFee(param: TransferParam): Promise<string> {
     const account = new wallet.Account(param.senderAccount.key)
     const invoker = await NeonInvoker.init({

@@ -63,9 +63,15 @@ describe('BSEthereum', () => {
 
   it('Should be able to decrypt a encrypted key', async () => {
     const password = 'TestPassword'
-    const validEncryptedJson = await wallet.encrypt(password)
+    const validEncryptedJson = await bsEthereum.encrypt(wallet.privateKey, password)
     const decryptedAccount = await bsEthereum.decrypt(validEncryptedJson, password)
     expect(decryptedAccount).toEqual(account)
+  })
+
+  it('Should be able to encrypt key', async () => {
+    const password = 'TestPassword'
+    const validEncryptedJson = await bsEthereum.encrypt(wallet.privateKey, password)
+    expect(validEncryptedJson).toEqual(expect.objectContaining({ address: wallet.address }))
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {

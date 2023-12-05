@@ -53,10 +53,18 @@ describe('BSNeoLegacy', () => {
     const mnemonic = generateMnemonic()
     const account = bsNeoLegacy.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
-    const encryptedKey = await wallet.encrypt(account.key, password)
+    const encryptedKey = await bsNeoLegacy.encrypt(account.key, password)
     const decryptedAccount = await bsNeoLegacy.decrypt(encryptedKey, password)
     expect(account).toEqual(expect.objectContaining(decryptedAccount))
   }, 10000)
+
+  it('Should be able to encrypt a key', async () => {
+    const mnemonic = generateMnemonic()
+    const account = bsNeoLegacy.generateAccountFromMnemonic(mnemonic, 0)
+    const password = 'TestPassword'
+    const encryptedKey = await bsNeoLegacy.encrypt(account.key, password)
+    expect(encryptedKey).toEqual(expect.any(String))
+  })
 
   it.skip('Should be able to transfer a native asset', async () => {
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)

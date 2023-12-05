@@ -53,6 +53,7 @@ export interface BlockchainService<BSCustomName extends string = string> {
   generateAccountFromMnemonic(mnemonic: string | string, index: number): AccountWithDerivationPath
   generateAccountFromKey(key: string): Account
   decrypt(keyOrJson: string, password: string): Promise<Account>
+  encrypt(key: string, password: string): Promise<string>
   validateAddress(address: string): boolean
   validateEncrypted(keyOrJson: string): boolean
   validateKey(key: string): boolean

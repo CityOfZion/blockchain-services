@@ -69,10 +69,18 @@ describe('BSNeo3', () => {
     const mnemonic = generateMnemonic()
     const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
-    const encryptedKey = await wallet.encrypt(account.key, password)
+    const encryptedKey = await bsNeo3.encrypt(account.key, password)
     const decryptedAccount = await bsNeo3.decrypt(encryptedKey, password)
     expect(account).toEqual(expect.objectContaining(decryptedAccount))
   }, 20000)
+
+  it('Should be able to encrypt a key', async () => {
+    const mnemonic = generateMnemonic()
+    const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
+    const password = 'TestPassword'
+    const encryptedKey = await bsNeo3.encrypt(account.key, password)
+    expect(encryptedKey).toEqual(expect.any(String))
+  })
 
   it.skip('Should be able to calculate transfer fee', async () => {
     const account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
