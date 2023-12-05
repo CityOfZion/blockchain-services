@@ -1,0 +1,17 @@
+{
+  "name": "@cityofzion/blockchain-service",
+  "entries": [
+    {
+      "version": "0.9.0",
+      "tag": "@cityofzion/blockchain-service_v0.9.0",
+      "date": "Tue, 05 Dec 2023 18:42:10 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Inserted within the TokenPricesResponse type the token hash"
+          }
+        ]
+      }
+    }
+  ]
+}
