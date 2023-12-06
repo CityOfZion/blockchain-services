@@ -55,61 +55,67 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
     page = 1,
   }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
     const data = await NeoRest.addressTXFull(address, page, this.network.type)
-    const transactions = await Promise.all(
-      data.items.map(async (item): Promise<TransactionResponse> => {
-        const filteredTransfers = item.notifications.filter(
-          item => item.event_name === 'Transfer' && (item.state.value.length === 3 || item.state.value.length === 4)
-        )
-        const transferPromises = filteredTransfers.map<Promise<TransactionTransferAsset | TransactionTransferNft>>(
-          async ({ contract: contractHash, state: { value: properties } }) => {
-            const isAsset = properties.length === 3
 
-            const from = properties[0].value
-            const to = properties[1].value
-            const convertedFrom = from ? this.convertByteStringToAddress(from) : 'Mint'
-            const convertedTo = to ? this.convertByteStringToAddress(to) : 'Burn'
+    const promises = data.items.map(async (item): Promise<TransactionResponse> => {
+      const transferPromises: Promise<TransactionTransferAsset | TransactionTransferNft>[] = []
 
-            if (isAsset) {
-              const token = await this.getTokenInfo(contractHash)
-              const [, , { value: amount }] = properties
-              return {
-                amount: u.BigInteger.fromNumber(amount).toDecimal(token.decimals ?? 0),
-                from: convertedFrom,
-                to: convertedTo,
-                contractHash,
-                type: 'token',
-                token,
-              }
-            }
+      item.notifications.forEach(({ contract: contractHash, state, event_name: eventName }) => {
+        const properties = Array.isArray(state) ? state : state.value
+        if (eventName !== 'Transfer' || (properties.length !== 3 && properties.length !== 4)) return
 
+        const promise = async (): Promise<TransactionTransferAsset | TransactionTransferNft> => {
+          const isAsset = properties.length === 3
+
+          const from = properties[0].value
+          const to = properties[1].value
+          const convertedFrom = from ? this.convertByteStringToAddress(from) : 'Mint'
+          const convertedTo = to ? this.convertByteStringToAddress(to) : 'Burn'
+
+          if (isAsset) {
+            const token = await this.getTokenInfo(contractHash)
+            const [, , { value: amount }] = properties
             return {
+              amount: u.BigInteger.fromNumber(amount).toDecimal(token.decimals ?? 0),
               from: convertedFrom,
               to: convertedTo,
-              tokenId: properties[3].value,
               contractHash,
-              type: 'nft',
+              type: 'token',
+              token,
             }
           }
-        )
-        const transfers = await Promise.all(transferPromises)
 
-        const notifications = item.notifications.map<TransactionNotifications>(notification => ({
-          eventName: notification.event_name,
-          state: notification.state as any,
-        }))
-
-        return {
-          block: item.block,
-          time: Number(item.time),
-          hash: item.hash,
-          fee: u.BigInteger.fromNumber(item.netfee ?? 0)
-            .add(u.BigInteger.fromNumber(item.sysfee ?? 0))
-            .toDecimal(this.feeToken.decimals),
-          transfers,
-          notifications,
+          return {
+            from: convertedFrom,
+            to: convertedTo,
+            tokenId: properties[3].value,
+            contractHash,
+            type: 'nft',
+          }
         }
+
+        transferPromises.push(promise())
       })
-    )
+
+      const transfers = await Promise.all(transferPromises)
+
+      const notifications = item.notifications.map<TransactionNotifications>(notification => ({
+        eventName: notification.event_name,
+        state: notification.state as any,
+      }))
+
+      return {
+        block: item.block,
+        time: Number(item.time),
+        hash: item.hash,
+        fee: u.BigInteger.fromNumber(item.netfee ?? 0)
+          .add(u.BigInteger.fromNumber(item.sysfee ?? 0))
+          .toDecimal(this.feeToken.decimals),
+        transfers,
+        notifications,
+      }
+    })
+
+    const transactions = await Promise.all(promises)
 
     return {
       totalCount: data.totalCount,
