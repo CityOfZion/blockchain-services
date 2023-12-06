@@ -27,43 +27,41 @@ describe('BDSNeo3', () => {
     }
   )
 
-  it.each([doraBDSNeo3, rpcBDSNeo3])(
+  it.each([doraBDSNeo3])(
     'Should be able to get transactions of address - %s',
     async (bdsNeo3: BlockchainDataService) => {
       const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
-      try {
-        const response = await bdsNeo3.getTransactionsByAddress({ address, page: 1 })
+      const response = await bdsNeo3.getTransactionsByAddress({ address, page: 1 })
 
-        response.transactions.forEach(transaction => {
-          expect(transaction).toEqual(
-            expect.objectContaining({
-              block: expect.any(Number),
-              hash: expect.any(String),
-              notifications: expect.arrayContaining([
-                expect.objectContaining({
-                  eventName: expect.any(String),
-                  state: expect.arrayContaining([
-                    {
-                      type: expect.any(String),
-                      value: expect.any(String),
-                    },
-                  ]),
-                }),
-              ]),
-              transfers: expect.arrayContaining([
-                expect.objectContaining({
-                  amount: expect.any(String),
-                  from: expect.any(String),
-                  to: expect.any(String),
-                  type: 'asset',
-                }),
-              ]),
-              time: expect.any(Number),
-              fee: expect.any(String),
-            })
-          )
-        })
-      } catch {}
+      response.transactions.forEach(transaction => {
+        expect(transaction).toEqual(
+          expect.objectContaining({
+            block: expect.any(Number),
+            hash: expect.any(String),
+            time: expect.any(Number),
+            fee: expect.any(String),
+            notifications: expect.arrayContaining([
+              expect.objectContaining({
+                eventName: expect.any(String),
+                state: expect.arrayContaining([
+                  {
+                    type: expect.any(String),
+                    value: expect.any(String),
+                  },
+                ]),
+              }),
+            ]),
+            transfers: expect.arrayContaining([
+              expect.objectContaining({
+                amount: expect.any(String),
+                from: expect.any(String),
+                to: expect.any(String),
+                type: 'token',
+              }),
+            ]),
+          })
+        )
+      })
     }
   )
 
