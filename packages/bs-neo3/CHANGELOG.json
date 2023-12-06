@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "0.9.1",
+      "tag": "@cityofzion/bs-neo3_v0.9.1",
+      "date": "Wed, 06 Dec 2023 21:51:30 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Prevent the getAllTransaction method from breaking when Dora returns data from v1"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.9.0",
       "tag": "@cityofzion/bs-neo3_v0.9.0",
       "date": "Tue, 05 Dec 2023 18:42:10 GMT",
