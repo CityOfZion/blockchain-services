@@ -40,7 +40,9 @@ export async function waitForTransaction(service: BlockchainService, txId: strin
     try {
       await service.blockchainDataService.getTransaction(txId)
       return true
-    } catch {}
+    } catch {
+      // Empty block
+    }
 
     attempts++
     await wait(waitMs)

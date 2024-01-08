@@ -152,7 +152,7 @@ export class BSEthereum<BSCustomName extends string = string>
     return transactionMined.transactionHash
   }
 
-  async calculateTransferFee({ senderAccount, intent }: TransferParam, details?: boolean | undefined): Promise<string> {
+  async calculateTransferFee({ senderAccount, intent }: TransferParam): Promise<string> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
     const wallet = new ethers.Wallet(senderAccount.key, provider)
 

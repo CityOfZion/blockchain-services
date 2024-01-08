@@ -1,0 +1,16 @@
+{
+  "name": "rush-format",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "update-script": "rush update-autoinstaller --name rush-format",
+    "lint": "ts-node src/scripts/check.ts",
+    "format": "ts-node src/scripts/fix.ts"
+  },
+  "dependencies": {
+    "@types/node": "~20.2.5",
+    "prettier": "^3.0.3",
+    "ts-node": "10.9.1",
+    "typescript": "^5.3.3"
+  }
+}

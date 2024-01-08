@@ -54,7 +54,7 @@ export class GhostMarketNDSNeo3 implements NftDataService {
     this.networkType = networkType
   }
 
-  async getNftsByAddress({ address, size = 18, cursor, page }: GetNftsByAddressParams): Promise<NftsResponse> {
+  async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
     const url = this.getUrlWithParams({
       size,
       owners: [address],
@@ -89,7 +89,7 @@ export class GhostMarketNDSNeo3 implements NftDataService {
     return srcImage
   }
 
-  private getUrlWithParams(params: any) {
+  private getUrlWithParams(params: Record<string, any>) {
     const parameters = qs.stringify(
       {
         chain: GHOSTMARKET_CHAIN_BY_NETWORK_TYPE[this.networkType],

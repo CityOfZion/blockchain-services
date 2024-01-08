@@ -171,7 +171,9 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
           amount: balance.balance.toString(),
           token,
         }
-      } catch {}
+      } catch {
+        // Empty block
+      }
     })
     const balances = await Promise.all(promises)
     const filteredBalances = balances.filter(balance => balance !== undefined) as BalanceResponse[]

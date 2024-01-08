@@ -1,4 +1,3 @@
-import { wallet } from '@cityofzion/neon-js'
 import { sleep } from './utils/sleep'
 import { BSNeo3 } from '../BSNeo3'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'

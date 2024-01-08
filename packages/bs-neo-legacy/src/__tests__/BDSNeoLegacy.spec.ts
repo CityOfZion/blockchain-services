@@ -3,7 +3,7 @@ import { DoraBDSNeoLegacy } from '../DoraBDSNeoLegacy'
 import { DEFAULT_URL_BY_NETWORK_TYPE, TOKENS } from '../constants'
 
 const gasToken = TOKENS.testnet.find(t => t.symbol === 'GAS')!
-let doraBDSNeoLegacy = new DoraBDSNeoLegacy(
+const doraBDSNeoLegacy = new DoraBDSNeoLegacy(
   { type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet },
   gasToken,
   gasToken
@@ -67,7 +67,9 @@ describe('BDSNeoLegacy', () => {
             })
           )
         })
-      } catch {}
+      } catch {
+        // Empty block
+      }
     }
   )
 

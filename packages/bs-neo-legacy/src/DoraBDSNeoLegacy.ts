@@ -8,7 +8,6 @@ import {
   BDSClaimable,
   TransactionTransferAsset,
   Token,
-  NetworkType,
   Network,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
@@ -148,7 +147,9 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
       try {
         token = await this.getTokenInfo(balance.asset)
-      } catch {}
+      } catch {
+        // Empty block
+      }
 
       return {
         amount: Number(balance.balance).toFixed(token.decimals),

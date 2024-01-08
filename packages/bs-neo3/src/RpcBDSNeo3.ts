@@ -132,7 +132,9 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
       }
       try {
         token = await this.getTokenInfo(balance.assethash)
-      } catch {}
+      } catch {
+        // Empty Block
+      }
 
       return {
         amount: u.BigInteger.fromNumber(balance.amount).toDecimal(token?.decimals ?? 8),
