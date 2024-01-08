@@ -1,10 +1,4 @@
-import {
-  Currency,
-  ExchangeDataService,
-  Network,
-  NetworkType,
-  TokenPricesResponse,
-} from '@cityofzion/blockchain-service'
+import { Currency, ExchangeDataService, NetworkType, TokenPricesResponse } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 
 type FlamingoTokenInfoPricesResponse = {

@@ -1,9 +1,9 @@
-import { BlockchainAlreadyExistError, InvalidBlockchainServiceError, BlockchainNotFoundError } from './exceptions'
-import { Account, AccountWithDerivationPath, BlockchainService } from './interfaces'
+import { BlockchainAlreadyExistError, BlockchainNotFoundError } from './exceptions'
+import { AccountWithDerivationPath, BlockchainService } from './interfaces'
 
 export class BSAggregator<
   BSCustomName extends string = string,
-  BSCustom extends BlockchainService<BSCustomName> = BlockchainService<BSCustomName>
+  BSCustom extends BlockchainService<BSCustomName> = BlockchainService<BSCustomName>,
 > {
   readonly blockchainServicesByName: Record<BSCustomName, BSCustom>
   readonly blockchainServices: BlockchainService<BSCustomName>[]
@@ -64,8 +64,9 @@ export class BSAggregator<
     const promises = this.blockchainServices.map(async service => {
       let index = 0
       const accounts: AccountWithDerivationPath[] = []
+      let hasError = false
 
-      while (true) {
+      while (!hasError) {
         const generatedAccount = service.generateAccountFromMnemonic(mnemonic, index)
         if (skippedAddresses && skippedAddresses.find(address => address === generatedAccount.address)) {
           index++
@@ -77,9 +78,9 @@ export class BSAggregator<
             const { totalCount } = await service.blockchainDataService.getTransactionsByAddress({
               address: generatedAccount.address,
             })
-            if (!totalCount || totalCount <= 0) break
+            if (!totalCount || totalCount <= 0) hasError = true
           } catch {
-            break
+            hasError = true
           }
         }
 

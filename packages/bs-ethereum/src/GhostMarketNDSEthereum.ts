@@ -1,5 +1,4 @@
 import {
-  BlockchainService,
   NftResponse,
   NftsResponse,
   NetworkType,
@@ -54,7 +53,7 @@ export class GhostMarketNDSEthereum implements NftDataService {
     this.networkType = networkType
   }
 
-  async getNftsByAddress({ address, size = 18, cursor, page }: GetNftsByAddressParams): Promise<NftsResponse> {
+  async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
     const url = this.getUrlWithParams({
       size,
       owners: [address],

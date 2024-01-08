@@ -1,4 +1,4 @@
-import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
+import { BlockchainDataService } from '@cityofzion/blockchain-service'
 import { BitqueryBDSEthereum } from '../BitqueryBDSEthereum'
 import { RpcBDSEthereum } from '../RpcBDSEthereum'
 import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'

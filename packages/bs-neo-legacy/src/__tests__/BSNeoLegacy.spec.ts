@@ -1,5 +1,4 @@
 import { BSNeoLegacy } from '../BSNeoLegacy'
-import { wallet } from '@cityofzion/neon-js'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 
 let bsNeoLegacy: BSNeoLegacy

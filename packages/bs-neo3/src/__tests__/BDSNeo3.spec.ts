@@ -4,8 +4,8 @@ import { RPCBDSNeo3 } from '../RpcBDSNeo3'
 import { DEFAULT_URL_BY_NETWORK_TYPE, TOKENS } from '../constants'
 
 const gasToken = TOKENS.testnet.find(t => t.symbol === 'GAS')!
-let doraBDSNeo3 = new DoraBDSNeo3({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet }, gasToken, gasToken)
-let rpcBDSNeo3 = new RPCBDSNeo3({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet }, gasToken, gasToken)
+const doraBDSNeo3 = new DoraBDSNeo3({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet }, gasToken, gasToken)
+const rpcBDSNeo3 = new RPCBDSNeo3({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet }, gasToken, gasToken)
 
 describe('BDSNeo3', () => {
   it.each([doraBDSNeo3, rpcBDSNeo3])(

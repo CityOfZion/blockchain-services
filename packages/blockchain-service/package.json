@@ -10,10 +10,15 @@
     "/dist"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "eslint .",
+    "format": "eslint --fix"
   },
   "devDependencies": {
     "@types/node": "~20.2.5",
+    "@typescript-eslint/eslint-plugin": "^6.5.0",
+    "@typescript-eslint/parser": "^6.5.0",
+    "eslint": "^8.48.0",
     "ts-node": "10.9.1",
     "typescript": "4.9.5"
   }
