@@ -123,7 +123,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     if (!data || 'error' in data) throw new Error(`Token ${tokenHash} not found`)
 
     const token = {
-      decimals: data.decimals,
+      decimals: Number(data.decimals),
       symbol: data.symbol,
       hash: data.scripthash,
       name: data.name,
@@ -138,15 +138,17 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     const data = await api.NeoLegacyREST.balance(address, this.network.type)
 
     const promises = data.map<Promise<BalanceResponse>>(async balance => {
+      const hash = balance.asset.replace('0x', '')
+
       let token: Token = {
-        hash: balance.asset,
+        hash,
         name: balance.asset_name,
         symbol: balance.symbol,
         decimals: 8,
       }
 
       try {
-        token = await this.getTokenInfo(balance.asset)
+        token = await this.getTokenInfo(hash)
       } catch {
         // Empty block
       }
