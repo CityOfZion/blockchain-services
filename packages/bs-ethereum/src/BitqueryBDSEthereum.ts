@@ -171,16 +171,17 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     if (result.error) throw new Error(result.error.message)
     const data = result.data?.ethereum.address[0].balances ?? []
     const ethBalance = result.data?.ethereum.address[0].balance ?? 0
+    const ethToken = NATIVE_ASSETS.find(asset => asset.symbol === 'ETH')!
 
     const balances: BalanceResponse[] = [
       {
         amount: ethBalance.toString(),
-        token: NATIVE_ASSETS.find(asset => asset.symbol === 'ETH')!,
+        token: ethToken,
       },
     ]
 
     data.forEach(({ value, currency: { address, decimals, name, symbol } }) => {
-      if (value < 0) return
+      if (value < 0 || address === ethToken.hash) return
 
       balances.push({
         amount: value.toString(),
