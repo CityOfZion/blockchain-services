@@ -108,6 +108,7 @@ describe('BDSNeoLegacy', () => {
           decimals: expect.any(Number),
         },
       })
+      expect(balance.token.hash.startsWith("0x")).toBeFalsy()
     })
   })
 
