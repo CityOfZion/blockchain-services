@@ -33,8 +33,7 @@ import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { DoraESNeo3 } from './DoraESNeo3'
 
 export class BSNeo3<BSCustomName extends string = string>
-  implements BlockchainService, BSClaimable, BSWithNameService, BSCalculableFee, BSWithNft, BSWithExplorerService
-{
+  implements BlockchainService, BSClaimable, BSWithNameService, BSCalculableFee, BSWithNft, BSWithExplorerService {
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
   readonly claimToken: Token
@@ -117,13 +116,13 @@ export class BSNeo3<BSCustomName extends string = string>
     try {
       const { NativeModules } = require('react-native')
       BsReactNativeDecrypt = NativeModules.BsReactNativeDecrypt
+
+      if (!BsReactNativeDecrypt) {
+        throw new Error('@CityOfZion/bs-react-native-decrypt is not installed')
+      }
     } catch {
       const key = await wallet.decrypt(encryptedKey, password)
       return this.generateAccountFromKey(key)
-    }
-
-    if (!BsReactNativeDecrypt) {
-      throw new Error('@CityOfZion/bs-react-native-decrypt is not installed')
     }
 
     const privateKey = await BsReactNativeDecrypt.decryptNeo3(encryptedKey, password)
