@@ -11,14 +11,20 @@ function getAllPaths(): string[] {
 export function runCommandInEachPackage(cmd: string) {
   let error = false
   const packages = getAllPaths()
+
   for (const lib of packages) {
     try {
       const pathLib = path.posix.join(packagesPath, lib)
+
+      const isDirectory = fs.lstatSync(pathLib).isDirectory()
+      if (!isDirectory) continue
+
       execSync(`${cmd}`, { cwd: pathLib, stdio: 'inherit' })
-    } catch {
+    } catch (error) {
       error = true
     }
   }
+
   if (error) {
     console.error('\nPlease, check the errors above before committing/pushing!\n')
     process.exitCode = 1
