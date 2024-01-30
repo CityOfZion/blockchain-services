@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Wed, 06 Dec 2023 21:51:30 GMT and should not be manually modified.
+This log was last generated on Tue, 30 Jan 2024 18:26:00 GMT and should not be manually modified.
+
+## 0.9.2
+Tue, 30 Jan 2024 18:26:00 GMT
+
+### Patches
+
+- Fixed bug preventing decryption in dev mode in React Native
+- Fixed lint errors that were preventing the build
 
 ## 0.9.1
 Wed, 06 Dec 2023 21:51:30 GMT

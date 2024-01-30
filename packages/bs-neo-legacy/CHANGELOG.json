@@ -2,6 +2,24 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "0.9.1",
+      "tag": "@cityofzion/bs-neo-legacy_v0.9.1",
+      "date": "Tue, 30 Jan 2024 18:26:00 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Removed 0x from the return token od the getBalance method"
+          },
+          {
+            "comment": "Fixed bug preventing decryption in dev mode in React Native"
+          },
+          {
+            "comment": "Fixed lint errors that were preventing the build"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.9.0",
       "tag": "@cityofzion/bs-neo-legacy_v0.9.0",
       "date": "Tue, 05 Dec 2023 18:42:10 GMT",

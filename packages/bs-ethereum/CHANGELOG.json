@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "0.9.1",
+      "tag": "@cityofzion/bs-ethereum_v0.9.1",
+      "date": "Tue, 30 Jan 2024 18:26:00 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fixed bug with repeated ETH token in getBalance method"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.9.0",
       "tag": "@cityofzion/bs-ethereum_v0.9.0",
       "date": "Tue, 05 Dec 2023 18:42:10 GMT",
