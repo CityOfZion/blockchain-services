@@ -27,7 +27,8 @@ import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { DoraESNeoLegacy } from './DoraESNeoLegacy'
 
 export class BSNeoLegacy<BSCustomName extends string = string>
-  implements BlockchainService, BSClaimable, BSWithExplorerService {
+  implements BlockchainService, BSClaimable, BSWithExplorerService
+{
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
   readonly claimToken: Token
