@@ -8,7 +8,7 @@ let account: Account
 
 describe('BSEthereum', () => {
   beforeAll(() => {
-    bsEthereum = new BSEthereum('neo3', { type: 'testnet' })
+    bsEthereum = new BSEthereum('neo3', { type: 'testnet' }, process.env.BITQUERY_API_KEY as string)
     wallet = ethers.Wallet.createRandom()
     account = {
       key: wallet.privateKey,
@@ -71,7 +71,9 @@ describe('BSEthereum', () => {
   it('Should be able to encrypt key', async () => {
     const password = 'TestPassword'
     const validEncryptedJson = await bsEthereum.encrypt(wallet.privateKey, password)
-    expect(validEncryptedJson).toEqual(expect.objectContaining({ address: wallet.address }))
+    expect(JSON.parse(validEncryptedJson)).toEqual(
+      expect.objectContaining({ address: wallet.address.replace('0x', '').toLowerCase() })
+    )
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {

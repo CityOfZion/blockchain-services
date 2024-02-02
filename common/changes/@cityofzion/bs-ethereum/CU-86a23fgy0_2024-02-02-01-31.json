@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Change bitquery providers to receive apiKey on class initialization",
+      "type": "major"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

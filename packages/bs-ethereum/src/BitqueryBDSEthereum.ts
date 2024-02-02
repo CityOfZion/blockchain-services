@@ -12,7 +12,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { Client, fetchExchange } from '@urql/core'
 import fetch from 'node-fetch'
-import { BITQUERY_API_KEY, BITQUERY_NETWORK_BY_NETWORK_TYPE, BITQUERY_URL, NATIVE_ASSETS, TOKENS } from './constants'
+import { BITQUERY_NETWORK_BY_NETWORK_TYPE, BITQUERY_URL, NATIVE_ASSETS, TOKENS } from './constants'
 import {
   BitqueryTransaction,
   bitqueryGetBalanceQuery,
@@ -28,7 +28,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 8
 
-  constructor(network: Network) {
+  constructor(network: Network, apiKey: string) {
     super(network)
 
     if (network.type === 'custom') throw new Error('Custom network not supported')
@@ -40,7 +40,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
       fetch,
       fetchOptions: {
         headers: {
-          'X-API-KEY': BITQUERY_API_KEY,
+          'X-API-KEY': apiKey,
         },
       },
     })

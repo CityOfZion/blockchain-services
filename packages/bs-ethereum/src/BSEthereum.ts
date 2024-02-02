@@ -29,6 +29,7 @@ export class BSEthereum<BSCustomName extends string = string>
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
   readonly derivationPath: string
+  private readonly bitqueryApiKey: string
 
   blockchainDataService!: BlockchainDataService
   exchangeDataService!: ExchangeDataService
@@ -36,10 +37,11 @@ export class BSEthereum<BSCustomName extends string = string>
   nftDataService!: NftDataService
   network!: Network
 
-  constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
+  constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>, bitqueryApiKey: string) {
     this.blockchainName = blockchainName
     this.derivationPath = DERIVATION_PATH
     this.tokens = TOKENS[network.type]
+    this.bitqueryApiKey = bitqueryApiKey
 
     this.feeToken = this.tokens.find(token => token.symbol === 'ETH')!
     this.setNetwork(network)
@@ -55,10 +57,10 @@ export class BSEthereum<BSCustomName extends string = string>
     if (network.type === 'custom') {
       this.blockchainDataService = new RpcBDSEthereum(network)
     } else {
-      this.blockchainDataService = new BitqueryBDSEthereum(network)
+      this.blockchainDataService = new BitqueryBDSEthereum(network, this.bitqueryApiKey)
     }
 
-    this.exchangeDataService = new BitqueryEDSEthereum(network.type)
+    this.exchangeDataService = new BitqueryEDSEthereum(network.type, this.bitqueryApiKey)
     this.nftDataService = new GhostMarketNDSEthereum(network.type)
   }
 
