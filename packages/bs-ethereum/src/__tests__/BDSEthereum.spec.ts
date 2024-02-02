@@ -3,7 +3,10 @@ import { BitqueryBDSEthereum } from '../BitqueryBDSEthereum'
 import { RpcBDSEthereum } from '../RpcBDSEthereum'
 import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
 
-const bitqueryBDSEthereum = new BitqueryBDSEthereum({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet })
+const bitqueryBDSEthereum = new BitqueryBDSEthereum(
+  { type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet },
+  process.env.BITQUERY_API_KEY as string
+)
 const rpcBDSEthereum = new RpcBDSEthereum({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet })
 
 describe('BDSEthereum', () => {
@@ -79,7 +82,7 @@ describe('BDSEthereum', () => {
         symbol: 'ETH',
         name: 'Ethereum',
         hash: '-',
-        decimals: 16,
+        decimals: 18,
       })
     }
   )

@@ -13,11 +13,10 @@ export const NATIVE_ASSETS = commom
 
 export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
   mainnet: 'https://ethereum-mainnet-rpc.allthatnode.com',
-  testnet: 'https://ethereum-goerli-rpc.allthatnode.com',
+  testnet: 'https://ethereum-goerli.publicnode.com',
   custom: 'http://127.0.0.1:8545',
 }
 
-export const BITQUERY_API_KEY = 'BQYMp76Ny15C8ORbI2BOstFUhoMCahLI'
 export const BITQUERY_URL = 'https://graphql.bitquery.io'
 export const BITQUERY_NETWORK_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>, BitqueryNetwork> = {
   mainnet: 'ethereum',

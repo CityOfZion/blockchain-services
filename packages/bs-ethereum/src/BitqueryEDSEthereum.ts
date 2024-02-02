@@ -1,7 +1,7 @@
 import { Currency, ExchangeDataService, NetworkType, TokenPricesResponse } from '@cityofzion/blockchain-service'
 import { Client, fetchExchange } from '@urql/core'
 import fetch from 'node-fetch'
-import { BITQUERY_API_KEY, BITQUERY_URL } from './constants'
+import { BITQUERY_URL } from './constants'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { bitqueryGetPricesQuery } from './graphql'
@@ -11,7 +11,7 @@ export class BitqueryEDSEthereum implements ExchangeDataService {
   private readonly client: Client
   private readonly networkType: NetworkType
 
-  constructor(networkType: NetworkType) {
+  constructor(networkType: NetworkType, apiKey: string) {
     this.networkType = networkType
 
     this.client = new Client({
@@ -20,7 +20,7 @@ export class BitqueryEDSEthereum implements ExchangeDataService {
       fetch,
       fetchOptions: {
         headers: {
-          'X-API-KEY': BITQUERY_API_KEY,
+          'X-API-KEY': apiKey,
         },
       },
     })
