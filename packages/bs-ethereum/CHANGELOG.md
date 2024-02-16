@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 30 Jan 2024 18:26:00 GMT and should not be manually modified.
+This log was last generated on Fri, 16 Feb 2024 16:13:22 GMT and should not be manually modified.
+
+## 1.0.0
+Fri, 16 Feb 2024 16:13:22 GMT
+
+### Breaking changes
+
+- Change bitquery providers to receive apiKey on class initialization
 
 ## 0.9.1
 Tue, 30 Jan 2024 18:26:00 GMT
