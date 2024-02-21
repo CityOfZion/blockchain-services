@@ -46,4 +46,10 @@ describe('FlamingoEDSNeo3', () => {
       })
     })
   })
+
+  it('Should return the ETH price in USD', async () => {
+    const tokenPriceList = await bitqueryEDSEthereum.getTokenPrices('USD')
+
+    expect(tokenPriceList).toEqual(expect.arrayContaining([{ symbol: 'ETH', hash: '-', price: expect.any(Number) }]))
+  })
 })

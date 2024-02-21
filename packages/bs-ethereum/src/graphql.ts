@@ -269,10 +269,7 @@ export type BitQueryGetTokenPricesVariables = {
 export const bitqueryGetPricesQuery = gql<BitQueryGetTokenPricesResponse, BitQueryGetTokenPricesVariables>`
   query getPrice($after: ISO8601DateTime!, $network: EthereumNetwork!) {
     ethereum(network: $network) {
-      dexTrades(
-        options: { limitBy: { each: "baseCurrency.address", limit: 1 }, desc: "date.date" }
-        time: { after: $after }
-      ) {
+      dexTrades(options: { desc: "date.date" }, time: { after: $after }) {
         quoteCurrency(quoteCurrency: { is: "0xdac17f958d2ee523a2206206994597c13d831ec7" }) {
           symbol
           address
