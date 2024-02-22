@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Fri, 16 Feb 2024 16:13:22 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Feb 2024 16:49:56 GMT and should not be manually modified.
+
+## 1.0.1
+Thu, 22 Feb 2024 16:49:56 GMT
+
+### Patches
+
+- Fix getTokenPrices that is returning a wrong price for ETH token address
 
 ## 1.0.0
 Fri, 16 Feb 2024 16:13:22 GMT
