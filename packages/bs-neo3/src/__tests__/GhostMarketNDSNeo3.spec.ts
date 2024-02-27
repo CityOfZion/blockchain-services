@@ -12,6 +12,7 @@ describe('GhostMarketNDSNeo3', () => {
       contractHash: '0xaa4fb927b3fe004e689a278d188689c9f050a8b2',
       tokenId: 'SVBLTUYxMTY1',
     })
+
     expect(nft).toEqual(
       expect.objectContaining({
         id: 'SVBLTUYxMTY1',
@@ -22,6 +23,10 @@ describe('GhostMarketNDSNeo3', () => {
         image: expect.any(String),
         isSVG: expect.any(Boolean),
         name: 'Pink Moon Fish',
+        creator: {
+          address: 'NQJpnvRaLvPqu8Mm5Bx3d1uJEttwJBN2p9',
+          name: undefined,
+        },
       })
     )
   })

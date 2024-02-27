@@ -19,7 +19,7 @@ type GhostMarketNFT = {
     symbol: string
   }
   creator: {
-    address?: string
+    address: string
     offchainName?: string
   }
   apiUrl?: string
@@ -114,6 +114,10 @@ export class GhostMarketNDSEthereum implements NftDataService {
       image: this.treatGhostMarketImage(data.metadata.mediaUri),
       isSVG: String(data.metadata.mediaType).includes('svg+xml'),
       name: data.metadata.name,
+      creator: {
+        address: data.creator.address,
+        name: data.creator.offchainName,
+      },
     }
 
     return nftResponse

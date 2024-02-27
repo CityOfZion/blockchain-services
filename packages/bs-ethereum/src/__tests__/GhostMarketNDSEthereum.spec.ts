@@ -23,6 +23,10 @@ describe('GhostMarketNDSEthereum', () => {
         image: expect.any(String),
         isSVG: expect.any(Boolean),
         name: 'MOAR #379',
+        creator: {
+          address: '0xd71ef31e9d4e8674d9177c28cc2d0d633580615b',
+          name: undefined,
+        },
       })
     )
   })
