@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 22 Feb 2024 16:49:56 GMT and should not be manually modified.
+This log was last generated on Tue, 27 Feb 2024 20:29:09 GMT and should not be manually modified.
+
+## 1.0.2
+Tue, 27 Feb 2024 20:29:09 GMT
+
+### Patches
+
+- Remove the mining wait in the transfer method to avoid long promises that take time to resolve.
 
 ## 1.0.1
 Thu, 22 Feb 2024 16:49:56 GMT

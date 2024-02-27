@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.0.2",
+      "tag": "@cityofzion/bs-ethereum_v1.0.2",
+      "date": "Tue, 27 Feb 2024 20:29:09 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove the mining wait in the transfer method to avoid long promises that take time to resolve."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.1",
       "tag": "@cityofzion/bs-ethereum_v1.0.1",
       "date": "Thu, 22 Feb 2024 16:49:56 GMT",
