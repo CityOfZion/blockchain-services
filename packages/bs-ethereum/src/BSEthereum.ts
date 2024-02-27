@@ -148,10 +148,7 @@ export class BSEthereum<BSCustomName extends string = string>
       })
     }
 
-    const transactionMined = await transaction.wait()
-    if (!transactionMined) throw new Error('Transaction not mined')
-
-    return transactionMined.transactionHash
+    return transaction.hash
   }
 
   async calculateTransferFee({ senderAccount, intent }: TransferParam): Promise<string> {
