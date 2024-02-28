@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 27 Feb 2024 20:29:09 GMT and should not be manually modified.
+This log was last generated on Wed, 28 Feb 2024 17:43:01 GMT and should not be manually modified.
+
+## 1.0.3
+Wed, 28 Feb 2024 17:43:01 GMT
+
+### Patches
+
+- Add creator infomations in nft methods return
 
 ## 1.0.2
 Tue, 27 Feb 2024 20:29:09 GMT

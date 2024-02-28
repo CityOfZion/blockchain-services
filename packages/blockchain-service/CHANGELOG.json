@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "0.9.1",
+      "tag": "@cityofzion/blockchain-service_v0.9.1",
+      "date": "Wed, 28 Feb 2024 17:43:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add creator infomations in nft methods return"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.9.0",
       "tag": "@cityofzion/blockchain-service_v0.9.0",
       "date": "Tue, 05 Dec 2023 18:42:10 GMT",

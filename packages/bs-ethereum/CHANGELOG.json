@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.0.3",
+      "tag": "@cityofzion/bs-ethereum_v1.0.3",
+      "date": "Wed, 28 Feb 2024 17:43:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add creator infomations in nft methods return"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `0.9.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.2",
       "tag": "@cityofzion/bs-ethereum_v1.0.2",
       "date": "Tue, 27 Feb 2024 20:29:09 GMT",
