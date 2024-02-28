@@ -154,6 +154,10 @@ export interface NftResponse {
   id: string
   contractHash: string
   collectionName?: string
+  creator: {
+    address: string
+    name?: string
+  }
   collectionImage?: string
   symbol: string
   image?: string
