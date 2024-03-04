@@ -89,7 +89,7 @@ describe('BSEthereum', () => {
       },
     })
 
-    expect(fee).toEqual(expect.any(Number))
+    expect(fee).toEqual(expect.any(String))
   })
 
   it.skip('Should be able to transfer a native token', async () => {

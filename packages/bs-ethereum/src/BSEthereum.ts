@@ -155,6 +155,8 @@ export class BSEthereum<BSCustomName extends string = string>
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
     const wallet = new ethers.Wallet(senderAccount.key, provider)
 
+    const gasPrice = await provider.getGasPrice()
+
     let estimated: ethers.BigNumber
 
     const isNative = NATIVE_ASSETS.some(asset => asset.hash === intent.tokenHash)
@@ -176,7 +178,7 @@ export class BSEthereum<BSCustomName extends string = string>
       })
     }
 
-    return ethers.utils.formatEther(estimated)
+    return ethers.utils.formatEther(gasPrice.mul(estimated))
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {
