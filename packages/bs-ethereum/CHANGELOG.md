@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 28 Feb 2024 17:43:01 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Mar 2024 21:53:09 GMT and should not be manually modified.
+
+## 1.0.4
+Mon, 04 Mar 2024 21:53:09 GMT
+
+### Patches
+
+- fix wrong calculated fee
 
 ## 1.0.3
 Wed, 28 Feb 2024 17:43:01 GMT
