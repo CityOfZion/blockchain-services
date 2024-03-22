@@ -1,3 +1,5 @@
+import Transport from '@ledgerhq/hw-transport'
+
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 export type Account = {
@@ -80,6 +82,10 @@ export interface BSWithExplorerService {
 
 export interface BSWithNft {
   nftDataService: NftDataService
+}
+
+export interface BSWithLedger {
+  ledgerService: LedgerService
 }
 
 export type TransactionNotifications = {
@@ -192,4 +198,10 @@ export type BuildNftUrlParams = {
 export interface ExplorerService {
   buildTransactionUrl(hash: string): string
   buildNftUrl(params: BuildNftUrlParams): string
+}
+
+export interface LedgerService {
+  getAddress(transport: Transport): Promise<string>
+  transfer(transport: Transport, param: TransferParam): Promise<string>
+  calculateTransferFee(transport: Transport, param: TransferParam): Promise<string>
 }

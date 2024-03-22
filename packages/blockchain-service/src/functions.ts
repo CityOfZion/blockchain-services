@@ -3,6 +3,7 @@ import {
   BSCalculableFee,
   BSClaimable,
   BSWithExplorerService,
+  BSWithLedger,
   BSWithNameService,
   BSWithNft,
 } from './interfaces'
@@ -25,6 +26,10 @@ export function hasNft(service: BlockchainService): service is BlockchainService
 
 export function hasExplorerService(service: BlockchainService): service is BlockchainService & BSWithExplorerService {
   return 'explorerService' in service
+}
+
+export function hasLedger(service: BlockchainService): service is BlockchainService & BSWithLedger {
+  return 'ledgerService' in service
 }
 
 function wait(ms: number) {
