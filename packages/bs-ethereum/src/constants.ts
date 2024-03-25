@@ -13,7 +13,7 @@ export const NATIVE_ASSETS = commom
 
 export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
   mainnet: 'https://ethereum-mainnet-rpc.allthatnode.com',
-  testnet: 'https://ethereum-goerli.publicnode.com',
+  testnet: 'https://ethereum-sepolia-rpc.publicnode.com',
   custom: 'http://127.0.0.1:8545',
 }
 
