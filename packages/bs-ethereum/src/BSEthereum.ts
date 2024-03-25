@@ -54,7 +54,7 @@ export class BSEthereum<BSCustomName extends string = string>
     }
     this.network = network
 
-    if (network.type === 'custom') {
+    if (network.type !== 'mainnet') {
       this.blockchainDataService = new RpcBDSEthereum(network)
     } else {
       this.blockchainDataService = new BitqueryBDSEthereum(network, this.bitqueryApiKey)
