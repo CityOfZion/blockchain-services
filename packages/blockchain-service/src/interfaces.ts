@@ -32,6 +32,7 @@ export type TransferParam = {
   intent: IntentTransferParam
   tipIntent?: IntentTransferParam
   priorityFee?: string
+  isLedger?: boolean
 }
 
 export type TokenPricesResponse = {
@@ -202,6 +203,4 @@ export interface ExplorerService {
 
 export interface LedgerService {
   getAddress(transport: Transport): Promise<string>
-  transfer(transport: Transport, param: TransferParam): Promise<string>
-  calculateTransferFee(transport: Transport, param: TransferParam): Promise<string>
 }
