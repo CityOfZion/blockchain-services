@@ -1,6 +1,7 @@
 import { sleep } from './utils/sleep'
 import { BSNeo3 } from '../BSNeo3'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 let bsNeo3: BSNeo3
 
@@ -119,6 +120,31 @@ describe('BSNeo3', () => {
 
     expect(transactionHash).toEqual(expect.any(String))
   })
+
+  it.skip('Should be able to transfer with ledger', async () => {
+    const transport = await TransportNodeHid.create()
+    const publicKey = await bsNeo3.ledgerService.getPublicKey(transport)
+
+    const account = bsNeo3.generateAccountFromPublicKey(publicKey)
+
+    const balance = await bsNeo3.blockchainDataService.getBalance(account.address)
+    const gasBalance = balance.find(b => b.token.symbol === bsNeo3.feeToken.symbol)
+    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
+
+    const transactionHash = await bsNeo3.transfer({
+      senderAccount: account,
+      intent: {
+        amount: '1',
+        receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+        tokenHash: bsNeo3.feeToken.hash,
+        tokenDecimals: bsNeo3.feeToken.decimals,
+      },
+      isLedger: true,
+      ledgerTransport: transport,
+    })
+
+    expect(transactionHash).toEqual(expect.any(String))
+  }, 60000)
 
   it.skip('Should be able to claim', async () => {
     const account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)

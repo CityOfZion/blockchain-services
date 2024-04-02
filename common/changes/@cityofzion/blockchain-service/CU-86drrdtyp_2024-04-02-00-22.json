@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Update ledger interfaces",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

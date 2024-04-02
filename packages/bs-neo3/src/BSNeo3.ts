@@ -16,14 +16,11 @@ import {
   AccountWithDerivationPath,
   BSWithExplorerService,
   ExplorerService,
+  BSWithLedger,
 } from '@cityofzion/blockchain-service'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Neon from '@cityofzion/neon-core'
-import { NeonInvoker } from '@cityofzion/neon-invoker'
-import { NeonParser } from '@cityofzion/neon-parser'
-import { ABI_TYPES } from '@cityofzion/neo3-parser'
-import { ContractInvocation } from '@cityofzion/neo3-invoker'
-
+import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
 import { RPCBDSNeo3 } from './RpcBDSNeo3'
 import { DoraBDSNeo3 } from './DoraBDSNeo3'
 import { DEFAULT_URL_BY_NETWORK_TYPE, DERIVATION_PATH, NEO_NS_HASH, TOKENS } from './constants'
@@ -31,9 +28,18 @@ import { FlamingoEDSNeo3 } from './FlamingoEDSNeo3'
 import { GhostMarketNDSNeo3 } from './GhostMarketNDSNeo3'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { DoraESNeo3 } from './DoraESNeo3'
+import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
+import { LedgerServiceNeo3 } from './LedgerServiceNeo3'
 
 export class BSNeo3<BSCustomName extends string = string>
-  implements BlockchainService, BSClaimable, BSWithNameService, BSCalculableFee, BSWithNft, BSWithExplorerService
+  implements
+    BlockchainService,
+    BSClaimable,
+    BSWithNameService,
+    BSCalculableFee,
+    BSWithNft,
+    BSWithExplorerService,
+    BSWithLedger
 {
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
@@ -43,6 +49,7 @@ export class BSNeo3<BSCustomName extends string = string>
 
   blockchainDataService!: BlockchainDataService & BDSClaimable
   nftDataService!: NftDataService
+  ledgerService: LedgerServiceNeo3 = new LedgerServiceNeo3()
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
   tokens: Token[]
@@ -103,6 +110,18 @@ export class BSNeo3<BSCustomName extends string = string>
     return { address, key, type: 'wif', derivationPath: path }
   }
 
+  generateAccountFromPublicKey(publicKey: string): Account {
+    if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
+
+    const account = new wallet.Account(publicKey)
+
+    return {
+      address: account.address,
+      key: account.publicKey,
+      type: 'publicKey',
+    }
+  }
+
   generateAccountFromKey(key: string): Account {
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
     if (!type) throw new Error('Invalid key')
@@ -136,6 +155,7 @@ export class BSNeo3<BSCustomName extends string = string>
 
   async calculateTransferFee(param: TransferParam): Promise<string> {
     const account = new wallet.Account(param.senderAccount.key)
+
     const invoker = await NeonInvoker.init({
       rpcAddress: this.network.url,
       account,
@@ -143,19 +163,21 @@ export class BSNeo3<BSCustomName extends string = string>
 
     const invocations = this.buildTransferInvocation(param, account)
 
-    const { networkFee, systemFee } = await invoker.calculateFee({
+    const { total } = await invoker.calculateFee({
       invocations,
       signers: [],
     })
 
-    return networkFee.add(systemFee).toDecimal(this.feeToken.decimals)
+    return total.toString()
   }
 
   async transfer(param: TransferParam): Promise<string> {
     const account = new wallet.Account(param.senderAccount.key)
+
     const invoker = await NeonInvoker.init({
       rpcAddress: this.network.url,
       account,
+      signingCallback: param.isLedger ? this.ledgerService.getSigningCallback(param.ledgerTransport) : undefined,
     })
 
     const invocations = this.buildTransferInvocation(param, account)
@@ -197,7 +219,7 @@ export class BSNeo3<BSCustomName extends string = string>
     }
 
     const parsed = parser.parseRpcResponse(response.stack[0] as any, {
-      type: ABI_TYPES.HASH160.name,
+      type: 'Hash160',
     })
     const address = parser.accountInputToAddress(parsed.replace('0x', ''))
     return address

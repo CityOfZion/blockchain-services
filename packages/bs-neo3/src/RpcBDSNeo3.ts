@@ -12,7 +12,7 @@ import {
   TransactionsByAddressResponse,
 } from '@cityofzion/blockchain-service'
 import { rpc, u } from '@cityofzion/neon-core'
-import { NeonInvoker } from '@cityofzion/neon-invoker'
+import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
 import { TOKENS } from './constants'
 
 export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
@@ -102,8 +102,10 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
         ],
       })
 
+      if (!TypeChecker.isStackTypeInteger(response.stack[0])) throw new Error('Invalid decimals')
+      if (!TypeChecker.isStackTypeByteString(response.stack[1])) throw new Error('Invalid symbol')
       const decimals = Number(response.stack[0].value)
-      const symbol = u.base642utf8(response.stack[1].value as string)
+      const symbol = u.base642utf8(response.stack[1].value)
       const token = {
         name: contractState.manifest.name,
         symbol,
