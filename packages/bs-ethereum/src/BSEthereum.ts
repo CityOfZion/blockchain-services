@@ -2,6 +2,7 @@ import {
   Account,
   AccountWithDerivationPath,
   BSCalculableFee,
+  BSWithLedger,
   BSWithNameService,
   BSWithNft,
   BlockchainDataService,
@@ -22,9 +23,9 @@ import { BitqueryEDSEthereum } from './BitqueryEDSEthereum'
 import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
-
+import { LedgerServiceEthereum } from './LedgerServiceEthereum'
 export class BSEthereum<BSCustomName extends string = string>
-  implements BlockchainService, BSWithNft, BSWithNameService, BSCalculableFee
+  implements BlockchainService, BSWithNft, BSWithNameService, BSCalculableFee, BSWithLedger
 {
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
@@ -33,6 +34,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
   blockchainDataService!: BlockchainDataService
   exchangeDataService!: ExchangeDataService
+  ledgerService: LedgerServiceEthereum = new LedgerServiceEthereum()
   tokens: Token[]
   nftDataService!: NftDataService
   network!: Network
@@ -104,10 +106,20 @@ export class BSEthereum<BSCustomName extends string = string>
 
   generateAccountFromKey(key: string): Account {
     const wallet = new ethers.Wallet(key)
+
     return {
       address: wallet.address,
       key,
       type: 'privateKey',
+    }
+  }
+
+  generateAccountFromPublicKey(publicKey: string): Account {
+    const address = ethers.utils.computeAddress(publicKey)
+    return {
+      address,
+      key: publicKey,
+      type: 'publicKey',
     }
   }
 
@@ -125,35 +137,41 @@ export class BSEthereum<BSCustomName extends string = string>
     return wallet.encrypt(password)
   }
 
-  async transfer({ senderAccount, intent }: TransferParam): Promise<string> {
+  async transfer(param: TransferParam): Promise<string> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
-    const wallet = new ethers.Wallet(senderAccount.key, provider)
 
-    let transaction: ethers.providers.TransactionResponse
-    const decimals = intent.tokenDecimals ?? 18
-    const amount = ethersBigNumber.parseFixed(intent.amount, decimals)
+    const signTransactionFunction = param.isLedger
+      ? await this.ledgerService.getSignTransactionFunction(param.ledgerTransport)
+      : new ethers.Wallet(param.senderAccount.key, provider).signTransaction
 
-    const isNative = NATIVE_ASSETS.some(asset => asset.hash === intent.tokenHash)
-    if (!isNative) {
-      const contract = new ethers.Contract(
-        intent.tokenHash,
-        ['function transfer(address to, uint amount) returns (bool)'],
-        wallet
-      )
-      transaction = await contract.transfer(intent.receiverAddress, amount)
-    } else {
-      transaction = await wallet.sendTransaction({
-        to: intent.receiverAddress,
+    const decimals = param.intent.tokenDecimals ?? 18
+    const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
+
+    let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
+
+    const isNative = NATIVE_ASSETS.some(asset => asset.hash === param.intent.tokenHash)
+    if (isNative) {
+      transactionParams = {
+        to: param.intent.receiverAddress,
         value: amount,
-      })
+      }
+    } else {
+      const contract = new ethers.Contract(param.intent.tokenHash, [
+        'function transfer(address to, uint amount) returns (bool)',
+      ])
+      transactionParams = await contract.populateTransaction.transfer(param.intent.receiverAddress, amount)
     }
 
-    return transaction.hash
+    const voidSigner = new ethers.VoidSigner(param.senderAccount.address, provider)
+    const transaction = await voidSigner.populateTransaction(transactionParams)
+
+    const signedTransaction = await signTransactionFunction(transaction)
+    const transactionResponse = await provider.sendTransaction(signedTransaction)
+    return transactionResponse.hash
   }
 
-  async calculateTransferFee({ senderAccount, intent }: TransferParam): Promise<string> {
+  async calculateTransferFee({ intent }: TransferParam): Promise<string> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
-    const wallet = new ethers.Wallet(senderAccount.key, provider)
 
     const gasPrice = await provider.getGasPrice()
 
@@ -167,12 +185,12 @@ export class BSEthereum<BSCustomName extends string = string>
       const contract = new ethers.Contract(
         intent.tokenHash,
         ['function transfer(address to, uint amount) returns (bool)'],
-        wallet
+        provider
       )
 
       estimated = await contract.estimateGas.transfer(intent.receiverAddress, amount)
     } else {
-      estimated = await wallet.estimateGas({
+      estimated = await provider.estimateGas({
         to: intent.receiverAddress,
         value: amount,
       })
