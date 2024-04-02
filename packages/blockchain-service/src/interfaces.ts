@@ -4,7 +4,7 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 export type Account = {
   key: string
-  type: 'wif' | 'privateKey'
+  type: 'wif' | 'privateKey' | 'publicKey'
   address: string
 }
 export type AccountWithDerivationPath = Account & {
@@ -27,13 +27,22 @@ export type IntentTransferParam = {
   amount: string
   tokenDecimals?: number
 }
+
+export type TransferParamWithLedger = {
+  isLedger: true
+  ledgerTransport: Transport
+}
+
+export type TransferParamWithoutLedger = {
+  isLedger?: false
+}
+
 export type TransferParam = {
   senderAccount: Account
   intent: IntentTransferParam
   tipIntent?: IntentTransferParam
   priorityFee?: string
-  isLedger?: boolean
-}
+} & (TransferParamWithLedger | TransferParamWithoutLedger)
 
 export type TokenPricesResponse = {
   price: number
@@ -87,6 +96,7 @@ export interface BSWithNft {
 
 export interface BSWithLedger {
   ledgerService: LedgerService
+  generateAccountFromPublicKey(publicKey: string): Account
 }
 
 export type TransactionNotifications = {
@@ -203,4 +213,5 @@ export interface ExplorerService {
 
 export interface LedgerService {
   getAddress(transport: Transport): Promise<string>
+  getPublicKey(transport: Transport): Promise<string>
 }
