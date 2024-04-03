@@ -1,6 +1,7 @@
 import { ethers } from 'ethers'
 import { BSEthereum } from '../BSEthereum'
 import { Account } from '@cityofzion/blockchain-service'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 let bsEthereum: BSEthereum
 let wallet: ethers.Wallet
@@ -90,7 +91,7 @@ describe('BSEthereum', () => {
     })
 
     expect(fee).toEqual(expect.any(String))
-  })
+  }, 50000)
 
   it.skip('Should be able to transfer a native token', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
@@ -119,6 +120,46 @@ describe('BSEthereum', () => {
         tokenDecimals: 18,
         tokenHash: '0xba62bcfcaafc6622853cca2be6ac7d845bc0f2dc',
       },
+    })
+
+    expect(transactionHash).toEqual(expect.any(String))
+  }, 50000)
+
+  it.skip('Should be able to transfer a native token with ledger', async () => {
+    const transport = await TransportNodeHid.create()
+    const publicKey = await bsEthereum.ledgerService.getPublicKey(transport)
+    const account = bsEthereum.generateAccountFromPublicKey(publicKey)
+
+    const transactionHash = await bsEthereum.transfer({
+      senderAccount: account,
+      intent: {
+        amount: '0.00000001',
+        receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+        tokenDecimals: 18,
+        tokenHash: '-',
+      },
+      isLedger: true,
+      ledgerTransport: transport,
+    })
+
+    expect(transactionHash).toEqual(expect.any(String))
+  }, 50000)
+
+  it.skip('Should be able to transfer a ERC20 token with ledger', async () => {
+    const transport = await TransportNodeHid.create()
+    const publicKey = await bsEthereum.ledgerService.getPublicKey(transport)
+    const account = bsEthereum.generateAccountFromPublicKey(publicKey)
+
+    const transactionHash = await bsEthereum.transfer({
+      senderAccount: account,
+      intent: {
+        amount: '0.00000001',
+        receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+        tokenDecimals: 18,
+        tokenHash: '0xcf185f2F3Fe19D82bFdcee59E3330FD7ba5f27ce',
+      },
+      isLedger: true,
+      ledgerTransport: transport,
     })
 
     expect(transactionHash).toEqual(expect.any(String))
