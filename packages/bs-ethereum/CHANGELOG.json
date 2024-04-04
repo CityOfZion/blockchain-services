@@ -2,6 +2,28 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.1.0",
+      "tag": "@cityofzion/bs-ethereum_v1.1.0",
+      "date": "Thu, 04 Apr 2024 19:52:20 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add ledger support"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Change Goerli to Sepolia and call RPC using testnet instead of Bitquery"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `0.10.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.4",
       "tag": "@cityofzion/bs-ethereum_v1.0.4",
       "date": "Mon, 04 Mar 2024 21:53:09 GMT",

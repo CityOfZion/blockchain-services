@@ -1,6 +1,18 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Wed, 28 Feb 2024 17:43:01 GMT and should not be manually modified.
+This log was last generated on Thu, 04 Apr 2024 19:52:20 GMT and should not be manually modified.
+
+## 0.10.0
+Thu, 04 Apr 2024 19:52:20 GMT
+
+### Minor changes
+
+- Ledger support
+
+### Patches
+
+- Fix ledger interfaces
+- Update ledger interfaces
 
 ## 0.9.1
 Wed, 28 Feb 2024 17:43:01 GMT
