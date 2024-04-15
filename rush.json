@@ -10,7 +10,8 @@
     {
       "packageName": "@cityofzion/bs-electron",
       "projectFolder": "packages/bs-electron",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "publishFolder": "dist"
     },
     {
       "packageName": "@cityofzion/bs-asteroid-sdk",
