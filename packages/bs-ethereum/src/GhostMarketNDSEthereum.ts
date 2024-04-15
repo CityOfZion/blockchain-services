@@ -47,10 +47,10 @@ type GhostMarketAssets = {
   next: string
 }
 export class GhostMarketNDSEthereum implements NftDataService {
-  private networkType: NetworkType
+  #networkType: NetworkType
 
   constructor(networkType: NetworkType) {
-    this.networkType = networkType
+    this.#networkType = networkType
   }
 
   async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
@@ -96,12 +96,12 @@ export class GhostMarketNDSEthereum implements NftDataService {
   private getUrlWithParams(params: any) {
     const parameters = qs.stringify(
       {
-        chain: GHOSTMARKET_CHAIN_BY_NETWORK_TYPE[this.networkType],
+        chain: GHOSTMARKET_CHAIN_BY_NETWORK_TYPE[this.#networkType],
         ...params,
       },
       { arrayFormat: 'bracket' }
     )
-    return `${GHOSTMARKET_URL_BY_NETWORK_TYPE[this.networkType]}/assets?${parameters}`
+    return `${GHOSTMARKET_URL_BY_NETWORK_TYPE[this.#networkType]}/assets?${parameters}`
   }
 
   private parse(data: GhostMarketNFT) {

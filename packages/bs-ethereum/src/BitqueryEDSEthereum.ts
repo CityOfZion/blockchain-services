@@ -8,13 +8,13 @@ import { bitqueryGetPricesQuery } from './graphql'
 
 dayjs.extend(utc)
 export class BitqueryEDSEthereum implements ExchangeDataService {
-  private readonly client: Client
-  private readonly networkType: NetworkType
+  readonly #client: Client
+  readonly #networkType: NetworkType
 
   constructor(networkType: NetworkType, apiKey: string) {
-    this.networkType = networkType
+    this.#networkType = networkType
 
-    this.client = new Client({
+    this.#client = new Client({
       url: BITQUERY_URL,
       exchanges: [fetchExchange],
       fetch,
@@ -27,11 +27,11 @@ export class BitqueryEDSEthereum implements ExchangeDataService {
   }
 
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
-    if (this.networkType !== 'mainnet') throw new Error('Exchange is only available on mainnet')
+    if (this.#networkType !== 'mainnet') throw new Error('Exchange is only available on mainnet')
 
     const twoDaysAgo = dayjs.utc().subtract(2, 'day').startOf('date').toISOString()
 
-    const result = await this.client
+    const result = await this.#client
       .query(bitqueryGetPricesQuery, { after: twoDaysAgo, network: 'ethereum' })
       .toPromise()
     if (result.error) {

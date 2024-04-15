@@ -23,8 +23,8 @@ import {
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 
 export class BitqueryBDSEthereum extends RpcBDSEthereum {
-  private readonly client: Client
-  private readonly networkType: Exclude<NetworkType, 'custom'>
+  readonly #client: Client
+  readonly #networkType: Exclude<NetworkType, 'custom'>
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 8
 
@@ -32,9 +32,9 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     super(network)
 
     if (network.type === 'custom') throw new Error('Custom network not supported')
-    this.networkType = network.type
+    this.#networkType = network.type
 
-    this.client = new Client({
+    this.#client = new Client({
       url: BITQUERY_URL,
       exchanges: [fetchExchange],
       fetch,
@@ -47,10 +47,10 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    const result = await this.client
+    const result = await this.#client
       .query(bitqueryGetTransactionQuery, {
         hash,
-        network: BITQUERY_NETWORK_BY_NETWORK_TYPE[this.networkType],
+        network: BITQUERY_NETWORK_BY_NETWORK_TYPE[this.#networkType],
       })
       .toPromise()
     if (result.error) throw new Error(result.error.message)
@@ -83,12 +83,12 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     const limit = 10
     const offset = limit * (page - 1)
 
-    const result = await this.client
+    const result = await this.#client
       .query(bitqueryGetTransactionsByAddressQuery, {
         address,
         limit,
         offset,
-        network: BITQUERY_NETWORK_BY_NETWORK_TYPE[this.networkType],
+        network: BITQUERY_NETWORK_BY_NETWORK_TYPE[this.#networkType],
       })
       .toPromise()
 
@@ -132,13 +132,13 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   }
 
   async getTokenInfo(hash: string): Promise<Token> {
-    const localToken = TOKENS[this.networkType].find(token => token.hash === hash)
+    const localToken = TOKENS[this.#networkType].find(token => token.hash === hash)
     if (localToken) return localToken
 
-    const result = await this.client
+    const result = await this.#client
       .query(bitqueryGetTokenInfoQuery, {
         hash,
-        network: BITQUERY_NETWORK_BY_NETWORK_TYPE[this.networkType],
+        network: BITQUERY_NETWORK_BY_NETWORK_TYPE[this.#networkType],
       })
       .toPromise()
 
@@ -161,10 +161,10 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const result = await this.client
+    const result = await this.#client
       .query(bitqueryGetBalanceQuery, {
         address,
-        network: BITQUERY_NETWORK_BY_NETWORK_TYPE[this.networkType],
+        network: BITQUERY_NETWORK_BY_NETWORK_TYPE[this.#networkType],
       })
       .toPromise()
 

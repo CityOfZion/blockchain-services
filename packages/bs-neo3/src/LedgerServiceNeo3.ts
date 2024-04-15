@@ -1,9 +1,11 @@
-import { LedgerService } from '@cityofzion/blockchain-service'
+import { Account, LedgerService } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import { wallet, api, u } from '@cityofzion/neon-js'
 import { NeonParser } from '@cityofzion/neon-dappkit'
 
 export class LedgerServiceNeo3 implements LedgerService {
+  constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
+
   async getAddress(transport: Transport): Promise<string> {
     const publicKey = await this.getPublicKey(transport)
     const { address } = new wallet.Account(publicKey)

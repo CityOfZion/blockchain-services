@@ -1,19 +1,19 @@
 import { ExplorerService, NetworkType, BuildNftUrlParams } from '@cityofzion/blockchain-service'
 
 export class DoraESNeo3 implements ExplorerService {
-  private networkType: NetworkType
+  readonly #networkType: NetworkType
 
   constructor(networkType: NetworkType) {
-    this.networkType = networkType
+    this.#networkType = networkType
   }
 
   buildTransactionUrl(hash: string): string {
-    if (this.networkType === 'custom') throw new Error('DoraESNeo3 does not support custom network')
-    return `https://dora.coz.io/transaction/neo3/${this.networkType}/${hash}`
+    if (this.#networkType === 'custom') throw new Error('DoraESNeo3 does not support custom network')
+    return `https://dora.coz.io/transaction/neo3/${this.#networkType}/${hash}`
   }
 
   buildNftUrl({ contractHash, tokenId }: BuildNftUrlParams): string {
-    if (this.networkType === 'custom') throw new Error('DoraESNeo3 does not support custom network')
-    return `https://dora.coz.io/nft/neo3/${this.networkType}/${contractHash}/${tokenId}`
+    if (this.#networkType === 'custom') throw new Error('DoraESNeo3 does not support custom network')
+    return `https://dora.coz.io/nft/neo3/${this.#networkType}/${contractHash}/${tokenId}`
   }
 }

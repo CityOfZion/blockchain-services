@@ -21,27 +21,24 @@ const NeoRest = new NeoRESTApi({
 })
 
 export class DoraBDSNeo3 extends RPCBDSNeo3 {
-  readonly network: Network
-
   constructor(network: Network, feeToken: Token, claimToken: Token) {
     if (network.type === 'custom') {
       throw new Error('DoraBDSNeo3 does not support custom networks')
     }
 
     super(network, feeToken, claimToken)
-    this.network = network
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
     try {
-      const data = await NeoRest.transaction(hash, this.network.type)
+      const data = await NeoRest.transaction(hash, this._network.type)
       return {
         block: data.block,
         time: Number(data.time),
         hash: data.hash,
         fee: u.BigInteger.fromNumber(data.netfee ?? 0)
           .add(u.BigInteger.fromNumber(data.sysfee ?? 0))
-          .toDecimal(this.feeToken.decimals),
+          .toDecimal(this._feeToken.decimals),
         notifications: [],
         transfers: [],
       }
@@ -54,7 +51,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
     address,
     page = 1,
   }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    const data = await NeoRest.addressTXFull(address, page, this.network.type)
+    const data = await NeoRest.addressTXFull(address, page, this._network.type)
 
     const promises = data.items.map(async (item): Promise<TransactionResponse> => {
       const transferPromises: Promise<TransactionTransferAsset | TransactionTransferNft>[] = []
@@ -109,7 +106,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
         hash: item.hash,
         fee: u.BigInteger.fromNumber(item.netfee ?? 0)
           .add(u.BigInteger.fromNumber(item.sysfee ?? 0))
-          .toDecimal(this.feeToken.decimals),
+          .toDecimal(this._feeToken.decimals),
         transfers,
         notifications,
       }
@@ -126,7 +123,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
 
   async getContract(contractHash: string): Promise<ContractResponse> {
     try {
-      const data = await NeoRest.contract(contractHash, this.network.type)
+      const data = await NeoRest.contract(contractHash, this._network.type)
       return {
         hash: data.hash,
         methods: data.manifest.abi?.methods ?? [],
@@ -138,22 +135,22 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = TOKENS[this.network.type].find(token => token.hash === tokenHash)
+    const localToken = TOKENS[this._network.type].find(token => token.hash === tokenHash)
     if (localToken) return localToken
 
-    if (this.tokenCache.has(tokenHash)) {
-      return this.tokenCache.get(tokenHash)!
+    if (this._tokenCache.has(tokenHash)) {
+      return this._tokenCache.get(tokenHash)!
     }
 
     try {
-      const { decimals, symbol, name, scripthash } = await NeoRest.asset(tokenHash, this.network.type)
+      const { decimals, symbol, name, scripthash } = await NeoRest.asset(tokenHash, this._network.type)
       const token = {
         decimals: Number(decimals),
         symbol,
         name,
         hash: scripthash,
       }
-      this.tokenCache.set(tokenHash, token)
+      this._tokenCache.set(tokenHash, token)
 
       return token
     } catch {
@@ -162,7 +159,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const response = await NeoRest.balance(address, this.network.type)
+    const response = await NeoRest.balance(address, this._network.type)
 
     const promises = response.map<Promise<BalanceResponse | undefined>>(async balance => {
       try {

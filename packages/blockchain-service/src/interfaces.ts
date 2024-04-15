@@ -28,21 +28,13 @@ export type IntentTransferParam = {
   tokenDecimals?: number
 }
 
-export type TransferParamWithLedger = {
-  isLedger: true
-  ledgerTransport: Transport
-}
-
-export type TransferParamWithoutLedger = {
-  isLedger?: false
-}
-
 export type TransferParam = {
   senderAccount: Account
   intent: IntentTransferParam
   tipIntent?: IntentTransferParam
   priorityFee?: string
-} & (TransferParamWithLedger | TransferParamWithoutLedger)
+  isLedger?: boolean
+}
 
 export type TokenPricesResponse = {
   price: number
@@ -79,7 +71,7 @@ export interface BSClaimable {
   readonly claimToken: Token
   readonly burnToken: Token
   blockchainDataService: BlockchainDataService & BDSClaimable
-  claim(account: Account): Promise<string>
+  claim(account: Account, isLedger?: boolean): Promise<string>
 }
 export interface BSWithNameService {
   resolveNameServiceDomain(domainName: string): Promise<string>
@@ -212,6 +204,8 @@ export interface ExplorerService {
 }
 
 export interface LedgerService {
+  getLedgerTransport?: (account: Account) => Promise<Transport>
+
   getAddress(transport: Transport): Promise<string>
   getPublicKey(transport: Transport): Promise<string>
 }

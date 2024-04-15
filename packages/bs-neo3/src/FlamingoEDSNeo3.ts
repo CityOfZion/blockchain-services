@@ -8,18 +8,18 @@ type FlamingoTokenInfoPricesResponse = {
 }[]
 
 export class FlamingoEDSNeo3 implements ExchangeDataService {
-  readonly networkType: NetworkType
-  private axiosInstance: AxiosInstance
+  readonly #networkType: NetworkType
+  readonly #axiosInstance: AxiosInstance
 
   constructor(networkType: NetworkType) {
-    this.networkType = networkType
-    this.axiosInstance = axios.create({ baseURL: 'https://api.flamingo.finance' })
+    this.#networkType = networkType
+    this.#axiosInstance = axios.create({ baseURL: 'https://api.flamingo.finance' })
   }
 
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
-    if (this.networkType !== 'mainnet') throw new Error('Exchange is only available on mainnet')
+    if (this.#networkType !== 'mainnet') throw new Error('Exchange is only available on mainnet')
 
-    const { data: prices } = await this.axiosInstance.get<FlamingoTokenInfoPricesResponse>('/token-info/prices')
+    const { data: prices } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/token-info/prices')
 
     let currencyRatio: number = 1
 
@@ -35,7 +35,7 @@ export class FlamingoEDSNeo3 implements ExchangeDataService {
   }
 
   private async getCurrencyRatio(currency: Currency): Promise<number> {
-    const { data } = await this.axiosInstance.get<number>(`/fiat/exchange-rate?pair=USD_${currency}`)
+    const { data } = await this.#axiosInstance.get<number>(`/fiat/exchange-rate?pair=USD_${currency}`)
     return data
   }
 }

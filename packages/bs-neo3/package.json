@@ -6,6 +6,9 @@
   "repository": "https://github.com/CityOfZion/blockchain-services",
   "author": "Coz",
   "license": "MIT",
+  "files": [
+    "/dist"
+  ],
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "test": "jest --config jest.config.ts",

@@ -24,26 +24,33 @@ import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
 import { LedgerServiceEthereum } from './LedgerServiceEthereum'
+import Transport from '@ledgerhq/hw-transport'
 export class BSEthereum<BSCustomName extends string = string>
   implements BlockchainService, BSWithNft, BSWithNameService, BSCalculableFee, BSWithLedger
 {
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
   readonly derivationPath: string
-  private readonly bitqueryApiKey: string
+  readonly #bitqueryApiKey: string
 
   blockchainDataService!: BlockchainDataService
   exchangeDataService!: ExchangeDataService
-  ledgerService: LedgerServiceEthereum = new LedgerServiceEthereum()
+  ledgerService: LedgerServiceEthereum
   tokens: Token[]
   nftDataService!: NftDataService
   network!: Network
 
-  constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>, bitqueryApiKey: string) {
+  constructor(
+    blockchainName: BSCustomName,
+    network: PartialBy<Network, 'url'>,
+    bitqueryApiKey: string,
+    getLedgerTransport?: (account: Account) => Promise<Transport>
+  ) {
     this.blockchainName = blockchainName
+    this.ledgerService = new LedgerServiceEthereum(getLedgerTransport)
     this.derivationPath = DERIVATION_PATH
     this.tokens = TOKENS[network.type]
-    this.bitqueryApiKey = bitqueryApiKey
+    this.#bitqueryApiKey = bitqueryApiKey
 
     this.feeToken = this.tokens.find(token => token.symbol === 'ETH')!
     this.setNetwork(network)
@@ -59,10 +66,10 @@ export class BSEthereum<BSCustomName extends string = string>
     if (network.type !== 'mainnet') {
       this.blockchainDataService = new RpcBDSEthereum(network)
     } else {
-      this.blockchainDataService = new BitqueryBDSEthereum(network, this.bitqueryApiKey)
+      this.blockchainDataService = new BitqueryBDSEthereum(network, this.#bitqueryApiKey)
     }
 
-    this.exchangeDataService = new BitqueryEDSEthereum(network.type, this.bitqueryApiKey)
+    this.exchangeDataService = new BitqueryEDSEthereum(network.type, this.#bitqueryApiKey)
     this.nftDataService = new GhostMarketNDSEthereum(network.type)
   }
 
@@ -140,8 +147,16 @@ export class BSEthereum<BSCustomName extends string = string>
   async transfer(param: TransferParam): Promise<string> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
-    const signTransactionFunction = param.isLedger
-      ? await this.ledgerService.getSignTransactionFunction(param.ledgerTransport)
+    let ledgerTransport: Transport | undefined
+
+    if (param.isLedger) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide getLedgerTransport function to use Ledger')
+      ledgerTransport = await this.ledgerService.getLedgerTransport(param.senderAccount)
+    }
+
+    const signTransactionFunction = ledgerTransport
+      ? await this.ledgerService.getSignTransactionFunction(ledgerTransport)
       : new ethers.Wallet(param.senderAccount.key, provider).signTransaction
 
     const decimals = param.intent.tokenDecimals ?? 18
