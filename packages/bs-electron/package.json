@@ -4,9 +4,6 @@
   "repository": "https://github.com/CityOfZion/blockchain-services",
   "author": "Coz",
   "license": "MIT",
-  "files": [
-    "/dist"
-  ],
   "scripts": {
     "build": "tsc && cpy package.json dist/",
     "lint": "eslint .",
