@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Thu, 04 Apr 2024 19:52:20 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Apr 2024 20:14:54 GMT and should not be manually modified.
+
+## 0.10.0
+Mon, 15 Apr 2024 20:14:54 GMT
+
+### Minor changes
+
+- Adaptation to work with the bs-electron package
 
 ## 0.9.3
 Thu, 04 Apr 2024 19:52:20 GMT

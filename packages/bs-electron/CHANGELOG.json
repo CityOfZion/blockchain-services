@@ -1,0 +1,27 @@
+{
+  "name": "@cityofzion/bs-electron",
+  "entries": [
+    {
+      "version": "0.1.0",
+      "tag": "@cityofzion/bs-electron_v0.1.0",
+      "date": "Mon, 15 Apr 2024 20:14:54 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Project bootstrap "
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix build script in windows"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `0.11.0`"
+          }
+        ]
+      }
+    }
+  ]
+}
