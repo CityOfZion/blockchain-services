@@ -4,15 +4,17 @@
   "repository": "https://github.com/CityOfZion/blockchain-services",
   "author": "Coz",
   "license": "MIT",
+  "files": [
+    "/dist"
+  ],
   "scripts": {
-    "build": "tsc && cpy package.json dist/",
+    "build": "tsc",
     "lint": "eslint .",
     "format": "eslint --fix"
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "lodash.clonedeep": "~4.5.0",
-    "cpy-cli": "~5.0.0"
+    "lodash.clonedeep": "~4.5.0"
   },
   "devDependencies": {
     "@types/node": "~20.2.5",
