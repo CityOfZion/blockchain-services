@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-electron",
   "entries": [
     {
+      "version": "0.1.1",
+      "tag": "@cityofzion/bs-electron_v0.1.1",
+      "date": "Mon, 15 Apr 2024 22:37:36 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix build folder"
+          },
+          {
+            "comment": "Fix build script "
+          }
+        ]
+      }
+    },
+    {
       "version": "0.1.0",
       "tag": "@cityofzion/bs-electron_v0.1.0",
       "date": "Mon, 15 Apr 2024 20:14:54 GMT",
