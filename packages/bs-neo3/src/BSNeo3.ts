@@ -30,6 +30,7 @@ import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { DoraESNeo3 } from './DoraESNeo3'
 import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
 import { LedgerServiceNeo3 } from './LedgerServiceNeo3'
+import Transport from '@ledgerhq/hw-transport'
 
 export class BSNeo3<BSCustomName extends string = string>
   implements
@@ -49,16 +50,20 @@ export class BSNeo3<BSCustomName extends string = string>
 
   blockchainDataService!: BlockchainDataService & BDSClaimable
   nftDataService!: NftDataService
-  ledgerService: LedgerServiceNeo3 = new LedgerServiceNeo3()
+  ledgerService: LedgerServiceNeo3
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
   tokens: Token[]
   network!: Network
 
-  constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
+  constructor(
+    blockchainName: BSCustomName,
+    network: PartialBy<Network, 'url'>,
+    getLedgerTransport?: (account: Account) => Promise<Transport>
+  ) {
     this.blockchainName = blockchainName
+    this.ledgerService = new LedgerServiceNeo3(getLedgerTransport)
     this.tokens = TOKENS[network.type]
-
     this.derivationPath = DERIVATION_PATH
     this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = this.tokens.find(token => token.symbol === 'NEO')!
@@ -172,12 +177,19 @@ export class BSNeo3<BSCustomName extends string = string>
   }
 
   async transfer(param: TransferParam): Promise<string> {
+    let ledgerTransport: Transport | undefined
+    if (param.isLedger) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+      ledgerTransport = await this.ledgerService.getLedgerTransport(param.senderAccount)
+    }
+
     const account = new wallet.Account(param.senderAccount.key)
 
     const invoker = await NeonInvoker.init({
       rpcAddress: this.network.url,
       account,
-      signingCallback: param.isLedger ? this.ledgerService.getSigningCallback(param.ledgerTransport) : undefined,
+      signingCallback: ledgerTransport ? this.ledgerService.getSigningCallback(ledgerTransport) : undefined,
     })
 
     const invocations = this.buildTransferInvocation(param, account)
@@ -190,12 +202,21 @@ export class BSNeo3<BSCustomName extends string = string>
     return transactionHash
   }
 
-  async claim(account: Account): Promise<string> {
+  async claim(account: Account, isLedger?: boolean): Promise<string> {
+    let ledgerTransport: Transport | undefined
+    if (isLedger) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+      ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+    }
+
     const neoAccount = new wallet.Account(account.key)
     const facade = await api.NetworkFacade.fromConfig({ node: this.network.url })
 
     const transactionHash = await facade.claimGas(neoAccount, {
-      signingCallback: api.signWithAccount(neoAccount),
+      signingCallback: ledgerTransport
+        ? this.ledgerService.getSigningCallback(ledgerTransport)
+        : api.signWithAccount(neoAccount),
     })
 
     return transactionHash

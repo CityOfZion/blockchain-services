@@ -1,21 +1,23 @@
-import { LedgerService } from '@cityofzion/blockchain-service'
+import { Account, LedgerService } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
 import { ethers } from 'ethers'
 
 export class LedgerServiceEthereum implements LedgerService {
-  private readonly defaultPath = "44'/60'/0'/0/0"
+  readonly #defaultPath = "44'/60'/0'/0/0"
+
+  constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
 
   async getAddress(transport: Transport): Promise<string> {
     const ledgerApp = new LedgerEthereumApp(transport)
-    const { address } = await ledgerApp.getAddress(this.defaultPath)
+    const { address } = await ledgerApp.getAddress(this.#defaultPath)
 
     return address
   }
 
   async getPublicKey(transport: Transport): Promise<string> {
     const ledgerApp = new LedgerEthereumApp(transport)
-    const { publicKey } = await ledgerApp.getAddress(this.defaultPath)
+    const { publicKey } = await ledgerApp.getAddress(this.#defaultPath)
 
     return '0x' + publicKey
   }
@@ -32,7 +34,7 @@ export class LedgerServiceEthereum implements LedgerService {
       const serializedUnsignedTransaction = ethers.utils.serializeTransaction(unsignedTransaction).substring(2)
 
       const resolution = await LedgerEthereumAppService.resolveTransaction(serializedUnsignedTransaction, {}, {})
-      const signature = await ledgerApp.signTransaction(this.defaultPath, serializedUnsignedTransaction, resolution)
+      const signature = await ledgerApp.signTransaction(this.#defaultPath, serializedUnsignedTransaction, resolution)
 
       return ethers.utils.serializeTransaction(unsignedTransaction, {
         v: ethers.BigNumber.from('0x' + signature.v).toNumber(),

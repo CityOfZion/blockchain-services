@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Adaptation to work with the bs-electron package",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

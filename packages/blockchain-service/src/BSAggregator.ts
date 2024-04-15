@@ -1,58 +1,55 @@
-import { BlockchainAlreadyExistError, BlockchainNotFoundError } from './exceptions'
-import { AccountWithDerivationPath, BlockchainService } from './interfaces'
+import { AccountWithDerivationPath, BlockchainService, Network, PartialBy } from './interfaces'
 
 export class BSAggregator<
   BSCustomName extends string = string,
   BSCustom extends BlockchainService<BSCustomName> = BlockchainService<BSCustomName>,
 > {
   readonly blockchainServicesByName: Record<BSCustomName, BSCustom>
-  readonly blockchainServices: BlockchainService<BSCustomName>[]
+  readonly #blockchainServices: BlockchainService<BSCustomName>[]
 
   constructor(blockchainServices: Record<BSCustomName, BSCustom>) {
     this.blockchainServicesByName = blockchainServices
-    this.blockchainServices = Object.values(blockchainServices)
+    this.#blockchainServices = Object.values(blockchainServices)
+  }
+
+  setNetwork(network: PartialBy<Network, 'url'>) {
+    this.#blockchainServices.forEach(bs => bs.setNetwork(network))
   }
 
   addBlockchain(name: BSCustomName, blockchain: BSCustom) {
-    if (this.blockchainServicesByName[name]) throw new BlockchainAlreadyExistError(name)
+    if (this.blockchainServicesByName[name]) throw new Error(`The blockchain ${name} already exist`)
     this.blockchainServicesByName[name] = blockchain
-    this.blockchainServices.push(blockchain)
+    this.#blockchainServices.push(blockchain)
   }
 
   validateAddressAllBlockchains(address: string) {
-    return this.blockchainServices.some(bs => bs.validateAddress(address))
+    return this.#blockchainServices.some(bs => bs.validateAddress(address))
   }
 
   validateTextAllBlockchains(text: string) {
-    return this.blockchainServices.some(bs =>
+    return this.#blockchainServices.some(bs =>
       [bs.validateAddress(text), bs.validateEncrypted(text), bs.validateKey(text)].some(it => it === true)
     )
   }
 
   validateKeyAllBlockchains(wif: string) {
-    return this.blockchainServices.some(bs => bs.validateKey(wif))
+    return this.#blockchainServices.some(bs => bs.validateKey(wif))
   }
 
   validateEncryptedAllBlockchains(keyOrJson: string) {
-    return this.blockchainServices.some(bs => bs.validateEncrypted(keyOrJson))
+    return this.#blockchainServices.some(bs => bs.validateEncrypted(keyOrJson))
   }
 
-  getBlockchainByName(name: BSCustomName): BlockchainService<BSCustomName> {
-    const service = this.blockchainServicesByName[name]
-    if (!service) throw new BlockchainNotFoundError(name)
-    return this.blockchainServicesByName[name]
+  getBlockchainNameByAddress(address: string): BSCustomName | undefined {
+    return this.#blockchainServices.find(bs => bs.validateAddress(address))?.blockchainName
   }
 
-  getBlockchainByAddress(address: string): BlockchainService<BSCustomName> | undefined {
-    return this.blockchainServices.find(bs => bs.validateAddress(address))
+  getBlockchainNameByKey(wif: string): BSCustomName | undefined {
+    return this.#blockchainServices.find(bs => bs.validateKey(wif))?.blockchainName
   }
 
-  getBlockchainByKey(wif: string): BlockchainService<BSCustomName> | undefined {
-    return this.blockchainServices.find(bs => bs.validateKey(wif))
-  }
-
-  getBlockchainByEncrypted(keyOrJson: string): BlockchainService<BSCustomName> | undefined {
-    return this.blockchainServices.find(bs => bs.validateEncrypted(keyOrJson))
+  getBlockchainNameByEncrypted(keyOrJson: string): BSCustomName | undefined {
+    return this.#blockchainServices.find(bs => bs.validateEncrypted(keyOrJson))?.blockchainName
   }
 
   async generateAccountFromMnemonicAllBlockchains(
@@ -61,7 +58,7 @@ export class BSAggregator<
   ): Promise<Map<BSCustomName, AccountWithDerivationPath[]>> {
     const mnemonicAccounts = new Map<BSCustomName, AccountWithDerivationPath[]>()
 
-    const promises = this.blockchainServices.map(async service => {
+    const promises = this.#blockchainServices.map(async service => {
       let index = 0
       const accounts: AccountWithDerivationPath[] = []
       let hasError = false

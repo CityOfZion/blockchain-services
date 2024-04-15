@@ -2,13 +2,16 @@ import { sleep } from './utils/sleep'
 import { BSNeo3 } from '../BSNeo3'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import Transport from '@ledgerhq/hw-transport'
 
 let bsNeo3: BSNeo3
+let transport: Transport
 
 describe('BSNeo3', () => {
-  beforeAll(() => {
-    bsNeo3 = new BSNeo3('neo3', { type: 'testnet', url: 'https://testnet1.neo.coz.io:443' })
-  })
+  beforeAll(async () => {
+    transport = await TransportNodeHid.create()
+    bsNeo3 = new BSNeo3('neo3', { type: 'testnet', url: 'https://testnet1.neo.coz.io:443' }, async () => transport)
+  }, 60000)
 
   it('Should be able to validate an address', () => {
     const validAddress = 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe'
@@ -122,7 +125,6 @@ describe('BSNeo3', () => {
   })
 
   it.skip('Should be able to transfer with ledger', async () => {
-    const transport = await TransportNodeHid.create()
     const publicKey = await bsNeo3.ledgerService.getPublicKey(transport)
 
     const account = bsNeo3.generateAccountFromPublicKey(publicKey)
@@ -140,7 +142,6 @@ describe('BSNeo3', () => {
         tokenDecimals: bsNeo3.feeToken.decimals,
       },
       isLedger: true,
-      ledgerTransport: transport,
     })
 
     expect(transactionHash).toEqual(expect.any(String))

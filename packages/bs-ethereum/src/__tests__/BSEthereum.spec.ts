@@ -1,22 +1,30 @@
 import { ethers } from 'ethers'
 import { BSEthereum } from '../BSEthereum'
 import { Account } from '@cityofzion/blockchain-service'
+import Transport from '@ledgerhq/hw-transport'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 let bsEthereum: BSEthereum
 let wallet: ethers.Wallet
 let account: Account
+let transport: Transport
 
 describe('BSEthereum', () => {
-  beforeAll(() => {
-    bsEthereum = new BSEthereum('neo3', { type: 'testnet' }, process.env.BITQUERY_API_KEY as string)
+  beforeAll(async () => {
+    transport = await TransportNodeHid.create()
+    bsEthereum = new BSEthereum(
+      'neo3',
+      { type: 'testnet' },
+      process.env.BITQUERY_API_KEY as string,
+      async () => transport
+    )
     wallet = ethers.Wallet.createRandom()
     account = {
       key: wallet.privateKey,
       type: 'privateKey',
       address: wallet.address,
     }
-  })
+  }, 60000)
 
   it('Should be able to validate an address', () => {
     const validAddress = '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5'
@@ -126,8 +134,8 @@ describe('BSEthereum', () => {
   }, 50000)
 
   it.skip('Should be able to transfer a native token with ledger', async () => {
-    const transport = await TransportNodeHid.create()
     const publicKey = await bsEthereum.ledgerService.getPublicKey(transport)
+
     const account = bsEthereum.generateAccountFromPublicKey(publicKey)
 
     const transactionHash = await bsEthereum.transfer({
@@ -139,14 +147,12 @@ describe('BSEthereum', () => {
         tokenHash: '-',
       },
       isLedger: true,
-      ledgerTransport: transport,
     })
 
     expect(transactionHash).toEqual(expect.any(String))
   }, 50000)
 
   it.skip('Should be able to transfer a ERC20 token with ledger', async () => {
-    const transport = await TransportNodeHid.create()
     const publicKey = await bsEthereum.ledgerService.getPublicKey(transport)
     const account = bsEthereum.generateAccountFromPublicKey(publicKey)
 
@@ -159,7 +165,6 @@ describe('BSEthereum', () => {
         tokenHash: '0xcf185f2F3Fe19D82bFdcee59E3330FD7ba5f27ce',
       },
       isLedger: true,
-      ledgerTransport: transport,
     })
 
     expect(transactionHash).toEqual(expect.any(String))

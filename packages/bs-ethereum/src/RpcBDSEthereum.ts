@@ -12,16 +12,16 @@ import { ethers } from 'ethers'
 import { TOKENS } from './constants'
 
 export class RpcBDSEthereum implements BlockchainDataService {
-  private readonly network: Network
+  readonly #network: Network
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
   constructor(network: Network) {
-    this.network = network
+    this.#network = network
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
 
     const transaction = await provider.getTransaction(hash)
     if (!transaction || !transaction.blockHash || !transaction.to) throw new Error('Transaction not found')
@@ -29,7 +29,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
     const block = await provider.getBlock(transaction.blockHash)
     if (!block) throw new Error('Block not found')
 
-    const tokens = TOKENS[this.network.type]
+    const tokens = TOKENS[this.#network.type]
     const token = tokens.find(token => token.symbol === 'ETH')!
 
     return {
@@ -59,7 +59,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
   }
 
   async getTokenInfo(hash: string): Promise<Token> {
-    const tokens = TOKENS[this.network.type]
+    const tokens = TOKENS[this.#network.type]
     const token = tokens.find(token => token.hash === hash)
     if (!token) throw new Error('Token not found')
 
@@ -67,10 +67,10 @@ export class RpcBDSEthereum implements BlockchainDataService {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
     const balance = await provider.getBalance(address)
 
-    const tokens = TOKENS[this.network.type]
+    const tokens = TOKENS[this.#network.type]
     const token = tokens.find(token => token.symbol === 'ETH')!
 
     return [
@@ -82,7 +82,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
   }
 
   async getBlockHeight(): Promise<number> {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
     return await provider.getBlockNumber()
   }
 }

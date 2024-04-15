@@ -14,11 +14,11 @@ type CryptoCompareDataResponse = {
 
 export class CryptoCompareEDSNeoLegacy implements ExchangeDataService {
   networkType: NetworkType
-  private axiosInstance: AxiosInstance
+  readonly #axiosInstance: AxiosInstance
 
   constructor(network: NetworkType) {
     this.networkType = network
-    this.axiosInstance = axios.create({ baseURL: 'https://min-api.cryptocompare.com' })
+    this.#axiosInstance = axios.create({ baseURL: 'https://min-api.cryptocompare.com' })
   }
 
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
@@ -26,7 +26,7 @@ export class CryptoCompareEDSNeoLegacy implements ExchangeDataService {
 
     const tokens = TOKENS[this.networkType]
     const tokenSymbols = tokens.map(token => token.symbol)
-    const { data: prices } = await this.axiosInstance.get<CryptoCompareDataResponse>('/data/pricemultifull', {
+    const { data: prices } = await this.#axiosInstance.get<CryptoCompareDataResponse>('/data/pricemultifull', {
       params: {
         fsyms: tokenSymbols.join(','),
         tsyms: currency,

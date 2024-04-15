@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-electron",
+      "comment": "Project bootstrap ",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-electron"
+}

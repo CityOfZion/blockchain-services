@@ -8,6 +8,11 @@
   },
   "projects": [
     {
+      "packageName": "@cityofzion/bs-electron",
+      "projectFolder": "packages/bs-electron",
+      "shouldPublish": true
+    },
+    {
       "packageName": "@cityofzion/bs-asteroid-sdk",
       "projectFolder": "packages/bs-asteroid-sdk",
       "shouldPublish": true
