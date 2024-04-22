@@ -154,8 +154,9 @@ export class BSNeo3<BSCustomName extends string = string>
     return this.generateAccountFromKey(privateKey)
   }
 
-  encrypt(key: string, password: string): Promise<string> {
-    return wallet.encrypt(key, password)
+  async encrypt(key: string, password: string): Promise<string> {
+    const encryptedKey = await wallet.encrypt(key, password)
+    return encryptedKey
   }
 
   async calculateTransferFee(param: TransferParam): Promise<string> {
