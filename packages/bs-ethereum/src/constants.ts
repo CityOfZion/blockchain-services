@@ -17,8 +17,8 @@ export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
   custom: 'http://127.0.0.1:8545',
 }
 
-export const BITQUERY_URL = 'https://graphql.bitquery.io'
-export const BITQUERY_NETWORK_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>, BitqueryNetwork> = {
+export const BITQUERY_MIRROR_URL = 'https://i4l7kcg43c.execute-api.us-east-1.amazonaws.com/production/'
+export const BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>, BitqueryNetwork> = {
   mainnet: 'ethereum',
   testnet: 'goerli',
 }

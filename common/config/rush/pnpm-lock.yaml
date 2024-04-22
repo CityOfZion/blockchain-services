@@ -115,6 +115,9 @@ importers:
       '@urql/core':
         specifier: ~4.1.1
         version: 4.1.4(graphql@16.8.1)
+      axios:
+        specifier: 1.5.1
+        version: 1.5.1
       dayjs:
         specifier: ~1.11.9
         version: 1.11.10

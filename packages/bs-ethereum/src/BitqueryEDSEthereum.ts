@@ -1,28 +1,38 @@
 import { Currency, ExchangeDataService, NetworkType, TokenPricesResponse } from '@cityofzion/blockchain-service'
-import { Client, fetchExchange } from '@urql/core'
-import fetch from 'node-fetch'
-import { BITQUERY_URL } from './constants'
+import axios, { AxiosInstance } from 'axios'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { bitqueryGetPricesQuery } from './graphql'
+import { BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE, BITQUERY_MIRROR_URL } from './constants'
+
+type BitQueryGetTokenPricesResponse = {
+  ethereum: {
+    dexTrades: {
+      baseCurrency: {
+        address: string
+        symbol: string
+      }
+      quoteCurrency: {
+        address: string
+        symbol: string
+      }
+      date: {
+        date: string
+      }
+      quotePrice: number
+    }[]
+  }
+}
 
 dayjs.extend(utc)
 export class BitqueryEDSEthereum implements ExchangeDataService {
-  readonly #client: Client
+  readonly #client: AxiosInstance
   readonly #networkType: NetworkType
 
-  constructor(networkType: NetworkType, apiKey: string) {
+  constructor(networkType: NetworkType) {
     this.#networkType = networkType
 
-    this.#client = new Client({
-      url: BITQUERY_URL,
-      exchanges: [fetchExchange],
-      fetch,
-      fetchOptions: {
-        headers: {
-          'X-API-KEY': apiKey,
-        },
-      },
+    this.#client = axios.create({
+      baseURL: BITQUERY_MIRROR_URL,
     })
   }
 
@@ -31,12 +41,10 @@ export class BitqueryEDSEthereum implements ExchangeDataService {
 
     const twoDaysAgo = dayjs.utc().subtract(2, 'day').startOf('date').toISOString()
 
-    const result = await this.#client
-      .query(bitqueryGetPricesQuery, { after: twoDaysAgo, network: 'ethereum' })
-      .toPromise()
-    if (result.error) {
-      throw new Error(result.error.message)
-    }
+    const result = await this.#client.get<BitQueryGetTokenPricesResponse>(`/get-price`, {
+      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE[this.#networkType], after: twoDaysAgo },
+    })
+
     if (!result.data) {
       throw new Error('There is no price data')
     }
@@ -58,10 +66,7 @@ export class BitqueryEDSEthereum implements ExchangeDataService {
   }
 
   private async getCurrencyRatio(currency: Currency): Promise<number> {
-    const request = await fetch(`https://api.flamingo.finance/fiat/exchange-rate?pair=USD_${currency}`, {
-      method: 'GET',
-    })
-    const data = await request.json()
+    const { data } = await axios.get(`https://api.flamingo.finance/fiat/exchange-rate?pair=USD_${currency}`)
     return data
   }
 }

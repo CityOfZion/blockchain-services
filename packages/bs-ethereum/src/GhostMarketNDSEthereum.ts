@@ -7,9 +7,9 @@ import {
   GetNftsByAddressParams,
 } from '@cityofzion/blockchain-service'
 import qs from 'query-string'
+import axios from 'axios'
 
 import { GHOSTMARKET_CHAIN_BY_NETWORK_TYPE, GHOSTMARKET_URL_BY_NETWORK_TYPE } from './constants'
-import fetch from 'node-fetch'
 
 type GhostMarketNFT = {
   tokenId: string
@@ -60,11 +60,10 @@ export class GhostMarketNDSEthereum implements NftDataService {
       cursor: cursor,
     })
 
-    const request = await fetch(url, { method: 'GET' })
-    const data = (await request.json()) as GhostMarketAssets
-    const nfts = data.assets ?? []
+    const request = await axios.get<GhostMarketAssets>(url)
+    const nfts = request.data.assets ?? []
 
-    return { nextCursor: data.next, items: nfts.map(this.parse.bind(this)) }
+    return { nextCursor: request.data.next, items: nfts.map(this.parse.bind(this)) }
   }
 
   async getNft({ contractHash, tokenId }: GetNftParam): Promise<NftResponse> {
@@ -73,10 +72,9 @@ export class GhostMarketNDSEthereum implements NftDataService {
       tokenIds: [tokenId],
     })
 
-    const request = await fetch(url, { method: 'GET' })
-    const data = (await request.json()) as GhostMarketAssets
+    const request = await axios.get<GhostMarketAssets>(url)
 
-    return this.parse(data.assets[0])
+    return this.parse(request.data.assets[0])
   }
 
   private treatGhostMarketImage(srcImage?: string) {
