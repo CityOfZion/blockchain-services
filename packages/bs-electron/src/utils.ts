@@ -22,7 +22,9 @@ export function getPropertiesAndMethods(object: any) {
       const keyString = String(key)
       if (typeof object[key] === 'function') {
         try {
-          const funcResponse = object[key].call(object, {})
+          // Get the number of parameters of the function to call it with empty objects
+          const params = Array.from({ length: object[key].length }, () => ({}))
+          const funcResponse = object[key].call(object, ...params)
           if (funcResponse instanceof Promise) {
             funcResponse.catch(() => {}).then(() => {})
             asyncMethods.add(keyString)
