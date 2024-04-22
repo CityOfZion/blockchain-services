@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 15 Apr 2024 20:14:54 GMT and should not be manually modified.
+This log was last generated on Mon, 22 Apr 2024 18:15:20 GMT and should not be manually modified.
+
+## 0.11.1
+Mon, 22 Apr 2024 18:15:20 GMT
+
+### Patches
+
+- Fix encrypt method return to always return a promise
 
 ## 0.11.0
 Mon, 15 Apr 2024 20:14:54 GMT

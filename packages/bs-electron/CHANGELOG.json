@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-electron",
   "entries": [
     {
+      "version": "0.1.2",
+      "tag": "@cityofzion/bs-electron_v0.1.2",
+      "date": "Mon, 22 Apr 2024 18:15:20 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix number of param that we pass to the function when trying to figure out if it returns a promise"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.1.1",
       "tag": "@cityofzion/bs-electron_v0.1.1",
       "date": "Mon, 15 Apr 2024 22:37:36 GMT",
