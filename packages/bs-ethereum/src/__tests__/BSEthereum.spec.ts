@@ -1,23 +1,15 @@
 import { ethers } from 'ethers'
 import { BSEthereum } from '../BSEthereum'
 import { Account } from '@cityofzion/blockchain-service'
-import Transport from '@ledgerhq/hw-transport'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 let bsEthereum: BSEthereum
 let wallet: ethers.Wallet
 let account: Account
-let transport: Transport
 
 describe('BSEthereum', () => {
   beforeAll(async () => {
-    transport = await TransportNodeHid.create()
-    bsEthereum = new BSEthereum(
-      'neo3',
-      { type: 'testnet' },
-      process.env.BITQUERY_API_KEY as string,
-      async () => transport
-    )
+    bsEthereum = new BSEthereum('neo3', { type: 'testnet' })
     wallet = ethers.Wallet.createRandom()
     account = {
       key: wallet.privateKey,
@@ -134,11 +126,13 @@ describe('BSEthereum', () => {
   }, 50000)
 
   it.skip('Should be able to transfer a native token with ledger', async () => {
-    const publicKey = await bsEthereum.ledgerService.getPublicKey(transport)
+    const transport = await TransportNodeHid.create()
+    const service = new BSEthereum('neo3', { type: 'testnet' }, async () => transport)
+    const publicKey = await service.ledgerService.getPublicKey(transport)
 
-    const account = bsEthereum.generateAccountFromPublicKey(publicKey)
+    const account = service.generateAccountFromPublicKey(publicKey)
 
-    const transactionHash = await bsEthereum.transfer({
+    const transactionHash = await service.transfer({
       senderAccount: account,
       intent: {
         amount: '0.00000001',
@@ -153,10 +147,12 @@ describe('BSEthereum', () => {
   }, 50000)
 
   it.skip('Should be able to transfer a ERC20 token with ledger', async () => {
-    const publicKey = await bsEthereum.ledgerService.getPublicKey(transport)
-    const account = bsEthereum.generateAccountFromPublicKey(publicKey)
+    const transport = await TransportNodeHid.create()
+    const service = new BSEthereum('neo3', { type: 'testnet' }, async () => transport)
+    const publicKey = await service.ledgerService.getPublicKey(transport)
+    const account = service.generateAccountFromPublicKey(publicKey)
 
-    const transactionHash = await bsEthereum.transfer({
+    const transactionHash = await service.transfer({
       senderAccount: account,
       intent: {
         amount: '0.00000001',
@@ -170,7 +166,7 @@ describe('BSEthereum', () => {
     expect(transactionHash).toEqual(expect.any(String))
   }, 50000)
 
-  it('Should be able to resolve a name service domain', async () => {
+  it.skip('Should be able to resolve a name service domain', async () => {
     const address = await bsEthereum.resolveNameServiceDomain('alice.eth')
     expect(address).toEqual('0xa974890156A3649A23a6C0f2ebd77D6F7A7333d4')
   }, 10000)

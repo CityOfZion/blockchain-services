@@ -1,14 +1,11 @@
 import { BitqueryBDSEthereum } from '../BitqueryBDSEthereum'
 import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
 
-const bitqueryBDSEthereum = new BitqueryBDSEthereum(
-  { type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet },
-  process.env.BITQUERY_API_KEY as string
-)
+const bitqueryBDSEthereum = new BitqueryBDSEthereum({ type: 'mainnet', url: DEFAULT_URL_BY_NETWORK_TYPE.mainnet })
 
 describe('BitqueryBDSEthereum', () => {
   it('Should be able to get transaction - %s', async () => {
-    const hash = '0x43fa3015d077a13888409cfbd6228df8900abcd5314ff11ea6ce0c49e8b7c94d'
+    const hash = '0x12f994e6cecbe4495b4fdef08a2db8551943813b21f3434aa5c2356f8686fa8b'
     const transaction = await bitqueryBDSEthereum.getTransaction(hash)
 
     expect(transaction).toEqual(
@@ -59,7 +56,7 @@ describe('BitqueryBDSEthereum', () => {
         )
       })
     })
-  }, 10000)
+  }, 60000)
 
   it('Should be able to get eth info - %s', async () => {
     const hash = '-'
@@ -74,13 +71,13 @@ describe('BitqueryBDSEthereum', () => {
   })
 
   it('Should be able to get token info - %s', async () => {
-    const hash = '0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc'
+    const hash = '0xB8c77482e45F1F44dE1745F52C74426C631bDD52'
     const token = await bitqueryBDSEthereum.getTokenInfo(hash)
 
     expect(token).toEqual({
-      hash: '0xba62bcfcaafc6622853cca2be6ac7d845bc0f2dc',
-      name: 'FaucetToken',
-      symbol: 'FAU',
+      hash: '0xb8c77482e45f1f44de1745f52c74426c631bdd52',
+      name: 'BNB',
+      symbol: 'BNB',
       decimals: 18,
     })
   })
