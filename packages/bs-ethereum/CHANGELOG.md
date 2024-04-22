@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 15 Apr 2024 20:14:54 GMT and should not be manually modified.
+This log was last generated on Mon, 22 Apr 2024 21:49:50 GMT and should not be manually modified.
+
+## 1.2.1
+Mon, 22 Apr 2024 21:49:50 GMT
+
+### Patches
+
+- Change Bitquery implementation to get information from mirror
 
 ## 1.2.0
 Mon, 15 Apr 2024 20:14:54 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.2.1",
+      "tag": "@cityofzion/bs-ethereum_v1.2.1",
+      "date": "Mon, 22 Apr 2024 21:49:50 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change Bitquery implementation to get information from mirror"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.2.0",
       "tag": "@cityofzion/bs-ethereum_v1.2.0",
       "date": "Mon, 15 Apr 2024 20:14:54 GMT",
