@@ -152,9 +152,13 @@ export class BSEthereum<BSCustomName extends string = string>
       ledgerTransport = await this.ledgerService.getLedgerTransport(param.senderAccount)
     }
 
-    const signTransactionFunction = ledgerTransport
-      ? await this.ledgerService.getSignTransactionFunction(ledgerTransport)
-      : new ethers.Wallet(param.senderAccount.key, provider).signTransaction
+    let signTransactionFunction: (transaction: ethers.providers.TransactionRequest) => Promise<string>
+    if (ledgerTransport) {
+      signTransactionFunction = await this.ledgerService.getSignTransactionFunction(ledgerTransport)
+    } else {
+      const wallet = new ethers.Wallet(param.senderAccount.key, provider)
+      signTransactionFunction = wallet.signTransaction.bind(wallet)
+    }
 
     const decimals = param.intent.tokenDecimals ?? 18
     const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
