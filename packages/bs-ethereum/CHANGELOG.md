@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 22 Apr 2024 21:49:50 GMT and should not be manually modified.
+This log was last generated on Fri, 26 Apr 2024 22:48:55 GMT and should not be manually modified.
+
+## 1.2.2
+Fri, 26 Apr 2024 22:48:55 GMT
+
+### Patches
+
+- fix error to sign transaction when trying to transfer without ledger
 
 ## 1.2.1
 Mon, 22 Apr 2024 21:49:50 GMT
