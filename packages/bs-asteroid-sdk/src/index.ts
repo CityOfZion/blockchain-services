@@ -1,8 +1,8 @@
-import { AsteroidSDK } from './AsteroidSDK'
+import { Keychain } from '@moonlight-io/asteroid-sdk-js'
 
-export const keychain = new AsteroidSDK.Keychain()
+export const keychain = new Keychain()
 
-export const generateMnemonic = () => {
+export function generateMnemonic() {
   keychain.generateMnemonic(128)
   if (!keychain.mnemonic) throw new Error('Failed to generate mnemonic')
   return keychain.mnemonic.toString().split(' ')
