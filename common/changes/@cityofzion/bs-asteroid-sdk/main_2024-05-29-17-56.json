@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-asteroid-sdk",
+      "comment": "Remove AsteroidSDK polyfill",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-asteroid-sdk"
+}
