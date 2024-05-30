@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-asteroid-sdk
 
-This log was last generated on Mon, 15 Apr 2024 20:14:54 GMT and should not be manually modified.
+This log was last generated on Thu, 30 May 2024 03:53:54 GMT and should not be manually modified.
+
+## 0.8.1
+Thu, 30 May 2024 03:53:54 GMT
+
+### Patches
+
+- Remove AsteroidSDK polyfill
 
 ## 0.8.0
 Mon, 15 Apr 2024 20:14:54 GMT

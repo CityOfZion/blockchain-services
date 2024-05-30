@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "0.10.1",
+      "tag": "@cityofzion/bs-neo-legacy_v0.10.1",
+      "date": "Thu, 30 May 2024 03:53:54 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-asteroid-sdk\" to `0.8.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.10.0",
       "tag": "@cityofzion/bs-neo-legacy_v0.10.0",
       "date": "Mon, 15 Apr 2024 20:14:54 GMT",
