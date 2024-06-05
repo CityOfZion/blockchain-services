@@ -3,14 +3,18 @@ import { BSNeo3 } from '../BSNeo3'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import Transport from '@ledgerhq/hw-transport'
+import { Network } from '@cityofzion/blockchain-service'
+import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
 
 let bsNeo3: BSNeo3
 let transport: Transport
 
+const network: Network = { type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet }
+
 describe('BSNeo3', () => {
   beforeAll(async () => {
     transport = await TransportNodeHid.create()
-    bsNeo3 = new BSNeo3('neo3', { type: 'testnet', url: 'https://testnet1.neo.coz.io:443' }, async () => transport)
+    bsNeo3 = new BSNeo3('neo3', network, async () => transport)
   }, 60000)
 
   it('Should be able to validate an address', () => {

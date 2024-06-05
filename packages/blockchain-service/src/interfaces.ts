@@ -240,3 +240,66 @@ export interface LedgerService {
   getAddress(transport: Transport): Promise<string>
   getPublicKey(transport: Transport): Promise<string>
 }
+
+export type SwapRoute = {
+  assetToUseSymbol: string
+  reservesToUse: string
+  assetToReceiveSymbol: string
+  reservesToReceive: string
+}
+
+export type SwapControllerServiceEvents = {
+  accountToUse: (account: Account | null) => void | Promise<void>
+  amountToUse: (amount: string | null) => void | Promise<void>
+  tokenToUse: (token: Token | null) => void | Promise<void>
+  reservesToUse: (reserves: string | null) => void | Promise<void>
+  amountToReceive: (amount: string | null) => void | Promise<void>
+  tokenToReceive: (token: Token | null) => void | Promise<void>
+  reservesToReceive: (reserves: string | null) => void | Promise<void>
+  minimumReceived: (minimumReceived: string | null) => void | Promise<void>
+  maximumSelling: (maximumSelling: string | null) => void | Promise<void>
+  deadline: (deadline: string) => void | Promise<void>
+  slippage: (slippage: number) => void | Promise<void>
+  liquidityProviderFee: (liquidityProviderFee: string | null) => void | Promise<void>
+  priceImpact: (priceImpact: string | null) => void | Promise<void>
+  priceInverse: (priceInverse: string | null) => void | Promise<void>
+  routes: (routes: SwapRoute[] | null) => void | Promise<void>
+  lastAmountChanged: (lastAmountChanged: 'amountToUse' | 'amountToReceive' | null) => void | Promise<void>
+}
+
+export type SwapControllerServiceSwapArgs = {
+  amountToUse: string
+  amountToReceive: string
+  tokenToUse: Token
+  tokenToReceive: Token
+  address: string
+  deadline: string
+  network: Network
+}
+
+export type SwapControllerServiceSwapToUseArgs = {
+  minimumReceived: string
+  type: 'swapTokenToUse'
+} & SwapControllerServiceSwapArgs
+
+export type SwapControllerServiceSwapToReceiveArgs = {
+  maximumSelling: string
+  type: 'swapTokenToReceive'
+} & SwapControllerServiceSwapArgs
+
+export interface SwapControllerService {
+  eventEmitter: TypedEmitter<SwapControllerServiceEvents>
+
+  setAccountToUse(account: Account | null): void
+  setAmountToUse(amount: string | null): void
+  setTokenToUse(token: Token | null): void
+  setAmountToReceive(amount: string | null): void
+  setTokenToReceive(token: Token | null): void
+  setDeadline(deadline: string): void
+  setSlippage(slippage: number): void
+  swap(isLedger?: boolean): void
+  buildSwapArgs(): SwapControllerServiceSwapToUseArgs | SwapControllerServiceSwapToReceiveArgs
+  setReserves(): void
+  startListeningBlockGeneration(): void
+  stopListeningBlockGeneration(): void
+}

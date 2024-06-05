@@ -8,7 +8,11 @@ export const TOKENS: Record<NetworkType, Token[]> = {
   custom: commom,
 }
 
+export const BLOCKCHAIN_WSS_URL = 'wss://rpc10.n3.nspcc.ru:10331/ws'
+
 export const NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
+
+export const GAS_PER_NEO = 0.001
 
 export const GHOSTMARKET_URL_BY_NETWORK_TYPE: Partial<Record<NetworkType, string>> = {
   mainnet: 'https://api.ghostmarket.io/api/v2',
@@ -51,4 +55,35 @@ export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
   mainnet: RPC_LIST_BY_NETWORK_TYPE.mainnet[0],
   testnet: RPC_LIST_BY_NETWORK_TYPE.testnet[0],
   custom: RPC_LIST_BY_NETWORK_TYPE.custom[0],
+}
+
+export type SwapScriptHashes = {
+  flamingoSwapRouter: string
+  flamingoPairWhiteList: string
+  flamingoFactory: string
+  neo: string
+  gas: string
+  bneo: string
+  flpBneoGas: string
+}
+
+export const SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE: Partial<Record<NetworkType, SwapScriptHashes>> = {
+  mainnet: {
+    flamingoSwapRouter: '0xf970f4ccecd765b63732b821775dc38c25d74f23',
+    flamingoPairWhiteList: '0xfb75a5314069b56e136713d38477f647a13991b4',
+    flamingoFactory: '0xca2d20610d7982ebe0bed124ee7e9b2d580a6efc',
+    gas: '0xd2a4cff31913016155e38e474a2c06d08be276cf',
+    neo: '0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5',
+    bneo: '0x48c40d4666f93408be1bef038b6722404d9a4c2a',
+    flpBneoGas: '0x3244fcadcccff190c329f7b3083e4da2af60fbce',
+  },
+  testnet: {
+    flamingoSwapRouter: '0x6f0910fa26290f4a423930c8f833395790c71705',
+    flamingoPairWhiteList: '0xfb75a5314069b56e136713d38477f647a13991b4',
+    flamingoFactory: '0xca2d20610d7982ebe0bed124ee7e9b2d580a6efc',
+    gas: '0xd2a4cff31913016155e38e474a2c06d08be276cf',
+    neo: '0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5',
+    bneo: '0x85deac50febfd93988d3f391dea54e8289e43e9e',
+    flpBneoGas: '0x3244fcadcccff190c329f7b3083e4da2af60fbce',
+  },
 }
