@@ -6,6 +6,7 @@ import {
   ContractParameter,
   ContractResponse,
   Network,
+  RpcResponse,
   Token,
   TransactionResponse,
   TransactionsByAddressParams,
@@ -13,7 +14,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { rpc, u } from '@cityofzion/neon-core'
 import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
-import { TOKENS } from './constants'
+import { RPC_LIST_BY_NETWORK_TYPE, TOKENS } from './constants'
 
 export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   readonly _tokenCache: Map<string, Token> = new Map()
@@ -157,5 +158,35 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
     const rpcClient = new rpc.RPCClient(this._network.url)
     const response = await rpcClient.getUnclaimedGas(address)
     return u.BigInteger.fromNumber(response).toDecimal(this._claimToken.decimals)
+  }
+
+  async getRpcList(): Promise<RpcResponse[]> {
+    const list: RpcResponse[] = []
+
+    const promises = RPC_LIST_BY_NETWORK_TYPE[this._network.type].map(url => {
+      // eslint-disable-next-line no-async-promise-executor
+      return new Promise<void>(async resolve => {
+        const timeout = setTimeout(() => {
+          resolve()
+        }, 5000)
+
+        try {
+          const rpcClient = new rpc.RPCClient(url)
+
+          const timeStart = Date.now()
+          const height = await rpcClient.getBlockCount()
+          const latency = Date.now() - timeStart
+
+          list.push({ url, latency, height })
+        } finally {
+          resolve()
+          clearTimeout(timeout)
+        }
+      })
+    })
+
+    await Promise.allSettled(promises)
+
+    return list
   }
 }

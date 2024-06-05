@@ -147,6 +147,11 @@ export type BalanceResponse = {
   amount: string
   token: Token
 }
+export type RpcResponse = {
+  latency: number
+  url: string
+  height: number
+}
 export interface BlockchainDataService {
   maxTimeToConfirmTransactionInMs: number
   getTransaction(txid: string): Promise<TransactionResponse>
@@ -155,6 +160,7 @@ export interface BlockchainDataService {
   getTokenInfo(tokenHash: string): Promise<Token>
   getBalance(address: string): Promise<BalanceResponse[]>
   getBlockHeight(): Promise<number>
+  getRpcList(): Promise<RpcResponse[]>
 }
 export interface BDSClaimable {
   getUnclaimed(address: string): Promise<string>

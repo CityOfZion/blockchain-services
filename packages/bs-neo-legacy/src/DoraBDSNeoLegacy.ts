@@ -9,9 +9,11 @@ import {
   TransactionTransferAsset,
   Token,
   Network,
+  RpcResponse,
+  NetworkType,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { TOKENS } from './constants'
+import { RPC_LIST_BY_NETWORK_TYPE, TOKENS } from './constants'
 import { rpc } from '@cityofzion/neon-js'
 
 export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
@@ -172,5 +174,36 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   async getBlockHeight(): Promise<number> {
     const rpcClient = new rpc.RPCClient(this.#network.url)
     return await rpcClient.getBlockCount()
+  }
+
+  async getRpcList(): Promise<RpcResponse[]> {
+    const list: RpcResponse[] = []
+    const networkType = this.#network.type as Exclude<NetworkType, 'custom'>
+
+    const promises = RPC_LIST_BY_NETWORK_TYPE[networkType].map(url => {
+      // eslint-disable-next-line no-async-promise-executor
+      return new Promise<void>(async resolve => {
+        const timeout = setTimeout(() => {
+          resolve()
+        }, 5000)
+
+        try {
+          const rpcClient = new rpc.RPCClient(url)
+
+          const timeStart = Date.now()
+          const height = await rpcClient.getBlockCount()
+          const latency = Date.now() - timeStart
+
+          list.push({ url, latency, height })
+        } finally {
+          resolve()
+          clearTimeout(timeout)
+        }
+      })
+    })
+
+    await Promise.allSettled(promises)
+
+    return list
   }
 }

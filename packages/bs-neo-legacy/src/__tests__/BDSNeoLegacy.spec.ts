@@ -120,4 +120,16 @@ describe('BDSNeoLegacy', () => {
       expect(unclaimed).toEqual(expect.any(String))
     }
   )
+
+  it.each([doraBDSNeoLegacy])('Should be able to get a list of rpc - %s', async (bdsNeo3: BlockchainDataService) => {
+    const list = await bdsNeo3.getRpcList()
+    expect(list.length).toBeGreaterThan(0)
+    list.forEach(rpc => {
+      expect(rpc).toEqual({
+        height: expect.any(Number),
+        latency: expect.any(Number),
+        url: expect.any(String),
+      })
+    })
+  })
 })

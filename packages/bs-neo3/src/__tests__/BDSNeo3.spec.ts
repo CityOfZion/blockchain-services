@@ -27,7 +27,7 @@ describe('BDSNeo3', () => {
     }
   )
 
-  it.only.each([doraBDSNeo3])(
+  it.each([doraBDSNeo3])(
     'Should be able to get transactions of address - %s',
     async (bdsNeo3: BlockchainDataService) => {
       const address = 'NPB3Cze4wki9J36nnrT45qmi6P52Bhfqph'
@@ -121,4 +121,16 @@ describe('BDSNeo3', () => {
       expect(unclaimed).toEqual(expect.any(String))
     }
   )
+
+  it.each([rpcBDSNeo3])('Should be able to get a list of rpc - %s', async (bdsNeo3: BlockchainDataService) => {
+    const list = await bdsNeo3.getRpcList()
+    expect(list.length).toBeGreaterThan(0)
+    list.forEach(rpc => {
+      expect(rpc).toEqual({
+        height: expect.any(Number),
+        latency: expect.any(Number),
+        url: expect.any(String),
+      })
+    })
+  })
 })
