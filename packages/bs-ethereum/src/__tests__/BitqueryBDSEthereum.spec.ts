@@ -100,4 +100,17 @@ describe('BitqueryBDSEthereum', () => {
       )
     })
   })
+
+  it('Should be able to get a list of rpc - %s', async () => {
+    const list = await bitqueryBDSEthereum.getRpcList()
+    console.log(list)
+    expect(list.length).toBeGreaterThan(0)
+    list.forEach(rpc => {
+      expect(rpc).toEqual({
+        height: expect.any(Number),
+        latency: expect.any(Number),
+        url: expect.any(String),
+      })
+    })
+  }, 50000)
 })

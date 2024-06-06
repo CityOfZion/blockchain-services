@@ -11,12 +11,6 @@ export const TOKENS: Record<NetworkType, Token[]> = {
 
 export const NATIVE_ASSETS = commom
 
-export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
-  mainnet: 'https://ethereum-mainnet-rpc.allthatnode.com',
-  testnet: 'https://ethereum-sepolia-rpc.publicnode.com',
-  custom: 'http://127.0.0.1:8545',
-}
-
 export const BITQUERY_MIRROR_URL = 'https://i4l7kcg43c.execute-api.us-east-1.amazonaws.com/production/'
 export const BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>, BitqueryNetwork> = {
   mainnet: 'ethereum',
@@ -34,3 +28,29 @@ export const GHOSTMARKET_CHAIN_BY_NETWORK_TYPE: Partial<Record<NetworkType, stri
 }
 
 export const DERIVATION_PATH = "m/44'/60'/0'/0/?"
+
+export const RPC_LIST_BY_NETWORK_TYPE: Record<NetworkType, string[]> = {
+  mainnet: [
+    'https://ethereum-mainnet-rpc.allthatnode.com',
+    'https://eth.llamarpc.com',
+    'https://ethereum-rpc.publicnode.com',
+    'https://endpoints.omniatech.io/v1/eth/mainnet/public',
+    'https://rpc.flashbots.net',
+    'https://rpc.mevblocker.io',
+  ],
+  testnet: [
+    'https://ethereum-sepolia-rpc.publicnode.com',
+    'https://endpoints.omniatech.io/v1/eth/sepolia/public',
+    'https://eth-sepolia.public.blastapi.io',
+    'https://eth-sepolia-public.unifra.io',
+    'https://1rpc.io/sepolia',
+    'https://eth-sepolia.api.onfinality.io/public',
+  ],
+  custom: ['http://127.0.0.1:8545'],
+}
+
+export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
+  mainnet: RPC_LIST_BY_NETWORK_TYPE.mainnet[0],
+  testnet: RPC_LIST_BY_NETWORK_TYPE.testnet[0],
+  custom: RPC_LIST_BY_NETWORK_TYPE.custom[0],
+}

@@ -3,13 +3,14 @@ import {
   BlockchainDataService,
   ContractResponse,
   Network,
+  RpcResponse,
   Token,
   TransactionResponse,
   TransactionsByAddressParams,
   TransactionsByAddressResponse,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
-import { TOKENS } from './constants'
+import { RPC_LIST_BY_NETWORK_TYPE, TOKENS } from './constants'
 
 export class RpcBDSEthereum implements BlockchainDataService {
   readonly #network: Network
@@ -84,5 +85,39 @@ export class RpcBDSEthereum implements BlockchainDataService {
   async getBlockHeight(): Promise<number> {
     const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
     return await provider.getBlockNumber()
+  }
+
+  async getRpcList(): Promise<RpcResponse[]> {
+    const list: RpcResponse[] = []
+
+    const promises = RPC_LIST_BY_NETWORK_TYPE[this.#network.type].map(url => {
+      // eslint-disable-next-line no-async-promise-executor
+      return new Promise<void>(async resolve => {
+        const timeout = setTimeout(() => {
+          resolve()
+        }, 5000)
+
+        try {
+          const provider = new ethers.providers.JsonRpcProvider(url)
+
+          const timeStart = Date.now()
+          const height = await provider.getBlockNumber()
+          const latency = Date.now() - timeStart
+
+          list.push({
+            url,
+            height,
+            latency,
+          })
+        } finally {
+          resolve()
+          clearTimeout(timeout)
+        }
+      })
+    })
+
+    await Promise.allSettled(promises)
+
+    return list
   }
 }
