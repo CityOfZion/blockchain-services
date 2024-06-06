@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Fri, 26 Apr 2024 22:48:55 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Jun 2024 14:55:18 GMT and should not be manually modified.
+
+## 1.2.3
+Thu, 06 Jun 2024 14:55:18 GMT
+
+### Patches
+
+-  Add new method to get rpc list
 
 ## 1.2.2
 Fri, 26 Apr 2024 22:48:55 GMT

@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 15 Apr 2024 20:14:54 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Jun 2024 14:55:18 GMT and should not be manually modified.
+
+## 0.11.1
+Thu, 06 Jun 2024 14:55:18 GMT
+
+### Patches
+
+-  Add new method to get rpc list
 
 ## 0.11.0
 Mon, 15 Apr 2024 20:14:54 GMT

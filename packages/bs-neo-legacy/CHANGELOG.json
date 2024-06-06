@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "0.10.2",
+      "tag": "@cityofzion/bs-neo-legacy_v0.10.2",
+      "date": "Thu, 06 Jun 2024 14:55:18 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": " Add new method to get rpc list"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `0.11.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.10.1",
       "tag": "@cityofzion/bs-neo-legacy_v0.10.1",
       "date": "Thu, 30 May 2024 03:53:54 GMT",
