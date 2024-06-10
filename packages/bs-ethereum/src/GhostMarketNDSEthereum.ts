@@ -6,11 +6,13 @@ import {
   GetNftParam,
   GetNftsByAddressParams,
   HasTokenParam,
+  Network,
 } from '@cityofzion/blockchain-service'
 import qs from 'query-string'
 import axios from 'axios'
 
 import { GHOSTMARKET_CHAIN_BY_NETWORK_TYPE, GHOSTMARKET_URL_BY_NETWORK_TYPE } from './constants'
+import { RpcNDSEthereum } from './RpcNDSEthereum'
 
 type GhostMarketNFT = {
   tokenId: string
@@ -47,11 +49,12 @@ type GhostMarketAssets = {
   assets: GhostMarketNFT[]
   next: string
 }
-export class GhostMarketNDSEthereum implements NftDataService {
+export class GhostMarketNDSEthereum extends RpcNDSEthereum {
   #networkType: NetworkType
 
-  constructor(networkType: NetworkType) {
-    this.#networkType = networkType
+  constructor(network: Network) {
+    super(network)
+    this.#networkType = network.type
   }
 
   async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
@@ -76,10 +79,6 @@ export class GhostMarketNDSEthereum implements NftDataService {
     const request = await axios.get<GhostMarketAssets>(url)
 
     return this.parse(request.data.assets[0])
-  }
-
-  hasToken(params: HasTokenParam): Promise<boolean> {
-    throw new Error('Just adding interface function: Method to be implemented')
   }
 
   private treatGhostMarketImage(srcImage?: string) {
