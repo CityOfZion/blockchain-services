@@ -1,10 +1,14 @@
 import { GhostMarketNDSEthereum } from '../GhostMarketNDSEthereum'
+import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
 
 let ghostMarketNDSEthereum: GhostMarketNDSEthereum
 
 describe('GhostMarketNDSEthereum', () => {
   beforeAll(() => {
-    ghostMarketNDSEthereum = new GhostMarketNDSEthereum('mainnet')
+    ghostMarketNDSEthereum = new GhostMarketNDSEthereum({
+      type: 'mainnet',
+      url: DEFAULT_URL_BY_NETWORK_TYPE.mainnet,
+    })
   })
 
   it('Get NFT', async () => {
@@ -46,4 +50,18 @@ describe('GhostMarketNDSEthereum', () => {
       )
     })
   })
+
+  it('Check if address has specific Token', async () => {
+    const address: string = '0xd773c81a4a855556ce2f2372b12272710b95b26c'
+    const nfts = await ghostMarketNDSEthereum.getNftsByAddress({
+      address: address,
+    })
+    for (const { contractHash } of nfts.items) {
+      const hasToken: boolean = await ghostMarketNDSEthereum.hasToken({
+        address,
+        contractHash,
+      })
+      expect(hasToken).toBeTruthy()
+    }
+  }, 60000)
 })

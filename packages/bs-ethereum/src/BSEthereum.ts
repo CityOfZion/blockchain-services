@@ -67,7 +67,7 @@ export class BSEthereum<BSCustomName extends string = string>
     }
 
     this.exchangeDataService = new BitqueryEDSEthereum(network.type)
-    this.nftDataService = new GhostMarketNDSEthereum(network.type)
+    this.nftDataService = new GhostMarketNDSEthereum(network)
   }
 
   validateAddress(address: string): boolean {
