@@ -195,9 +195,14 @@ export type GetNftParam = {
   tokenId: string
   contractHash: string
 }
+export type HasTokenParam = {
+  address: string
+  contractHash: string
+}
 export interface NftDataService {
   getNftsByAddress(params: GetNftsByAddressParams): Promise<NftsResponse>
   getNft(params: GetNftParam): Promise<NftResponse>
+  hasToken(params: HasTokenParam): Promise<boolean>
 }
 
 export type BuildNftUrlParams = {

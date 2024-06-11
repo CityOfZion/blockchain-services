@@ -85,7 +85,7 @@ export class BSNeo3<BSCustomName extends string = string>
     }
 
     this.exchangeDataService = new FlamingoEDSNeo3(network.type)
-    this.nftDataService = new GhostMarketNDSNeo3(network.type)
+    this.nftDataService = new GhostMarketNDSNeo3(network)
     this.explorerService = new DoraESNeo3(network.type)
   }
 

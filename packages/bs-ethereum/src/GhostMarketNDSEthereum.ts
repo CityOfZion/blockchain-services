@@ -5,6 +5,7 @@ import {
   NftDataService,
   GetNftParam,
   GetNftsByAddressParams,
+  HasTokenParam,
 } from '@cityofzion/blockchain-service'
 import qs from 'query-string'
 import axios from 'axios'
@@ -75,6 +76,10 @@ export class GhostMarketNDSEthereum implements NftDataService {
     const request = await axios.get<GhostMarketAssets>(url)
 
     return this.parse(request.data.assets[0])
+  }
+
+  hasToken(params: HasTokenParam): Promise<boolean> {
+    throw new Error('Just adding interface function: Method to be implemented')
   }
 
   private treatGhostMarketImage(srcImage?: string) {

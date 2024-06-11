@@ -5,11 +5,13 @@ import {
   NftDataService,
   GetNftParam,
   GetNftsByAddressParams,
+  Network,
 } from '@cityofzion/blockchain-service'
 import qs from 'query-string'
 import axios from 'axios'
 
 import { GHOSTMARKET_CHAIN_BY_NETWORK_TYPE, GHOSTMARKET_URL_BY_NETWORK_TYPE } from './constants'
+import { RpcNDSNeo3 } from './RpcNDSNeo3'
 
 type GhostMarketNFT = {
   tokenId: string
@@ -47,11 +49,12 @@ type GhostMarketAssets = {
   next: string
 }
 
-export class GhostMarketNDSNeo3 implements NftDataService {
+export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
   readonly #networkType: NetworkType
 
-  constructor(networkType: NetworkType) {
-    this.#networkType = networkType
+  constructor(network: Network) {
+    super(network)
+    this.#networkType = network.type
   }
 
   async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
