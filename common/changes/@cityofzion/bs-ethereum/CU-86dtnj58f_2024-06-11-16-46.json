@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Extend new CryptoCompareEDS class to get support to token price history",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

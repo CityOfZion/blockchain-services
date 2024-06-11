@@ -45,4 +45,22 @@ describe('FlamingoEDSNeo3', () => {
       })
     })
   })
+
+  it("Should return the token's price history", async () => {
+    const tokenPriceHistory = await cryptoCompareEDSNeoLegacy.getTokenPriceHistory({
+      tokenSymbol: 'GAS',
+      currency: 'USD',
+      limit: 24,
+      type: 'hour',
+    })
+
+    tokenPriceHistory.forEach(tokenPrice => {
+      expect(tokenPrice).toEqual({
+        price: expect.any(Number),
+        timestamp: expect.any(Number),
+        symbol: 'GAS',
+        hash: expect.any(String),
+      })
+    })
+  })
 })

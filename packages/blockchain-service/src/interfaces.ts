@@ -36,15 +36,6 @@ export type TransferParam = {
   isLedger?: boolean
 }
 
-export type TokenPricesResponse = {
-  price: number
-  symbol: string
-  hash: string
-}
-export type Currency = 'USD' | 'BRL' | 'EUR'
-export interface ExchangeDataService {
-  getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]>
-}
 export interface BlockchainService<BSCustomName extends string = string> {
   readonly blockchainName: BSCustomName
   readonly derivationPath: string
@@ -162,8 +153,32 @@ export interface BlockchainDataService {
   getBlockHeight(): Promise<number>
   getRpcList(): Promise<RpcResponse[]>
 }
+
 export interface BDSClaimable {
   getUnclaimed(address: string): Promise<string>
+}
+
+export type TokenPricesResponse = {
+  price: number
+  symbol: string
+  hash: string
+}
+export type TokenPricesHistoryResponse = {
+  price: number
+  timestamp: number
+  symbol: string
+  hash: string
+}
+export type Currency = 'USD' | 'BRL' | 'EUR'
+export type GetTokenPriceHistory = {
+  tokenSymbol: string
+  currency: Currency
+  type: 'hour' | 'day'
+  limit: number
+}
+export interface ExchangeDataService {
+  getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]>
+  getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]>
 }
 export interface NftResponse {
   id: string
