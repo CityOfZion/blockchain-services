@@ -1,5 +1,12 @@
-import { Currency, ExchangeDataService, NetworkType, TokenPricesResponse } from '@cityofzion/blockchain-service'
+import {
+  CryptoCompareEDS,
+  Currency,
+  ExchangeDataService,
+  NetworkType,
+  TokenPricesResponse,
+} from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
+import { TOKENS } from './constants'
 
 type FlamingoTokenInfoPricesResponse = {
   symbol: string
@@ -7,11 +14,12 @@ type FlamingoTokenInfoPricesResponse = {
   hash: string
 }[]
 
-export class FlamingoEDSNeo3 implements ExchangeDataService {
+export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataService {
   readonly #networkType: NetworkType
   readonly #axiosInstance: AxiosInstance
 
   constructor(networkType: NetworkType) {
+    super(networkType, TOKENS[networkType])
     this.#networkType = networkType
     this.#axiosInstance = axios.create({ baseURL: 'https://api.flamingo.finance' })
   }

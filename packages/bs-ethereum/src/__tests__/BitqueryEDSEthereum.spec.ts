@@ -48,4 +48,22 @@ describe('FlamingoEDSNeo3', () => {
 
     expect(tokenPriceList).toEqual(expect.arrayContaining([{ symbol: 'ETH', hash: '-', price: expect.any(Number) }]))
   })
+
+  it("Should return the token's price history", async () => {
+    const tokenPriceHistory = await bitqueryEDSEthereum.getTokenPriceHistory({
+      tokenSymbol: 'ETH',
+      currency: 'USD',
+      limit: 24,
+      type: 'hour',
+    })
+
+    tokenPriceHistory.forEach(tokenPrice => {
+      expect(tokenPrice).toEqual({
+        price: expect.any(Number),
+        timestamp: expect.any(Number),
+        symbol: 'ETH',
+        hash: expect.any(String),
+      })
+    })
+  })
 })

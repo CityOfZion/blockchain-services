@@ -1,8 +1,14 @@
-import { Currency, ExchangeDataService, NetworkType, TokenPricesResponse } from '@cityofzion/blockchain-service'
+import {
+  CryptoCompareEDS,
+  Currency,
+  ExchangeDataService,
+  NetworkType,
+  TokenPricesResponse,
+} from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE, BITQUERY_MIRROR_URL } from './constants'
+import { BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE, BITQUERY_MIRROR_URL, TOKENS } from './constants'
 
 type BitQueryGetTokenPricesResponse = {
   ethereum: {
@@ -24,13 +30,14 @@ type BitQueryGetTokenPricesResponse = {
 }
 
 dayjs.extend(utc)
-export class BitqueryEDSEthereum implements ExchangeDataService {
+export class BitqueryEDSEthereum extends CryptoCompareEDS implements ExchangeDataService {
   readonly #client: AxiosInstance
   readonly #networkType: NetworkType
 
   constructor(networkType: NetworkType) {
-    this.#networkType = networkType
+    super(networkType, TOKENS[networkType])
 
+    this.#networkType = networkType
     this.#client = axios.create({
       baseURL: BITQUERY_MIRROR_URL,
     })
