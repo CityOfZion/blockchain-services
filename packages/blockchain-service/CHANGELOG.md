@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Thu, 06 Jun 2024 14:55:18 GMT and should not be manually modified.
+This log was last generated on Tue, 11 Jun 2024 19:22:55 GMT and should not be manually modified.
+
+## 0.11.2
+Tue, 11 Jun 2024 19:22:55 GMT
+
+### Patches
+
+- New class that uses CryptoCompare as ExchangeDataProvider
+- Added Has Token method interface 
 
 ## 0.11.1
 Thu, 06 Jun 2024 14:55:18 GMT

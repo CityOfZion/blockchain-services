@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "0.11.4",
+      "tag": "@cityofzion/bs-neo3_v0.11.4",
+      "date": "Tue, 11 Jun 2024 19:22:55 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Extend new CryptoCompareEDS class to get support to token price history"
+          },
+          {
+            "comment": "Added Has Token method"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `0.11.2`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.11.3",
       "tag": "@cityofzion/bs-neo3_v0.11.3",
       "date": "Thu, 06 Jun 2024 14:55:18 GMT",

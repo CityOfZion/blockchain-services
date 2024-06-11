@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 06 Jun 2024 14:55:18 GMT and should not be manually modified.
+This log was last generated on Tue, 11 Jun 2024 19:22:55 GMT and should not be manually modified.
+
+## 1.2.4
+Tue, 11 Jun 2024 19:22:55 GMT
+
+### Patches
+
+- Added Has Token method
+- Extend new CryptoCompareEDS class to get support to token price history
 
 ## 1.2.3
 Thu, 06 Jun 2024 14:55:18 GMT

@@ -2,6 +2,21 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "0.11.2",
+      "tag": "@cityofzion/blockchain-service_v0.11.2",
+      "date": "Tue, 11 Jun 2024 19:22:55 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "New class that uses CryptoCompare as ExchangeDataProvider"
+          },
+          {
+            "comment": "Added Has Token method interface "
+          }
+        ]
+      }
+    },
+    {
       "version": "0.11.1",
       "tag": "@cityofzion/blockchain-service_v0.11.1",
       "date": "Thu, 06 Jun 2024 14:55:18 GMT",

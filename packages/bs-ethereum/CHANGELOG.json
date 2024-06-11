@@ -2,6 +2,31 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.2.4",
+      "tag": "@cityofzion/bs-ethereum_v1.2.4",
+      "date": "Tue, 11 Jun 2024 19:22:55 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Added Has Token method"
+          },
+          {
+            "comment": "Extend new CryptoCompareEDS class to get support to token price history"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Added Has Token method interface"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `0.11.2`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.2.3",
       "tag": "@cityofzion/bs-ethereum_v1.2.3",
       "date": "Thu, 06 Jun 2024 14:55:18 GMT",

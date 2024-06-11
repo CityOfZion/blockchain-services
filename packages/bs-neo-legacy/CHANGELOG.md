@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Thu, 06 Jun 2024 14:55:18 GMT and should not be manually modified.
+This log was last generated on Tue, 11 Jun 2024 19:22:55 GMT and should not be manually modified.
+
+## 0.10.3
+Tue, 11 Jun 2024 19:22:55 GMT
+
+### Patches
+
+- Extend new CryptoCompareEDS class to get support to token price history
 
 ## 0.10.2
 Thu, 06 Jun 2024 14:55:18 GMT
