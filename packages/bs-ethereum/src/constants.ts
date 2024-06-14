@@ -54,3 +54,5 @@ export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
   testnet: RPC_LIST_BY_NETWORK_TYPE.testnet[0],
   custom: RPC_LIST_BY_NETWORK_TYPE.custom[0],
 }
+
+export const DEFAULT_PATH = "44'/60'/0'/0/0"
