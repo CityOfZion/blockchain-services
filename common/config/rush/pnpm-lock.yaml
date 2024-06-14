@@ -100,6 +100,12 @@ importers:
       '@cityofzion/blockchain-service':
         specifier: workspace:*
         version: link:../blockchain-service
+      '@ethersproject/abstract-provider':
+        specifier: ~5.7.0
+        version: 5.7.0
+      '@ethersproject/abstract-signer':
+        specifier: ~5.7.0
+        version: 5.7.0
       '@ethersproject/bignumber':
         specifier: 5.7.0
         version: 5.7.0
@@ -108,6 +114,9 @@ importers:
         version: 5.7.0
       '@ethersproject/json-wallets':
         specifier: 5.7.0
+        version: 5.7.0
+      '@ethersproject/properties':
+        specifier: ~5.7.0
         version: 5.7.0
       '@ledgerhq/hw-app-eth':
         specifier: ~6.35.7

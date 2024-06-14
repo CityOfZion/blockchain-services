@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Create a new ethers Signer for Ledger",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

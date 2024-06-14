@@ -23,7 +23,7 @@ import { BitqueryEDSEthereum } from './BitqueryEDSEthereum'
 import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
-import { LedgerServiceEthereum } from './LedgerServiceEthereum'
+import { LedgerServiceEthereum, LedgerSigner } from './LedgerServiceEthereum'
 import Transport from '@ledgerhq/hw-transport'
 export class BSEthereum<BSCustomName extends string = string>
   implements BlockchainService, BSWithNft, BSWithNameService, BSCalculableFee, BSWithLedger
@@ -152,12 +152,11 @@ export class BSEthereum<BSCustomName extends string = string>
       ledgerTransport = await this.ledgerService.getLedgerTransport(param.senderAccount)
     }
 
-    let signTransactionFunction: (transaction: ethers.providers.TransactionRequest) => Promise<string>
+    let signer: ethers.Signer
     if (ledgerTransport) {
-      signTransactionFunction = await this.ledgerService.getSignTransactionFunction(ledgerTransport)
+      signer = new LedgerSigner(ledgerTransport, provider)
     } else {
-      const wallet = new ethers.Wallet(param.senderAccount.key, provider)
-      signTransactionFunction = wallet.signTransaction.bind(wallet)
+      signer = new ethers.Wallet(param.senderAccount.key, provider)
     }
 
     const decimals = param.intent.tokenDecimals ?? 18
@@ -178,36 +177,48 @@ export class BSEthereum<BSCustomName extends string = string>
       transactionParams = await contract.populateTransaction.transfer(param.intent.receiverAddress, amount)
     }
 
-    const voidSigner = new ethers.VoidSigner(param.senderAccount.address, provider)
-    const transaction = await voidSigner.populateTransaction(transactionParams)
+    const transaction = await signer.sendTransaction(transactionParams)
 
-    const signedTransaction = await signTransactionFunction(transaction)
-    const transactionResponse = await provider.sendTransaction(signedTransaction)
-    return transactionResponse.hash
+    return transaction.hash
   }
 
-  async calculateTransferFee({ intent }: TransferParam): Promise<string> {
+  async calculateTransferFee(param: TransferParam): Promise<string> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+
+    let ledgerTransport: Transport | undefined
+
+    if (param.isLedger) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide getLedgerTransport function to use Ledger')
+      ledgerTransport = await this.ledgerService.getLedgerTransport(param.senderAccount)
+    }
+
+    let signer: ethers.Signer
+    if (ledgerTransport) {
+      signer = new LedgerSigner(ledgerTransport, provider)
+    } else {
+      signer = new ethers.Wallet(param.senderAccount.key, provider)
+    }
 
     const gasPrice = await provider.getGasPrice()
 
     let estimated: ethers.BigNumber
 
-    const isNative = NATIVE_ASSETS.some(asset => asset.hash === intent.tokenHash)
-    const decimals = intent.tokenDecimals ?? 18
-    const amount = ethersBigNumber.parseFixed(intent.amount, decimals)
+    const isNative = NATIVE_ASSETS.some(asset => asset.hash === param.intent.tokenHash)
+    const decimals = param.intent.tokenDecimals ?? 18
+    const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
 
     if (!isNative) {
       const contract = new ethers.Contract(
-        intent.tokenHash,
+        param.intent.tokenHash,
         ['function transfer(address to, uint amount) returns (bool)'],
-        provider
+        signer
       )
 
-      estimated = await contract.estimateGas.transfer(intent.receiverAddress, amount)
+      estimated = await contract.estimateGas.transfer(param.intent.receiverAddress, amount)
     } else {
-      estimated = await provider.estimateGas({
-        to: intent.receiverAddress,
+      estimated = await signer.estimateGas({
+        to: param.intent.receiverAddress,
         value: amount,
       })
     }

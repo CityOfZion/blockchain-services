@@ -149,6 +149,7 @@ describe('BSEthereum', () => {
   it.skip('Should be able to transfer a ERC20 token with ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSEthereum('neo3', { type: 'testnet' }, async () => transport)
+
     const publicKey = await service.ledgerService.getPublicKey(transport)
     const account = service.generateAccountFromPublicKey(publicKey)
 

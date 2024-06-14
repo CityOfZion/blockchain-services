@@ -1,46 +1,140 @@
 import { Account, LedgerService } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
-import { ethers } from 'ethers'
+import { ethers, Signer } from 'ethers'
+import { TypedDataSigner } from '@ethersproject/abstract-signer'
+import { defineReadOnly } from '@ethersproject/properties'
+import { DEFAULT_PATH } from './constants'
 
 export class LedgerServiceEthereum implements LedgerService {
-  readonly #defaultPath = "44'/60'/0'/0/0"
-
   constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
 
   async getAddress(transport: Transport): Promise<string> {
-    const ledgerApp = new LedgerEthereumApp(transport)
-    const { address } = await ledgerApp.getAddress(this.#defaultPath)
-
-    return address
+    const signer = new LedgerSigner(transport)
+    return await signer.getAddress()
   }
 
   async getPublicKey(transport: Transport): Promise<string> {
-    const ledgerApp = new LedgerEthereumApp(transport)
-    const { publicKey } = await ledgerApp.getAddress(this.#defaultPath)
+    const signer = new LedgerSigner(transport)
+    return await signer.getPublicKey()
+  }
+}
 
+function wait(duration: number): Promise<void> {
+  return new Promise(resolve => {
+    setTimeout(resolve, duration)
+  })
+}
+
+export class LedgerSigner extends Signer implements TypedDataSigner {
+  #transport: Transport
+  #path: string
+
+  constructor(transport: Transport, provider?: ethers.providers.Provider) {
+    super()
+
+    this.#path = DEFAULT_PATH
+    this.#transport = transport
+    defineReadOnly(this, 'provider', provider)
+  }
+
+  connect(provider: ethers.providers.Provider): LedgerSigner {
+    return new LedgerSigner(this.#transport, provider)
+  }
+
+  #retry<T = any>(callback: () => Promise<T>): Promise<T> {
+    // eslint-disable-next-line no-async-promise-executor
+    return new Promise(async (resolve, reject) => {
+      // Wait up to 5 seconds
+      for (let i = 0; i < 50; i++) {
+        try {
+          const result = await callback()
+          return resolve(result)
+        } catch (error: any) {
+          if (error.id !== 'TransportLocked') {
+            return reject(error)
+          }
+        }
+        await wait(100)
+      }
+
+      return reject(new Error('timeout'))
+    })
+  }
+
+  async getAddress(): Promise<string> {
+    const ledgerApp = new LedgerEthereumApp(this.#transport)
+    const { address } = await this.#retry(() => ledgerApp.getAddress(this.#path))
+    return ethers.utils.getAddress(address)
+  }
+
+  async getPublicKey(): Promise<string> {
+    const ledgerApp = new LedgerEthereumApp(this.#transport)
+    const { publicKey } = await this.#retry(() => ledgerApp.getAddress(this.#path))
     return '0x' + publicKey
   }
 
-  async getSignTransactionFunction(transport: Transport) {
-    return async (transaction: ethers.providers.TransactionRequest): Promise<string> => {
-      const ledgerApp = new LedgerEthereumApp(transport)
-
-      const unsignedTransaction: ethers.utils.UnsignedTransaction = {
-        ...transaction,
-        nonce: transaction.nonce ? ethers.BigNumber.from(transaction.nonce).toNumber() : undefined,
-      }
-
-      const serializedUnsignedTransaction = ethers.utils.serializeTransaction(unsignedTransaction).substring(2)
-
-      const resolution = await LedgerEthereumAppService.resolveTransaction(serializedUnsignedTransaction, {}, {})
-      const signature = await ledgerApp.signTransaction(this.#defaultPath, serializedUnsignedTransaction, resolution)
-
-      return ethers.utils.serializeTransaction(unsignedTransaction, {
-        v: ethers.BigNumber.from('0x' + signature.v).toNumber(),
-        r: '0x' + signature.r,
-        s: '0x' + signature.s,
-      })
+  async signMessage(message: string | ethers.utils.Bytes): Promise<string> {
+    if (typeof message === 'string') {
+      message = ethers.utils.toUtf8Bytes(message)
     }
+
+    const ledgerApp = new LedgerEthereumApp(this.#transport)
+    const obj = await this.#retry(() =>
+      ledgerApp.signPersonalMessage(this.#path, ethers.utils.hexlify(message).substring(2))
+    )
+
+    // Normalize the signature for Ethers
+    obj.r = '0x' + obj.r
+    obj.s = '0x' + obj.s
+
+    return ethers.utils.joinSignature(obj)
+  }
+
+  async signTransaction(transaction: ethers.utils.Deferrable<ethers.providers.TransactionRequest>): Promise<string> {
+    const ledgerApp = new LedgerEthereumApp(this.#transport)
+
+    const tx = await ethers.utils.resolveProperties(transaction)
+    const unsignedTransaction: ethers.utils.UnsignedTransaction = {
+      ...tx,
+      nonce: tx.nonce ? ethers.BigNumber.from(transaction.nonce).toNumber() : undefined,
+    }
+
+    const serializedUnsignedTransaction = ethers.utils.serializeTransaction(unsignedTransaction).substring(2)
+
+    const resolution = await LedgerEthereumAppService.resolveTransaction(serializedUnsignedTransaction, {}, {})
+    const signature = await this.#retry(() =>
+      ledgerApp.signTransaction(this.#path, serializedUnsignedTransaction, resolution)
+    )
+
+    return ethers.utils.serializeTransaction(unsignedTransaction, {
+      v: ethers.BigNumber.from('0x' + signature.v).toNumber(),
+      r: '0x' + signature.r,
+      s: '0x' + signature.s,
+    })
+  }
+
+  async _signTypedData(
+    domain: ethers.TypedDataDomain,
+    types: Record<string, ethers.TypedDataField[]>,
+    value: Record<string, any>
+  ): Promise<string> {
+    const populated = await ethers.utils._TypedDataEncoder.resolveNames(domain, types, value, async (name: string) => {
+      if (!this.provider) throw new Error('Cannot resolve ENS names without a provider')
+      const resolved = await this.provider.resolveName(name)
+      if (!resolved) throw new Error('No address found for domain name')
+      return resolved
+    })
+
+    const payload = ethers.utils._TypedDataEncoder.getPayload(populated.domain, types, populated.value)
+
+    const ledgerApp = new LedgerEthereumApp(this.#transport)
+    const obj = await this.#retry(() => ledgerApp.signEIP712Message(this.#path, payload))
+
+    // Normalize the signature for Ethers
+    obj.r = '0x' + obj.r
+    obj.s = '0x' + obj.s
+
+    return ethers.utils.joinSignature(obj)
   }
 }
