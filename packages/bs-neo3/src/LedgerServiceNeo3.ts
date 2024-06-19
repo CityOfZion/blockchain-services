@@ -1,9 +1,12 @@
-import { Account, LedgerService } from '@cityofzion/blockchain-service'
+import { Account, LedgerService, LedgerServiceEmitter } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import { wallet, api, u } from '@cityofzion/neon-js'
 import { NeonParser } from '@cityofzion/neon-dappkit'
+import EventEmitter from 'events'
 
 export class LedgerServiceNeo3 implements LedgerService {
+  emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
+
   constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
 
   async getAddress(transport: Transport): Promise<string> {
@@ -33,6 +36,8 @@ export class LedgerServiceNeo3 implements LedgerService {
   }
 
   async getSignature(transport: Transport, serializedTransaction: string, networkMagic: number, addressIndex = 0) {
+    this.emitter.emit('getSignatureStart')
+
     const bip44Buffer = this.toBip44Buffer(addressIndex)
     await transport.send(0x80, 0x02, 0, 0x80, bip44Buffer, [0x9000])
     await transport.send(0x80, 0x02, 1, 0x80, Buffer.from(NeonParser.numToHex(networkMagic, 4, true), 'hex'), [0x9000])
@@ -56,7 +61,11 @@ export class LedgerServiceNeo3 implements LedgerService {
       throw new Error(`No more data but Ledger did not return signature!`)
     }
 
-    return this.derSignatureToHex(response.toString('hex'))
+    const signature = this.derSignatureToHex(response.toString('hex'))
+
+    this.emitter.emit('getSignatureEnd')
+
+    return signature
   }
 
   async getPublicKey(transport: Transport, addressIndex = 0): Promise<string> {
