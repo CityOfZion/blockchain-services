@@ -1,40 +1,23 @@
-import { Account, LedgerService } from '@cityofzion/blockchain-service'
+import { Account, LedgerService, LedgerServiceEmitter } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
 import { ethers, Signer } from 'ethers'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { defineReadOnly } from '@ethersproject/properties'
 import { DEFAULT_PATH } from './constants'
-
-export class LedgerServiceEthereum implements LedgerService {
-  constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
-
-  async getAddress(transport: Transport): Promise<string> {
-    const signer = new LedgerSigner(transport)
-    return await signer.getAddress()
-  }
-
-  async getPublicKey(transport: Transport): Promise<string> {
-    const signer = new LedgerSigner(transport)
-    return await signer.getPublicKey()
-  }
-}
-
-function wait(duration: number): Promise<void> {
-  return new Promise(resolve => {
-    setTimeout(resolve, duration)
-  })
-}
+import EventEmitter from 'events'
 
 export class LedgerSigner extends Signer implements TypedDataSigner {
   #transport: Transport
+  #emitter?: LedgerServiceEmitter
   #path: string
 
-  constructor(transport: Transport, provider?: ethers.providers.Provider) {
+  constructor(transport: Transport, provider?: ethers.providers.Provider, emitter?: LedgerServiceEmitter) {
     super()
 
     this.#path = DEFAULT_PATH
     this.#transport = transport
+    this.#emitter = emitter
     defineReadOnly(this, 'provider', provider)
   }
 
@@ -80,9 +63,14 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
     }
 
     const ledgerApp = new LedgerEthereumApp(this.#transport)
+
+    this.#emitter?.emit('getSignatureStart')
+
     const obj = await this.#retry(() =>
       ledgerApp.signPersonalMessage(this.#path, ethers.utils.hexlify(message).substring(2))
     )
+
+    this.#emitter?.emit('getSignatureEnd')
 
     // Normalize the signature for Ethers
     obj.r = '0x' + obj.r
@@ -103,9 +91,14 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
     const serializedUnsignedTransaction = ethers.utils.serializeTransaction(unsignedTransaction).substring(2)
 
     const resolution = await LedgerEthereumAppService.resolveTransaction(serializedUnsignedTransaction, {}, {})
+
+    this.#emitter?.emit('getSignatureStart')
+
     const signature = await this.#retry(() =>
       ledgerApp.signTransaction(this.#path, serializedUnsignedTransaction, resolution)
     )
+
+    this.#emitter?.emit('getSignatureEnd')
 
     return ethers.utils.serializeTransaction(unsignedTransaction, {
       v: ethers.BigNumber.from('0x' + signature.v).toNumber(),
@@ -129,7 +122,10 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
     const payload = ethers.utils._TypedDataEncoder.getPayload(populated.domain, types, populated.value)
 
     const ledgerApp = new LedgerEthereumApp(this.#transport)
+
+    this.#emitter?.emit('getSignatureStart')
     const obj = await this.#retry(() => ledgerApp.signEIP712Message(this.#path, payload))
+    this.#emitter?.emit('getSignatureEnd')
 
     // Normalize the signature for Ethers
     obj.r = '0x' + obj.r
@@ -137,4 +133,30 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
 
     return ethers.utils.joinSignature(obj)
   }
+}
+
+export class LedgerServiceEthereum implements LedgerService {
+  emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
+
+  constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
+
+  async getAddress(transport: Transport): Promise<string> {
+    const signer = new LedgerSigner(transport)
+    return await signer.getAddress()
+  }
+
+  async getPublicKey(transport: Transport): Promise<string> {
+    const signer = new LedgerSigner(transport)
+    return await signer.getPublicKey()
+  }
+
+  getSigner(transport: Transport): LedgerSigner {
+    return new LedgerSigner(transport, undefined, this.emitter)
+  }
+}
+
+function wait(duration: number): Promise<void> {
+  return new Promise(resolve => {
+    setTimeout(resolve, duration)
+  })
 }

@@ -1,4 +1,5 @@
 import Transport from '@ledgerhq/hw-transport'
+import TypedEmitter from 'typed-emitter'
 
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
@@ -229,9 +230,13 @@ export interface ExplorerService {
   buildNftUrl(params: BuildNftUrlParams): string
 }
 
+export type LedgerServiceEmitter = TypedEmitter<{
+  getSignatureStart(): void | Promise<void>
+  getSignatureEnd(): void | Promise<void>
+}>
 export interface LedgerService {
+  emitter: LedgerServiceEmitter
   getLedgerTransport?: (account: Account) => Promise<Transport>
-
   getAddress(transport: Transport): Promise<string>
   getPublicKey(transport: Transport): Promise<string>
 }
