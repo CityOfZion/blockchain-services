@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 11 Jun 2024 19:22:55 GMT and should not be manually modified.
+This log was last generated on Wed, 19 Jun 2024 03:12:58 GMT and should not be manually modified.
+
+## 1.3.0
+Wed, 19 Jun 2024 03:12:58 GMT
+
+### Minor changes
+
+- Create a new ethers Signer for Ledger
 
 ## 1.2.4
 Tue, 11 Jun 2024 19:22:55 GMT

@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Tue, 11 Jun 2024 19:22:55 GMT and should not be manually modified.
+This log was last generated on Wed, 19 Jun 2024 03:12:58 GMT and should not be manually modified.
+
+## 0.12.0
+Wed, 19 Jun 2024 03:12:58 GMT
+
+### Minor changes
+
+- Export LedgerServiceNeo3
 
 ## 0.11.4
 Tue, 11 Jun 2024 19:22:55 GMT

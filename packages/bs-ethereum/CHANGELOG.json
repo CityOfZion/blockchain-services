@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.3.0",
+      "tag": "@cityofzion/bs-ethereum_v1.3.0",
+      "date": "Wed, 19 Jun 2024 03:12:58 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Create a new ethers Signer for Ledger"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.2.4",
       "tag": "@cityofzion/bs-ethereum_v1.2.4",
       "date": "Tue, 11 Jun 2024 19:22:55 GMT",
