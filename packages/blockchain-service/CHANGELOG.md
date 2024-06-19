@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 11 Jun 2024 19:22:55 GMT and should not be manually modified.
+This log was last generated on Wed, 19 Jun 2024 15:40:02 GMT and should not be manually modified.
+
+## 0.12.0
+Wed, 19 Jun 2024 15:40:02 GMT
+
+### Minor changes
+
+- Add emitter in LedgerService
 
 ## 0.11.2
 Tue, 11 Jun 2024 19:22:55 GMT

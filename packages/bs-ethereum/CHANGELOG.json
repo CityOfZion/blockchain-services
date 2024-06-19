@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.4.0",
+      "tag": "@cityofzion/bs-ethereum_v1.4.0",
+      "date": "Wed, 19 Jun 2024 15:40:02 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add emitter in LedgerServiceNeo3"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `0.12.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.3.0",
       "tag": "@cityofzion/bs-ethereum_v1.3.0",
       "date": "Wed, 19 Jun 2024 03:12:58 GMT",

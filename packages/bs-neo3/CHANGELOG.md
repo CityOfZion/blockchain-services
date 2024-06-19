@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Wed, 19 Jun 2024 03:12:58 GMT and should not be manually modified.
+This log was last generated on Wed, 19 Jun 2024 15:40:02 GMT and should not be manually modified.
+
+## 0.13.0
+Wed, 19 Jun 2024 15:40:02 GMT
+
+### Minor changes
+
+- Add emitterr in LedgerServiceEthereum
 
 ## 0.12.0
 Wed, 19 Jun 2024 03:12:58 GMT
