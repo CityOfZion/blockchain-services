@@ -22,7 +22,7 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
   }
 
   connect(provider: ethers.providers.Provider): LedgerSigner {
-    return new LedgerSigner(this.#transport, provider)
+    return new LedgerSigner(this.#transport, provider, this.#emitter)
   }
 
   #retry<T = any>(callback: () => Promise<T>): Promise<T> {
