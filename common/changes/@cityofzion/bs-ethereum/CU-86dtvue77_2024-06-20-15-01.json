@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Emit \"getSignatureEnd\" when throws an error and fix errors when try to invoke some methods",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

@@ -36,36 +36,40 @@ export class LedgerServiceNeo3 implements LedgerService {
   }
 
   async getSignature(transport: Transport, serializedTransaction: string, networkMagic: number, addressIndex = 0) {
-    this.emitter.emit('getSignatureStart')
+    try {
+      this.emitter.emit('getSignatureStart')
 
-    const bip44Buffer = this.toBip44Buffer(addressIndex)
-    await transport.send(0x80, 0x02, 0, 0x80, bip44Buffer, [0x9000])
-    await transport.send(0x80, 0x02, 1, 0x80, Buffer.from(NeonParser.numToHex(networkMagic, 4, true), 'hex'), [0x9000])
+      const bip44Buffer = this.toBip44Buffer(addressIndex)
+      await transport.send(0x80, 0x02, 0, 0x80, bip44Buffer, [0x9000])
+      await transport.send(0x80, 0x02, 1, 0x80, Buffer.from(NeonParser.numToHex(networkMagic, 4, true), 'hex'), [
+        0x9000,
+      ])
 
-    const chunks = serializedTransaction.match(/.{1,510}/g) || []
+      const chunks = serializedTransaction.match(/.{1,510}/g) || []
 
-    for (let i = 0; i < chunks.length - 1; i++) {
-      await transport.send(0x80, 0x02, 2 + i, 0x80, Buffer.from(chunks[i], 'hex'), [0x9000])
+      for (let i = 0; i < chunks.length - 1; i++) {
+        await transport.send(0x80, 0x02, 2 + i, 0x80, Buffer.from(chunks[i], 'hex'), [0x9000])
+      }
+
+      const response = await transport.send(
+        0x80,
+        0x02,
+        2 + chunks.length,
+        0x00,
+        Buffer.from(chunks[chunks.length - 1], 'hex'),
+        [0x9000]
+      )
+
+      if (response.length <= 2) {
+        throw new Error(`No more data but Ledger did not return signature!`)
+      }
+
+      const signature = this.derSignatureToHex(response.toString('hex'))
+
+      return signature
+    } finally {
+      this.emitter.emit('getSignatureEnd')
     }
-
-    const response = await transport.send(
-      0x80,
-      0x02,
-      2 + chunks.length,
-      0x00,
-      Buffer.from(chunks[chunks.length - 1], 'hex'),
-      [0x9000]
-    )
-
-    if (response.length <= 2) {
-      throw new Error(`No more data but Ledger did not return signature!`)
-    }
-
-    const signature = this.derSignatureToHex(response.toString('hex'))
-
-    this.emitter.emit('getSignatureEnd')
-
-    return signature
   }
 
   async getPublicKey(transport: Transport, addressIndex = 0): Promise<string> {
