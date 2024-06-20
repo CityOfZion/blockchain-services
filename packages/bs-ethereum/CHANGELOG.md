@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 20 Jun 2024 16:23:59 GMT and should not be manually modified.
+This log was last generated on Thu, 20 Jun 2024 20:15:18 GMT and should not be manually modified.
+
+## 1.4.2
+Thu, 20 Jun 2024 20:15:18 GMT
+
+### Patches
+
+- Pass this.emitter when creating LedgerSigner within the connect method
 
 ## 1.4.1
 Thu, 20 Jun 2024 16:23:59 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.4.2",
+      "tag": "@cityofzion/bs-ethereum_v1.4.2",
+      "date": "Thu, 20 Jun 2024 20:15:18 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Pass this.emitter when creating LedgerSigner within the connect method"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.4.1",
       "tag": "@cityofzion/bs-ethereum_v1.4.1",
       "date": "Thu, 20 Jun 2024 16:23:59 GMT",
