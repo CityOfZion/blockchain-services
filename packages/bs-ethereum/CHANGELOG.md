@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 19 Jun 2024 15:40:02 GMT and should not be manually modified.
+This log was last generated on Thu, 20 Jun 2024 16:23:59 GMT and should not be manually modified.
+
+## 1.4.1
+Thu, 20 Jun 2024 16:23:59 GMT
+
+### Patches
+
+- Emit "getSignatureEnd" when throws an error and fix errors when try to invoke some methods
 
 ## 1.4.0
 Wed, 19 Jun 2024 15:40:02 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "0.13.1",
+      "tag": "@cityofzion/bs-neo3_v0.13.1",
+      "date": "Thu, 20 Jun 2024 16:23:59 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Emit \"getSignatureEnd\" when throws an error"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.13.0",
       "tag": "@cityofzion/bs-neo3_v0.13.0",
       "date": "Wed, 19 Jun 2024 15:40:02 GMT",

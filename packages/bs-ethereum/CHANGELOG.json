@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "1.4.1",
+      "tag": "@cityofzion/bs-ethereum_v1.4.1",
+      "date": "Thu, 20 Jun 2024 16:23:59 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Emit \"getSignatureEnd\" when throws an error and fix errors when try to invoke some methods"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.4.0",
       "tag": "@cityofzion/bs-ethereum_v1.4.0",
       "date": "Wed, 19 Jun 2024 15:40:02 GMT",
