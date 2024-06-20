@@ -58,53 +58,68 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
   }
 
   async signMessage(message: string | ethers.utils.Bytes): Promise<string> {
-    if (typeof message === 'string') {
-      message = ethers.utils.toUtf8Bytes(message)
+    try {
+      if (typeof message === 'string') {
+        message = ethers.utils.toUtf8Bytes(message)
+      }
+
+      const ledgerApp = new LedgerEthereumApp(this.#transport)
+
+      this.#emitter?.emit('getSignatureStart')
+
+      const obj = await this.#retry(() =>
+        ledgerApp.signPersonalMessage(this.#path, ethers.utils.hexlify(message).substring(2))
+      )
+
+      this.#emitter?.emit('getSignatureEnd')
+
+      // Normalize the signature for Ethers
+      obj.r = '0x' + obj.r
+      obj.s = '0x' + obj.s
+
+      return ethers.utils.joinSignature(obj)
+    } catch (error) {
+      this.#emitter?.emit('getSignatureEnd')
+      throw error
     }
-
-    const ledgerApp = new LedgerEthereumApp(this.#transport)
-
-    this.#emitter?.emit('getSignatureStart')
-
-    const obj = await this.#retry(() =>
-      ledgerApp.signPersonalMessage(this.#path, ethers.utils.hexlify(message).substring(2))
-    )
-
-    this.#emitter?.emit('getSignatureEnd')
-
-    // Normalize the signature for Ethers
-    obj.r = '0x' + obj.r
-    obj.s = '0x' + obj.s
-
-    return ethers.utils.joinSignature(obj)
   }
 
   async signTransaction(transaction: ethers.utils.Deferrable<ethers.providers.TransactionRequest>): Promise<string> {
-    const ledgerApp = new LedgerEthereumApp(this.#transport)
+    try {
+      const ledgerApp = new LedgerEthereumApp(this.#transport)
 
-    const tx = await ethers.utils.resolveProperties(transaction)
-    const unsignedTransaction: ethers.utils.UnsignedTransaction = {
-      ...tx,
-      nonce: tx.nonce ? ethers.BigNumber.from(transaction.nonce).toNumber() : undefined,
+      const tx = await ethers.utils.resolveProperties(transaction)
+      const unsignedTransaction: ethers.utils.UnsignedTransaction = {
+        chainId: tx.chainId ?? undefined,
+        data: tx.data ?? undefined,
+        gasLimit: tx.gasLimit ?? undefined,
+        gasPrice: tx.gasPrice ?? undefined,
+        nonce: tx.nonce ? ethers.BigNumber.from(tx.nonce).toNumber() : undefined,
+        to: tx.to ?? undefined,
+        value: tx.value ?? undefined,
+      }
+
+      const serializedUnsignedTransaction = ethers.utils.serializeTransaction(unsignedTransaction).substring(2)
+
+      const resolution = await LedgerEthereumAppService.resolveTransaction(serializedUnsignedTransaction, {}, {})
+
+      this.#emitter?.emit('getSignatureStart')
+
+      const signature = await this.#retry(() =>
+        ledgerApp.signTransaction(this.#path, serializedUnsignedTransaction, resolution)
+      )
+
+      this.#emitter?.emit('getSignatureEnd')
+
+      return ethers.utils.serializeTransaction(unsignedTransaction, {
+        v: ethers.BigNumber.from('0x' + signature.v).toNumber(),
+        r: '0x' + signature.r,
+        s: '0x' + signature.s,
+      })
+    } catch (error) {
+      this.#emitter?.emit('getSignatureEnd')
+      throw error
     }
-
-    const serializedUnsignedTransaction = ethers.utils.serializeTransaction(unsignedTransaction).substring(2)
-
-    const resolution = await LedgerEthereumAppService.resolveTransaction(serializedUnsignedTransaction, {}, {})
-
-    this.#emitter?.emit('getSignatureStart')
-
-    const signature = await this.#retry(() =>
-      ledgerApp.signTransaction(this.#path, serializedUnsignedTransaction, resolution)
-    )
-
-    this.#emitter?.emit('getSignatureEnd')
-
-    return ethers.utils.serializeTransaction(unsignedTransaction, {
-      v: ethers.BigNumber.from('0x' + signature.v).toNumber(),
-      r: '0x' + signature.r,
-      s: '0x' + signature.s,
-    })
   }
 
   async _signTypedData(
@@ -112,26 +127,52 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
     types: Record<string, ethers.TypedDataField[]>,
     value: Record<string, any>
   ): Promise<string> {
-    const populated = await ethers.utils._TypedDataEncoder.resolveNames(domain, types, value, async (name: string) => {
-      if (!this.provider) throw new Error('Cannot resolve ENS names without a provider')
-      const resolved = await this.provider.resolveName(name)
-      if (!resolved) throw new Error('No address found for domain name')
-      return resolved
-    })
+    try {
+      const populated = await ethers.utils._TypedDataEncoder.resolveNames(
+        domain,
+        types,
+        value,
+        async (name: string) => {
+          if (!this.provider) throw new Error('Cannot resolve ENS names without a provider')
+          const resolved = await this.provider.resolveName(name)
+          if (!resolved) throw new Error('No address found for domain name')
+          return resolved
+        }
+      )
 
-    const payload = ethers.utils._TypedDataEncoder.getPayload(populated.domain, types, populated.value)
+      const payload = ethers.utils._TypedDataEncoder.getPayload(populated.domain, types, populated.value)
 
-    const ledgerApp = new LedgerEthereumApp(this.#transport)
+      const ledgerApp = new LedgerEthereumApp(this.#transport)
 
-    this.#emitter?.emit('getSignatureStart')
-    const obj = await this.#retry(() => ledgerApp.signEIP712Message(this.#path, payload))
-    this.#emitter?.emit('getSignatureEnd')
+      this.#emitter?.emit('getSignatureStart')
 
-    // Normalize the signature for Ethers
-    obj.r = '0x' + obj.r
-    obj.s = '0x' + obj.s
+      let obj: { v: number; s: string; r: string }
 
-    return ethers.utils.joinSignature(obj)
+      try {
+        obj = await this.#retry(() => ledgerApp.signEIP712Message(this.#path, payload))
+      } catch {
+        const domainSeparatorHex = ethers.utils._TypedDataEncoder.hashDomain(payload.domain)
+        const hashStructMessageHex = ethers.utils._TypedDataEncoder.hashStruct(
+          payload.primaryType,
+          types,
+          payload.message
+        )
+        obj = await this.#retry(() =>
+          ledgerApp.signEIP712HashedMessage(this.#path, domainSeparatorHex, hashStructMessageHex)
+        )
+      }
+
+      this.#emitter?.emit('getSignatureEnd')
+
+      // Normalize the signature for Ethers
+      obj.r = '0x' + obj.r
+      obj.s = '0x' + obj.s
+
+      return ethers.utils.joinSignature(obj)
+    } catch (error) {
+      this.#emitter?.emit('getSignatureEnd')
+      throw error
+    }
   }
 }
 

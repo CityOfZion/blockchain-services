@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Emit \"getSignatureEnd\" when throws an error",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}
