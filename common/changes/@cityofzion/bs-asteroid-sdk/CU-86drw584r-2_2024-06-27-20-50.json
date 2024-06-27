@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-asteroid-sdk",
+      "comment": "Lint project",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-asteroid-sdk"
+}
