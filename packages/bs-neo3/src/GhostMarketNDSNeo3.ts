@@ -2,7 +2,6 @@ import {
   NftResponse,
   NftsResponse,
   NetworkType,
-  NftDataService,
   GetNftParam,
   GetNftsByAddressParams,
   Network,

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-asteroid-sdk",
+      "comment": "Including flamingo swap feature",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-asteroid-sdk"
+}

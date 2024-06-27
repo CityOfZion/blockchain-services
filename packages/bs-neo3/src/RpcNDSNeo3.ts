@@ -3,7 +3,6 @@ import {
   GetNftsByAddressParams,
   HasTokenParam,
   Network,
-  NetworkType,
   NftDataService,
   NftResponse,
   NftsResponse,
