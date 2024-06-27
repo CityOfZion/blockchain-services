@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-asteroid-sdk
 
-This log was last generated on Thu, 30 May 2024 03:53:54 GMT and should not be manually modified.
+This log was last generated on Thu, 27 Jun 2024 21:15:08 GMT and should not be manually modified.
+
+## 0.9.0
+Thu, 27 Jun 2024 21:15:08 GMT
+
+### Minor changes
+
+- Including flamingo swap feature
 
 ## 0.8.1
 Thu, 30 May 2024 03:53:54 GMT

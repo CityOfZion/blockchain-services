@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Thu, 20 Jun 2024 16:23:59 GMT and should not be manually modified.
+This log was last generated on Thu, 27 Jun 2024 21:15:08 GMT and should not be manually modified.
+
+## 0.14.0
+Thu, 27 Jun 2024 21:15:08 GMT
+
+### Minor changes
+
+- Including flamingo swap feature
 
 ## 0.13.1
 Thu, 20 Jun 2024 16:23:59 GMT

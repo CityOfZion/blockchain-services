@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Wed, 19 Jun 2024 15:40:02 GMT and should not be manually modified.
+This log was last generated on Thu, 27 Jun 2024 21:15:08 GMT and should not be manually modified.
+
+## 0.13.0
+Thu, 27 Jun 2024 21:15:08 GMT
+
+### Minor changes
+
+- Including flamingo swap feature
 
 ## 0.12.0
 Wed, 19 Jun 2024 15:40:02 GMT

@@ -2,6 +2,31 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "0.14.0",
+      "tag": "@cityofzion/bs-neo3_v0.14.0",
+      "date": "Thu, 27 Jun 2024 21:15:08 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Lint project"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Including flamingo swap feature"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `0.13.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-asteroid-sdk\" to `0.9.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.13.1",
       "tag": "@cityofzion/bs-neo3_v0.13.1",
       "date": "Thu, 20 Jun 2024 16:23:59 GMT",
