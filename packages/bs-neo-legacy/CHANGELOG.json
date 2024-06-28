@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "0.10.6",
+      "tag": "@cityofzion/bs-neo-legacy_v0.10.6",
+      "date": "Fri, 28 Jun 2024 21:53:35 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Removing react-native"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.10.5",
       "tag": "@cityofzion/bs-neo-legacy_v0.10.5",
       "date": "Thu, 27 Jun 2024 21:15:08 GMT",

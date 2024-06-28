@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Thu, 27 Jun 2024 21:15:08 GMT and should not be manually modified.
+This log was last generated on Fri, 28 Jun 2024 21:53:35 GMT and should not be manually modified.
+
+## 0.10.6
+Fri, 28 Jun 2024 21:53:35 GMT
+
+### Patches
+
+- Removing react-native
 
 ## 0.10.5
 Thu, 27 Jun 2024 21:15:08 GMT

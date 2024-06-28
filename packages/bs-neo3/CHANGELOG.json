@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "0.14.2",
+      "tag": "@cityofzion/bs-neo3_v0.14.2",
+      "date": "Fri, 28 Jun 2024 21:53:35 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Removing react-native"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.14.1",
       "tag": "@cityofzion/bs-neo3_v0.14.1",
       "date": "Fri, 28 Jun 2024 20:18:04 GMT",
