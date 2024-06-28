@@ -98,22 +98,8 @@ export class BSNeoLegacy<BSCustomName extends string = string>
   }
 
   async decrypt(encryptedKey: string, password: string): Promise<Account> {
-    let BsReactNativeDecrypt: any
-
-    try {
-      const { NativeModules } = require('react-native')
-      BsReactNativeDecrypt = NativeModules.BsReactNativeDecrypt
-
-      if (!BsReactNativeDecrypt) {
-        throw new Error('@CityOfZion/bs-react-native-decrypt is not installed')
-      }
-    } catch {
-      const key = await wallet.decrypt(encryptedKey, password)
-      return this.generateAccountFromKey(key)
-    }
-
-    const privateKey = await BsReactNativeDecrypt.decryptNeoLegacy(encryptedKey, password)
-    return this.generateAccountFromKey(privateKey)
+    const key = await wallet.decrypt(encryptedKey, password)
+    return this.generateAccountFromKey(key)
   }
 
   encrypt(key: string, password: string): Promise<string> {
