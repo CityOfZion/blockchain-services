@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "0.14.1",
+      "tag": "@cityofzion/bs-neo3_v0.14.1",
+      "date": "Fri, 28 Jun 2024 20:18:04 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Setting optional dependency of react native"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.14.0",
       "tag": "@cityofzion/bs-neo3_v0.14.0",
       "date": "Thu, 27 Jun 2024 21:15:08 GMT",
