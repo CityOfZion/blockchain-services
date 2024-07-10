@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Adapt network to support multi network",
+      "type": "major"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

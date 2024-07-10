@@ -4,7 +4,7 @@ import { DEFAULT_URL_BY_NETWORK_TYPE, TOKENS } from '../constants'
 
 const gasToken = TOKENS.testnet.find(t => t.symbol === 'GAS')!
 const doraBDSNeoLegacy = new DoraBDSNeoLegacy(
-  { type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet },
+  { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' },
   gasToken,
   gasToken
 )

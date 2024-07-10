@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Adapt network to support multi network",
+      "type": "major"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

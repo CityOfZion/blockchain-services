@@ -1,7 +1,11 @@
 import { RpcBDSEthereum } from '../RpcBDSEthereum'
-import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
+import { DEFAULT_URL_BY_NETWORK_ID, NETWORK_NAME_BY_NETWORK_ID } from '../constants'
 
-const rpcBDSEthereum = new RpcBDSEthereum({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet })
+const rpcBDSEthereum = new RpcBDSEthereum({
+  id: '11155111',
+  url: DEFAULT_URL_BY_NETWORK_ID['11155111'],
+  name: NETWORK_NAME_BY_NETWORK_ID['11155111'],
+})
 
 describe('RpcBDSEthereum', () => {
   it('Should be able to get transaction', async () => {

@@ -8,7 +8,6 @@ import {
   Token,
   BSWithNameService,
   Network,
-  PartialBy,
   TransferParam,
   BSCalculableFee,
   NftDataService,
@@ -17,13 +16,14 @@ import {
   BSWithExplorerService,
   ExplorerService,
   BSWithLedger,
+  PartialNetwork,
 } from '@cityofzion/blockchain-service'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Neon from '@cityofzion/neon-core'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
 import { RPCBDSNeo3 } from './RpcBDSNeo3'
 import { DoraBDSNeo3 } from './DoraBDSNeo3'
-import { DEFAULT_URL_BY_NETWORK_TYPE, DERIVATION_PATH, NEO_NS_HASH, TOKENS } from './constants'
+import { DEFAULT_URL_BY_NETWORK_TYPE, DERIVATION_PATH, NEO_NS_HASH, AvailableNetworkIds, TOKENS } from './constants'
 import { FlamingoEDSNeo3 } from './FlamingoEDSNeo3'
 import { GhostMarketNDSNeo3 } from './GhostMarketNDSNeo3'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
@@ -34,7 +34,7 @@ import Transport from '@ledgerhq/hw-transport'
 
 export class BSNeo3<BSCustomName extends string = string>
   implements
-    BlockchainService,
+    BlockchainService<BSCustomName, AvailableNetworkIds>,
     BSClaimable,
     BSWithNameService,
     BSCalculableFee,
@@ -54,16 +54,16 @@ export class BSNeo3<BSCustomName extends string = string>
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
   tokens: Token[]
-  network!: Network
+  network!: Network<AvailableNetworkIds>
 
   constructor(
     blockchainName: BSCustomName,
-    network: PartialBy<Network, 'url'>,
+    network: PartialNetwork<AvailableNetworkIds>,
     getLedgerTransport?: (account: Account) => Promise<Transport>
   ) {
     this.blockchainName = blockchainName
     this.ledgerService = new LedgerServiceNeo3(getLedgerTransport)
-    this.tokens = TOKENS[network.type]
+    this.tokens = TOKENS[network.id]
     this.derivationPath = DERIVATION_PATH
     this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = this.tokens.find(token => token.symbol === 'NEO')!
@@ -71,22 +71,23 @@ export class BSNeo3<BSCustomName extends string = string>
     this.setNetwork(network)
   }
 
-  setNetwork(param: PartialBy<Network, 'url'>) {
+  setNetwork(partialNetwork: PartialNetwork<AvailableNetworkIds>) {
     const network = {
-      type: param.type,
-      url: param.url ?? DEFAULT_URL_BY_NETWORK_TYPE[param.type],
+      id: partialNetwork.id,
+      name: partialNetwork.name ?? partialNetwork.id,
+      url: partialNetwork.url ?? DEFAULT_URL_BY_NETWORK_TYPE[partialNetwork.id],
     }
     this.network = network
 
-    if (network.type === 'custom') {
+    if (network.name === 'custom') {
       this.blockchainDataService = new RPCBDSNeo3(network, this.feeToken, this.claimToken)
     } else {
       this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken)
     }
 
-    this.exchangeDataService = new FlamingoEDSNeo3(network.type)
+    this.exchangeDataService = new FlamingoEDSNeo3(network.id)
     this.nftDataService = new GhostMarketNDSNeo3(network)
-    this.explorerService = new DoraESNeo3(network.type)
+    this.explorerService = new DoraESNeo3(network.id)
   }
 
   validateAddress(address: string): boolean {

@@ -4,8 +4,16 @@ import { RPCBDSNeo3 } from '../RpcBDSNeo3'
 import { DEFAULT_URL_BY_NETWORK_TYPE, TOKENS } from '../constants'
 
 const gasToken = TOKENS.testnet.find(t => t.symbol === 'GAS')!
-const doraBDSNeo3 = new DoraBDSNeo3({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet }, gasToken, gasToken)
-const rpcBDSNeo3 = new RPCBDSNeo3({ type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet }, gasToken, gasToken)
+const doraBDSNeo3 = new DoraBDSNeo3(
+  { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' },
+  gasToken,
+  gasToken
+)
+const rpcBDSNeo3 = new RPCBDSNeo3(
+  { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' },
+  gasToken,
+  gasToken
+)
 
 describe('BDSNeo3', () => {
   it.each([doraBDSNeo3, rpcBDSNeo3])(
@@ -32,7 +40,6 @@ describe('BDSNeo3', () => {
     async (bdsNeo3: BlockchainDataService) => {
       const address = 'NPB3Cze4wki9J36nnrT45qmi6P52Bhfqph'
       const response = await bdsNeo3.getTransactionsByAddress({ address, page: 1 })
-      console.log({ response })
       response.transactions.forEach(transaction => {
         expect(transaction).toEqual(
           expect.objectContaining({

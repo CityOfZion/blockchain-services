@@ -1,13 +1,14 @@
 import { GhostMarketNDSEthereum } from '../GhostMarketNDSEthereum'
-import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
+import { DEFAULT_URL_BY_NETWORK_ID, NETWORK_NAME_BY_NETWORK_ID } from '../constants'
 
 let ghostMarketNDSEthereum: GhostMarketNDSEthereum
 
 describe('GhostMarketNDSEthereum', () => {
   beforeAll(() => {
     ghostMarketNDSEthereum = new GhostMarketNDSEthereum({
-      type: 'mainnet',
-      url: DEFAULT_URL_BY_NETWORK_TYPE.mainnet,
+      id: '1',
+      url: DEFAULT_URL_BY_NETWORK_ID['1'],
+      name: NETWORK_NAME_BY_NETWORK_ID['1'],
     })
   })
 

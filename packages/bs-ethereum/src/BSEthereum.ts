@@ -10,7 +10,7 @@ import {
   ExchangeDataService,
   Network,
   NftDataService,
-  PartialBy,
+  PartialNetwork,
   Token,
   TransferParam,
 } from '@cityofzion/blockchain-service'
@@ -18,15 +18,28 @@ import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
 import * as ethersBytes from '@ethersproject/bytes'
 import * as ethersBigNumber from '@ethersproject/bignumber'
-import { DEFAULT_URL_BY_NETWORK_TYPE, DERIVATION_PATH, NATIVE_ASSETS, TOKENS } from './constants'
 import { BitqueryEDSEthereum } from './BitqueryEDSEthereum'
 import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
 import { LedgerServiceEthereum, LedgerSigner } from './LedgerServiceEthereum'
 import Transport from '@ledgerhq/hw-transport'
+import {
+  AvailableNetworkIds,
+  BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID,
+  DEFAULT_URL_BY_NETWORK_ID,
+  DERIVATION_PATH,
+  NATIVE_ASSET_BY_NETWORK_ID,
+  NETWORK_NAME_BY_NETWORK_ID,
+} from './constants'
+
 export class BSEthereum<BSCustomName extends string = string>
-  implements BlockchainService, BSWithNft, BSWithNameService, BSCalculableFee, BSWithLedger
+  implements
+    BlockchainService<BSCustomName, AvailableNetworkIds>,
+    BSWithNft,
+    BSWithNameService,
+    BSCalculableFee,
+    BSWithLedger
 {
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
@@ -37,36 +50,34 @@ export class BSEthereum<BSCustomName extends string = string>
   ledgerService: LedgerServiceEthereum
   tokens: Token[]
   nftDataService!: NftDataService
-  network!: Network
+  network!: Network<AvailableNetworkIds>
 
   constructor(
     blockchainName: BSCustomName,
-    network: PartialBy<Network, 'url'>,
+    network: PartialNetwork<AvailableNetworkIds>,
     getLedgerTransport?: (account: Account) => Promise<Transport>
   ) {
     this.blockchainName = blockchainName
     this.ledgerService = new LedgerServiceEthereum(getLedgerTransport)
     this.derivationPath = DERIVATION_PATH
-    this.tokens = TOKENS[network.type]
-
-    this.feeToken = this.tokens.find(token => token.symbol === 'ETH')!
+    this.tokens = [NATIVE_ASSET_BY_NETWORK_ID[network.id]]
+    this.feeToken = NATIVE_ASSET_BY_NETWORK_ID[network.id]
     this.setNetwork(network)
   }
 
-  setNetwork(param: PartialBy<Network, 'url'>) {
+  setNetwork(partialNetwork: PartialNetwork<AvailableNetworkIds>) {
     const network = {
-      type: param.type,
-      url: param.url ?? DEFAULT_URL_BY_NETWORK_TYPE[param.type],
+      id: partialNetwork.id,
+      name: partialNetwork.name ?? NETWORK_NAME_BY_NETWORK_ID[partialNetwork.id],
+      url: partialNetwork.url ?? DEFAULT_URL_BY_NETWORK_ID[partialNetwork.id],
     }
     this.network = network
 
-    if (network.type !== 'mainnet') {
-      this.blockchainDataService = new RpcBDSEthereum(network)
-    } else {
-      this.blockchainDataService = new BitqueryBDSEthereum(network)
-    }
+    const bitqueryNetwork = BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[partialNetwork.id]
 
-    this.exchangeDataService = new BitqueryEDSEthereum(network.type)
+    this.blockchainDataService = bitqueryNetwork ? new BitqueryBDSEthereum(network) : new RpcBDSEthereum(network)
+
+    this.exchangeDataService = new BitqueryEDSEthereum(network.id)
     this.nftDataService = new GhostMarketNDSEthereum(network)
   }
 
@@ -164,7 +175,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
 
-    const isNative = NATIVE_ASSETS.some(asset => asset.hash === param.intent.tokenHash)
+    const isNative = NATIVE_ASSET_BY_NETWORK_ID[this.network.id].hash === param.intent.tokenHash
     if (isNative) {
       transactionParams = {
         to: param.intent.receiverAddress,
@@ -204,7 +215,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let estimated: ethers.BigNumber
 
-    const isNative = NATIVE_ASSETS.some(asset => asset.hash === param.intent.tokenHash)
+    const isNative = NATIVE_ASSET_BY_NETWORK_ID[this.network.id].hash === param.intent.tokenHash
     const decimals = param.intent.tokenDecimals ?? 18
     const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
 

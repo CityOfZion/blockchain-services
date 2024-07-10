@@ -1,5 +1,5 @@
 import { ContractInvocation, ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
-import { GAS_PER_NEO, SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE, SwapScriptHashes } from '../constants'
+import { AvailableNetworkIds, GAS_PER_NEO, SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE, SwapScriptHashes } from '../constants'
 import { tx, u } from '@cityofzion/neon-core'
 import {
   Network,
@@ -16,13 +16,17 @@ type TransferArgs = {
 }
 
 type GetReservesArgs = {
-  network: Network
+  network: Network<AvailableNetworkIds>
   tokenToReceiveScriptHash: string
   tokenToUseScriptHash: string
 }
 
 export class FlamingoSwapNeonDappKitInvocationBuilder {
-  static swapInvocation(data: SwapControllerServiceSwapToReceiveArgs | SwapControllerServiceSwapToUseArgs) {
+  static swapInvocation(
+    data:
+      | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
+      | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds>
+  ) {
     return data.type === 'swapTokenToReceive'
       ? this.swapTokenToReceiveForTokenToUseInvocation(data)
       : this.swapTokenToUseForTokenToReceiveInvocation(data)
@@ -33,7 +37,7 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     tokenToReceiveScriptHash,
     tokenToUseScriptHash,
   }: GetReservesArgs): ContractInvocationMulti {
-    const flamingoSwapRouter = SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.type]!.flamingoSwapRouter
+    const flamingoSwapRouter = SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.id]!.flamingoSwapRouter
 
     return {
       invocations: [
@@ -68,11 +72,11 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     tokenToUse,
     deadline,
     network,
-  }: SwapControllerServiceSwapToReceiveArgs): ContractInvocationMulti {
+  }: SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>): ContractInvocationMulti {
     const invocations: ContractInvocation[] = []
     const allowedContracts: string[] = []
 
-    const scriptHashes: SwapScriptHashes = SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.type]!
+    const scriptHashes: SwapScriptHashes = SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.id]!
 
     const tokenToReceiveOverrode = FlamingoSwapHelper.overrideToken(network, tokenToReceive)
     const amountToReceiveFormatted = u.BigInteger.fromDecimal(
@@ -155,11 +159,11 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     tokenToUse,
     minimumReceived,
     network,
-  }: SwapControllerServiceSwapToUseArgs): ContractInvocationMulti {
+  }: SwapControllerServiceSwapToUseArgs<AvailableNetworkIds>): ContractInvocationMulti {
     const invocations: ContractInvocation[] = []
     const allowedContracts: string[] = []
 
-    const scriptHashes = SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.type]!
+    const scriptHashes = SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.id]!
 
     const isNeoSwapped = tokenToUse.hash === scriptHashes.neo
     if (isNeoSwapped) {
@@ -280,9 +284,9 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     return [scriptHashes.gas, scriptHashes.flpBneoGas, scriptHashes.bneo]
   }
 
-  private static overrideScriptHash(network: Network, scriptHash: string): string {
-    return scriptHash === SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.type]!.neo
-      ? SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.type]!.bneo
+  private static overrideScriptHash(network: Network<AvailableNetworkIds>, scriptHash: string): string {
+    return scriptHash === SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.id]!.neo
+      ? SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.id]!.bneo
       : scriptHash
   }
 }

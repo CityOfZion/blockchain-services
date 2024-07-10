@@ -1,14 +1,15 @@
-import { NetworkType, Token } from '@cityofzion/blockchain-service'
+import { Token } from '@cityofzion/blockchain-service'
 import commom from './assets/tokens/common.json'
 import mainnet from './assets/tokens/mainnet.json'
 
-export const TOKENS: Record<NetworkType, Token[]> = {
+export type AvailableNetworkIds = 'mainnet' | 'testnet'
+
+export const TOKENS: Record<AvailableNetworkIds, Token[]> = {
   mainnet: [...commom, ...mainnet],
   testnet: commom,
-  custom: commom,
 }
 
-export const LEGACY_NETWORK_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>, string> = {
+export const LEGACY_NETWORK_BY_NETWORK_TYPE: Record<Exclude<AvailableNetworkIds, 'custom'>, string> = {
   mainnet: 'MainNet',
   testnet: 'TestNet',
 }
@@ -17,7 +18,7 @@ export const NATIVE_ASSETS = commom
 
 export const DERIVATION_PATH = "m/44'/888'/0'/0/?"
 
-export const RPC_LIST_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>, string[]> = {
+export const RPC_LIST_BY_NETWORK_TYPE: Record<Exclude<AvailableNetworkIds, 'custom'>, string[]> = {
   mainnet: [
     'http://seed9.ngd.network:10332',
     'https://mainnet1.neo2.coz.io:443',
@@ -37,7 +38,7 @@ export const RPC_LIST_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>, st
   ],
 }
 
-export const DEFAULT_URL_BY_NETWORK_TYPE: Record<Exclude<NetworkType, 'custom'>, string> = {
+export const DEFAULT_URL_BY_NETWORK_TYPE: Record<Exclude<AvailableNetworkIds, 'custom'>, string> = {
   mainnet: RPC_LIST_BY_NETWORK_TYPE.mainnet[0],
   testnet: RPC_LIST_BY_NETWORK_TYPE.testnet[0],
 }

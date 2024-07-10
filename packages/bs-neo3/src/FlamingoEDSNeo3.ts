@@ -2,11 +2,12 @@ import {
   CryptoCompareEDS,
   Currency,
   ExchangeDataService,
-  NetworkType,
+  GetTokenPriceHistory,
+  TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
-import { TOKENS } from './constants'
+import { AvailableNetworkIds, TOKENS } from './constants'
 
 type FlamingoTokenInfoPricesResponse = {
   symbol: string
@@ -15,17 +16,17 @@ type FlamingoTokenInfoPricesResponse = {
 }[]
 
 export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataService {
-  readonly #networkType: NetworkType
+  readonly #networkId: AvailableNetworkIds
   readonly #axiosInstance: AxiosInstance
 
-  constructor(networkType: NetworkType) {
-    super(networkType, TOKENS[networkType])
-    this.#networkType = networkType
+  constructor(networkId: AvailableNetworkIds) {
+    super(TOKENS[networkId])
+    this.#networkId = networkId
     this.#axiosInstance = axios.create({ baseURL: 'https://api.flamingo.finance' })
   }
 
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
-    if (this.#networkType !== 'mainnet') throw new Error('Exchange is only available on mainnet')
+    if (this.#networkId !== 'mainnet') throw new Error('Exchange is only available on mainnet')
 
     const { data: prices } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/token-info/prices')
 
@@ -40,6 +41,11 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
       symbol: price.symbol,
       hash: price.hash,
     }))
+  }
+
+  getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]> {
+    if (this.#networkId !== 'mainnet') throw new Error('Exchange is only available on mainnet')
+    return super.getTokenPriceHistory(params)
   }
 
   private async getCurrencyRatio(currency: Currency): Promise<number> {

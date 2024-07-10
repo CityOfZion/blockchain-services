@@ -25,13 +25,13 @@
     "@ethersproject/json-wallets": "5.7.0",
     "@ethersproject/bytes": "5.7.0",
     "@ethersproject/bignumber": "5.7.0",
-    "@ledgerhq/hw-transport-node-hid": "~6.28.5",
     "@ledgerhq/hw-transport": "~6.30.5",
     "@ledgerhq/hw-app-eth": "~6.35.7",
     "@ethersproject/abstract-signer": "~5.7.0",
     "@ethersproject/properties": "~5.7.0"
   },
   "devDependencies": {
+    "@ledgerhq/hw-transport-node-hid": "~6.28.5",
     "@types/jest": "29.5.3",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
     "@typescript-eslint/parser": "^6.5.0",

@@ -1,14 +1,13 @@
-import {
-  CryptoCompareEDS,
-  Currency,
-  ExchangeDataService,
-  NetworkType,
-  TokenPricesResponse,
-} from '@cityofzion/blockchain-service'
+import { CryptoCompareEDS, Currency, ExchangeDataService, TokenPricesResponse } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE, BITQUERY_MIRROR_URL, TOKENS } from './constants'
+import {
+  AvailableNetworkIds,
+  BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID,
+  BITQUERY_MIRROR_URL,
+  NATIVE_ASSET_BY_NETWORK_ID,
+} from './constants'
 
 type BitQueryGetTokenPricesResponse = {
   ethereum: {
@@ -32,24 +31,22 @@ type BitQueryGetTokenPricesResponse = {
 dayjs.extend(utc)
 export class BitqueryEDSEthereum extends CryptoCompareEDS implements ExchangeDataService {
   readonly #client: AxiosInstance
-  readonly #networkType: NetworkType
+  readonly #networkId: AvailableNetworkIds
 
-  constructor(networkType: NetworkType) {
-    super(networkType, TOKENS[networkType])
+  constructor(networkId: AvailableNetworkIds) {
+    super([NATIVE_ASSET_BY_NETWORK_ID[networkId]])
 
-    this.#networkType = networkType
+    this.#networkId = networkId
     this.#client = axios.create({
       baseURL: BITQUERY_MIRROR_URL,
     })
   }
 
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
-    if (this.#networkType !== 'mainnet') throw new Error('Exchange is only available on mainnet')
-
     const twoDaysAgo = dayjs.utc().subtract(2, 'day').startOf('date').toISOString()
 
     const result = await this.#client.get<BitQueryGetTokenPricesResponse>(`/get-price`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE[this.#networkType], after: twoDaysAgo },
+      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId], after: twoDaysAgo },
     })
 
     if (!result.data) {

@@ -1,15 +1,8 @@
-import {
-  NftResponse,
-  NftsResponse,
-  NetworkType,
-  GetNftParam,
-  GetNftsByAddressParams,
-  Network,
-} from '@cityofzion/blockchain-service'
+import { NftResponse, NftsResponse, GetNftParam, GetNftsByAddressParams, Network } from '@cityofzion/blockchain-service'
 import qs from 'query-string'
 import axios from 'axios'
 
-import { GHOSTMARKET_CHAIN_BY_NETWORK_TYPE, GHOSTMARKET_URL_BY_NETWORK_TYPE } from './constants'
+import { AvailableNetworkIds, GHOSTMARKET_CHAIN_BY_NETWORK_TYPE, GHOSTMARKET_URL_BY_NETWORK_TYPE } from './constants'
 import { RpcNDSNeo3 } from './RpcNDSNeo3'
 
 type GhostMarketNFT = {
@@ -49,11 +42,11 @@ type GhostMarketAssets = {
 }
 
 export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
-  readonly #networkType: NetworkType
+  readonly #networkId: AvailableNetworkIds
 
-  constructor(network: Network) {
+  constructor(network: Network<AvailableNetworkIds>) {
     super(network)
-    this.#networkType = network.type
+    this.#networkId = network.id
   }
 
   async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
@@ -94,12 +87,12 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
   private getUrlWithParams(params: Record<string, any>) {
     const parameters = qs.stringify(
       {
-        chain: GHOSTMARKET_CHAIN_BY_NETWORK_TYPE[this.#networkType],
+        chain: GHOSTMARKET_CHAIN_BY_NETWORK_TYPE[this.#networkId],
         ...params,
       },
       { arrayFormat: 'bracket' }
     )
-    return `${GHOSTMARKET_URL_BY_NETWORK_TYPE[this.#networkType]}/assets?${parameters}`
+    return `${GHOSTMARKET_URL_BY_NETWORK_TYPE[this.#networkId]}/assets?${parameters}`
   }
 
   private parse(data: GhostMarketNFT) {

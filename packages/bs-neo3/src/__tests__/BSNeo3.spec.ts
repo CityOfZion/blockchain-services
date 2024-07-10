@@ -2,19 +2,13 @@ import { sleep } from './utils/sleep'
 import { BSNeo3 } from '../BSNeo3'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import Transport from '@ledgerhq/hw-transport'
-import { Network } from '@cityofzion/blockchain-service'
 import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
 
 let bsNeo3: BSNeo3
-let transport: Transport
-
-const network: Network = { type: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet }
 
 describe('BSNeo3', () => {
   beforeAll(async () => {
-    transport = await TransportNodeHid.create()
-    bsNeo3 = new BSNeo3('neo3', network, async () => transport)
+    bsNeo3 = new BSNeo3('neo3', { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' })
   }, 60000)
 
   it('Should be able to validate an address', () => {
@@ -129,21 +123,28 @@ describe('BSNeo3', () => {
   })
 
   it.skip('Should be able to transfer with ledger', async () => {
-    const publicKey = await bsNeo3.ledgerService.getPublicKey(transport)
+    const transport = await TransportNodeHid.create()
+    const service = new BSNeo3(
+      'neo3',
+      { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' },
+      async () => transport
+    )
 
-    const account = bsNeo3.generateAccountFromPublicKey(publicKey)
+    const publicKey = await service.ledgerService.getPublicKey(transport)
 
-    const balance = await bsNeo3.blockchainDataService.getBalance(account.address)
-    const gasBalance = balance.find(b => b.token.symbol === bsNeo3.feeToken.symbol)
+    const account = service.generateAccountFromPublicKey(publicKey)
+
+    const balance = await service.blockchainDataService.getBalance(account.address)
+    const gasBalance = balance.find(b => b.token.symbol === service.feeToken.symbol)
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
 
-    const transactionHash = await bsNeo3.transfer({
+    const transactionHash = await service.transfer({
       senderAccount: account,
       intent: {
         amount: '1',
         receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-        tokenHash: bsNeo3.feeToken.hash,
-        tokenDecimals: bsNeo3.feeToken.decimals,
+        tokenHash: service.feeToken.hash,
+        tokenDecimals: service.feeToken.decimals,
       },
       isLedger: true,
     })

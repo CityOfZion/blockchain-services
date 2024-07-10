@@ -1,8 +1,6 @@
 import Transport from '@ledgerhq/hw-transport'
 import TypedEmitter from 'typed-emitter'
 
-export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
-
 export type Account = {
   key: string
   type: 'wif' | 'privateKey' | 'publicKey'
@@ -17,11 +15,19 @@ export interface Token {
   hash: string
   decimals: number
 }
-export type NetworkType = 'mainnet' | 'testnet' | 'custom'
-export type Network = {
-  type: NetworkType
+
+export type Network<T extends string = string> = {
+  id: T
+  name: string
   url: string
 }
+
+export type PartialNetwork<T extends string = string> = {
+  id: T
+  name?: string
+  url?: string
+}
+
 export type IntentTransferParam = {
   receiverAddress: string
   tokenHash: string
@@ -37,15 +43,15 @@ export type TransferParam = {
   isLedger?: boolean
 }
 
-export interface BlockchainService<BSCustomName extends string = string> {
+export interface BlockchainService<BSCustomName extends string = string, BSAvailableNetworks extends string = string> {
   readonly blockchainName: BSCustomName
   readonly derivationPath: string
   readonly feeToken: Token
   exchangeDataService: ExchangeDataService
   blockchainDataService: BlockchainDataService
   tokens: Token[]
-  network: Network
-  setNetwork: (network: PartialBy<Network, 'url'>) => void
+  network: Network<BSAvailableNetworks>
+  setNetwork: (partialNetwork: PartialNetwork<BSAvailableNetworks>) => void
   generateAccountFromMnemonic(mnemonic: string | string, index: number): AccountWithDerivationPath
   generateAccountFromKey(key: string): Account
   decrypt(keyOrJson: string, password: string): Promise<Account>
@@ -267,27 +273,27 @@ export type SwapControllerServiceEvents = {
   lastAmountChanged: (lastAmountChanged: 'amountToUse' | 'amountToReceive' | null) => void | Promise<void>
 }
 
-export type SwapControllerServiceSwapArgs = {
+export type SwapControllerServiceSwapArgs<T extends string> = {
   amountToUse: string
   amountToReceive: string
   tokenToUse: Token
   tokenToReceive: Token
   address: string
   deadline: string
-  network: Network
+  network: Network<T>
 }
 
-export type SwapControllerServiceSwapToUseArgs = {
+export type SwapControllerServiceSwapToUseArgs<T extends string> = {
   minimumReceived: string
   type: 'swapTokenToUse'
-} & SwapControllerServiceSwapArgs
+} & SwapControllerServiceSwapArgs<T>
 
-export type SwapControllerServiceSwapToReceiveArgs = {
+export type SwapControllerServiceSwapToReceiveArgs<T extends string> = {
   maximumSelling: string
   type: 'swapTokenToReceive'
-} & SwapControllerServiceSwapArgs
+} & SwapControllerServiceSwapArgs<T>
 
-export interface SwapControllerService {
+export interface SwapControllerService<AvailableNetworkIds extends string> {
   eventEmitter: TypedEmitter<SwapControllerServiceEvents>
 
   setAccountToUse(account: Account | null): void
@@ -298,7 +304,9 @@ export interface SwapControllerService {
   setDeadline(deadline: string): void
   setSlippage(slippage: number): void
   swap(isLedger?: boolean): void
-  buildSwapArgs(): SwapControllerServiceSwapToUseArgs | SwapControllerServiceSwapToReceiveArgs
+  buildSwapArgs():
+    | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds>
+    | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
   setReserves(): void
   startListeningBlockGeneration(): void
   stopListeningBlockGeneration(): void

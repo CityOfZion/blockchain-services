@@ -21,13 +21,13 @@ import {
 } from './FlamingoSwapError'
 import { FlamingoSwapHelper } from './FlamingoSwapHelper'
 import WebSocket from 'isomorphic-ws'
-import { BLOCKCHAIN_WSS_URL } from '../constants'
+import { AvailableNetworkIds, BLOCKCHAIN_WSS_URL } from '../constants'
 
-export class FlamingoSwapControllerService implements SwapControllerService {
+export class FlamingoSwapControllerService implements SwapControllerService<AvailableNetworkIds> {
   eventEmitter: TypedEmitter<SwapControllerServiceEvents>
   ws: WebSocket
 
-  readonly #network: Network
+  readonly #network: Network<AvailableNetworkIds>
 
   #accountToUse: Account | null = null
 
@@ -55,21 +55,23 @@ export class FlamingoSwapControllerService implements SwapControllerService {
 
   #lastAmountChange: 'amountToReceive' | 'amountToUse' | null = null
 
-  constructor(network: Network) {
-    if (network.type === 'custom') throw new CustomNetworkNotSupportedError()
+  constructor(network: Network<AvailableNetworkIds>) {
+    if (network.id === 'custom') throw new CustomNetworkNotSupportedError()
 
     this.#network = network
     this.eventEmitter = new EventEmitter() as TypedEmitter<SwapControllerServiceEvents>
   }
 
-  buildSwapArgs(): SwapControllerServiceSwapToReceiveArgs | SwapControllerServiceSwapToUseArgs {
+  buildSwapArgs():
+    | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
+    | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds> {
     if (!this.accountToUse) throw new FlamingoSwapMissingParametersError('accountToUse')
     if (!this.amountToReceive) throw new FlamingoSwapMissingParametersError('amountToReceive')
     if (!this.amountToUse) throw new FlamingoSwapMissingParametersError('amountToUse')
     if (!this.tokenToReceive) throw new FlamingoSwapMissingParametersError('tokenToReceive')
     if (!this.tokenToUse) throw new FlamingoSwapMissingParametersError('tokenToUse')
 
-    const baseSwapArgs: SwapControllerServiceSwapArgs = {
+    const baseSwapArgs: SwapControllerServiceSwapArgs<AvailableNetworkIds> = {
       address: this.accountToUse.address,
       amountToReceive: this.amountToReceive,
       amountToUse: this.amountToUse,

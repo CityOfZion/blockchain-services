@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js'
 import { Network, SwapRoute, Token } from '@cityofzion/blockchain-service'
-import { SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE, TOKENS } from '../constants'
+import { AvailableNetworkIds, SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE, TOKENS } from '../constants'
 
 type TGetSwapArgs = {
   amountToUse: string | null
@@ -10,7 +10,7 @@ type TGetSwapArgs = {
   reservesToUse: string
   reservesToReceive: string
   slippage: number
-  network: Network
+  network: Network<AvailableNetworkIds>
 }
 
 type TCreateTradeDataArgs = {
@@ -113,8 +113,8 @@ export class FlamingoSwapHelper {
     }
   }
 
-  static overrideToken(network: Network, token: Token): Token {
-    const neoScriptHash = SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.type]!.neo
+  static overrideToken(network: Network<AvailableNetworkIds>, token: Token): Token {
+    const neoScriptHash = SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.id]!.neo
 
     const isNeoToken = this.normalizeHash(token.hash) === this.normalizeHash(neoScriptHash)
 
@@ -122,8 +122,8 @@ export class FlamingoSwapHelper {
       return token
     }
 
-    const bneoToken = TOKENS[network.type].find(
-      token => token.hash === SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.type]!.bneo
+    const bneoToken = TOKENS[network.id].find(
+      token => token.hash === SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE[network.id]!.bneo
     )
     if (!bneoToken) throw new Error('Bneo token not found')
 
@@ -147,13 +147,13 @@ export class FlamingoSwapHelper {
     }
   }
 
-  private static overrideAmountInput(network: Network, amount: string, token: Token) {
+  private static overrideAmountInput(network: Network<AvailableNetworkIds>, amount: string, token: Token) {
     const tokenOverrode = this.overrideToken(network, token)
 
     return new BigNumber(amount).shiftedBy(tokenOverrode.decimals)
   }
 
-  private static overrideAmountToDisplay(network: Network, amount: string, token: Token) {
+  private static overrideAmountToDisplay(network: Network<AvailableNetworkIds>, amount: string, token: Token) {
     const tokenOverrode = this.overrideToken(network, token)
 
     return new BigNumber(amount).shiftedBy(-tokenOverrode.decimals).toFixed()
