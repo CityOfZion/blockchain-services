@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "0.14.3",
+      "tag": "@cityofzion/bs-neo3_v0.14.3",
+      "date": "Wed, 10 Jul 2024 20:54:48 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change NUDES to TIPS"
+          },
+          {
+            "comment": "Move  @ledgerhq/hw-transport-node-hid to devDependencies"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.14.2",
       "tag": "@cityofzion/bs-neo3_v0.14.2",
       "date": "Fri, 28 Jun 2024 21:53:35 GMT",

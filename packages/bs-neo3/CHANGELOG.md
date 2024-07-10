@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 28 Jun 2024 21:53:35 GMT and should not be manually modified.
+This log was last generated on Wed, 10 Jul 2024 20:54:48 GMT and should not be manually modified.
+
+## 0.14.3
+Wed, 10 Jul 2024 20:54:48 GMT
+
+### Patches
+
+- Change NUDES to TIPS
+- Move  @ledgerhq/hw-transport-node-hid to devDependencies
 
 ## 0.14.2
 Fri, 28 Jun 2024 21:53:35 GMT
