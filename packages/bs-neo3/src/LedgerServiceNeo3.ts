@@ -1,31 +1,31 @@
-import { Account, LedgerService, LedgerServiceEmitter } from '@cityofzion/blockchain-service'
+import { Account, BlockchainDataService, LedgerService, LedgerServiceEmitter } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import { wallet, api, u } from '@cityofzion/neon-js'
 import { NeonParser } from '@cityofzion/neon-dappkit'
 import EventEmitter from 'events'
 
 export class LedgerServiceNeo3 implements LedgerService {
+  #blockchainDataService: BlockchainDataService
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
+  getLedgerTransport?: (account: Account) => Promise<Transport>
 
-  constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
-
-  async getAddress(transport: Transport): Promise<string> {
-    const publicKey = await this.getPublicKey(transport)
-    const { address } = new wallet.Account(publicKey)
-
-    return address
+  constructor(
+    blockchainDataService: BlockchainDataService,
+    getLedgerTransport?: (account: Account) => Promise<Transport>
+  ) {
+    this.#blockchainDataService = blockchainDataService
+    this.getLedgerTransport = getLedgerTransport
   }
 
-  getSigningCallback(transport: Transport): api.SigningFunction {
+  getSigningCallback(transport: Transport, account: Account): api.SigningFunction {
     return async (transaction, { witnessIndex, network }) => {
-      const publicKey = await this.getPublicKey(transport)
-      const account = new wallet.Account(publicKey)
+      const neonJsAccount = new wallet.Account(account.key)
 
       const witnessScriptHash = wallet.getScriptHashFromVerificationScript(
         transaction.witnesses[witnessIndex].verificationScript.toString()
       )
 
-      if (account.scriptHash !== witnessScriptHash) {
+      if (neonJsAccount.scriptHash !== witnessScriptHash) {
         throw new Error('Invalid witness script hash')
       }
 
@@ -39,7 +39,7 @@ export class LedgerServiceNeo3 implements LedgerService {
     try {
       this.emitter.emit('getSignatureStart')
 
-      const bip44Buffer = this.toBip44Buffer(addressIndex)
+      const bip44Buffer = this.#toBip44Buffer(addressIndex)
       await transport.send(0x80, 0x02, 0, 0x80, bip44Buffer, [0x9000])
       await transport.send(0x80, 0x02, 1, 0x80, Buffer.from(NeonParser.numToHex(networkMagic, 4, true), 'hex'), [
         0x9000,
@@ -64,7 +64,7 @@ export class LedgerServiceNeo3 implements LedgerService {
         throw new Error(`No more data but Ledger did not return signature!`)
       }
 
-      const signature = this.derSignatureToHex(response.toString('hex'))
+      const signature = this.#derSignatureToHex(response.toString('hex'))
 
       return signature
     } finally {
@@ -72,29 +72,61 @@ export class LedgerServiceNeo3 implements LedgerService {
     }
   }
 
-  async getPublicKey(transport: Transport, addressIndex = 0): Promise<string> {
-    const bip44Buffer = this.toBip44Buffer(addressIndex)
+  async getAccounts(transport: Transport): Promise<Account[]> {
+    const accounts: Account[] = []
+    let shouldBreak = false
+    let index = 0
 
-    const result = await transport.send(0x80, 0x04, 0x00, 0x00, bip44Buffer, [0x9000])
-    const publicKey = result.toString('hex').substring(0, 130)
+    while (!shouldBreak) {
+      const account = await this.getAccount(transport, index)
 
-    return publicKey
+      if (index !== 0) {
+        try {
+          const { totalCount } = await this.#blockchainDataService.getTransactionsByAddress({
+            address: account.address,
+          })
+
+          if (!totalCount || totalCount <= 0) shouldBreak = true
+        } catch {
+          shouldBreak = true
+        }
+      }
+
+      accounts.push(account)
+      index++
+    }
+
+    return accounts
   }
 
-  private toBip44Buffer(addressIndex = 0, changeIndex = 0, accountIndex = 0) {
-    const accountHex = this.to8BitHex(accountIndex + 0x80000000)
-    const changeHex = this.to8BitHex(changeIndex)
-    const addressHex = this.to8BitHex(addressIndex)
+  async getAccount(transport: Transport, index: number): Promise<Account> {
+    const bip44Buffer = this.#toBip44Buffer(index)
+    const result = await transport.send(0x80, 0x04, 0x00, 0x00, bip44Buffer, [0x9000])
+    const publicKey = result.toString('hex').substring(0, 130)
+    const { address } = new wallet.Account(publicKey)
+
+    return {
+      address,
+      key: publicKey,
+      type: 'publicKey',
+      derivationIndex: index,
+    }
+  }
+
+  #toBip44Buffer(addressIndex = 0, changeIndex = 0, accountIndex = 0) {
+    const accountHex = this.#to8BitHex(accountIndex + 0x80000000)
+    const changeHex = this.#to8BitHex(changeIndex)
+    const addressHex = this.#to8BitHex(addressIndex)
 
     return Buffer.from('8000002C' + '80000378' + accountHex + changeHex + addressHex, 'hex')
   }
 
-  private to8BitHex(num: number): string {
+  #to8BitHex(num: number): string {
     const hex = num.toString(16)
     return '0'.repeat(8 - hex.length) + hex
   }
 
-  private derSignatureToHex(response: string): string {
+  #derSignatureToHex(response: string): string {
     const ss = new u.StringStream(response)
     // The first byte is format. It is usually 0x30 (SEQ) or 0x31 (SET)
     // The second byte represents the total length of the DER module.

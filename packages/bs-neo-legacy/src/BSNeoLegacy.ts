@@ -8,7 +8,6 @@ import {
   Token,
   Network,
   TransferParam,
-  AccountWithDerivationPath,
   BSWithExplorerService,
   ExplorerService,
   PartialNetwork,
@@ -78,13 +77,13 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): AccountWithDerivationPath {
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {
     keychain.importMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
     const path = this.derivationPath.replace('?', index.toString())
     const childKey = keychain.generateChildKey('neo', path)
     const key = childKey.getWIF()
     const { address } = new wallet.Account(key)
-    return { address, key, type: 'wif', derivationPath: path }
+    return { address, key, type: 'wif', derivationIndex: index }
   }
 
   generateAccountFromKey(key: string): Account {

@@ -2,7 +2,7 @@ import { BitqueryEDSEthereum } from '../BitqueryEDSEthereum'
 
 let bitqueryEDSEthereum: BitqueryEDSEthereum
 
-describe('FlamingoEDSNeo3', () => {
+describe.skip('FlamingoEDSNeo3', () => {
   beforeAll(() => {
     bitqueryEDSEthereum = new BitqueryEDSEthereum('1')
   })

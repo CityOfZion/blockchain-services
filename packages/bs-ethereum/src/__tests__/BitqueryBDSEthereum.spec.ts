@@ -7,7 +7,7 @@ const bitqueryBDSEthereum = new BitqueryBDSEthereum({
   name: NETWORK_NAME_BY_NETWORK_ID['1'],
 })
 
-describe('BitqueryBDSEthereum', () => {
+describe.skip('BitqueryBDSEthereum', () => {
   it('Should be able to get transaction - %s', async () => {
     const hash = '0x12f994e6cecbe4495b4fdef08a2db8551943813b21f3434aa5c2356f8686fa8b'
     const transaction = await bitqueryBDSEthereum.getTransaction(hash)

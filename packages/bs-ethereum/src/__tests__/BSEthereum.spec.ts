@@ -128,9 +128,7 @@ describe('BSEthereum', () => {
   it.skip('Should be able to transfer a native token with ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSEthereum('neo3', { id: '11155111' }, async () => transport)
-    const publicKey = await service.ledgerService.getPublicKey(transport)
-
-    const account = service.generateAccountFromPublicKey(publicKey)
+    const [account] = await service.ledgerService.getAccounts(transport)
 
     const transactionHash = await service.transfer({
       senderAccount: account,
@@ -150,8 +148,7 @@ describe('BSEthereum', () => {
     const transport = await TransportNodeHid.create()
     const service = new BSEthereum('neo3', { id: '11155111' }, async () => transport)
 
-    const publicKey = await service.ledgerService.getPublicKey(transport)
-    const account = service.generateAccountFromPublicKey(publicKey)
+    const [account] = await service.ledgerService.getAccounts(transport)
 
     const transactionHash = await service.transfer({
       senderAccount: account,

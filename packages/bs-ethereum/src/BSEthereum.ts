@@ -1,6 +1,5 @@
 import {
   Account,
-  AccountWithDerivationPath,
   BSCalculableFee,
   BSWithLedger,
   BSWithNameService,
@@ -58,7 +57,7 @@ export class BSEthereum<BSCustomName extends string = string>
     getLedgerTransport?: (account: Account) => Promise<Transport>
   ) {
     this.blockchainName = blockchainName
-    this.ledgerService = new LedgerServiceEthereum(getLedgerTransport)
+    this.ledgerService = new LedgerServiceEthereum(this.blockchainDataService, getLedgerTransport)
     this.derivationPath = DERIVATION_PATH
     this.tokens = [NATIVE_ASSET_BY_NETWORK_ID[network.id]]
     this.feeToken = NATIVE_ASSET_BY_NETWORK_ID[network.id]
@@ -107,7 +106,7 @@ export class BSEthereum<BSCustomName extends string = string>
     return true
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): AccountWithDerivationPath {
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {
     const path = this.derivationPath.replace('?', index.toString())
     const wallet = ethers.Wallet.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic, path)
 
@@ -115,7 +114,7 @@ export class BSEthereum<BSCustomName extends string = string>
       address: wallet.address,
       key: wallet.privateKey,
       type: 'privateKey',
-      derivationPath: path,
+      derivationIndex: index,
     }
   }
 
@@ -153,22 +152,7 @@ export class BSEthereum<BSCustomName extends string = string>
   }
 
   async transfer(param: TransferParam): Promise<string> {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
-
-    let ledgerTransport: Transport | undefined
-
-    if (param.isLedger) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide getLedgerTransport function to use Ledger')
-      ledgerTransport = await this.ledgerService.getLedgerTransport(param.senderAccount)
-    }
-
-    let signer: ethers.Signer
-    if (ledgerTransport) {
-      signer = new LedgerSigner(ledgerTransport, provider)
-    } else {
-      signer = new ethers.Wallet(param.senderAccount.key, provider)
-    }
+    const signer = await this.#generateSigner(param.senderAccount, param.isLedger)
 
     const decimals = param.intent.tokenDecimals ?? 18
     const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
@@ -196,20 +180,7 @@ export class BSEthereum<BSCustomName extends string = string>
   async calculateTransferFee(param: TransferParam): Promise<string> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
-    let ledgerTransport: Transport | undefined
-
-    if (param.isLedger) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide getLedgerTransport function to use Ledger')
-      ledgerTransport = await this.ledgerService.getLedgerTransport(param.senderAccount)
-    }
-
-    let signer: ethers.Signer
-    if (ledgerTransport) {
-      signer = new LedgerSigner(ledgerTransport, provider)
-    } else {
-      signer = new ethers.Wallet(param.senderAccount.key, provider)
-    }
+    const signer = await this.#generateSigner(param.senderAccount, param.isLedger)
 
     const gasPrice = await provider.getGasPrice()
 
@@ -242,5 +213,22 @@ export class BSEthereum<BSCustomName extends string = string>
     const address = await provider.resolveName(domainName)
     if (!address) throw new Error('No address found for domain name')
     return address
+  }
+
+  async #generateSigner(account: Account, isLedger?: boolean): Promise<ethers.Signer> {
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+
+    if (isLedger) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide getLedgerTransport function to use Ledger')
+
+      if (typeof account.derivationIndex !== 'number')
+        throw new Error('Your account must have derivationIndex to use Ledger')
+
+      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+      return new LedgerSigner(ledgerTransport, account.derivationIndex, provider)
+    }
+
+    return new ethers.Wallet(account.key, provider)
   }
 }
