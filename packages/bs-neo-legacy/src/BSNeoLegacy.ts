@@ -7,14 +7,15 @@ import {
   ExchangeDataService,
   Token,
   Network,
-  PartialBy,
   TransferParam,
   AccountWithDerivationPath,
   BSWithExplorerService,
   ExplorerService,
+  PartialNetwork,
 } from '@cityofzion/blockchain-service'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import {
+  AvailableNetworkIds,
   DEFAULT_URL_BY_NETWORK_TYPE,
   DERIVATION_PATH,
   LEGACY_NETWORK_BY_NETWORK_TYPE,
@@ -27,7 +28,7 @@ import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { DoraESNeoLegacy } from './DoraESNeoLegacy'
 
 export class BSNeoLegacy<BSCustomName extends string = string>
-  implements BlockchainService, BSClaimable, BSWithExplorerService
+  implements BlockchainService<BSCustomName, AvailableNetworkIds>, BSClaimable, BSWithExplorerService
 {
   readonly blockchainName: BSCustomName
   readonly feeToken: Token
@@ -39,33 +40,30 @@ export class BSNeoLegacy<BSCustomName extends string = string>
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
   tokens: Token[]
-  network!: Network
+  network!: Network<AvailableNetworkIds>
   legacyNetwork: string
 
-  constructor(blockchainName: BSCustomName, network: PartialBy<Network, 'url'>) {
-    if (network.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
-
+  constructor(blockchainName: BSCustomName, network: PartialNetwork<AvailableNetworkIds>) {
     this.blockchainName = blockchainName
-    this.legacyNetwork = LEGACY_NETWORK_BY_NETWORK_TYPE[network.type]
+    this.legacyNetwork = LEGACY_NETWORK_BY_NETWORK_TYPE[network.id]
     this.derivationPath = DERIVATION_PATH
-    this.tokens = TOKENS[network.type]
+    this.tokens = TOKENS[network.id]
     this.claimToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = this.tokens.find(token => token.symbol === 'NEO')!
     this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
     this.setNetwork(network)
   }
 
-  setNetwork(param: PartialBy<Network, 'url'>) {
-    if (param.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
-
+  setNetwork(param: PartialNetwork<AvailableNetworkIds>) {
     const network = {
-      type: param.type,
-      url: param.url ?? DEFAULT_URL_BY_NETWORK_TYPE[param.type],
+      id: param.id,
+      name: param.name ?? param.id,
+      url: param.url ?? DEFAULT_URL_BY_NETWORK_TYPE[param.id],
     }
     this.network = network
     this.blockchainDataService = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken)
-    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network.type)
-    this.explorerService = new DoraESNeoLegacy(network.type)
+    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network.id)
+    this.explorerService = new DoraESNeoLegacy(network.id)
   }
 
   validateAddress(address: string): boolean {

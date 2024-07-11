@@ -6,8 +6,9 @@ let ghostMarketNDSNeo3: GhostMarketNDSNeo3
 describe('GhostMarketNDSNeo3', () => {
   beforeAll(() => {
     ghostMarketNDSNeo3 = new GhostMarketNDSNeo3({
-      type: 'mainnet',
+      id: 'mainnet',
       url: DEFAULT_URL_BY_NETWORK_TYPE.mainnet,
+      name: 'mainnet',
     })
   })
 

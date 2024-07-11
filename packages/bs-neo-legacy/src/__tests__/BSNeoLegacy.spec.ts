@@ -5,7 +5,11 @@ let bsNeoLegacy: BSNeoLegacy
 
 describe('BSNeoLegacy', () => {
   beforeEach(() => {
-    bsNeoLegacy = new BSNeoLegacy('neoLegacy', { type: 'testnet', url: 'http://seed5.ngd.network:20332' })
+    bsNeoLegacy = new BSNeoLegacy('neoLegacy', {
+      id: 'testnet',
+      url: 'http://seed5.ngd.network:20332',
+      name: 'testnet',
+    })
   })
 
   it('Should be able to validate an address', () => {
@@ -85,7 +89,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a nep5 asset', async () => {
-    bsNeoLegacy.setNetwork({ type: 'mainnet', url: 'http://seed9.ngd.network:10332' })
+    bsNeoLegacy.setNetwork({ id: 'mainnet', url: 'http://seed9.ngd.network:10332' })
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
@@ -105,7 +109,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a asset with tip', async () => {
-    bsNeoLegacy.setNetwork({ type: 'mainnet', url: 'http://seed9.ngd.network:10332' })
+    bsNeoLegacy.setNetwork({ id: 'mainnet', url: 'http://seed9.ngd.network:10332' })
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!

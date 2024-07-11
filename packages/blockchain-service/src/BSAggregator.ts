@@ -1,4 +1,4 @@
-import { AccountWithDerivationPath, BlockchainService, Network, PartialBy } from './interfaces'
+import { AccountWithDerivationPath, BlockchainService, PartialNetwork } from './interfaces'
 
 export class BSAggregator<
   BSCustomName extends string = string,
@@ -12,7 +12,7 @@ export class BSAggregator<
     this.#blockchainServices = Object.values(blockchainServices)
   }
 
-  setNetwork(network: PartialBy<Network, 'url'>) {
+  setNetwork(network: PartialNetwork) {
     this.#blockchainServices.forEach(bs => bs.setNetwork(network))
   }
 

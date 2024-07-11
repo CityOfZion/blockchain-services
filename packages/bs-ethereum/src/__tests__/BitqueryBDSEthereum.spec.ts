@@ -1,7 +1,11 @@
 import { BitqueryBDSEthereum } from '../BitqueryBDSEthereum'
-import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
+import { DEFAULT_URL_BY_NETWORK_ID, NETWORK_NAME_BY_NETWORK_ID } from '../constants'
 
-const bitqueryBDSEthereum = new BitqueryBDSEthereum({ type: 'mainnet', url: DEFAULT_URL_BY_NETWORK_TYPE.mainnet })
+const bitqueryBDSEthereum = new BitqueryBDSEthereum({
+  id: '1',
+  url: DEFAULT_URL_BY_NETWORK_ID['1'],
+  name: NETWORK_NAME_BY_NETWORK_ID['1'],
+})
 
 describe('BitqueryBDSEthereum', () => {
   it('Should be able to get transaction - %s', async () => {
@@ -103,7 +107,6 @@ describe('BitqueryBDSEthereum', () => {
 
   it('Should be able to get a list of rpc - %s', async () => {
     const list = await bitqueryBDSEthereum.getRpcList()
-    console.log(list)
     expect(list.length).toBeGreaterThan(0)
     list.forEach(rpc => {
       expect(rpc).toEqual({

@@ -10,29 +10,27 @@ import {
   Token,
   Network,
   RpcResponse,
-  NetworkType,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { RPC_LIST_BY_NETWORK_TYPE, TOKENS } from './constants'
+import { AvailableNetworkIds, RPC_LIST_BY_NETWORK_TYPE, TOKENS } from './constants'
 import { rpc } from '@cityofzion/neon-js'
 
 export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
-  readonly #network: Network
+  readonly #network: Network<AvailableNetworkIds>
   readonly #claimToken: Token
   readonly #feeToken: Token
   readonly #tokenCache: Map<string, Token> = new Map()
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
 
-  constructor(network: Network, feeToken: Token, claimToken: Token) {
-    if (network.type === 'custom') throw new Error('Custom network is not supported for NEO Legacy')
+  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token) {
     this.#network = network
     this.#claimToken = claimToken
     this.#feeToken = feeToken
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    const data = await api.NeoLegacyREST.transaction(hash, this.#network.type)
+    const data = await api.NeoLegacyREST.transaction(hash, this.#network.id)
     if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
 
     const vout: any[] = data.vout ?? []
@@ -64,7 +62,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     address,
     page = 1,
   }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    const data = await api.NeoLegacyREST.getAddressAbstracts(address, page, this.#network.type)
+    const data = await api.NeoLegacyREST.getAddressAbstracts(address, page, this.#network.id)
     const transactions = new Map<string, TransactionResponse>()
 
     const promises = data.entries.map(async entry => {
@@ -103,7 +101,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
-    const response = await api.NeoLegacyREST.contract(contractHash, this.#network.type)
+    const response = await api.NeoLegacyREST.contract(contractHash, this.#network.id)
     if (!response || 'error' in response) throw new Error(`Contract ${contractHash} not found`)
 
     return {
@@ -114,14 +112,14 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = TOKENS[this.#network.type].find(token => token.hash === tokenHash)
+    const localToken = TOKENS[this.#network.id].find(token => token.hash === tokenHash)
     if (localToken) return localToken
 
     if (this.#tokenCache.has(tokenHash)) {
       return this.#tokenCache.get(tokenHash)!
     }
 
-    const data = await api.NeoLegacyREST.asset(tokenHash, this.#network.type)
+    const data = await api.NeoLegacyREST.asset(tokenHash, this.#network.id)
     if (!data || 'error' in data) throw new Error(`Token ${tokenHash} not found`)
 
     const token = {
@@ -137,7 +135,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const data = await api.NeoLegacyREST.balance(address, this.#network.type)
+    const data = await api.NeoLegacyREST.balance(address, this.#network.id)
 
     const promises = data.map<Promise<BalanceResponse>>(async balance => {
       const hash = balance.asset.replace('0x', '')
@@ -167,7 +165,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getUnclaimed(address: string): Promise<string> {
-    const { unclaimed } = await api.NeoLegacyREST.getUnclaimed(address, this.#network.type)
+    const { unclaimed } = await api.NeoLegacyREST.getUnclaimed(address, this.#network.id)
     return (unclaimed / 10 ** this.#claimToken.decimals).toFixed(this.#claimToken.decimals)
   }
 
@@ -178,7 +176,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
   async getRpcList(): Promise<RpcResponse[]> {
     const list: RpcResponse[] = []
-    const networkType = this.#network.type as Exclude<NetworkType, 'custom'>
+    const networkType = this.#network.id
 
     const promises = RPC_LIST_BY_NETWORK_TYPE[networkType].map(url => {
       // eslint-disable-next-line no-async-promise-executor

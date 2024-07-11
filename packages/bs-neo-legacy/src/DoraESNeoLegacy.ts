@@ -1,15 +1,15 @@
-import { BuildNftUrlParams, ExplorerService, NetworkType } from '@cityofzion/blockchain-service'
+import { BuildNftUrlParams, ExplorerService } from '@cityofzion/blockchain-service'
+import { AvailableNetworkIds } from './constants'
 
 export class DoraESNeoLegacy implements ExplorerService {
-  #networkType: NetworkType
+  #networkId: AvailableNetworkIds
 
-  constructor(networkType: NetworkType) {
-    this.#networkType = networkType
+  constructor(networkId: AvailableNetworkIds) {
+    this.#networkId = networkId
   }
 
   buildTransactionUrl(hash: string): string {
-    if (this.#networkType === 'custom') throw new Error('DoraESNeoLegacy does not support custom network')
-    return `https://dora.coz.io/transaction/neo2/${this.#networkType}/${hash}`
+    return `https://dora.coz.io/transaction/neo2/${this.#networkId}/${hash}`
   }
 
   buildNftUrl(_params: BuildNftUrlParams): string {

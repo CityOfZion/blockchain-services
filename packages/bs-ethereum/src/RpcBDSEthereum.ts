@@ -10,14 +10,15 @@ import {
   TransactionsByAddressResponse,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
-import { RPC_LIST_BY_NETWORK_TYPE, TOKENS } from './constants'
+import { AvailableNetworkIds, NATIVE_ASSET_BY_NETWORK_ID, RPC_LIST_BY_NETWORK_ID } from './constants'
+import { ERC20_ABI } from './assets/abis/ERC20'
 
 export class RpcBDSEthereum implements BlockchainDataService {
-  readonly #network: Network
+  readonly #network: Network<AvailableNetworkIds>
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
-  constructor(network: Network) {
+  constructor(network: Network<AvailableNetworkIds>) {
     this.#network = network
   }
 
@@ -30,8 +31,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
     const block = await provider.getBlock(transaction.blockHash)
     if (!block) throw new Error('Block not found')
 
-    const tokens = TOKENS[this.#network.type]
-    const token = tokens.find(token => token.symbol === 'ETH')!
+    const token = NATIVE_ASSET_BY_NETWORK_ID[this.#network.id]
 
     return {
       block: block.number,
@@ -60,19 +60,27 @@ export class RpcBDSEthereum implements BlockchainDataService {
   }
 
   async getTokenInfo(hash: string): Promise<Token> {
-    const tokens = TOKENS[this.#network.type]
-    const token = tokens.find(token => token.hash === hash)
-    if (!token) throw new Error('Token not found')
+    if (NATIVE_ASSET_BY_NETWORK_ID[this.#network.id].hash === hash) return NATIVE_ASSET_BY_NETWORK_ID[this.#network.id]
 
-    return token
+    const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
+    const contract = new ethers.Contract(hash, ERC20_ABI, provider)
+
+    const decimals = await contract.decimals()
+    const symbol = await contract.symbol()
+
+    return {
+      decimals,
+      symbol,
+      hash,
+      name: symbol,
+    }
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
     const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
     const balance = await provider.getBalance(address)
 
-    const tokens = TOKENS[this.#network.type]
-    const token = tokens.find(token => token.symbol === 'ETH')!
+    const token = NATIVE_ASSET_BY_NETWORK_ID[this.#network.id]
 
     return [
       {
@@ -90,7 +98,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
   async getRpcList(): Promise<RpcResponse[]> {
     const list: RpcResponse[] = []
 
-    const promises = RPC_LIST_BY_NETWORK_TYPE[this.#network.type].map(url => {
+    const promises = RPC_LIST_BY_NETWORK_ID[this.#network.id].map(url => {
       // eslint-disable-next-line no-async-promise-executor
       return new Promise<void>(async resolve => {
         const timeout = setTimeout(() => {
@@ -109,6 +117,8 @@ export class RpcBDSEthereum implements BlockchainDataService {
             height,
             latency,
           })
+        } catch {
+          /* empty */
         } finally {
           resolve()
           clearTimeout(timeout)

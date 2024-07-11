@@ -4,7 +4,7 @@ let bitqueryEDSEthereum: BitqueryEDSEthereum
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    bitqueryEDSEthereum = new BitqueryEDSEthereum('mainnet')
+    bitqueryEDSEthereum = new BitqueryEDSEthereum('1')
   })
 
   it('Should return a list with prices of tokens using USD', async () => {

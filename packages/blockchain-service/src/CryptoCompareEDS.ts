@@ -2,7 +2,6 @@ import {
   Currency,
   ExchangeDataService,
   GetTokenPriceHistory,
-  NetworkType,
   Token,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
@@ -27,19 +26,15 @@ type CryptoCompareHistoryResponse = {
 }
 
 export class CryptoCompareEDS implements ExchangeDataService {
-  networkType: NetworkType
   readonly #axiosInstance: AxiosInstance
   readonly #tokens: Token[]
 
-  constructor(network: NetworkType, tokens: Token[] = []) {
-    this.networkType = network
+  constructor(tokens: Token[] = []) {
     this.#tokens = tokens
     this.#axiosInstance = axios.create({ baseURL: 'https://min-api.cryptocompare.com' })
   }
 
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
-    if (this.networkType !== 'mainnet') throw new Error('Exchange is only available on mainnet')
-
     const tokenSymbols = this.#tokens.map(token => token.symbol)
     const { data: prices } = await this.#axiosInstance.get<CryptoCompareDataResponse>('/data/pricemultifull', {
       params: {

@@ -1,7 +1,6 @@
 import {
   BalanceResponse,
   ContractResponse,
-  NetworkType,
   Token,
   TransactionsByAddressParams,
   TransactionsByAddressResponse,
@@ -10,7 +9,12 @@ import {
   TransactionTransferNft,
   Network,
 } from '@cityofzion/blockchain-service'
-import { BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE, BITQUERY_MIRROR_URL, NATIVE_ASSETS, TOKENS } from './constants'
+import {
+  AvailableNetworkIds,
+  BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID,
+  BITQUERY_MIRROR_URL,
+  NATIVE_ASSET_BY_NETWORK_ID,
+} from './constants'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import axios, { AxiosInstance } from 'axios'
 
@@ -100,15 +104,15 @@ type BitqueryGetBalanceResponse = {
 
 export class BitqueryBDSEthereum extends RpcBDSEthereum {
   readonly #client: AxiosInstance
-  readonly #networkType: Exclude<NetworkType, 'custom'>
+  readonly #networkId: AvailableNetworkIds
+  readonly #tokenCache: Map<string, Token> = new Map()
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 8
 
-  constructor(network: Network) {
+  constructor(network: Network<AvailableNetworkIds>) {
     super(network)
 
-    if (network.type === 'custom') throw new Error('Custom network not supported')
-    this.#networkType = network.type
+    this.#networkId = network.id
 
     this.#client = axios.create({
       baseURL: BITQUERY_MIRROR_URL,
@@ -117,7 +121,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
     const result = await this.#client.get<BitqueryGetTransactionResponse>(`/get-transaction/${hash}`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE[this.#networkType] },
+      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId] },
     })
 
     if (!result.data || !result.data.ethereum.transfers.length) throw new Error('Transaction not found')
@@ -150,7 +154,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     const offset = limit * (page - 1)
 
     const result = await this.#client.get<BitqueryGetTransactionsByAddressResponse>(`/get-transactions/${address}`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE[this.#networkType], limit, offset },
+      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId], limit, offset },
     })
 
     if (!result.data) throw new Error('Address does not have transactions')
@@ -192,11 +196,12 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   }
 
   async getTokenInfo(hash: string): Promise<Token> {
-    const localToken = TOKENS[this.#networkType].find(token => token.hash === hash)
-    if (localToken) return localToken
+    if (this.#tokenCache.has(hash)) {
+      return this.#tokenCache.get(hash)!
+    }
 
     const result = await this.#client.get<BitqueryGetContractResponse>(`/get-token-info/${hash}`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE[this.#networkType] },
+      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId] },
     })
 
     if (!result.data || result.data.ethereum.smartContractCalls.length <= 0) throw new Error('Token not found')
@@ -208,32 +213,36 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
 
     if (tokenType !== 'ERC20') throw new Error('Token is not ERC20')
 
-    return {
+    const token = {
       hash: address,
-      name,
       symbol,
       decimals,
+      name,
     }
+
+    this.#tokenCache.set(hash, token)
+
+    return token
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
     const result = await this.#client.get<BitqueryGetBalanceResponse>(`/get-balance/${address}`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_TYPE[this.#networkType] },
+      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId] },
     })
 
     const data = result.data?.ethereum.address[0].balances ?? []
-    const ethBalance = result.data?.ethereum.address[0].balance ?? 0
-    const ethToken = NATIVE_ASSETS.find(asset => asset.symbol === 'ETH')!
+    const nativeBalance = result.data?.ethereum.address[0].balance ?? 0
+    const nativeToken = NATIVE_ASSET_BY_NETWORK_ID[this.#networkId]
 
     const balances: BalanceResponse[] = [
       {
-        amount: ethBalance.toString(),
-        token: ethToken,
+        amount: nativeBalance.toString(),
+        token: nativeToken,
       },
     ]
 
-    data.forEach(({ value, currency: { address, decimals, name, symbol } }) => {
-      if (value < 0 || address === ethToken.hash) return
+    data.forEach(({ value, currency: { address, decimals, symbol, name } }) => {
+      if (value < 0 || address === nativeToken.hash) return
 
       balances.push({
         amount: value.toString(),
@@ -251,7 +260,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
 
   private parseTransactionTransfer({
     amount,
-    currency: { tokenType, address, decimals, name, symbol },
+    currency: { tokenType, address, decimals, symbol, name },
     entityId,
     sender,
     receiver,
@@ -274,8 +283,8 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
       token: {
         decimals: decimals,
         hash: address,
-        name: name,
         symbol: symbol,
+        name: name,
       },
       type: 'token',
     }

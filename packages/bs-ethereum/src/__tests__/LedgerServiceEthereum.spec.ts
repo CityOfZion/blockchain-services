@@ -4,7 +4,7 @@ import { ethers } from 'ethers'
 
 let ledgerSigner: LedgerSigner
 
-describe('LedgerServiceEthereum', () => {
+describe.skip('LedgerServiceEthereum', () => {
   beforeAll(async () => {
     const transport = await TransportNodeHid.create()
     ledgerSigner = new LedgerSigner(transport)

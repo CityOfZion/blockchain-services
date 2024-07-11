@@ -1,8 +1,10 @@
-import { NetworkType, Token } from '@cityofzion/blockchain-service'
+import { Token } from '@cityofzion/blockchain-service'
 import commom from './assets/tokens/common.json'
 import mainnet from './assets/tokens/mainnet.json'
 
-export const TOKENS: Record<NetworkType, Token[]> = {
+export type AvailableNetworkIds = 'mainnet' | 'testnet' | 'custom'
+
+export const TOKENS: Record<AvailableNetworkIds, Token[]> = {
   mainnet: [...commom, ...mainnet],
   testnet: commom,
   custom: commom,
@@ -14,19 +16,19 @@ export const NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
 
 export const GAS_PER_NEO = 0.001
 
-export const GHOSTMARKET_URL_BY_NETWORK_TYPE: Partial<Record<NetworkType, string>> = {
+export const GHOSTMARKET_URL_BY_NETWORK_TYPE: Partial<Record<AvailableNetworkIds, string>> = {
   mainnet: 'https://api.ghostmarket.io/api/v2',
   testnet: 'https://api-testnet.ghostmarket.io/api/v2',
 }
 
-export const GHOSTMARKET_CHAIN_BY_NETWORK_TYPE: Partial<Record<NetworkType, string>> = {
+export const GHOSTMARKET_CHAIN_BY_NETWORK_TYPE: Partial<Record<AvailableNetworkIds, string>> = {
   mainnet: 'n3',
   testnet: 'n3t',
 }
 
 export const DERIVATION_PATH = "m/44'/888'/0'/0/?"
 
-export const RPC_LIST_BY_NETWORK_TYPE: Record<NetworkType, string[]> = {
+export const RPC_LIST_BY_NETWORK_TYPE: Record<AvailableNetworkIds, string[]> = {
   mainnet: [
     'https://mainnet1.neo.coz.io:443',
     'https://mainnet4.neo.coz.io:443',
@@ -51,7 +53,7 @@ export const RPC_LIST_BY_NETWORK_TYPE: Record<NetworkType, string[]> = {
   custom: ['http://127.0.0.1:50012'],
 }
 
-export const DEFAULT_URL_BY_NETWORK_TYPE: Record<NetworkType, string> = {
+export const DEFAULT_URL_BY_NETWORK_TYPE: Record<AvailableNetworkIds, string> = {
   mainnet: RPC_LIST_BY_NETWORK_TYPE.mainnet[0],
   testnet: RPC_LIST_BY_NETWORK_TYPE.testnet[0],
   custom: RPC_LIST_BY_NETWORK_TYPE.custom[0],
@@ -67,7 +69,7 @@ export type SwapScriptHashes = {
   flpBneoGas: string
 }
 
-export const SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE: Partial<Record<NetworkType, SwapScriptHashes>> = {
+export const SWAP_SCRIPT_HASHES_BY_NETWORK_TYPE: Partial<Record<AvailableNetworkIds, SwapScriptHashes>> = {
   mainnet: {
     flamingoSwapRouter: '0xf970f4ccecd765b63732b821775dc38c25d74f23',
     flamingoPairWhiteList: '0xfb75a5314069b56e136713d38477f647a13991b4',
