@@ -19,7 +19,8 @@ export type AvailableNetworkIds =
   | '12227331'
 
 export const DERIVATION_PATH = "m/44'/60'/0'/0/?"
-export const DEFAULT_PATH = "44'/60'/0'/0/0"
+
+export const PUBLIC_KEY_PREFIX = '0x'
 
 export const NATIVE_ASSET_BY_NETWORK_ID: Record<AvailableNetworkIds, Token> = {
   '1': ETH,

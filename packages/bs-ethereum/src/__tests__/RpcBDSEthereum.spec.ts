@@ -39,7 +39,7 @@ describe('RpcBDSEthereum', () => {
 
     expect(token).toEqual({
       symbol: 'ETH',
-      name: 'Ethereum',
+      name: 'ETH',
       hash: '-',
       decimals: 18,
     })

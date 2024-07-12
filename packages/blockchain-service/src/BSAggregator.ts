@@ -1,4 +1,4 @@
-import { AccountWithDerivationPath, BlockchainService, PartialNetwork } from './interfaces'
+import { Account, BlockchainService, PartialNetwork } from './interfaces'
 
 export class BSAggregator<
   BSCustomName extends string = string,
@@ -55,12 +55,12 @@ export class BSAggregator<
   async generateAccountFromMnemonicAllBlockchains(
     mnemonic: string,
     skippedAddresses?: string[]
-  ): Promise<Map<BSCustomName, AccountWithDerivationPath[]>> {
-    const mnemonicAccounts = new Map<BSCustomName, AccountWithDerivationPath[]>()
+  ): Promise<Map<BSCustomName, Account[]>> {
+    const mnemonicAccounts = new Map<BSCustomName, Account[]>()
 
     const promises = this.#blockchainServices.map(async service => {
       let index = 0
-      const accounts: AccountWithDerivationPath[] = []
+      const accounts: Account[] = []
       let hasError = false
 
       while (!hasError) {

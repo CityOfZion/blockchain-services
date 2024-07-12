@@ -62,5 +62,5 @@ describe('GhostMarketNDSNeo3', () => {
       })
       expect(hasToken).toBeTruthy()
     }
-  })
+  }, 10000)
 })

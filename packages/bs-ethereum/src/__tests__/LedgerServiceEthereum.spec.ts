@@ -1,23 +1,31 @@
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import { LedgerSigner } from '../LedgerServiceEthereum'
+import { LedgerServiceEthereum, LedgerSigner } from '../LedgerServiceEthereum'
 import { ethers } from 'ethers'
+import { RpcBDSEthereum } from '../RpcBDSEthereum'
+import { DEFAULT_URL_BY_NETWORK_ID, NETWORK_NAME_BY_NETWORK_ID } from '../constants'
+import Transport from '@ledgerhq/hw-transport'
 
 let ledgerSigner: LedgerSigner
+let ledgerService: LedgerServiceEthereum
+let transport: Transport
 
 describe.skip('LedgerServiceEthereum', () => {
   beforeAll(async () => {
-    const transport = await TransportNodeHid.create()
-    ledgerSigner = new LedgerSigner(transport)
+    transport = await TransportNodeHid.create()
+    ledgerSigner = new LedgerSigner(transport, 0)
+
+    const blockchainDataService = new RpcBDSEthereum({
+      id: '1',
+      name: NETWORK_NAME_BY_NETWORK_ID['1'],
+      url: DEFAULT_URL_BY_NETWORK_ID['1'],
+    })
+
+    ledgerService = new LedgerServiceEthereum(blockchainDataService, async () => transport)
   }, 60000)
 
   it('Should be able to get address', async () => {
     const address = await ledgerSigner.getAddress()
     expect(address).toBeDefined()
-  })
-
-  it('Should be able to get public key', async () => {
-    const publicKey = await ledgerSigner.getPublicKey()
-    expect(publicKey).toBeDefined()
   })
 
   it('Should be able to sign a message', async () => {
@@ -40,9 +48,9 @@ describe.skip('LedgerServiceEthereum', () => {
     const signedTransaction = await ledgerSigner.signTransaction(transaction)
 
     expect(signedTransaction).toBeDefined()
-  })
+  }, 60000)
 
-  it.only('Should be able to sign a typed data', async () => {
+  it('Should be able to sign a typed data', async () => {
     const typedData = {
       types: {
         Person: [
@@ -103,5 +111,33 @@ describe.skip('LedgerServiceEthereum', () => {
     const address = await ledgerSigner.getAddress()
 
     expect(signatureAddress).toEqual(address)
+  }, 60000)
+
+  it('Should be able to get all accounts', async () => {
+    const accounts = await ledgerService.getAccounts(transport)
+    expect(accounts.length).toBeGreaterThan(1)
+
+    accounts.forEach((account, index) => {
+      expect(account).toEqual(
+        expect.objectContaining({
+          address: expect.any(String),
+          key: expect.any(String),
+          type: 'publicKey',
+          derivationIndex: index,
+        })
+      )
+    })
+  }, 60000)
+
+  it('Should be able to get account', async () => {
+    const account = await ledgerService.getAccount(transport, 0)
+    expect(account).toEqual(
+      expect.objectContaining({
+        address: expect.any(String),
+        key: expect.any(String),
+        type: 'publicKey',
+        derivationIndex: 0,
+      })
+    )
   }, 60000)
 })

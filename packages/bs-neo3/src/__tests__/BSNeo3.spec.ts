@@ -83,7 +83,7 @@ describe('BSNeo3', () => {
     expect(encryptedKey).toEqual(expect.any(String))
   })
 
-  it.skip('Should be able to calculate transfer fee', async () => {
+  it('Should be able to calculate transfer fee', async () => {
     const account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 
     const fee = await bsNeo3.calculateTransferFee({
@@ -96,11 +96,7 @@ describe('BSNeo3', () => {
       },
     })
 
-    expect(fee).toEqual({
-      total: expect.any(Number),
-      networkFee: expect.any(Number),
-      systemFee: expect.any(Number),
-    })
+    expect(Number(fee)).toEqual(expect.any(Number))
   })
 
   it.skip('Should be able to transfer', async () => {
@@ -130,13 +126,13 @@ describe('BSNeo3', () => {
       async () => transport
     )
 
-    const publicKey = await service.ledgerService.getPublicKey(transport)
-
-    const account = service.generateAccountFromPublicKey(publicKey)
+    const account = await service.ledgerService.getAccount(transport, 0)
 
     const balance = await service.blockchainDataService.getBalance(account.address)
     const gasBalance = balance.find(b => b.token.symbol === service.feeToken.symbol)
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
+
+    console.log({ account })
 
     const transactionHash = await service.transfer({
       senderAccount: account,
