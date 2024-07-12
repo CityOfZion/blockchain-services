@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.0.0",
+      "tag": "@cityofzion/blockchain-service_v1.0.0",
+      "date": "Fri, 12 Jul 2024 00:06:10 GMT",
+      "comments": {
+        "major": [
+          {
+            "comment": "Adapt network to support multi network"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.13.0",
       "tag": "@cityofzion/blockchain-service_v0.13.0",
       "date": "Thu, 27 Jun 2024 21:15:08 GMT",

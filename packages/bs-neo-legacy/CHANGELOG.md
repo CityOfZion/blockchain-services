@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Fri, 28 Jun 2024 21:53:35 GMT and should not be manually modified.
+This log was last generated on Fri, 12 Jul 2024 00:06:10 GMT and should not be manually modified.
+
+## 1.0.0
+Fri, 12 Jul 2024 00:06:10 GMT
+
+### Breaking changes
+
+- Adapt network to support multi network
 
 ## 0.10.6
 Fri, 28 Jun 2024 21:53:35 GMT

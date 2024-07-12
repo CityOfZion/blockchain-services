@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.0.0",
+      "tag": "@cityofzion/bs-neo3_v1.0.0",
+      "date": "Fri, 12 Jul 2024 00:06:10 GMT",
+      "comments": {
+        "major": [
+          {
+            "comment": "Adapt network to support multi network"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.0.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.14.3",
       "tag": "@cityofzion/bs-neo3_v0.14.3",
       "date": "Wed, 10 Jul 2024 20:54:48 GMT",

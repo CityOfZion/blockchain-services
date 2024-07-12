@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 27 Jun 2024 21:15:08 GMT and should not be manually modified.
+This log was last generated on Fri, 12 Jul 2024 00:06:10 GMT and should not be manually modified.
+
+## 2.0.0
+Fri, 12 Jul 2024 00:06:10 GMT
+
+### Breaking changes
+
+- Add support to EVM
 
 ## 1.4.3
 Thu, 27 Jun 2024 21:15:08 GMT
