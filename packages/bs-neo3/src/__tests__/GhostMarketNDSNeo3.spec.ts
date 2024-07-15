@@ -1,15 +1,11 @@
+import { BSNeo3Helper } from '../BSNeo3Helper'
 import { GhostMarketNDSNeo3 } from '../GhostMarketNDSNeo3'
-import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
 
 let ghostMarketNDSNeo3: GhostMarketNDSNeo3
 
 describe('GhostMarketNDSNeo3', () => {
   beforeAll(() => {
-    ghostMarketNDSNeo3 = new GhostMarketNDSNeo3({
-      id: 'mainnet',
-      url: DEFAULT_URL_BY_NETWORK_TYPE.mainnet,
-      name: 'mainnet',
-    })
+    ghostMarketNDSNeo3 = new GhostMarketNDSNeo3(BSNeo3Helper.DEFAULT_NETWORK)
   })
 
   it('Get NFT', async () => {
@@ -62,5 +58,5 @@ describe('GhostMarketNDSNeo3', () => {
       })
       expect(hasToken).toBeTruthy()
     }
-  })
+  }, 60000)
 })

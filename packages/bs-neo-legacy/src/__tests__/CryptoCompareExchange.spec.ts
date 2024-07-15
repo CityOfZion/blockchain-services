@@ -1,10 +1,13 @@
+import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
 import { CryptoCompareEDSNeoLegacy } from '../CryptoCompareEDSNeoLegacy'
 
 let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy('mainnet')
+    const network = BSNeoLegacyHelper.DEFAULT_NETWORK
+    const tokens = BSNeoLegacyHelper.getTokens(network)
+    cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(network.id, tokens)
   })
 
   it('Should return a list with prices of tokens using USD', async () => {

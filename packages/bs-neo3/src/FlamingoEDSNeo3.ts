@@ -3,11 +3,12 @@ import {
   Currency,
   ExchangeDataService,
   GetTokenPriceHistory,
+  Token,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
-import { AvailableNetworkIds, TOKENS } from './constants'
+import { AvailableNetworkIds } from './BSNeo3Helper'
 
 type FlamingoTokenInfoPricesResponse = {
   symbol: string
@@ -19,8 +20,8 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
   readonly #networkId: AvailableNetworkIds
   readonly #axiosInstance: AxiosInstance
 
-  constructor(networkId: AvailableNetworkIds) {
-    super(TOKENS[networkId])
+  constructor(networkId: AvailableNetworkIds, tokens: Token[]) {
+    super(tokens)
     this.#networkId = networkId
     this.#axiosInstance = axios.create({ baseURL: 'https://api.flamingo.finance' })
   }

@@ -10,7 +10,6 @@ import {
   ExchangeDataService,
   Network,
   NftDataService,
-  PartialNetwork,
   Token,
   TransferParam,
 } from '@cityofzion/blockchain-service'
@@ -22,16 +21,9 @@ import { BitqueryEDSEthereum } from './BitqueryEDSEthereum'
 import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
-import { LedgerServiceEthereum, LedgerSigner } from './LedgerServiceEthereum'
+import { EthersLedgerServiceEthereum, EthersLedgerSigner } from './EthersLedgerServiceEthereum'
 import Transport from '@ledgerhq/hw-transport'
-import {
-  AvailableNetworkIds,
-  BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID,
-  DEFAULT_URL_BY_NETWORK_ID,
-  DERIVATION_PATH,
-  NATIVE_ASSET_BY_NETWORK_ID,
-  NETWORK_NAME_BY_NETWORK_ID,
-} from './constants'
+import { AvailableNetworkIds, BSEthereumHelper } from './BSEthereumHelper'
 
 export class BSEthereum<BSCustomName extends string = string>
   implements
@@ -42,42 +34,46 @@ export class BSEthereum<BSCustomName extends string = string>
     BSWithLedger
 {
   readonly blockchainName: BSCustomName
-  readonly feeToken: Token
   readonly derivationPath: string
 
+  feeToken!: Token
   blockchainDataService!: BlockchainDataService
   exchangeDataService!: ExchangeDataService
-  ledgerService: LedgerServiceEthereum
-  tokens: Token[]
+  ledgerService: EthersLedgerServiceEthereum
+  tokens!: Token[]
   nftDataService!: NftDataService
   network!: Network<AvailableNetworkIds>
 
   constructor(
     blockchainName: BSCustomName,
-    network: PartialNetwork<AvailableNetworkIds>,
+    network?: Network<AvailableNetworkIds>,
     getLedgerTransport?: (account: Account) => Promise<Transport>
   ) {
+    network = network ?? BSEthereumHelper.DEFAULT_NETWORK
+
     this.blockchainName = blockchainName
-    this.ledgerService = new LedgerServiceEthereum(getLedgerTransport)
-    this.derivationPath = DERIVATION_PATH
-    this.tokens = [NATIVE_ASSET_BY_NETWORK_ID[network.id]]
-    this.feeToken = NATIVE_ASSET_BY_NETWORK_ID[network.id]
+    this.ledgerService = new EthersLedgerServiceEthereum(getLedgerTransport)
+    this.derivationPath = BSEthereumHelper.DERIVATION_PATH
+
     this.setNetwork(network)
   }
 
-  setNetwork(partialNetwork: PartialNetwork<AvailableNetworkIds>) {
-    const network = {
-      id: partialNetwork.id,
-      name: partialNetwork.name ?? NETWORK_NAME_BY_NETWORK_ID[partialNetwork.id],
-      url: partialNetwork.url ?? DEFAULT_URL_BY_NETWORK_ID[partialNetwork.id],
-    }
+  #setTokens(network: Network<AvailableNetworkIds>) {
+    const nativeAsset = BSEthereumHelper.getNativeAsset(network)
+    this.tokens = [nativeAsset]
+    this.feeToken = nativeAsset
+  }
+
+  setNetwork(network: Network<AvailableNetworkIds>) {
+    this.#setTokens(network)
+
     this.network = network
 
-    const bitqueryNetwork = BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[partialNetwork.id]
+    const bitqueryNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[network.id]
 
     this.blockchainDataService = bitqueryNetwork ? new BitqueryBDSEthereum(network) : new RpcBDSEthereum(network)
 
-    this.exchangeDataService = new BitqueryEDSEthereum(network.id)
+    this.exchangeDataService = new BitqueryEDSEthereum(network, this.tokens)
     this.nftDataService = new GhostMarketNDSEthereum(network)
   }
 
@@ -165,7 +161,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let signer: ethers.Signer
     if (ledgerTransport) {
-      signer = new LedgerSigner(ledgerTransport, provider)
+      signer = new EthersLedgerSigner(ledgerTransport, provider)
     } else {
       signer = new ethers.Wallet(param.senderAccount.key, provider)
     }
@@ -175,7 +171,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
 
-    const isNative = NATIVE_ASSET_BY_NETWORK_ID[this.network.id].hash === param.intent.tokenHash
+    const isNative = this.feeToken.hash === param.intent.tokenHash
     if (isNative) {
       transactionParams = {
         to: param.intent.receiverAddress,
@@ -206,7 +202,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let signer: ethers.Signer
     if (ledgerTransport) {
-      signer = new LedgerSigner(ledgerTransport, provider)
+      signer = new EthersLedgerSigner(ledgerTransport, provider)
     } else {
       signer = new ethers.Wallet(param.senderAccount.key, provider)
     }
@@ -215,7 +211,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let estimated: ethers.BigNumber
 
-    const isNative = NATIVE_ASSET_BY_NETWORK_ID[this.network.id].hash === param.intent.tokenHash
+    const isNative = this.feeToken.hash === param.intent.tokenHash
     const decimals = param.intent.tokenDecimals ?? 18
     const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
 

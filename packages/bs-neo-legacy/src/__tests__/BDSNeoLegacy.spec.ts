@@ -1,13 +1,11 @@
 import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
 import { DoraBDSNeoLegacy } from '../DoraBDSNeoLegacy'
-import { DEFAULT_URL_BY_NETWORK_TYPE, TOKENS } from '../constants'
+import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
 
-const gasToken = TOKENS.testnet.find(t => t.symbol === 'GAS')!
-const doraBDSNeoLegacy = new DoraBDSNeoLegacy(
-  { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' },
-  gasToken,
-  gasToken
-)
+const network = BSNeoLegacyHelper.TESTNET_NETWORKS[0]
+const tokens = BSNeoLegacyHelper.getTokens(network)
+const gasToken = tokens.find(t => t.symbol === 'GAS')!
+const doraBDSNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens)
 
 describe('BDSNeoLegacy', () => {
   it.each([doraBDSNeoLegacy])('Should be able to get transaction - %s', async (bdsNeoLegacy: BlockchainDataService) => {

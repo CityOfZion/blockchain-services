@@ -3,16 +3,17 @@ import {
   Currency,
   ExchangeDataService,
   GetTokenPriceHistory,
+  Token,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { AvailableNetworkIds, TOKENS } from './constants'
+import { AvailableNetworkIds } from './BSNeoLegacyHelper'
 
 export class CryptoCompareEDSNeoLegacy extends CryptoCompareEDS implements ExchangeDataService {
   #networkId: AvailableNetworkIds
 
-  constructor(networkId: AvailableNetworkIds) {
-    super(TOKENS[networkId])
+  constructor(networkId: AvailableNetworkIds, tokens: Token[]) {
+    super(tokens)
     this.#networkId = networkId
   }
 

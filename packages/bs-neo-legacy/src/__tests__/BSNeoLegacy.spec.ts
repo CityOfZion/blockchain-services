@@ -1,5 +1,6 @@
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
+import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
 
 let bsNeoLegacy: BSNeoLegacy
 
@@ -89,7 +90,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a nep5 asset', async () => {
-    bsNeoLegacy.setNetwork({ id: 'mainnet', url: 'http://seed9.ngd.network:10332' })
+    bsNeoLegacy.setNetwork(BSNeoLegacyHelper.DEFAULT_NETWORK)
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
@@ -109,7 +110,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a asset with tip', async () => {
-    bsNeoLegacy.setNetwork({ id: 'mainnet', url: 'http://seed9.ngd.network:10332' })
+    bsNeoLegacy.setNetwork(BSNeoLegacyHelper.DEFAULT_NETWORK)
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!

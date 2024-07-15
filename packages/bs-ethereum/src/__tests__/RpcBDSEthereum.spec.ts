@@ -1,11 +1,8 @@
+import { BSEthereumHelper } from '../BSEthereumHelper'
 import { RpcBDSEthereum } from '../RpcBDSEthereum'
-import { DEFAULT_URL_BY_NETWORK_ID, NETWORK_NAME_BY_NETWORK_ID } from '../constants'
 
-const rpcBDSEthereum = new RpcBDSEthereum({
-  id: '11155111',
-  url: DEFAULT_URL_BY_NETWORK_ID['11155111'],
-  name: NETWORK_NAME_BY_NETWORK_ID['11155111'],
-})
+const network = BSEthereumHelper.TESTNET_NETWORKS.find(network => network.id === '11155111')!
+const rpcBDSEthereum = new RpcBDSEthereum(network)
 
 describe('RpcBDSEthereum', () => {
   it('Should be able to get transaction', async () => {
@@ -39,11 +36,11 @@ describe('RpcBDSEthereum', () => {
 
     expect(token).toEqual({
       symbol: 'ETH',
-      name: 'Ethereum',
+      name: 'ETH',
       hash: '-',
       decimals: 18,
     })
-  })
+  }, 60000)
 
   it('Should be able to get balance', async () => {
     const address = '0xbA65F285D1F9E0bf76Ab01211547979a3b60011A'

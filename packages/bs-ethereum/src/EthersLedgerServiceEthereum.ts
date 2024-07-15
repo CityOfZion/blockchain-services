@@ -4,10 +4,10 @@ import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@l
 import { ethers, Signer } from 'ethers'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { defineReadOnly } from '@ethersproject/properties'
-import { DEFAULT_PATH } from './constants'
 import EventEmitter from 'events'
+import { BSEthereumHelper } from './BSEthereumHelper'
 
-export class LedgerSigner extends Signer implements TypedDataSigner {
+export class EthersLedgerSigner extends Signer implements TypedDataSigner {
   #transport: Transport
   #emitter?: LedgerServiceEmitter
   #path: string
@@ -15,14 +15,14 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
   constructor(transport: Transport, provider?: ethers.providers.Provider, emitter?: LedgerServiceEmitter) {
     super()
 
-    this.#path = DEFAULT_PATH
+    this.#path = BSEthereumHelper.DEFAULT_PATH
     this.#transport = transport
     this.#emitter = emitter
     defineReadOnly(this, 'provider', provider)
   }
 
-  connect(provider: ethers.providers.Provider): LedgerSigner {
-    return new LedgerSigner(this.#transport, provider, this.#emitter)
+  connect(provider: ethers.providers.Provider): EthersLedgerSigner {
+    return new EthersLedgerSigner(this.#transport, provider, this.#emitter)
   }
 
   #retry<T = any>(callback: () => Promise<T>): Promise<T> {
@@ -176,23 +176,23 @@ export class LedgerSigner extends Signer implements TypedDataSigner {
   }
 }
 
-export class LedgerServiceEthereum implements LedgerService {
+export class EthersLedgerServiceEthereum implements LedgerService {
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
 
   constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
 
   async getAddress(transport: Transport): Promise<string> {
-    const signer = new LedgerSigner(transport)
+    const signer = new EthersLedgerSigner(transport)
     return await signer.getAddress()
   }
 
   async getPublicKey(transport: Transport): Promise<string> {
-    const signer = new LedgerSigner(transport)
+    const signer = new EthersLedgerSigner(transport)
     return await signer.getPublicKey()
   }
 
-  getSigner(transport: Transport): LedgerSigner {
-    return new LedgerSigner(transport, undefined, this.emitter)
+  getSigner(transport: Transport): EthersLedgerSigner {
+    return new EthersLedgerSigner(transport, undefined, this.emitter)
   }
 }
 

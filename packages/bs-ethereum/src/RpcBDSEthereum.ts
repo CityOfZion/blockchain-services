@@ -10,8 +10,8 @@ import {
   TransactionsByAddressResponse,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
-import { AvailableNetworkIds, NATIVE_ASSET_BY_NETWORK_ID, RPC_LIST_BY_NETWORK_ID } from './constants'
 import { ERC20_ABI } from './assets/abis/ERC20'
+import { AvailableNetworkIds, BSEthereumHelper } from './BSEthereumHelper'
 
 export class RpcBDSEthereum implements BlockchainDataService {
   readonly #network: Network<AvailableNetworkIds>
@@ -31,7 +31,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
     const block = await provider.getBlock(transaction.blockHash)
     if (!block) throw new Error('Block not found')
 
-    const token = NATIVE_ASSET_BY_NETWORK_ID[this.#network.id]
+    const token = BSEthereumHelper.getNativeAsset(this.#network)
 
     return {
       block: block.number,
@@ -60,7 +60,9 @@ export class RpcBDSEthereum implements BlockchainDataService {
   }
 
   async getTokenInfo(hash: string): Promise<Token> {
-    if (NATIVE_ASSET_BY_NETWORK_ID[this.#network.id].hash === hash) return NATIVE_ASSET_BY_NETWORK_ID[this.#network.id]
+    const nativeAsset = BSEthereumHelper.getNativeAsset(this.#network)
+
+    if (nativeAsset.hash === hash) return nativeAsset
 
     const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
     const contract = new ethers.Contract(hash, ERC20_ABI, provider)
@@ -80,7 +82,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
     const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
     const balance = await provider.getBalance(address)
 
-    const token = NATIVE_ASSET_BY_NETWORK_ID[this.#network.id]
+    const token = BSEthereumHelper.getNativeAsset(this.#network)
 
     return [
       {
@@ -98,7 +100,9 @@ export class RpcBDSEthereum implements BlockchainDataService {
   async getRpcList(): Promise<RpcResponse[]> {
     const list: RpcResponse[] = []
 
-    const promises = RPC_LIST_BY_NETWORK_ID[this.#network.id].map(url => {
+    const urls = BSEthereumHelper.getRpcList(this.#network)
+
+    const promises = urls.map(url => {
       // eslint-disable-next-line no-async-promise-executor
       return new Promise<void>(async resolve => {
         const timeout = setTimeout(() => {

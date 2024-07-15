@@ -16,21 +16,21 @@ import {
   BSWithExplorerService,
   ExplorerService,
   BSWithLedger,
-  PartialNetwork,
 } from '@cityofzion/blockchain-service'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Neon from '@cityofzion/neon-core'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
-import { RPCBDSNeo3 } from './RpcBDSNeo3'
+
+import { keychain } from '@cityofzion/bs-asteroid-sdk'
+import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
+import Transport from '@ledgerhq/hw-transport'
+import { AvailableNetworkIds, BSNeo3Helper } from './BSNeo3Helper'
+import { NeonDappKitLedgerServiceNeo3 } from './NeonDappKitLedgerServiceNeo3'
 import { DoraBDSNeo3 } from './DoraBDSNeo3'
-import { DEFAULT_URL_BY_NETWORK_TYPE, DERIVATION_PATH, NEO_NS_HASH, AvailableNetworkIds, TOKENS } from './constants'
+import { RPCBDSNeo3 } from './RpcBDSNeo3'
 import { FlamingoEDSNeo3 } from './FlamingoEDSNeo3'
 import { GhostMarketNDSNeo3 } from './GhostMarketNDSNeo3'
-import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { DoraESNeo3 } from './DoraESNeo3'
-import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
-import { LedgerServiceNeo3 } from './LedgerServiceNeo3'
-import Transport from '@ledgerhq/hw-transport'
 
 export class BSNeo3<BSCustomName extends string = string>
   implements
@@ -42,50 +42,80 @@ export class BSNeo3<BSCustomName extends string = string>
     BSWithExplorerService,
     BSWithLedger
 {
-  readonly blockchainName: BSCustomName
-  readonly feeToken: Token
-  readonly claimToken: Token
-  readonly burnToken: Token
-  readonly derivationPath: string
+  blockchainName: BSCustomName
+  derivationPath: string
+
+  tokens!: Token[]
+  feeToken!: Token
+  claimToken!: Token
+  burnToken!: Token
 
   blockchainDataService!: BlockchainDataService & BDSClaimable
   nftDataService!: NftDataService
-  ledgerService: LedgerServiceNeo3
+  ledgerService: NeonDappKitLedgerServiceNeo3
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
-  tokens: Token[]
+
   network!: Network<AvailableNetworkIds>
 
   constructor(
     blockchainName: BSCustomName,
-    network: PartialNetwork<AvailableNetworkIds>,
+    network?: Network<AvailableNetworkIds>,
     getLedgerTransport?: (account: Account) => Promise<Transport>
   ) {
+    network = network ?? BSNeo3Helper.DEFAULT_NETWORK
+
     this.blockchainName = blockchainName
-    this.ledgerService = new LedgerServiceNeo3(getLedgerTransport)
-    this.tokens = TOKENS[network.id]
-    this.derivationPath = DERIVATION_PATH
-    this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
-    this.burnToken = this.tokens.find(token => token.symbol === 'NEO')!
-    this.claimToken = this.tokens.find(token => token.symbol === 'GAS')!
+    this.ledgerService = new NeonDappKitLedgerServiceNeo3(getLedgerTransport)
+    this.derivationPath = BSNeo3Helper.DERIVATION_PATH
+
     this.setNetwork(network)
   }
 
-  setNetwork(partialNetwork: PartialNetwork<AvailableNetworkIds>) {
-    const network = {
-      id: partialNetwork.id,
-      name: partialNetwork.name ?? partialNetwork.id,
-      url: partialNetwork.url ?? DEFAULT_URL_BY_NETWORK_TYPE[partialNetwork.id],
-    }
+  #setTokens(network: Network<AvailableNetworkIds>) {
+    const tokens = BSNeo3Helper.getTokens(network)
+
+    this.tokens = tokens
+    this.feeToken = tokens.find(token => token.symbol === 'GAS')!
+    this.burnToken = tokens.find(token => token.symbol === 'NEO')!
+    this.claimToken = tokens.find(token => token.symbol === 'GAS')!
+  }
+
+  #buildTransferInvocation({ intent, tipIntent }: TransferParam, account: Neon.wallet.Account): ContractInvocation[] {
+    const intents = [intent, ...(tipIntent ? [tipIntent] : [])]
+
+    const invocations: ContractInvocation[] = intents.map(intent => {
+      return {
+        operation: 'transfer',
+        scriptHash: intent.tokenHash,
+        args: [
+          { type: 'Hash160', value: account.address },
+          { type: 'Hash160', value: intent.receiverAddress },
+          {
+            type: 'Integer',
+            value: intent.tokenDecimals
+              ? u.BigInteger.fromDecimal(intent.amount, intent.tokenDecimals).toString()
+              : intent.amount,
+          },
+          { type: 'Any', value: '' },
+        ],
+      }
+    })
+
+    return invocations
+  }
+
+  setNetwork(network: Network<AvailableNetworkIds>) {
+    this.#setTokens(network)
     this.network = network
 
-    if (network.name === 'custom') {
-      this.blockchainDataService = new RPCBDSNeo3(network, this.feeToken, this.claimToken)
+    if (DoraBDSNeo3.SUPPORTED_NETWORKS.includes(network.id)) {
+      this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
     } else {
-      this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken)
+      this.blockchainDataService = new RPCBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
     }
 
-    this.exchangeDataService = new FlamingoEDSNeo3(network.id)
+    this.exchangeDataService = new FlamingoEDSNeo3(network.id, this.tokens)
     this.nftDataService = new GhostMarketNDSNeo3(network)
     this.explorerService = new DoraESNeo3(network.id)
   }
@@ -154,7 +184,7 @@ export class BSNeo3<BSCustomName extends string = string>
       account,
     })
 
-    const invocations = this.buildTransferInvocation(param, account)
+    const invocations = this.#buildTransferInvocation(param, account)
 
     const { total } = await invoker.calculateFee({
       invocations,
@@ -180,7 +210,7 @@ export class BSNeo3<BSCustomName extends string = string>
       signingCallback: ledgerTransport ? this.ledgerService.getSigningCallback(ledgerTransport) : undefined,
     })
 
-    const invocations = this.buildTransferInvocation(param, account)
+    const invocations = this.#buildTransferInvocation(param, account)
 
     const transactionHash = await invoker.invokeFunction({
       invocations,
@@ -216,7 +246,7 @@ export class BSNeo3<BSCustomName extends string = string>
     const response = await invoker.testInvoke({
       invocations: [
         {
-          scriptHash: NEO_NS_HASH,
+          scriptHash: BSNeo3Helper.NEO_NS_HASH,
           operation: 'ownerOf',
           args: [{ type: 'String', value: domainName }],
         },
@@ -232,32 +262,5 @@ export class BSNeo3<BSCustomName extends string = string>
     })
     const address = parser.accountInputToAddress(parsed.replace('0x', ''))
     return address
-  }
-
-  private buildTransferInvocation(
-    { intent, tipIntent }: TransferParam,
-    account: Neon.wallet.Account
-  ): ContractInvocation[] {
-    const intents = [intent, ...(tipIntent ? [tipIntent] : [])]
-
-    const invocations: ContractInvocation[] = intents.map(intent => {
-      return {
-        operation: 'transfer',
-        scriptHash: intent.tokenHash,
-        args: [
-          { type: 'Hash160', value: account.address },
-          { type: 'Hash160', value: intent.receiverAddress },
-          {
-            type: 'Integer',
-            value: intent.tokenDecimals
-              ? u.BigInteger.fromDecimal(intent.amount, intent.tokenDecimals).toString()
-              : intent.amount,
-          },
-          { type: 'Any', value: '' },
-        ],
-      }
-    })
-
-    return invocations
   }
 }

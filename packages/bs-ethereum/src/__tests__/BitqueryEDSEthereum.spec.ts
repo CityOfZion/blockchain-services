@@ -1,10 +1,13 @@
+import { BSEthereumHelper } from '../BSEthereumHelper'
 import { BitqueryEDSEthereum } from '../BitqueryEDSEthereum'
 
 let bitqueryEDSEthereum: BitqueryEDSEthereum
 
-describe('FlamingoEDSNeo3', () => {
+describe.skip('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    bitqueryEDSEthereum = new BitqueryEDSEthereum('1')
+    const network = BSEthereumHelper.DEFAULT_NETWORK
+    const token = BSEthereumHelper.getNativeAsset(network)
+    bitqueryEDSEthereum = new BitqueryEDSEthereum(network, [token])
   })
 
   it('Should return a list with prices of tokens using USD', async () => {

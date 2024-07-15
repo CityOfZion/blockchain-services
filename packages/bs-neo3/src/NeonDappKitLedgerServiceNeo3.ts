@@ -4,7 +4,7 @@ import { wallet, api, u } from '@cityofzion/neon-js'
 import { NeonParser } from '@cityofzion/neon-dappkit'
 import EventEmitter from 'events'
 
-export class LedgerServiceNeo3 implements LedgerService {
+export class NeonDappKitLedgerServiceNeo3 implements LedgerService {
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
 
   constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
