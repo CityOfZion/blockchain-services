@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Fix incorrect exclude type",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

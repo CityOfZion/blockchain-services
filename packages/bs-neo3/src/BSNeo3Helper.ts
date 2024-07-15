@@ -4,7 +4,7 @@ import mainnetTokens from './assets/tokens/mainnet.json'
 import commonTokens from './assets/tokens/common.json'
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type AvailableNetworkIds = 'mainnet' | 'testnet' | 'custom'
+export type AvailableNetworkIds = 'mainnet' | 'testnet' | (string & {})
 
 export class BSNeo3Helper {
   static #EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<AvailableNetworkIds, Token[]>> = {
