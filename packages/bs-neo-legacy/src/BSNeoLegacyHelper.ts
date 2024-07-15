@@ -11,7 +11,7 @@ export class BSNeoLegacyHelper {
 
   static NATIVE_ASSETS = commonTokens
 
-  static #RPC_LIST_BY_NETWORK_ID: Record<Exclude<AvailableNetworkIds, 'custom'>, string[]> = {
+  static #RPC_LIST_BY_NETWORK_ID: Record<AvailableNetworkIds, string[]> = {
     mainnet: [
       'http://seed9.ngd.network:10332',
       'https://mainnet1.neo2.coz.io:443',
