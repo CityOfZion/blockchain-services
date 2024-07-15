@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.0.2",
+      "tag": "@cityofzion/bs-neo3_v1.0.2",
+      "date": "Mon, 15 Jul 2024 19:04:57 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add support to multi network to AvailableNetworkIds type"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.1",
       "tag": "@cityofzion/bs-neo3_v1.0.1",
       "date": "Mon, 15 Jul 2024 18:05:28 GMT",

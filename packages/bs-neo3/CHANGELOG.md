@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 15 Jul 2024 18:05:28 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Jul 2024 19:04:57 GMT and should not be manually modified.
+
+## 1.0.2
+Mon, 15 Jul 2024 19:04:57 GMT
+
+### Patches
+
+- Add support to multi network to AvailableNetworkIds type
 
 ## 1.0.1
 Mon, 15 Jul 2024 18:05:28 GMT
