@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 15 Jul 2024 19:04:57 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Jul 2024 22:59:16 GMT and should not be manually modified.
+
+## 1.0.3
+Mon, 15 Jul 2024 22:59:16 GMT
+
+### Patches
+
+- Solve bug related to bs-electron by detecting two identical methods
 
 ## 1.0.2
 Mon, 15 Jul 2024 19:04:57 GMT
