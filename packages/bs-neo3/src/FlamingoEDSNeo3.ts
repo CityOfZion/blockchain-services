@@ -44,9 +44,9 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
     }))
   }
 
-  getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]> {
+  async getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]> {
     if (this.#networkId !== 'mainnet') throw new Error('Exchange is only available on mainnet')
-    return super.getTokenPriceHistory(params)
+    return await super.getTokenPriceHistory(params)
   }
 
   private async getCurrencyRatio(currency: Currency): Promise<number> {

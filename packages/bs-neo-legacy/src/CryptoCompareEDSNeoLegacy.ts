@@ -17,13 +17,13 @@ export class CryptoCompareEDSNeoLegacy extends CryptoCompareEDS implements Excha
     this.#networkId = networkId
   }
 
-  getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]> {
+  async getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]> {
     if (this.#networkId !== 'mainnet') throw new Error('Exchange is only available on mainnet')
-    return super.getTokenPriceHistory(params)
+    return await super.getTokenPriceHistory(params)
   }
 
-  getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
+  async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
     if (this.#networkId !== 'mainnet') throw new Error('Exchange is only available on mainnet')
-    return super.getTokenPrices(currency)
+    return await super.getTokenPrices(currency)
   }
 }
