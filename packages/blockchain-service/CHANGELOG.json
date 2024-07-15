@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.0.1",
+      "tag": "@cityofzion/blockchain-service_v1.0.1",
+      "date": "Mon, 15 Jul 2024 18:05:28 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove PartialNetwork type"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.0",
       "tag": "@cityofzion/blockchain-service_v1.0.0",
       "date": "Fri, 12 Jul 2024 00:06:10 GMT",

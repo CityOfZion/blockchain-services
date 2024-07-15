@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 12 Jul 2024 00:06:10 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Jul 2024 18:05:28 GMT and should not be manually modified.
+
+## 1.0.1
+Mon, 15 Jul 2024 18:05:28 GMT
+
+### Patches
+
+- Adapt constants to work with multi chain
 
 ## 1.0.0
 Fri, 12 Jul 2024 00:06:10 GMT
