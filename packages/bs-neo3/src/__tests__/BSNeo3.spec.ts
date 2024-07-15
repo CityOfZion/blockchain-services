@@ -1,14 +1,16 @@
-import { sleep } from './utils/sleep'
 import { BSNeo3 } from '../BSNeo3'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import { DEFAULT_URL_BY_NETWORK_TYPE } from '../constants'
+import { Network } from '@cityofzion/blockchain-service'
+import { AvailableNetworkIds, BSNeo3Helper } from '../BSNeo3Helper'
 
 let bsNeo3: BSNeo3
+let network: Network<AvailableNetworkIds>
 
 describe('BSNeo3', () => {
   beforeAll(async () => {
-    bsNeo3 = new BSNeo3('neo3', { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' })
+    network = BSNeo3Helper.TESTNET_NETWORKS[0]
+    bsNeo3 = new BSNeo3('neo3', network)
   }, 60000)
 
   it('Should be able to validate an address', () => {
@@ -124,11 +126,7 @@ describe('BSNeo3', () => {
 
   it.skip('Should be able to transfer with ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSNeo3(
-      'neo3',
-      { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' },
-      async () => transport
-    )
+    const service = new BSNeo3('neo3', network, async () => transport)
 
     const publicKey = await service.ledgerService.getPublicKey(transport)
 
@@ -155,23 +153,10 @@ describe('BSNeo3', () => {
   it.skip('Should be able to claim', async () => {
     const account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 
-    const maxTries = 10
-    let tries = 0
-
-    while (tries < maxTries) {
-      try {
-        const unclaimed = await bsNeo3.blockchainDataService.getUnclaimed(account.address)
-        if (Number(unclaimed) <= 0) continue
-
-        const transactionHash = await bsNeo3.claim(account)
-        expect(transactionHash).toEqual(expect.any(String))
-        break
-      } catch (error) {
-        await sleep(4000)
-      } finally {
-        tries++
-      }
-    }
+    const unclaimed = await bsNeo3.blockchainDataService.getUnclaimed(account.address)
+    expect(Number(unclaimed)).toBeGreaterThan(0)
+    const transactionHash = await bsNeo3.claim(account)
+    expect(transactionHash).toEqual(expect.any(String))
   }, 60000)
 
   it('Should be able to resolve a name service domain', async () => {

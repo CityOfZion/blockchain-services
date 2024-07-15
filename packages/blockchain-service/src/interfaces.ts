@@ -22,12 +22,6 @@ export type Network<T extends string = string> = {
   url: string
 }
 
-export type PartialNetwork<T extends string = string> = {
-  id: T
-  name?: string
-  url?: string
-}
-
 export type IntentTransferParam = {
   receiverAddress: string
   tokenHash: string
@@ -51,7 +45,7 @@ export interface BlockchainService<BSCustomName extends string = string, BSAvail
   blockchainDataService: BlockchainDataService
   tokens: Token[]
   network: Network<BSAvailableNetworks>
-  setNetwork: (partialNetwork: PartialNetwork<BSAvailableNetworks>) => void
+  setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void
   generateAccountFromMnemonic(mnemonic: string | string, index: number): AccountWithDerivationPath
   generateAccountFromKey(key: string): Account
   decrypt(keyOrJson: string, password: string): Promise<Account>
@@ -233,6 +227,7 @@ export type BuildNftUrlParams = {
 }
 export interface ExplorerService {
   buildTransactionUrl(hash: string): string
+  buildContractUrl(contractHash: string): string
   buildNftUrl(params: BuildNftUrlParams): string
 }
 

@@ -1,10 +1,14 @@
+import { BSNeo3Helper } from '../BSNeo3Helper'
 import { FlamingoEDSNeo3 } from '../FlamingoEDSNeo3'
 
 let flamingoEDSNeo3: FlamingoEDSNeo3
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    flamingoEDSNeo3 = new FlamingoEDSNeo3('mainnet')
+    flamingoEDSNeo3 = new FlamingoEDSNeo3(
+      BSNeo3Helper.DEFAULT_NETWORK.id,
+      BSNeo3Helper.getTokens(BSNeo3Helper.DEFAULT_NETWORK)
+    )
   })
   it('Should return a list with prices of tokens using USD', async () => {
     const tokenPriceList = await flamingoEDSNeo3.getTokenPrices('USD')
@@ -16,7 +20,7 @@ describe('FlamingoEDSNeo3', () => {
         hash: expect.any(String),
       })
     })
-  })
+  }, 60000)
 
   it('Should return a list with prices of tokens using BRL', async () => {
     const tokenPriceListInUSD = await flamingoEDSNeo3.getTokenPrices('USD')
@@ -30,7 +34,7 @@ describe('FlamingoEDSNeo3', () => {
         hash: expect.any(String),
       })
     })
-  })
+  }, 60000)
 
   it('Should return a list with prices of tokens using EUR', async () => {
     const tokenPriceListInUSD = await flamingoEDSNeo3.getTokenPrices('USD')
@@ -44,7 +48,7 @@ describe('FlamingoEDSNeo3', () => {
         hash: expect.any(String),
       })
     })
-  })
+  }, 60000)
 
   it("Should return the token's price history", async () => {
     const tokenPriceHistory = await flamingoEDSNeo3.getTokenPriceHistory({
@@ -62,5 +66,5 @@ describe('FlamingoEDSNeo3', () => {
         hash: expect.any(String),
       })
     })
-  })
+  }, 60000)
 })

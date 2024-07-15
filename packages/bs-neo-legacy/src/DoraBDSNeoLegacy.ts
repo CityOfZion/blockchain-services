@@ -12,21 +12,23 @@ import {
   RpcResponse,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { AvailableNetworkIds, RPC_LIST_BY_NETWORK_TYPE, TOKENS } from './constants'
 import { rpc } from '@cityofzion/neon-js'
+import { AvailableNetworkIds, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
 
 export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   readonly #network: Network<AvailableNetworkIds>
   readonly #claimToken: Token
   readonly #feeToken: Token
+  readonly #tokens: Token[]
   readonly #tokenCache: Map<string, Token> = new Map()
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
 
-  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token) {
+  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token, tokens: Token[]) {
     this.#network = network
     this.#claimToken = claimToken
     this.#feeToken = feeToken
+    this.#tokens = tokens
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -112,7 +114,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = TOKENS[this.#network.id].find(token => token.hash === tokenHash)
+    const localToken = this.#tokens.find(token => token.hash === tokenHash)
     if (localToken) return localToken
 
     if (this.#tokenCache.has(tokenHash)) {
@@ -176,9 +178,9 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
   async getRpcList(): Promise<RpcResponse[]> {
     const list: RpcResponse[] = []
-    const networkType = this.#network.id
+    const urls = BSNeoLegacyHelper.getRpcList(this.#network)
 
-    const promises = RPC_LIST_BY_NETWORK_TYPE[networkType].map(url => {
+    const promises = urls.map(url => {
       // eslint-disable-next-line no-async-promise-executor
       return new Promise<void>(async resolve => {
         const timeout = setTimeout(() => {

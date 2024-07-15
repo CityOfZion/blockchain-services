@@ -1,19 +1,15 @@
 import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
 import { DoraBDSNeo3 } from '../DoraBDSNeo3'
 import { RPCBDSNeo3 } from '../RpcBDSNeo3'
-import { DEFAULT_URL_BY_NETWORK_TYPE, TOKENS } from '../constants'
+import { BSNeo3Helper } from '../BSNeo3Helper'
 
-const gasToken = TOKENS.testnet.find(t => t.symbol === 'GAS')!
-const doraBDSNeo3 = new DoraBDSNeo3(
-  { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' },
-  gasToken,
-  gasToken
-)
-const rpcBDSNeo3 = new RPCBDSNeo3(
-  { id: 'testnet', url: DEFAULT_URL_BY_NETWORK_TYPE.testnet, name: 'testnet' },
-  gasToken,
-  gasToken
-)
+const network = BSNeo3Helper.TESTNET_NETWORKS[0]
+const tokens = BSNeo3Helper.getTokens(network)
+
+const GAS = tokens.find(token => token.symbol === 'GAS')!
+
+const doraBDSNeo3 = new DoraBDSNeo3(network, GAS, GAS, tokens)
+const rpcBDSNeo3 = new RPCBDSNeo3(network, GAS, GAS, tokens)
 
 describe('BDSNeo3', () => {
   it.each([doraBDSNeo3, rpcBDSNeo3])(

@@ -8,11 +8,12 @@ import {
   NftsResponse,
 } from '@cityofzion/blockchain-service'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
+import { AvailableNetworkIds } from './BSNeo3Helper'
 
 export abstract class RpcNDSNeo3 implements NftDataService {
-  readonly #network: Network
+  readonly #network: Network<AvailableNetworkIds>
 
-  protected constructor(network: Network) {
+  protected constructor(network: Network<AvailableNetworkIds>) {
     this.#network = network
   }
 

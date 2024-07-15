@@ -13,7 +13,7 @@ import {
 import { wallet, u } from '@cityofzion/neon-js'
 import { NeoRESTApi } from '@cityofzion/dora-ts/dist/api'
 import { RPCBDSNeo3 } from './RpcBDSNeo3'
-import { AvailableNetworkIds, TOKENS } from './constants'
+import { AvailableNetworkIds } from './BSNeo3Helper'
 
 const NeoRest = new NeoRESTApi({
   doraUrl: 'https://dora.coz.io',
@@ -21,12 +21,10 @@ const NeoRest = new NeoRESTApi({
 })
 
 export class DoraBDSNeo3 extends RPCBDSNeo3 {
-  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token) {
-    if (network.id === 'custom') {
-      throw new Error('DoraBDSNeo3 does not support custom networks')
-    }
+  static SUPPORTED_NETWORKS: AvailableNetworkIds[] = ['mainnet', 'testnet']
 
-    super(network, feeToken, claimToken)
+  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token, tokens: Token[]) {
+    super(network, feeToken, claimToken, tokens)
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -135,7 +133,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = TOKENS[this._network.id].find(token => token.hash === tokenHash)
+    const localToken = this._tokens.find(token => token.hash === tokenHash)
     if (localToken) return localToken
 
     if (this._tokenCache.has(tokenHash)) {

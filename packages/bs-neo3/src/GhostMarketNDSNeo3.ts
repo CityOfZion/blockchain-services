@@ -1,8 +1,7 @@
 import { NftResponse, NftsResponse, GetNftParam, GetNftsByAddressParams, Network } from '@cityofzion/blockchain-service'
 import qs from 'query-string'
 import axios from 'axios'
-
-import { AvailableNetworkIds, GHOSTMARKET_CHAIN_BY_NETWORK_TYPE, GHOSTMARKET_URL_BY_NETWORK_TYPE } from './constants'
+import { AvailableNetworkIds } from './BSNeo3Helper'
 import { RpcNDSNeo3 } from './RpcNDSNeo3'
 
 type GhostMarketNFT = {
@@ -42,15 +41,34 @@ type GhostMarketAssets = {
 }
 
 export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
-  readonly #networkId: AvailableNetworkIds
+  static CONFIG_BY_NETWORK_ID: Partial<
+    Record<
+      AvailableNetworkIds,
+      {
+        url: string
+        chain: string
+      }
+    >
+  > = {
+    mainnet: {
+      url: 'https://api.ghostmarket.io/api/v2',
+      chain: 'n3',
+    },
+    testnet: {
+      url: 'https://api.ghostmarket.io/api/v2',
+      chain: 'n3t',
+    },
+  }
+
+  readonly #network: Network<AvailableNetworkIds>
 
   constructor(network: Network<AvailableNetworkIds>) {
     super(network)
-    this.#networkId = network.id
+    this.#network = network
   }
 
   async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
-    const url = this.getUrlWithParams({
+    const url = this.#getUrlWithParams({
       size,
       owners: [address],
       cursor: cursor,
@@ -58,19 +76,19 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
     const { data } = await axios.get<GhostMarketAssets>(url)
     const nfts = data.assets ?? []
 
-    return { nextCursor: data.next, items: nfts.map(this.parse.bind(this)) }
+    return { nextCursor: data.next, items: nfts.map(this.#parse.bind(this)) }
   }
 
   async getNft({ contractHash, tokenId }: GetNftParam): Promise<NftResponse> {
-    const url = this.getUrlWithParams({
+    const url = this.#getUrlWithParams({
       contract: contractHash,
       tokenIds: [tokenId],
     })
     const { data } = await axios.get<GhostMarketAssets>(url)
-    return this.parse(data.assets[0])
+    return this.#parse(data.assets[0])
   }
 
-  private treatGhostMarketImage(srcImage?: string) {
+  #treatGhostMarketImage(srcImage?: string) {
     if (!srcImage) {
       return
     }
@@ -84,25 +102,28 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
     return srcImage
   }
 
-  private getUrlWithParams(params: Record<string, any>) {
+  #getUrlWithParams(params: Record<string, any>) {
+    const config = GhostMarketNDSNeo3.CONFIG_BY_NETWORK_ID[this.#network.id]
+    if (!config) throw new Error('Unsupported network')
+
     const parameters = qs.stringify(
       {
-        chain: GHOSTMARKET_CHAIN_BY_NETWORK_TYPE[this.#networkId],
+        chain: config.chain,
         ...params,
       },
       { arrayFormat: 'bracket' }
     )
-    return `${GHOSTMARKET_URL_BY_NETWORK_TYPE[this.#networkId]}/assets?${parameters}`
+    return `${config.url}/assets?${parameters}`
   }
 
-  private parse(data: GhostMarketNFT) {
+  #parse(data: GhostMarketNFT) {
     const nftResponse: NftResponse = {
-      collectionImage: this.treatGhostMarketImage(data.collection?.logoUrl),
+      collectionImage: this.#treatGhostMarketImage(data.collection?.logoUrl),
       id: data.tokenId,
       contractHash: data.contract.hash,
       symbol: data.contract.symbol,
       collectionName: data.collection?.name,
-      image: this.treatGhostMarketImage(data.metadata.mediaUri),
+      image: this.#treatGhostMarketImage(data.metadata.mediaUri),
       isSVG: String(data.metadata.mediaType).includes('svg+xml'),
       name: data.metadata.name,
       creator: {

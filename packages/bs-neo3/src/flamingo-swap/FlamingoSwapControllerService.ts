@@ -14,50 +14,46 @@ import EventEmitter from 'events'
 import { FlamingoSwapNeonDappKitInvocationBuilder } from './FlamingoSwapNeonDappKitInvocationBuilder'
 import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
 import { wallet } from '@cityofzion/neon-core'
-import {
-  CustomNetworkNotSupportedError,
-  FlamingoInvalidReservesResponseError,
-  FlamingoSwapMissingParametersError,
-} from './FlamingoSwapError'
 import { FlamingoSwapHelper } from './FlamingoSwapHelper'
 import WebSocket from 'isomorphic-ws'
-import { AvailableNetworkIds, BLOCKCHAIN_WSS_URL } from '../constants'
+import { AvailableNetworkIds } from '../BSNeo3Helper'
+
+const BLOCKCHAIN_WSS_URL = 'wss://rpc10.n3.nspcc.ru:10331/ws'
 
 export class FlamingoSwapControllerService implements SwapControllerService<AvailableNetworkIds> {
   eventEmitter: TypedEmitter<SwapControllerServiceEvents>
-  ws: WebSocket
 
-  readonly #network: Network<AvailableNetworkIds>
+  #ws: WebSocket
 
-  #accountToUse: Account | null = null
+  #network: Network<AvailableNetworkIds>
 
-  #tokenToReceive: Token | null = null
+  #privateAccountToUse: Account | null = null
 
-  #tokenToUse: Token | null = null
+  #privateTokenToReceive: Token | null = null
 
-  #amountToReceive: string | null = null
-  #amountToUse: string | null = null
+  #privateTokenToUse: Token | null = null
 
-  #minimumReceived: string | null = null
-  #maximumSelling: string | null = null
+  #privateAmountToReceive: string | null = null
+  #privateAmountToUse: string | null = null
 
-  #reservesToReceive: string | null = null
-  #reservesToUse: string | null = null
+  #privateMinimumReceived: string | null = null
+  #privateMaximumSelling: string | null = null
 
-  #slippage: number = 0.5
-  #deadline: string = '10'
+  #privateReservesToReceive: string | null = null
+  #privateReservesToUse: string | null = null
 
-  #priceInverse: string | null = null
-  #priceImpact: string | null = null
-  #liquidityProviderFee: string | null = null
+  #privateSlippage: number = 0.5
+  #privateDeadline: string = '10'
 
-  #routes: SwapRoute[] | null = null
+  #privatePriceInverse: string | null = null
+  #privatePriceImpact: string | null = null
+  #privateLiquidityProviderFee: string | null = null
 
-  #lastAmountChange: 'amountToReceive' | 'amountToUse' | null = null
+  #privateRoutes: SwapRoute[] | null = null
+
+  #privateLastAmountChange: 'amountToReceive' | 'amountToUse' | null = null
 
   constructor(network: Network<AvailableNetworkIds>) {
-    if (network.id === 'custom') throw new CustomNetworkNotSupportedError()
-
     this.#network = network
     this.eventEmitter = new EventEmitter() as TypedEmitter<SwapControllerServiceEvents>
   }
@@ -65,90 +61,92 @@ export class FlamingoSwapControllerService implements SwapControllerService<Avai
   buildSwapArgs():
     | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
     | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds> {
-    if (!this.accountToUse) throw new FlamingoSwapMissingParametersError('accountToUse')
-    if (!this.amountToReceive) throw new FlamingoSwapMissingParametersError('amountToReceive')
-    if (!this.amountToUse) throw new FlamingoSwapMissingParametersError('amountToUse')
-    if (!this.tokenToReceive) throw new FlamingoSwapMissingParametersError('tokenToReceive')
-    if (!this.tokenToUse) throw new FlamingoSwapMissingParametersError('tokenToUse')
+    if (
+      !this.#accountToUse ||
+      !this.#amountToReceive ||
+      !this.#amountToUse ||
+      !this.#tokenToReceive ||
+      !this.#tokenToUse
+    )
+      throw new Error('Required parameters are not set')
 
     const baseSwapArgs: SwapControllerServiceSwapArgs<AvailableNetworkIds> = {
-      address: this.accountToUse.address,
-      amountToReceive: this.amountToReceive,
-      amountToUse: this.amountToUse,
-      tokenToReceive: this.tokenToReceive,
-      tokenToUse: this.tokenToUse,
-      deadline: this.deadline,
+      address: this.#accountToUse.address,
+      amountToReceive: this.#amountToReceive,
+      amountToUse: this.#amountToUse,
+      tokenToReceive: this.#tokenToReceive,
+      tokenToUse: this.#tokenToUse,
+      deadline: this.#deadline,
       network: this.#network,
     }
 
-    if (this.lastAmountChange === 'amountToReceive') {
-      if (!this.maximumSelling) throw new FlamingoSwapMissingParametersError('maximumSelling')
+    if (this.#lastAmountChange === 'amountToReceive') {
+      if (!this.#maximumSelling) throw new Error("maximumSelling is required for 'amountToReceive' swap type")
 
       return {
         ...baseSwapArgs,
-        maximumSelling: this.maximumSelling,
+        maximumSelling: this.#maximumSelling,
         type: 'swapTokenToReceive',
       }
     }
 
-    if (!this.minimumReceived) throw new FlamingoSwapMissingParametersError('minimumReceived')
+    if (!this.#minimumReceived) throw new Error("minimumReceived is required for 'amountToUse' swap type")
 
     return {
       ...baseSwapArgs,
-      minimumReceived: this.minimumReceived,
+      minimumReceived: this.#minimumReceived,
       type: 'swapTokenToUse',
     }
   }
 
   setAccountToUse(account: Account | null): void {
-    this.accountToUse = account
+    this.#accountToUse = account
   }
 
   setAmountToUse(val: string | null): void {
-    this.amountToUse = val
+    this.#amountToUse = val
 
-    this.lastAmountChange = 'amountToUse'
+    this.#lastAmountChange = 'amountToUse'
 
-    this.recalculateSwapArguments()
+    this.#recalculateSwapArguments()
   }
 
   setAmountToReceive(val: string | null): void {
-    this.amountToReceive = val
+    this.#amountToReceive = val
 
-    this.lastAmountChange = 'amountToReceive'
+    this.#lastAmountChange = 'amountToReceive'
 
-    this.recalculateSwapArguments()
+    this.#recalculateSwapArguments()
   }
 
   setDeadline(deadline: string): void {
-    this.deadline = deadline
+    this.#deadline = deadline
   }
 
   setSlippage(slippage: number): void {
-    this.slippage = slippage
+    this.#slippage = slippage
 
-    this.recalculateSwapArguments()
+    this.#recalculateSwapArguments()
   }
 
   async setTokenToUse(val: Token | null): Promise<void> {
-    this.tokenToUse = val
+    this.#tokenToUse = val
 
     await this.setReserves()
   }
 
   async setTokenToReceive(val: Token | null): Promise<void> {
-    this.tokenToReceive = val
+    this.#tokenToReceive = val
 
     await this.setReserves()
   }
 
   async swap(isLedger?: boolean): Promise<void> {
     if (isLedger) throw new Error('Method not implemented.')
-    if (!this.accountToUse) throw new FlamingoSwapMissingParametersError('accountToUse')
 
     const swapArguments = this.buildSwapArgs()
 
-    const neonInvokerAccount = new wallet.Account(this.accountToUse)
+    const neonInvokerAccount = new wallet.Account(this.#accountToUse!)
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#network.url,
       account: neonInvokerAccount,
@@ -158,7 +156,7 @@ export class FlamingoSwapControllerService implements SwapControllerService<Avai
   }
 
   async setReserves() {
-    if (!this.tokenToReceive || !this.tokenToUse) return
+    if (!this.#tokenToReceive || !this.#tokenToUse) return
 
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#network.url,
@@ -166,8 +164,8 @@ export class FlamingoSwapControllerService implements SwapControllerService<Avai
 
     const invocation = FlamingoSwapNeonDappKitInvocationBuilder.getReservesInvocation({
       network: this.#network,
-      tokenToReceiveScriptHash: this.tokenToReceive.hash,
-      tokenToUseScriptHash: this.tokenToUse.hash,
+      tokenToReceiveScriptHash: this.#tokenToReceive.hash,
+      tokenToUseScriptHash: this.#tokenToUse.hash,
     })
 
     const { stack } = await invoker.testInvoke(invocation)
@@ -176,48 +174,48 @@ export class FlamingoSwapControllerService implements SwapControllerService<Avai
       !TypeChecker.isStackTypeInteger(stack[0].value[0]) ||
       !TypeChecker.isStackTypeInteger(stack[0].value[1])
     )
-      throw new FlamingoInvalidReservesResponseError()
+      throw new Error('Invalid reserves response')
 
-    this.reservesToReceive = stack[0].value[0].value
-    this.reservesToUse = stack[0].value[1].value
+    this.#reservesToReceive = stack[0].value[0].value
+    this.#reservesToUse = stack[0].value[1].value
 
-    this.recalculateSwapArguments()
+    this.#recalculateSwapArguments()
   }
 
   startListeningBlockGeneration() {
-    this.ws = new WebSocket(BLOCKCHAIN_WSS_URL)
+    this.#ws = new WebSocket(BLOCKCHAIN_WSS_URL)
 
-    this.ws.onopen = () => {
+    this.#ws.onopen = () => {
       const block_added = {
         jsonrpc: '2.0',
         method: 'subscribe',
         params: ['block_added'],
         id: 1,
       }
-      this.ws.send(JSON.stringify(block_added))
+      this.#ws.send(JSON.stringify(block_added))
     }
 
-    this.ws.onmessage = async () => {
+    this.#ws.onmessage = async () => {
       this.setReserves()
     }
   }
 
   stopListeningBlockGeneration() {
-    if (this.ws) {
-      this.ws.close()
-      this.ws = null
+    if (this.#ws) {
+      this.#ws.close()
+      this.#ws = null
     }
   }
 
-  private recalculateSwapArguments() {
-    if (!this.tokenToReceive || !this.tokenToUse || !this.reservesToReceive || !this.reservesToUse) return
+  #recalculateSwapArguments() {
+    if (!this.#tokenToReceive || !this.#tokenToUse || !this.#reservesToReceive || !this.#reservesToUse) return
 
     if (
-      (this.lastAmountChange === 'amountToReceive' && this.amountToReceive) ||
-      (this.lastAmountChange === 'amountToUse' && this.amountToUse)
+      (this.#lastAmountChange === 'amountToReceive' && this.#amountToReceive) ||
+      (this.#lastAmountChange === 'amountToUse' && this.#amountToUse)
     ) {
-      const amountToReceive = this.lastAmountChange === 'amountToReceive' ? this.amountToReceive : null
-      const amountToUse = this.lastAmountChange === 'amountToUse' ? this.amountToUse : null
+      const amountToReceive = this.#lastAmountChange === 'amountToReceive' ? this.#amountToReceive : null
+      const amountToUse = this.#lastAmountChange === 'amountToUse' ? this.#amountToUse : null
 
       const {
         amountToUseToDisplay,
@@ -231,164 +229,164 @@ export class FlamingoSwapControllerService implements SwapControllerService<Avai
         network: this.#network,
         amountToReceive,
         amountToUse,
-        tokenToUse: this.tokenToUse,
-        tokenToReceive: this.tokenToReceive,
-        reservesToUse: this.reservesToUse,
-        reservesToReceive: this.reservesToReceive,
-        slippage: this.slippage,
+        tokenToUse: this.#tokenToUse,
+        tokenToReceive: this.#tokenToReceive,
+        reservesToUse: this.#reservesToUse,
+        reservesToReceive: this.#reservesToReceive,
+        slippage: this.#slippage,
       })
 
-      this.amountToUse = amountToUseToDisplay
-      this.amountToReceive = amountToReceiveToDisplay
-      this.maximumSelling = maximumSelling
-      this.minimumReceived = minimumReceived
-      this.liquidityProviderFee = liquidityProviderFee
-      this.priceImpact = priceImpact
-      this.priceInverse = priceInverse
-      this.routes = [] // TODO: It will be implemented in Swap Multi Invoke issue
+      this.#amountToUse = amountToUseToDisplay
+      this.#amountToReceive = amountToReceiveToDisplay
+      this.#maximumSelling = maximumSelling
+      this.#minimumReceived = minimumReceived
+      this.#liquidityProviderFee = liquidityProviderFee
+      this.#priceImpact = priceImpact
+      this.#priceInverse = priceInverse
+      this.#routes = [] // TODO: It will be implemented in Swap Multi Invoke issue
 
       return
     }
 
-    this.clearFields()
+    this.#clearFields()
   }
 
-  private clearFields() {
-    this.amountToUse = null
-    this.amountToReceive = null
-    this.minimumReceived = null
-    this.maximumSelling = null
-    this.liquidityProviderFee = null
-    this.priceImpact = null
-    this.priceInverse = null
+  #clearFields() {
+    this.#amountToUse = null
+    this.#amountToReceive = null
+    this.#minimumReceived = null
+    this.#maximumSelling = null
+    this.#liquidityProviderFee = null
+    this.#priceImpact = null
+    this.#priceInverse = null
   }
 
   // Getters and setters
-  private get lastAmountChange(): 'amountToReceive' | 'amountToUse' | null {
-    return this.#lastAmountChange
+  get #lastAmountChange(): 'amountToReceive' | 'amountToUse' | null {
+    return this.#privateLastAmountChange
   }
-  private set lastAmountChange(val: 'amountToReceive' | 'amountToUse' | null) {
-    this.#lastAmountChange = val
+  set #lastAmountChange(val: 'amountToReceive' | 'amountToUse' | null) {
+    this.#privateLastAmountChange = val
     this.eventEmitter.emit('lastAmountChanged', val)
   }
 
-  private get accountToUse(): Account | null {
-    return this.#accountToUse
+  get #accountToUse(): Account | null {
+    return this.#privateAccountToUse
   }
-  private set accountToUse(val: Account | null) {
-    this.#accountToUse = val
+  set #accountToUse(val: Account | null) {
+    this.#privateAccountToUse = val
     this.eventEmitter.emit('accountToUse', val)
   }
 
-  private get amountToUse(): string | null {
-    return this.#amountToUse
+  get #amountToUse(): string | null {
+    return this.#privateAmountToUse
   }
-  private set amountToUse(val: string | null) {
-    this.#amountToUse = val
+  set #amountToUse(val: string | null) {
+    this.#privateAmountToUse = val
     this.eventEmitter.emit('amountToUse', val)
   }
 
-  private get minimumReceived(): string | null {
-    return this.#minimumReceived
+  get #minimumReceived(): string | null {
+    return this.#privateMinimumReceived
   }
-  private set minimumReceived(val: string | null) {
-    this.#minimumReceived = val
+  set #minimumReceived(val: string | null) {
+    this.#privateMinimumReceived = val
     this.eventEmitter.emit('minimumReceived', val)
   }
 
-  private get maximumSelling(): string | null {
-    return this.#maximumSelling
+  get #maximumSelling(): string | null {
+    return this.#privateMaximumSelling
   }
-  private set maximumSelling(val: string | null) {
-    this.#maximumSelling = val
+  set #maximumSelling(val: string | null) {
+    this.#privateMaximumSelling = val
     this.eventEmitter.emit('maximumSelling', val)
   }
 
-  private get amountToReceive(): string | null {
-    return this.#amountToReceive
+  get #amountToReceive(): string | null {
+    return this.#privateAmountToReceive
   }
-  private set amountToReceive(val: string | null) {
-    this.#amountToReceive = val
+  set #amountToReceive(val: string | null) {
+    this.#privateAmountToReceive = val
     this.eventEmitter.emit('amountToReceive', val)
   }
 
-  private get deadline(): string {
-    return this.#deadline
+  get #deadline(): string {
+    return this.#privateDeadline
   }
-  private set deadline(val: string) {
-    this.#deadline = val
+  set #deadline(val: string) {
+    this.#privateDeadline = val
     this.eventEmitter.emit('deadline', val)
   }
 
-  private get liquidityProviderFee(): string | null {
-    return this.#liquidityProviderFee
+  get #liquidityProviderFee(): string | null {
+    return this.#privateLiquidityProviderFee
   }
-  private set liquidityProviderFee(val: string | null) {
-    this.#liquidityProviderFee = val
+  set #liquidityProviderFee(val: string | null) {
+    this.#privateLiquidityProviderFee = val
     this.eventEmitter.emit('liquidityProviderFee', val)
   }
 
-  private get priceImpact(): string | null {
-    return this.#priceImpact
+  get #priceImpact(): string | null {
+    return this.#privatePriceImpact
   }
-  private set priceImpact(val: string | null) {
-    this.#priceImpact = val
+  set #priceImpact(val: string | null) {
+    this.#privatePriceImpact = val
     this.eventEmitter.emit('priceImpact', val)
   }
 
-  private get priceInverse(): string | null {
-    return this.#priceInverse
+  get #priceInverse(): string | null {
+    return this.#privatePriceInverse
   }
-  private set priceInverse(val: string | null) {
-    this.#priceInverse = val
+  set #priceInverse(val: string | null) {
+    this.#privatePriceInverse = val
     this.eventEmitter.emit('priceInverse', val)
   }
 
-  private get routes(): SwapRoute[] | null {
-    return this.#routes
+  get #routes(): SwapRoute[] | null {
+    return this.#privateRoutes
   }
-  private set routes(val: SwapRoute[] | null) {
-    this.#routes = val
+  set #routes(val: SwapRoute[] | null) {
+    this.#privateRoutes = val
     this.eventEmitter.emit('routes', val)
   }
 
-  private get reservesToUse(): string | null {
-    return this.#reservesToUse
+  get #reservesToUse(): string | null {
+    return this.#privateReservesToUse
   }
-  private set reservesToUse(val: string | null) {
-    this.#reservesToUse = val
+  set #reservesToUse(val: string | null) {
+    this.#privateReservesToUse = val
     this.eventEmitter.emit('reservesToUse', val)
   }
 
-  private get reservesToReceive(): string | null {
-    return this.#reservesToReceive
+  get #reservesToReceive(): string | null {
+    return this.#privateReservesToReceive
   }
-  private set reservesToReceive(val: string | null) {
-    this.#reservesToReceive = val
+  set #reservesToReceive(val: string | null) {
+    this.#privateReservesToReceive = val
     this.eventEmitter.emit('reservesToReceive', val)
   }
 
-  private get slippage(): number {
-    return this.#slippage
+  get #slippage(): number {
+    return this.#privateSlippage
   }
-  private set slippage(val: number) {
-    this.#slippage = val
+  set #slippage(val: number) {
+    this.#privateSlippage = val
     this.eventEmitter.emit('slippage', val)
   }
 
-  private get tokenToReceive(): Token | null {
-    return this.#tokenToReceive
+  get #tokenToReceive(): Token | null {
+    return this.#privateTokenToReceive
   }
-  private set tokenToReceive(val: Token | null) {
-    this.#tokenToReceive = val
+  set #tokenToReceive(val: Token | null) {
+    this.#privateTokenToReceive = val
     this.eventEmitter.emit('tokenToReceive', val)
   }
 
-  private get tokenToUse(): Token | null {
-    return this.#tokenToUse
+  get #tokenToUse(): Token | null {
+    return this.#privateTokenToUse
   }
-  private set tokenToUse(val: Token | null) {
-    this.#tokenToUse = val
+  set #tokenToUse(val: Token | null) {
+    this.#privateTokenToUse = val
     this.eventEmitter.emit('tokenToUse', val)
   }
 }

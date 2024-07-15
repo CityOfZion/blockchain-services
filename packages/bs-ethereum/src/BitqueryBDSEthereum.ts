@@ -9,14 +9,10 @@ import {
   TransactionTransferNft,
   Network,
 } from '@cityofzion/blockchain-service'
-import {
-  AvailableNetworkIds,
-  BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID,
-  BITQUERY_MIRROR_URL,
-  NATIVE_ASSET_BY_NETWORK_ID,
-} from './constants'
+
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import axios, { AxiosInstance } from 'axios'
+import { AvailableNetworkIds, BSEthereumHelper } from './BSEthereumHelper'
 
 type BitqueryTransaction = {
   block: {
@@ -104,24 +100,45 @@ type BitqueryGetBalanceResponse = {
 
 export class BitqueryBDSEthereum extends RpcBDSEthereum {
   readonly #client: AxiosInstance
-  readonly #networkId: AvailableNetworkIds
+  readonly #network: Network<AvailableNetworkIds>
   readonly #tokenCache: Map<string, Token> = new Map()
+
+  static MIRROR_URL = 'https://i4l7kcg43c.execute-api.us-east-1.amazonaws.com/production/'
+
+  static MIRROR_NETWORK_BY_NETWORK_ID: Partial<Record<AvailableNetworkIds, string>> = {
+    '1': 'ethereum',
+    '25': 'cronos',
+    '56': 'bsc',
+    '137': 'matic',
+    '250': 'fantom',
+    '42220': 'celo_mainnet',
+    '43114': 'avalanche',
+  }
+
+  static getMirrorNetworkId(network: Network<AvailableNetworkIds>): string {
+    const mirrorNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[network.id]
+    if (!mirrorNetwork) throw new Error('Mirror network is not supported')
+
+    return mirrorNetwork
+  }
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 8
 
   constructor(network: Network<AvailableNetworkIds>) {
     super(network)
 
-    this.#networkId = network.id
+    this.#network = network
 
     this.#client = axios.create({
-      baseURL: BITQUERY_MIRROR_URL,
+      baseURL: BitqueryBDSEthereum.MIRROR_URL,
     })
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
+    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
+
     const result = await this.#client.get<BitqueryGetTransactionResponse>(`/get-transaction/${hash}`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId] },
+      params: { network: mirrorNetwork },
     })
 
     if (!result.data || !result.data.ethereum.transfers.length) throw new Error('Transaction not found')
@@ -153,8 +170,10 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     const limit = 10
     const offset = limit * (page - 1)
 
+    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
+
     const result = await this.#client.get<BitqueryGetTransactionsByAddressResponse>(`/get-transactions/${address}`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId], limit, offset },
+      params: { network: mirrorNetwork, limit, offset },
     })
 
     if (!result.data) throw new Error('Address does not have transactions')
@@ -200,8 +219,10 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
       return this.#tokenCache.get(hash)!
     }
 
+    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
+
     const result = await this.#client.get<BitqueryGetContractResponse>(`/get-token-info/${hash}`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId] },
+      params: { network: mirrorNetwork },
     })
 
     if (!result.data || result.data.ethereum.smartContractCalls.length <= 0) throw new Error('Token not found')
@@ -226,13 +247,15 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
+    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
+
     const result = await this.#client.get<BitqueryGetBalanceResponse>(`/get-balance/${address}`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId] },
+      params: { network: mirrorNetwork },
     })
 
     const data = result.data?.ethereum.address[0].balances ?? []
     const nativeBalance = result.data?.ethereum.address[0].balance ?? 0
-    const nativeToken = NATIVE_ASSET_BY_NETWORK_ID[this.#networkId]
+    const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
 
     const balances: BalanceResponse[] = [
       {

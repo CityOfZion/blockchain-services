@@ -14,20 +14,22 @@ import {
 } from '@cityofzion/blockchain-service'
 import { rpc, u } from '@cityofzion/neon-core'
 import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
-import { AvailableNetworkIds, RPC_LIST_BY_NETWORK_TYPE, TOKENS } from './constants'
+import { AvailableNetworkIds, BSNeo3Helper } from './BSNeo3Helper'
 
 export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   readonly _tokenCache: Map<string, Token> = new Map()
   readonly _feeToken: Token
   readonly _claimToken: Token
   readonly _network: Network<AvailableNetworkIds>
+  readonly _tokens: Token[] = []
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
 
-  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token) {
+  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token, tokens: Token[]) {
     this._network = network
     this._feeToken = feeToken
     this._claimToken = claimToken
+    this._tokens = tokens
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -78,7 +80,7 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = TOKENS[this._network.id].find(token => token.hash === tokenHash)
+    const localToken = this._tokens.find(token => token.hash === tokenHash)
     if (localToken) return localToken
 
     if (this._tokenCache.has(tokenHash)) {
@@ -163,7 +165,9 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   async getRpcList(): Promise<RpcResponse[]> {
     const list: RpcResponse[] = []
 
-    const promises = RPC_LIST_BY_NETWORK_TYPE[this._network.id].map(url => {
+    const urls = BSNeo3Helper.getRpcList(this._network)
+
+    const promises = urls.map(url => {
       // eslint-disable-next-line no-async-promise-executor
       return new Promise<void>(async resolve => {
         const timeout = setTimeout(() => {

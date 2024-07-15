@@ -2,14 +2,16 @@ import { ethers } from 'ethers'
 import { BSEthereum } from '../BSEthereum'
 import { Account } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import { BSEthereumHelper } from '../BSEthereumHelper'
 
+const network = BSEthereumHelper.TESTNET_NETWORKS.find(network => network.id === '11155111')!
 let bsEthereum: BSEthereum
 let wallet: ethers.Wallet
 let account: Account
 
 describe('BSEthereum', () => {
   beforeEach(async () => {
-    bsEthereum = new BSEthereum('neo3', { id: '11155111' })
+    bsEthereum = new BSEthereum('neo3', network)
     wallet = ethers.Wallet.createRandom()
     account = {
       key: wallet.privateKey,
@@ -127,7 +129,7 @@ describe('BSEthereum', () => {
 
   it.skip('Should be able to transfer a native token with ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSEthereum('neo3', { id: '11155111' }, async () => transport)
+    const service = new BSEthereum('neo3', network, async () => transport)
     const publicKey = await service.ledgerService.getPublicKey(transport)
 
     const account = service.generateAccountFromPublicKey(publicKey)
@@ -148,7 +150,7 @@ describe('BSEthereum', () => {
 
   it.skip('Should be able to transfer a ERC20 token with ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSEthereum('neo3', { id: '11155111' }, async () => transport)
+    const service = new BSEthereum('neo3', network, async () => transport)
 
     const publicKey = await service.ledgerService.getPublicKey(transport)
     const account = service.generateAccountFromPublicKey(publicKey)
@@ -173,9 +175,10 @@ describe('BSEthereum', () => {
   }, 10000)
 
   it.skip('Should be able to transfer a native token using a EVM', async () => {
-    bsEthereum.setNetwork({ id: '80002' })
-    const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
-    const transactionHash = await bsEthereum.transfer({
+    const polygonNetwork = BSEthereumHelper.TESTNET_NETWORKS.find(network => network.id === '80002')!
+    const service = new BSEthereum('neo3', polygonNetwork)
+    const account = service.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const transactionHash = await service.transfer({
       senderAccount: account,
       intent: {
         amount: '0.00000001',

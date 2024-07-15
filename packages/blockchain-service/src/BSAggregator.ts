@@ -1,4 +1,4 @@
-import { AccountWithDerivationPath, BlockchainService, PartialNetwork } from './interfaces'
+import { AccountWithDerivationPath, BlockchainService } from './interfaces'
 
 export class BSAggregator<
   BSCustomName extends string = string,
@@ -10,10 +10,6 @@ export class BSAggregator<
   constructor(blockchainServices: Record<BSCustomName, BSCustom>) {
     this.blockchainServicesByName = blockchainServices
     this.#blockchainServices = Object.values(blockchainServices)
-  }
-
-  setNetwork(network: PartialNetwork) {
-    this.#blockchainServices.forEach(bs => bs.setNetwork(network))
   }
 
   addBlockchain(name: BSCustomName, blockchain: BSCustom) {

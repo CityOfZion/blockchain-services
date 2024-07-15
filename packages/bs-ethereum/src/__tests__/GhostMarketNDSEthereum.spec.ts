@@ -1,15 +1,11 @@
+import { BSEthereumHelper } from '../BSEthereumHelper'
 import { GhostMarketNDSEthereum } from '../GhostMarketNDSEthereum'
-import { DEFAULT_URL_BY_NETWORK_ID, NETWORK_NAME_BY_NETWORK_ID } from '../constants'
 
 let ghostMarketNDSEthereum: GhostMarketNDSEthereum
 
 describe('GhostMarketNDSEthereum', () => {
   beforeAll(() => {
-    ghostMarketNDSEthereum = new GhostMarketNDSEthereum({
-      id: '1',
-      url: DEFAULT_URL_BY_NETWORK_ID['1'],
-      name: NETWORK_NAME_BY_NETWORK_ID['1'],
-    })
+    ghostMarketNDSEthereum = new GhostMarketNDSEthereum(BSEthereumHelper.DEFAULT_NETWORK)
   })
 
   it('Get NFT', async () => {

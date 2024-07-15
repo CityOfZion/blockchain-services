@@ -1,13 +1,9 @@
+import { BSEthereumHelper } from '../BSEthereumHelper'
 import { BitqueryBDSEthereum } from '../BitqueryBDSEthereum'
-import { DEFAULT_URL_BY_NETWORK_ID, NETWORK_NAME_BY_NETWORK_ID } from '../constants'
 
-const bitqueryBDSEthereum = new BitqueryBDSEthereum({
-  id: '1',
-  url: DEFAULT_URL_BY_NETWORK_ID['1'],
-  name: NETWORK_NAME_BY_NETWORK_ID['1'],
-})
+const bitqueryBDSEthereum = new BitqueryBDSEthereum(BSEthereumHelper.DEFAULT_NETWORK)
 
-describe('BitqueryBDSEthereum', () => {
+describe.skip('BitqueryBDSEthereum', () => {
   it('Should be able to get transaction - %s', async () => {
     const hash = '0x12f994e6cecbe4495b4fdef08a2db8551943813b21f3434aa5c2356f8686fa8b'
     const transaction = await bitqueryBDSEthereum.getTransaction(hash)

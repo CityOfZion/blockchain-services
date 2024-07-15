@@ -1,10 +1,11 @@
+import { BSNeo3Helper } from '../BSNeo3Helper'
 import { DoraESNeo3 } from '../DoraESNeo3'
 
 let doraESNeo3: DoraESNeo3
 
 describe('DoraESNeo3', () => {
   beforeAll(() => {
-    doraESNeo3 = new DoraESNeo3('mainnet')
+    doraESNeo3 = new DoraESNeo3(BSNeo3Helper.DEFAULT_NETWORK.id)
   })
   it('Should return a transaction url', async () => {
     const hash = '0x775d824a54d4e9bebf3c522a7d8dede550348323d833ce68fbcf0ab953d579e8'

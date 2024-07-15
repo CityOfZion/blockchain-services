@@ -11,59 +11,57 @@ import {
   AccountWithDerivationPath,
   BSWithExplorerService,
   ExplorerService,
-  PartialNetwork,
 } from '@cityofzion/blockchain-service'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
-import {
-  AvailableNetworkIds,
-  DEFAULT_URL_BY_NETWORK_TYPE,
-  DERIVATION_PATH,
-  LEGACY_NETWORK_BY_NETWORK_TYPE,
-  NATIVE_ASSETS,
-  TOKENS,
-} from './constants'
 import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
 import { CryptoCompareEDSNeoLegacy } from './CryptoCompareEDSNeoLegacy'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
-import { DoraESNeoLegacy } from './DoraESNeoLegacy'
+import { AvailableNetworkIds, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
+import { NeoTubeESNeoLegacy } from './NeoTubeESNeoLegacy'
 
 export class BSNeoLegacy<BSCustomName extends string = string>
   implements BlockchainService<BSCustomName, AvailableNetworkIds>, BSClaimable, BSWithExplorerService
 {
   readonly blockchainName: BSCustomName
-  readonly feeToken: Token
-  readonly claimToken: Token
-  readonly burnToken: Token
   readonly derivationPath: string
+
+  feeToken!: Token
+  claimToken!: Token
+  burnToken!: Token
 
   blockchainDataService!: BlockchainDataService & BDSClaimable
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
-  tokens: Token[]
+  tokens!: Token[]
   network!: Network<AvailableNetworkIds>
   legacyNetwork: string
 
-  constructor(blockchainName: BSCustomName, network: PartialNetwork<AvailableNetworkIds>) {
+  constructor(blockchainName: BSCustomName, network?: Network<AvailableNetworkIds>) {
+    network = network ?? BSNeoLegacyHelper.DEFAULT_NETWORK
+
     this.blockchainName = blockchainName
-    this.legacyNetwork = LEGACY_NETWORK_BY_NETWORK_TYPE[network.id]
-    this.derivationPath = DERIVATION_PATH
-    this.tokens = TOKENS[network.id]
-    this.claimToken = this.tokens.find(token => token.symbol === 'GAS')!
-    this.burnToken = this.tokens.find(token => token.symbol === 'NEO')!
-    this.feeToken = this.tokens.find(token => token.symbol === 'GAS')!
+    this.legacyNetwork = BSNeoLegacyHelper.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
+    this.derivationPath = BSNeoLegacyHelper.DERIVATION_PATH
+
     this.setNetwork(network)
   }
 
-  setNetwork(param: PartialNetwork<AvailableNetworkIds>) {
-    const network = {
-      id: param.id,
-      name: param.name ?? param.id,
-      url: param.url ?? DEFAULT_URL_BY_NETWORK_TYPE[param.id],
-    }
+  #setTokens(network: Network<AvailableNetworkIds>) {
+    const tokens = BSNeoLegacyHelper.getTokens(network)
+
+    this.tokens = tokens
+    this.feeToken = tokens.find(token => token.symbol === 'GAS')!
+    this.burnToken = tokens.find(token => token.symbol === 'NEO')!
+    this.claimToken = tokens.find(token => token.symbol === 'GAS')!
+  }
+
+  setNetwork(network: Network<AvailableNetworkIds>) {
+    this.#setTokens(network)
+
     this.network = network
-    this.blockchainDataService = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken)
-    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network.id)
-    this.explorerService = new DoraESNeoLegacy(network.id)
+    this.blockchainDataService = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken, this.tokens)
+    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network.id, this.tokens)
+    this.explorerService = new NeoTubeESNeoLegacy(network.id)
   }
 
   validateAddress(address: string): boolean {
@@ -117,7 +115,7 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     for (const intent of intents) {
       const tokenHashFixed = intent.tokenHash.replace('0x', '')
 
-      const nativeAsset = NATIVE_ASSETS.find(asset => asset.hash === tokenHashFixed)
+      const nativeAsset = BSNeoLegacyHelper.NATIVE_ASSETS.find(asset => asset.hash === tokenHashFixed)
       if (nativeAsset) {
         nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
         continue

@@ -1,13 +1,16 @@
-import { CryptoCompareEDS, Currency, ExchangeDataService, TokenPricesResponse } from '@cityofzion/blockchain-service'
+import {
+  CryptoCompareEDS,
+  Currency,
+  ExchangeDataService,
+  Network,
+  Token,
+  TokenPricesResponse,
+} from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import {
-  AvailableNetworkIds,
-  BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID,
-  BITQUERY_MIRROR_URL,
-  NATIVE_ASSET_BY_NETWORK_ID,
-} from './constants'
+import { AvailableNetworkIds } from './BSEthereumHelper'
+import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
 
 type BitQueryGetTokenPricesResponse = {
   ethereum: {
@@ -31,22 +34,25 @@ type BitQueryGetTokenPricesResponse = {
 dayjs.extend(utc)
 export class BitqueryEDSEthereum extends CryptoCompareEDS implements ExchangeDataService {
   readonly #client: AxiosInstance
-  readonly #networkId: AvailableNetworkIds
+  readonly #network: Network<AvailableNetworkIds>
 
-  constructor(networkId: AvailableNetworkIds) {
-    super([NATIVE_ASSET_BY_NETWORK_ID[networkId]])
+  constructor(network: Network<AvailableNetworkIds>, tokens: Token[]) {
+    super(tokens)
 
-    this.#networkId = networkId
+    this.#network = network
+
     this.#client = axios.create({
-      baseURL: BITQUERY_MIRROR_URL,
+      baseURL: BitqueryBDSEthereum.MIRROR_URL,
     })
   }
 
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
     const twoDaysAgo = dayjs.utc().subtract(2, 'day').startOf('date').toISOString()
 
+    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
+
     const result = await this.#client.get<BitQueryGetTokenPricesResponse>(`/get-price`, {
-      params: { network: BITQUERY_MIRROR_NETWORK_BY_NETWORK_ID[this.#networkId], after: twoDaysAgo },
+      params: { network: mirrorNetwork, after: twoDaysAgo },
     })
 
     if (!result.data) {
