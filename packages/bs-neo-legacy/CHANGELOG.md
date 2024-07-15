@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Mon, 15 Jul 2024 18:05:28 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Jul 2024 18:28:10 GMT and should not be manually modified.
+
+## 1.0.2
+Mon, 15 Jul 2024 18:28:10 GMT
+
+### Patches
+
+- Fix incorrect exclude type
 
 ## 1.0.1
 Mon, 15 Jul 2024 18:05:28 GMT
