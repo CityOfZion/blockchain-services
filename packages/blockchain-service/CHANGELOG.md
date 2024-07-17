@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 15 Jul 2024 18:05:28 GMT and should not be manually modified.
+This log was last generated on Wed, 17 Jul 2024 16:13:43 GMT and should not be manually modified.
+
+## 1.0.2
+Wed, 17 Jul 2024 16:13:43 GMT
+
+### Patches
+
+- Refactor related to multi network
 
 ## 1.0.1
 Mon, 15 Jul 2024 18:05:28 GMT
