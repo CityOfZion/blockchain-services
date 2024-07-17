@@ -13,7 +13,7 @@ import {
 import { wallet, u } from '@cityofzion/neon-js'
 import { NeoRESTApi } from '@cityofzion/dora-ts/dist/api'
 import { RPCBDSNeo3 } from './RpcBDSNeo3'
-import { AvailableNetworkIds } from './BSNeo3Helper'
+import { BSNeo3Helper, BSNeo3NetworkId } from './BSNeo3Helper'
 
 const NeoRest = new NeoRESTApi({
   doraUrl: 'https://dora.coz.io',
@@ -21,13 +21,15 @@ const NeoRest = new NeoRESTApi({
 })
 
 export class DoraBDSNeo3 extends RPCBDSNeo3 {
-  static SUPPORTED_NETWORKS: AvailableNetworkIds[] = ['mainnet', 'testnet']
-
-  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token, tokens: Token[]) {
+  constructor(network: Network<BSNeo3NetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
     super(network, feeToken, claimToken, tokens)
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
+    if (!BSNeo3Helper.isCustomNet(this._network)) {
+      return await super.getTransaction(hash)
+    }
+
     try {
       const data = await NeoRest.transaction(hash, this._network.id)
       return {
@@ -49,6 +51,10 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
     address,
     page = 1,
   }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
+    if (!BSNeo3Helper.isCustomNet(this._network)) {
+      return await super.getTransactionsByAddress({ address, page })
+    }
+
     const data = await NeoRest.addressTXFull(address, page, this._network.id)
 
     const promises = data.items.map(async (item): Promise<TransactionResponse> => {
@@ -120,6 +126,10 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
+    if (!BSNeo3Helper.isCustomNet(this._network)) {
+      return await super.getContract(contractHash)
+    }
+
     try {
       const data = await NeoRest.contract(contractHash, this._network.id)
       return {
@@ -133,6 +143,10 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
+    if (!BSNeo3Helper.isCustomNet(this._network)) {
+      return await super.getTokenInfo(tokenHash)
+    }
+
     const localToken = this._tokens.find(token => token.hash === tokenHash)
     if (localToken) return localToken
 
@@ -157,6 +171,10 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
+    if (!BSNeo3Helper.isCustomNet(this._network)) {
+      return await super.getBalance(address)
+    }
+
     const response = await NeoRest.balance(address, this._network.id)
 
     const promises = response.map<Promise<BalanceResponse | undefined>>(async balance => {

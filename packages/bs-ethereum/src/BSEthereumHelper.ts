@@ -1,6 +1,6 @@
-import { Network, Token } from '@cityofzion/blockchain-service'
+import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
 
-export type AvailableNetworkIds =
+export type BSEthereumNetworkId = NetworkId<
   | '1'
   | '10'
   | '25'
@@ -16,8 +16,7 @@ export type AvailableNetworkIds =
   | '59144'
   | '11155111'
   | '12227331'
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  | (string & {})
+>
 
 export class BSEthereumHelper {
   static #NATIVE_ASSET: Token = {
@@ -26,7 +25,7 @@ export class BSEthereumHelper {
     name: 'ETH',
     symbol: 'ETH',
   }
-  static #NATIVE_SYMBOL_BY_NETWORK_ID: Partial<Record<AvailableNetworkIds, string>> = {
+  static #NATIVE_SYMBOL_BY_NETWORK_ID: Record<BSEthereumNetworkId, string> = {
     '1': 'ETH',
     '10': 'ETH',
     '25': 'CRO',
@@ -44,7 +43,7 @@ export class BSEthereumHelper {
     '12227331': 'GAS',
   }
 
-  static #RPC_LIST_BY_NETWORK_ID: Record<AvailableNetworkIds, string[]> = {
+  static #RPC_LIST_BY_NETWORK_ID: Record<BSEthereumNetworkId, string[]> = {
     '1': [
       'https://eth.llamarpc.com',
       'https://mainnet.infura.io/v3/',
@@ -139,7 +138,17 @@ export class BSEthereumHelper {
   static DERIVATION_PATH = "m/44'/60'/0'/0/?"
   static DEFAULT_PATH = "44'/60'/0'/0/0"
 
-  static MAINNET_NETWORK_IDS: AvailableNetworkIds[] = [
+  static NEOX_TESTNET_NETWORK_ID: BSEthereumNetworkId = '12227331'
+  static NEOX_NETWORK_IDS: BSEthereumNetworkId[] = [this.NEOX_TESTNET_NETWORK_ID]
+
+  static NEOX_TESTNET_NETWORK: Network<BSEthereumNetworkId> = {
+    id: this.NEOX_TESTNET_NETWORK_ID,
+    name: 'NeoX Testnet',
+    url: this.#RPC_LIST_BY_NETWORK_ID[this.NEOX_TESTNET_NETWORK_ID][0],
+  }
+  static NEOX_NETWORKS: Network<BSEthereumNetworkId>[] = [this.NEOX_TESTNET_NETWORK]
+
+  static MAINNET_NETWORK_IDS: BSEthereumNetworkId[] = [
     '1',
     '10',
     '25',
@@ -152,10 +161,16 @@ export class BSEthereumHelper {
     '43114',
     '59144',
   ]
-  static TESTNET_NETWORK_IDS: AvailableNetworkIds[] = ['1101', '80002', '11155111', '12227331']
-  static ALL_NETWORK_IDS: AvailableNetworkIds[] = [...this.MAINNET_NETWORK_IDS, ...this.TESTNET_NETWORK_IDS]
+  static TESTNET_NETWORK_IDS: BSEthereumNetworkId[] = [
+    '1101',
+    '80002',
+    '11155111',
+    '12227331',
+    this.NEOX_TESTNET_NETWORK_ID,
+  ]
+  static ALL_NETWORK_IDS: BSEthereumNetworkId[] = [...this.MAINNET_NETWORK_IDS, ...this.TESTNET_NETWORK_IDS]
 
-  static MAINNET_NETWORKS: Network<AvailableNetworkIds>[] = [
+  static MAINNET_NETWORKS: Network<BSEthereumNetworkId>[] = [
     {
       id: '1',
       name: 'Ethereum Mainnet',
@@ -212,7 +227,7 @@ export class BSEthereumHelper {
       url: this.#RPC_LIST_BY_NETWORK_ID['59144'][0],
     },
   ]
-  static TESTNET_NETWORKS: Network<AvailableNetworkIds>[] = [
+  static TESTNET_NETWORKS: Network<BSEthereumNetworkId>[] = [
     {
       id: '1101',
       name: 'Polygon zkEVM Testnet',
@@ -220,33 +235,33 @@ export class BSEthereumHelper {
     },
     {
       id: '80002',
-      name: 'Polygon Testnet',
+      name: 'Polygon Testnet Amoy',
       url: this.#RPC_LIST_BY_NETWORK_ID['80002'][0],
     },
     {
       id: '11155111',
-      name: 'Ethereum Sepolia Testnet',
+      name: 'Sepolia Testnet',
       url: this.#RPC_LIST_BY_NETWORK_ID['11155111'][0],
     },
-    {
-      id: '12227331',
-      name: 'Neo3 Testnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['12227331'][0],
-    },
+    this.NEOX_TESTNET_NETWORK,
   ]
-  static ALL_NETWORKS: Network<AvailableNetworkIds>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
+  static ALL_NETWORKS: Network<BSEthereumNetworkId>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
 
   static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
 
-  static getNativeAsset(network: Network<AvailableNetworkIds>) {
+  static getNativeAsset(network: Network<BSEthereumNetworkId>) {
     return { ...this.#NATIVE_ASSET, symbol: this.getNativeSymbol(network) }
   }
 
-  static getNativeSymbol(network: Network<AvailableNetworkIds>) {
+  static getNativeSymbol(network: Network<BSEthereumNetworkId>) {
     return this.#NATIVE_SYMBOL_BY_NETWORK_ID[network.id] ?? 'ETH'
   }
 
-  static getRpcList(network: Network<AvailableNetworkIds>) {
+  static getRpcList(network: Network<BSEthereumNetworkId>) {
     return this.#RPC_LIST_BY_NETWORK_ID[network.id] ?? []
+  }
+
+  static isMainnet(network: Network<BSEthereumNetworkId>) {
+    return this.MAINNET_NETWORK_IDS.includes(network.id)
   }
 }

@@ -16,8 +16,11 @@ export interface Token {
   decimals: number
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type NetworkId<T extends string = string> = T | (string & {})
+
 export type Network<T extends string = string> = {
-  id: T
+  id: NetworkId<T>
   name: string
   url: string
 }

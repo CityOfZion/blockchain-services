@@ -16,11 +16,11 @@ import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
 import { CryptoCompareEDSNeoLegacy } from './CryptoCompareEDSNeoLegacy'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
-import { AvailableNetworkIds, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
+import { BSNeoLegacyNetworkId, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
 import { NeoTubeESNeoLegacy } from './NeoTubeESNeoLegacy'
 
 export class BSNeoLegacy<BSCustomName extends string = string>
-  implements BlockchainService<BSCustomName, AvailableNetworkIds>, BSClaimable, BSWithExplorerService
+  implements BlockchainService<BSCustomName, BSNeoLegacyNetworkId>, BSClaimable, BSWithExplorerService
 {
   readonly blockchainName: BSCustomName
   readonly derivationPath: string
@@ -33,10 +33,10 @@ export class BSNeoLegacy<BSCustomName extends string = string>
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
   tokens!: Token[]
-  network!: Network<AvailableNetworkIds>
+  network!: Network<BSNeoLegacyNetworkId>
   legacyNetwork: string
 
-  constructor(blockchainName: BSCustomName, network?: Network<AvailableNetworkIds>) {
+  constructor(blockchainName: BSCustomName, network?: Network<BSNeoLegacyNetworkId>) {
     network = network ?? BSNeoLegacyHelper.DEFAULT_NETWORK
 
     this.blockchainName = blockchainName
@@ -46,7 +46,7 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     this.setNetwork(network)
   }
 
-  #setTokens(network: Network<AvailableNetworkIds>) {
+  #setTokens(network: Network<BSNeoLegacyNetworkId>) {
     const tokens = BSNeoLegacyHelper.getTokens(network)
 
     this.tokens = tokens
@@ -55,13 +55,15 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
   }
 
-  setNetwork(network: Network<AvailableNetworkIds>) {
+  setNetwork(network: Network<BSNeoLegacyNetworkId>) {
+    if (!BSNeoLegacyHelper.ALL_NETWORK_IDS.includes(network.id)) throw new Error('Custom network is not supported')
+
     this.#setTokens(network)
 
     this.network = network
     this.blockchainDataService = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken, this.tokens)
-    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network.id, this.tokens)
-    this.explorerService = new NeoTubeESNeoLegacy(network.id)
+    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network, this.tokens)
+    this.explorerService = new NeoTubeESNeoLegacy(network)
   }
 
   validateAddress(address: string): boolean {

@@ -12,7 +12,7 @@ import {
 
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import axios, { AxiosInstance } from 'axios'
-import { AvailableNetworkIds, BSEthereumHelper } from './BSEthereumHelper'
+import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
 
 type BitqueryTransaction = {
   block: {
@@ -99,13 +99,9 @@ type BitqueryGetBalanceResponse = {
 }
 
 export class BitqueryBDSEthereum extends RpcBDSEthereum {
-  readonly #client: AxiosInstance
-  readonly #network: Network<AvailableNetworkIds>
-  readonly #tokenCache: Map<string, Token> = new Map()
-
   static MIRROR_URL = 'https://i4l7kcg43c.execute-api.us-east-1.amazonaws.com/production/'
 
-  static MIRROR_NETWORK_BY_NETWORK_ID: Partial<Record<AvailableNetworkIds, string>> = {
+  static MIRROR_NETWORK_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
     '1': 'ethereum',
     '25': 'cronos',
     '56': 'bsc',
@@ -115,16 +111,13 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     '43114': 'avalanche',
   }
 
-  static getMirrorNetworkId(network: Network<AvailableNetworkIds>): string {
-    const mirrorNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[network.id]
-    if (!mirrorNetwork) throw new Error('Mirror network is not supported')
-
-    return mirrorNetwork
-  }
+  readonly #client: AxiosInstance
+  readonly #network: Network<BSEthereumNetworkId>
+  readonly #tokenCache: Map<string, Token> = new Map()
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 8
 
-  constructor(network: Network<AvailableNetworkIds>) {
+  constructor(network: Network<BSEthereumNetworkId>) {
     super(network)
 
     this.#network = network
@@ -135,7 +128,10 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
+    const mirrorNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[this.#network.id]
+    if (!mirrorNetwork) {
+      return super.getTransaction(hash)
+    }
 
     const result = await this.#client.get<BitqueryGetTransactionResponse>(`/get-transaction/${hash}`, {
       params: { network: mirrorNetwork },
@@ -143,7 +139,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
 
     if (!result.data || !result.data.ethereum.transfers.length) throw new Error('Transaction not found')
 
-    const transfers = result.data.ethereum.transfers.map(this.parseTransactionTransfer)
+    const transfers = result.data.ethereum.transfers.map(this.#parseTransactionTransfer)
 
     const {
       block: {
@@ -167,10 +163,13 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     address,
     page = 1,
   }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
+    const mirrorNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[this.#network.id]
+    if (!mirrorNetwork) {
+      return super.getTransactionsByAddress({ address, page })
+    }
+
     const limit = 10
     const offset = limit * (page - 1)
-
-    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
 
     const result = await this.#client.get<BitqueryGetTransactionsByAddressResponse>(`/get-transactions/${address}`, {
       params: { network: mirrorNetwork, limit, offset },
@@ -185,7 +184,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     const transactions = new Map<string, TransactionResponse>()
 
     mixedTransfers.forEach(transfer => {
-      const transactionTransfer = this.parseTransactionTransfer(transfer)
+      const transactionTransfer = this.#parseTransactionTransfer(transfer)
 
       const existingTransaction = transactions.get(transfer.transaction.hash)
       if (existingTransaction) {
@@ -211,15 +210,23 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   }
 
   async getContract(): Promise<ContractResponse> {
+    const mirrorNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[this.#network.id]
+    if (!mirrorNetwork) {
+      return super.getContract()
+    }
+
     throw new Error("Bitquery doesn't support contract info")
   }
 
   async getTokenInfo(hash: string): Promise<Token> {
+    const mirrorNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[this.#network.id]
+    if (!mirrorNetwork) {
+      return super.getTokenInfo(hash)
+    }
+
     if (this.#tokenCache.has(hash)) {
       return this.#tokenCache.get(hash)!
     }
-
-    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
 
     const result = await this.#client.get<BitqueryGetContractResponse>(`/get-token-info/${hash}`, {
       params: { network: mirrorNetwork },
@@ -247,7 +254,10 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const mirrorNetwork = BitqueryBDSEthereum.getMirrorNetworkId(this.#network)
+    const mirrorNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[this.#network.id]
+    if (!mirrorNetwork) {
+      return super.getBalance(address)
+    }
 
     const result = await this.#client.get<BitqueryGetBalanceResponse>(`/get-balance/${address}`, {
       params: { network: mirrorNetwork },
@@ -281,7 +291,7 @@ export class BitqueryBDSEthereum extends RpcBDSEthereum {
     return balances
   }
 
-  private parseTransactionTransfer({
+  #parseTransactionTransfer({
     amount,
     currency: { tokenType, address, decimals, symbol, name },
     entityId,

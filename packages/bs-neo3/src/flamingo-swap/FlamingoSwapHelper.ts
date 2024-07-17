@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js'
 import { Network, SwapRoute, Token } from '@cityofzion/blockchain-service'
-import { AvailableNetworkIds } from '../BSNeo3Helper'
+import { BSNeo3NetworkId } from '../BSNeo3Helper'
 
 type TGetSwapArgs = {
   amountToUse: string | null
@@ -10,7 +10,7 @@ type TGetSwapArgs = {
   reservesToUse: string
   reservesToReceive: string
   slippage: number
-  network: Network<AvailableNetworkIds>
+  network: Network<BSNeo3NetworkId>
 }
 
 type TCreateTradeDataArgs = {
@@ -42,7 +42,7 @@ export class FlamingoSwapHelper {
 
   static readonly GAS_PER_NEO = 0.001
 
-  static readonly #SWAP_SCRIPT_HASHES_BY_NETWORK_ID: Partial<Record<AvailableNetworkIds, SwapScriptHashes>> = {
+  static readonly #SWAP_SCRIPT_HASHES_BY_NETWORK_ID: Partial<Record<BSNeo3NetworkId, SwapScriptHashes>> = {
     mainnet: {
       flamingoSwapRouter: '0xf970f4ccecd765b63732b821775dc38c25d74f23',
       flamingoPairWhiteList: '0xfb75a5314069b56e136713d38477f647a13991b4',
@@ -63,7 +63,7 @@ export class FlamingoSwapHelper {
     },
   }
 
-  static readonly #BNEO_TOKEN_BY_NETWORK_ID: Partial<Record<AvailableNetworkIds, Token>> = {
+  static readonly #BNEO_TOKEN_BY_NETWORK_ID: Partial<Record<BSNeo3NetworkId, Token>> = {
     mainnet: {
       symbol: 'bNEO',
       hash: '0x48c40d4666f93408be1bef038b6722404d9a4c2a',
@@ -78,13 +78,13 @@ export class FlamingoSwapHelper {
     },
   }
 
-  static getSwapScriptHashes(network: Network<AvailableNetworkIds>) {
+  static getSwapScriptHashes(network: Network<BSNeo3NetworkId>) {
     const hashes = this.#SWAP_SCRIPT_HASHES_BY_NETWORK_ID[network.id]
     if (!hashes) throw new Error('Unsupported network')
     return hashes
   }
 
-  static getBneoToken(network: Network<AvailableNetworkIds>) {
+  static getBneoToken(network: Network<BSNeo3NetworkId>) {
     const token = this.#BNEO_TOKEN_BY_NETWORK_ID[network.id]
     if (!token) throw new Error('Unsupported network')
     return token
@@ -177,7 +177,7 @@ export class FlamingoSwapHelper {
     }
   }
 
-  static overrideToken(network: Network<AvailableNetworkIds>, token: Token): Token {
+  static overrideToken(network: Network<BSNeo3NetworkId>, token: Token): Token {
     const scriptHashes = this.getSwapScriptHashes(network)
     const isNeoToken = this.normalizeHash(token.hash) === this.normalizeHash(scriptHashes.neo)
 
@@ -206,13 +206,13 @@ export class FlamingoSwapHelper {
     }
   }
 
-  private static overrideAmountInput(network: Network<AvailableNetworkIds>, amount: string, token: Token) {
+  private static overrideAmountInput(network: Network<BSNeo3NetworkId>, amount: string, token: Token) {
     const tokenOverrode = this.overrideToken(network, token)
 
     return new BigNumber(amount).shiftedBy(tokenOverrode.decimals)
   }
 
-  private static overrideAmountToDisplay(network: Network<AvailableNetworkIds>, amount: string, token: Token) {
+  private static overrideAmountToDisplay(network: Network<BSNeo3NetworkId>, amount: string, token: Token) {
     const tokenOverrode = this.overrideToken(network, token)
 
     return new BigNumber(amount).shiftedBy(-tokenOverrode.decimals).toFixed()

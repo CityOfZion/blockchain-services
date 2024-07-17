@@ -3,7 +3,7 @@ import qs from 'query-string'
 import axios from 'axios'
 
 import { RpcNDSEthereum } from './RpcNDSEthereum'
-import { AvailableNetworkIds } from './BSEthereumHelper'
+import { BSEthereumNetworkId } from './BSEthereumHelper'
 
 type GhostMarketNFT = {
   tokenId: string
@@ -43,7 +43,7 @@ type GhostMarketAssets = {
 export class GhostMarketNDSEthereum extends RpcNDSEthereum {
   static CONFIG_BY_NETWORK_ID: Partial<
     Record<
-      AvailableNetworkIds,
+      BSEthereumNetworkId,
       {
         url: string
         chain: string
@@ -56,9 +56,9 @@ export class GhostMarketNDSEthereum extends RpcNDSEthereum {
     },
   }
 
-  #network: Network<AvailableNetworkIds>
+  #network: Network<BSEthereumNetworkId>
 
-  constructor(network: Network<AvailableNetworkIds>) {
+  constructor(network: Network<BSEthereumNetworkId>) {
     super(network)
     this.#network = network
   }

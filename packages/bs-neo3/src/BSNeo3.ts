@@ -24,17 +24,16 @@ import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
 import Transport from '@ledgerhq/hw-transport'
-import { AvailableNetworkIds, BSNeo3Helper } from './BSNeo3Helper'
+import { BSNeo3NetworkId, BSNeo3Helper } from './BSNeo3Helper'
 import { NeonDappKitLedgerServiceNeo3 } from './NeonDappKitLedgerServiceNeo3'
 import { DoraBDSNeo3 } from './DoraBDSNeo3'
-import { RPCBDSNeo3 } from './RpcBDSNeo3'
 import { FlamingoEDSNeo3 } from './FlamingoEDSNeo3'
 import { GhostMarketNDSNeo3 } from './GhostMarketNDSNeo3'
 import { DoraESNeo3 } from './DoraESNeo3'
 
 export class BSNeo3<BSCustomName extends string = string>
   implements
-    BlockchainService<BSCustomName, AvailableNetworkIds>,
+    BlockchainService<BSCustomName, BSNeo3NetworkId>,
     BSClaimable,
     BSWithNameService,
     BSCalculableFee,
@@ -56,11 +55,11 @@ export class BSNeo3<BSCustomName extends string = string>
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
 
-  network!: Network<AvailableNetworkIds>
+  network!: Network<BSNeo3NetworkId>
 
   constructor(
     blockchainName: BSCustomName,
-    network?: Network<AvailableNetworkIds>,
+    network?: Network<BSNeo3NetworkId>,
     getLedgerTransport?: (account: Account) => Promise<Transport>
   ) {
     network = network ?? BSNeo3Helper.DEFAULT_NETWORK
@@ -72,7 +71,7 @@ export class BSNeo3<BSCustomName extends string = string>
     this.setNetwork(network)
   }
 
-  #setTokens(network: Network<AvailableNetworkIds>) {
+  #setTokens(network: Network<BSNeo3NetworkId>) {
     const tokens = BSNeo3Helper.getTokens(network)
 
     this.tokens = tokens
@@ -105,19 +104,14 @@ export class BSNeo3<BSCustomName extends string = string>
     return invocations
   }
 
-  setNetwork(network: Network<AvailableNetworkIds>) {
+  setNetwork(network: Network<BSNeo3NetworkId>) {
     this.#setTokens(network)
     this.network = network
 
-    if (DoraBDSNeo3.SUPPORTED_NETWORKS.includes(network.id)) {
-      this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
-    } else {
-      this.blockchainDataService = new RPCBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
-    }
-
-    this.exchangeDataService = new FlamingoEDSNeo3(network.id, this.tokens)
+    this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
+    this.exchangeDataService = new FlamingoEDSNeo3(network, this.tokens)
     this.nftDataService = new GhostMarketNDSNeo3(network)
-    this.explorerService = new DoraESNeo3(network.id)
+    this.explorerService = new DoraESNeo3(network)
   }
 
   validateAddress(address: string): boolean {

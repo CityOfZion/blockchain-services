@@ -1,7 +1,7 @@
 import { NftResponse, NftsResponse, GetNftParam, GetNftsByAddressParams, Network } from '@cityofzion/blockchain-service'
 import qs from 'query-string'
 import axios from 'axios'
-import { AvailableNetworkIds } from './BSNeo3Helper'
+import { BSNeo3NetworkId } from './BSNeo3Helper'
 import { RpcNDSNeo3 } from './RpcNDSNeo3'
 
 type GhostMarketNFT = {
@@ -43,7 +43,7 @@ type GhostMarketAssets = {
 export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
   static CONFIG_BY_NETWORK_ID: Partial<
     Record<
-      AvailableNetworkIds,
+      BSNeo3NetworkId,
       {
         url: string
         chain: string
@@ -60,9 +60,9 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
     },
   }
 
-  readonly #network: Network<AvailableNetworkIds>
+  readonly #network: Network<BSNeo3NetworkId>
 
-  constructor(network: Network<AvailableNetworkIds>) {
+  constructor(network: Network<BSNeo3NetworkId>) {
     super(network)
     this.#network = network
   }
@@ -104,7 +104,7 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
 
   #getUrlWithParams(params: Record<string, any>) {
     const config = GhostMarketNDSNeo3.CONFIG_BY_NETWORK_ID[this.#network.id]
-    if (!config) throw new Error('Unsupported network')
+    if (!config) throw new Error('GhostMarketNDSNeo3 does not support this network')
 
     const parameters = qs.stringify(
       {

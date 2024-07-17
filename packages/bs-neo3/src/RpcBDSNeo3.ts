@@ -14,18 +14,18 @@ import {
 } from '@cityofzion/blockchain-service'
 import { rpc, u } from '@cityofzion/neon-core'
 import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
-import { AvailableNetworkIds, BSNeo3Helper } from './BSNeo3Helper'
+import { BSNeo3NetworkId, BSNeo3Helper } from './BSNeo3Helper'
 
 export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   readonly _tokenCache: Map<string, Token> = new Map()
   readonly _feeToken: Token
   readonly _claimToken: Token
-  readonly _network: Network<AvailableNetworkIds>
+  readonly _network: Network<BSNeo3NetworkId>
   readonly _tokens: Token[] = []
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
 
-  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token, tokens: Token[]) {
+  constructor(network: Network<BSNeo3NetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
     this._network = network
     this._feeToken = feeToken
     this._claimToken = claimToken
