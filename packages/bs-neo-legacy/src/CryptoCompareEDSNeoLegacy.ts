@@ -3,27 +3,28 @@ import {
   Currency,
   ExchangeDataService,
   GetTokenPriceHistory,
+  Network,
   Token,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { AvailableNetworkIds } from './BSNeoLegacyHelper'
+import { BSNeoLegacyNetworkId, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
 
 export class CryptoCompareEDSNeoLegacy extends CryptoCompareEDS implements ExchangeDataService {
-  #networkId: AvailableNetworkIds
+  #network: Network<BSNeoLegacyNetworkId>
 
-  constructor(networkId: AvailableNetworkIds, tokens: Token[]) {
+  constructor(network: Network<BSNeoLegacyNetworkId>, tokens: Token[]) {
     super(tokens)
-    this.#networkId = networkId
+    this.#network = network
   }
 
   async getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]> {
-    if (this.#networkId !== 'mainnet') throw new Error('Exchange is only available on mainnet')
+    if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
     return await super.getTokenPriceHistory(params)
   }
 
   async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
-    if (this.#networkId !== 'mainnet') throw new Error('Exchange is only available on mainnet')
+    if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
     return await super.getTokenPrices(currency)
   }
 }

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Refactor related to multi network",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

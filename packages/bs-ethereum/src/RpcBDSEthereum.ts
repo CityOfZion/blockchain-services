@@ -11,14 +11,14 @@ import {
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { ERC20_ABI } from './assets/abis/ERC20'
-import { AvailableNetworkIds, BSEthereumHelper } from './BSEthereumHelper'
+import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
 
 export class RpcBDSEthereum implements BlockchainDataService {
-  readonly #network: Network<AvailableNetworkIds>
+  readonly #network: Network<BSEthereumNetworkId>
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
-  constructor(network: Network<AvailableNetworkIds>) {
+  constructor(network: Network<BSEthereumNetworkId>) {
     this.#network = network
   }
 

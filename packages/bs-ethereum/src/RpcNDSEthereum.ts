@@ -8,6 +8,7 @@ import {
   NftsResponse,
 } from '@cityofzion/blockchain-service'
 import { BigNumber, ethers } from 'ethers'
+import { ERC20_ABI } from './assets/abis/ERC20'
 
 export abstract class RpcNDSEthereum implements NftDataService {
   readonly #network: Network
@@ -23,11 +24,7 @@ export abstract class RpcNDSEthereum implements NftDataService {
   async hasToken({ contractHash, address }: HasTokenParam): Promise<boolean> {
     try {
       const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
-      const contract = new ethers.Contract(
-        contractHash,
-        ['function balanceOf(address _owner) external view returns (uint256)'],
-        provider
-      )
+      const contract = new ethers.Contract(contractHash, ERC20_ABI, provider)
       const response = await contract.balanceOf(address)
       if (!response) throw new Error()
       const parsedResponse = response as BigNumber

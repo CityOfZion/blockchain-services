@@ -13,10 +13,10 @@ import {
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { rpc } from '@cityofzion/neon-js'
-import { AvailableNetworkIds, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
+import { BSNeoLegacyNetworkId, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
 
 export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
-  readonly #network: Network<AvailableNetworkIds>
+  readonly #network: Network<BSNeoLegacyNetworkId>
   readonly #claimToken: Token
   readonly #feeToken: Token
   readonly #tokens: Token[]
@@ -24,7 +24,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
 
-  constructor(network: Network<AvailableNetworkIds>, feeToken: Token, claimToken: Token, tokens: Token[]) {
+  constructor(network: Network<BSNeoLegacyNetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
     this.#network = network
     this.#claimToken = claimToken
     this.#feeToken = feeToken

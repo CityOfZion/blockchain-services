@@ -6,7 +6,7 @@ import {
   SwapControllerServiceSwapToReceiveArgs,
 } from '@cityofzion/blockchain-service'
 import { FlamingoSwapHelper, SwapScriptHashes } from './FlamingoSwapHelper'
-import { AvailableNetworkIds } from '../BSNeo3Helper'
+import { BSNeo3NetworkId } from '../BSNeo3Helper'
 
 type TransferArgs = {
   address: string
@@ -16,16 +16,14 @@ type TransferArgs = {
 }
 
 type GetReservesArgs = {
-  network: Network<AvailableNetworkIds>
+  network: Network<BSNeo3NetworkId>
   tokenToReceiveScriptHash: string
   tokenToUseScriptHash: string
 }
 
 export class FlamingoSwapNeonDappKitInvocationBuilder {
   static swapInvocation(
-    data:
-      | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
-      | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds>
+    data: SwapControllerServiceSwapToReceiveArgs<BSNeo3NetworkId> | SwapControllerServiceSwapToUseArgs<BSNeo3NetworkId>
   ) {
     return data.type === 'swapTokenToReceive'
       ? this.swapTokenToReceiveForTokenToUseInvocation(data)
@@ -72,7 +70,7 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     tokenToUse,
     deadline,
     network,
-  }: SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>): ContractInvocationMulti {
+  }: SwapControllerServiceSwapToReceiveArgs<BSNeo3NetworkId>): ContractInvocationMulti {
     const invocations: ContractInvocation[] = []
     const allowedContracts: string[] = []
 
@@ -159,7 +157,7 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     tokenToUse,
     minimumReceived,
     network,
-  }: SwapControllerServiceSwapToUseArgs<AvailableNetworkIds>): ContractInvocationMulti {
+  }: SwapControllerServiceSwapToUseArgs<BSNeo3NetworkId>): ContractInvocationMulti {
     const invocations: ContractInvocation[] = []
     const allowedContracts: string[] = []
 
@@ -284,7 +282,7 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     return [scriptHashes.gas, scriptHashes.flpBneoGas, scriptHashes.bneo]
   }
 
-  private static overrideScriptHash(network: Network<AvailableNetworkIds>, scriptHash: string): string {
+  private static overrideScriptHash(network: Network<BSNeo3NetworkId>, scriptHash: string): string {
     const swapScriptHashes = FlamingoSwapHelper.getSwapScriptHashes(network)
 
     return scriptHash === swapScriptHashes.neo ? swapScriptHashes.bneo : scriptHash

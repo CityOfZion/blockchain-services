@@ -1,26 +1,25 @@
-import { ExplorerService, BuildNftUrlParams } from '@cityofzion/blockchain-service'
-import { AvailableNetworkIds } from './BSNeo3Helper'
-import { DoraBDSNeo3 } from './DoraBDSNeo3'
+import { ExplorerService, BuildNftUrlParams, Network } from '@cityofzion/blockchain-service'
+import { BSNeo3NetworkId, BSNeo3Helper } from './BSNeo3Helper'
 
 export class DoraESNeo3 implements ExplorerService {
-  readonly #networkId: AvailableNetworkIds
+  readonly #network: Network<BSNeo3NetworkId>
 
-  constructor(networkType: AvailableNetworkIds) {
-    this.#networkId = networkType
+  constructor(network: Network<BSNeo3NetworkId>) {
+    this.#network = network
   }
 
   buildTransactionUrl(hash: string): string {
-    if (!DoraBDSNeo3.SUPPORTED_NETWORKS.includes(this.#networkId)) throw new Error('Unsupported network')
-    return `https://dora.coz.io/transaction/neo3/${this.#networkId}/${hash}`
+    if (!BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+    return `https://dora.coz.io/transaction/neo3/${this.#network.id}/${hash}`
   }
 
   buildContractUrl(contractHash: string): string {
-    if (!DoraBDSNeo3.SUPPORTED_NETWORKS.includes(this.#networkId)) throw new Error('Unsupported network')
-    return `https://dora.coz.io/contract/neo3/${this.#networkId}/${contractHash}`
+    if (!BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+    return `https://dora.coz.io/contract/neo3/${this.#network.id}/${contractHash}`
   }
 
   buildNftUrl({ contractHash, tokenId }: BuildNftUrlParams): string {
-    if (!DoraBDSNeo3.SUPPORTED_NETWORKS.includes(this.#networkId)) throw new Error('Unsupported network')
-    return `https://dora.coz.io/nft/neo3/${this.#networkId}/${contractHash}/${tokenId}`
+    if (!BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+    return `https://dora.coz.io/nft/neo3/${this.#network.id}/${contractHash}/${tokenId}`
   }
 }

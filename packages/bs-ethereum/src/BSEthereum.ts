@@ -23,11 +23,11 @@ import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
 import { EthersLedgerServiceEthereum, EthersLedgerSigner } from './EthersLedgerServiceEthereum'
 import Transport from '@ledgerhq/hw-transport'
-import { AvailableNetworkIds, BSEthereumHelper } from './BSEthereumHelper'
+import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
 
 export class BSEthereum<BSCustomName extends string = string>
   implements
-    BlockchainService<BSCustomName, AvailableNetworkIds>,
+    BlockchainService<BSCustomName, BSEthereumNetworkId>,
     BSWithNft,
     BSWithNameService,
     BSCalculableFee,
@@ -42,11 +42,11 @@ export class BSEthereum<BSCustomName extends string = string>
   ledgerService: EthersLedgerServiceEthereum
   tokens!: Token[]
   nftDataService!: NftDataService
-  network!: Network<AvailableNetworkIds>
+  network!: Network<BSEthereumNetworkId>
 
   constructor(
     blockchainName: BSCustomName,
-    network?: Network<AvailableNetworkIds>,
+    network?: Network<BSEthereumNetworkId>,
     getLedgerTransport?: (account: Account) => Promise<Transport>
   ) {
     network = network ?? BSEthereumHelper.DEFAULT_NETWORK
@@ -58,13 +58,13 @@ export class BSEthereum<BSCustomName extends string = string>
     this.setNetwork(network)
   }
 
-  #setTokens(network: Network<AvailableNetworkIds>) {
+  #setTokens(network: Network<BSEthereumNetworkId>) {
     const nativeAsset = BSEthereumHelper.getNativeAsset(network)
     this.tokens = [nativeAsset]
     this.feeToken = nativeAsset
   }
 
-  setNetwork(network: Network<AvailableNetworkIds>) {
+  setNetwork(network: Network<BSEthereumNetworkId>) {
     this.#setTokens(network)
 
     this.network = network

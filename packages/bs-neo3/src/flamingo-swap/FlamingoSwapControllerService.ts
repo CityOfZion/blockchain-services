@@ -16,16 +16,16 @@ import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
 import { wallet } from '@cityofzion/neon-core'
 import { FlamingoSwapHelper } from './FlamingoSwapHelper'
 import WebSocket from 'isomorphic-ws'
-import { AvailableNetworkIds } from '../BSNeo3Helper'
+import { BSNeo3NetworkId } from '../BSNeo3Helper'
 
 const BLOCKCHAIN_WSS_URL = 'wss://rpc10.n3.nspcc.ru:10331/ws'
 
-export class FlamingoSwapControllerService implements SwapControllerService<AvailableNetworkIds> {
+export class FlamingoSwapControllerService implements SwapControllerService<BSNeo3NetworkId> {
   eventEmitter: TypedEmitter<SwapControllerServiceEvents>
 
   #ws: WebSocket
 
-  #network: Network<AvailableNetworkIds>
+  #network: Network<BSNeo3NetworkId>
 
   #privateAccountToUse: Account | null = null
 
@@ -53,14 +53,14 @@ export class FlamingoSwapControllerService implements SwapControllerService<Avai
 
   #privateLastAmountChange: 'amountToReceive' | 'amountToUse' | null = null
 
-  constructor(network: Network<AvailableNetworkIds>) {
+  constructor(network: Network<BSNeo3NetworkId>) {
     this.#network = network
     this.eventEmitter = new EventEmitter() as TypedEmitter<SwapControllerServiceEvents>
   }
 
   buildSwapArgs():
-    | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
-    | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds> {
+    | SwapControllerServiceSwapToReceiveArgs<BSNeo3NetworkId>
+    | SwapControllerServiceSwapToUseArgs<BSNeo3NetworkId> {
     if (
       !this.#accountToUse ||
       !this.#amountToReceive ||
@@ -70,7 +70,7 @@ export class FlamingoSwapControllerService implements SwapControllerService<Avai
     )
       throw new Error('Required parameters are not set')
 
-    const baseSwapArgs: SwapControllerServiceSwapArgs<AvailableNetworkIds> = {
+    const baseSwapArgs: SwapControllerServiceSwapArgs<BSNeo3NetworkId> = {
       address: this.#accountToUse.address,
       amountToReceive: this.#amountToReceive,
       amountToUse: this.#amountToUse,
