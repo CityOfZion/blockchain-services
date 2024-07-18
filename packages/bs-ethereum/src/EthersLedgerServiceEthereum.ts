@@ -182,17 +182,17 @@ export class EthersLedgerServiceEthereum implements LedgerService {
   constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
 
   async getAddress(transport: Transport): Promise<string> {
-    const signer = new EthersLedgerSigner(transport)
+    const signer = this.getSigner(transport)
     return await signer.getAddress()
   }
 
   async getPublicKey(transport: Transport): Promise<string> {
-    const signer = new EthersLedgerSigner(transport)
+    const signer = this.getSigner(transport)
     return await signer.getPublicKey()
   }
 
-  getSigner(transport: Transport): EthersLedgerSigner {
-    return new EthersLedgerSigner(transport, undefined, this.emitter)
+  getSigner(transport: Transport, provider?: ethers.providers.Provider): EthersLedgerSigner {
+    return new EthersLedgerSigner(transport, provider, this.emitter)
   }
 }
 

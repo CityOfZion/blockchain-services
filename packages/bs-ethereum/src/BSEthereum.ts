@@ -21,7 +21,7 @@ import { BitqueryEDSEthereum } from './BitqueryEDSEthereum'
 import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
-import { EthersLedgerServiceEthereum, EthersLedgerSigner } from './EthersLedgerServiceEthereum'
+import { EthersLedgerServiceEthereum } from './EthersLedgerServiceEthereum'
 import Transport from '@ledgerhq/hw-transport'
 import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
 
@@ -161,7 +161,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let signer: ethers.Signer
     if (ledgerTransport) {
-      signer = new EthersLedgerSigner(ledgerTransport, provider)
+      signer = this.ledgerService.getSigner(ledgerTransport, provider)
     } else {
       signer = new ethers.Wallet(param.senderAccount.key, provider)
     }
@@ -202,7 +202,7 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let signer: ethers.Signer
     if (ledgerTransport) {
-      signer = new EthersLedgerSigner(ledgerTransport, provider)
+      signer = this.ledgerService.getSigner(ledgerTransport, provider)
     } else {
       signer = new ethers.Wallet(param.senderAccount.key, provider)
     }
