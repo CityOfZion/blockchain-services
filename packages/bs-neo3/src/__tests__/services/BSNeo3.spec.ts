@@ -1,8 +1,8 @@
-import { BSNeo3 } from '../BSNeo3'
+import { Network } from '@cityofzion/blockchain-service'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import { Network } from '@cityofzion/blockchain-service'
-import { BSNeo3NetworkId, BSNeo3Helper } from '../BSNeo3Helper'
+import { BSNeo3 } from '../../BSNeo3'
+import { BSNeo3Helper, BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
 
 let bsNeo3: BSNeo3
 let network: Network<BSNeo3NetworkId>

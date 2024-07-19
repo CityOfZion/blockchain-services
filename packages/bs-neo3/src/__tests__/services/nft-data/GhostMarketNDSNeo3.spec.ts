@@ -1,5 +1,5 @@
-import { BSNeo3Helper } from '../BSNeo3Helper'
-import { GhostMarketNDSNeo3 } from '../GhostMarketNDSNeo3'
+import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
+import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 
 let ghostMarketNDSNeo3: GhostMarketNDSNeo3
 

@@ -1,5 +1,5 @@
-import { ExplorerService, BuildNftUrlParams, Network } from '@cityofzion/blockchain-service'
-import { BSNeo3NetworkId, BSNeo3Helper } from './BSNeo3Helper'
+import { BuildNftUrlParams, ExplorerService, Network } from '@cityofzion/blockchain-service'
+import { BSNeo3Helper, BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
 
 export class DoraESNeo3 implements ExplorerService {
   readonly #network: Network<BSNeo3NetworkId>

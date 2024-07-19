@@ -1,90 +1,85 @@
 import {
   Account,
   Network,
-  SwapControllerService,
-  SwapControllerServiceEvents,
-  SwapControllerServiceSwapArgs,
-  SwapControllerServiceSwapToReceiveArgs,
-  SwapControllerServiceSwapToUseArgs,
+  PoolGraph,
   SwapRoute,
+  SwapService,
+  SwapServiceEvents,
+  SwapServiceSwapArgs,
+  SwapServiceSwapToReceiveArgs,
+  SwapServiceSwapToUseArgs,
   Token,
 } from '@cityofzion/blockchain-service'
-import TypedEmitter from 'typed-emitter'
-import EventEmitter from 'events'
-import { FlamingoSwapNeonDappKitInvocationBuilder } from './FlamingoSwapNeonDappKitInvocationBuilder'
-import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
 import { wallet } from '@cityofzion/neon-core'
-import { FlamingoSwapHelper } from './FlamingoSwapHelper'
-import WebSocket from 'isomorphic-ws'
-import { BSNeo3NetworkId } from '../BSNeo3Helper'
+import { NeonInvoker } from '@cityofzion/neon-dappkit'
+import Transport from '@ledgerhq/hw-transport'
+import EventEmitter from 'events'
+import cloneDeep from 'lodash.clonedeep'
+import TypedEmitter from 'typed-emitter'
+import { FlamingoSwapInvocationBuilderNeo3 } from '../../builder/invocation/FlamingoSwapInvocationBuilderNeo3'
+import { BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
+import { FlamingoSwapHelper } from '../../helpers/FlamingoSwapHelper'
+import { NeonDappKitLedgerServiceNeo3 } from '../ledger/NeonDappKitLedgerServiceNeo3'
+import { FlamingoSwapDetailsHandler, FlamingoSwapRouteHandler, FlamingoSwapSocketService } from './handlers'
 
-const BLOCKCHAIN_WSS_URL = 'wss://rpc10.n3.nspcc.ru:10331/ws'
+type BuildSwapInvocationArgs = SwapServiceSwapToUseArgs<BSNeo3NetworkId> | SwapServiceSwapToReceiveArgs<BSNeo3NetworkId>
 
-export class FlamingoSwapControllerService implements SwapControllerService<BSNeo3NetworkId> {
-  eventEmitter: TypedEmitter<SwapControllerServiceEvents>
+type LastAmountChanged = 'amountToReceive' | 'amountToUse' | null
 
-  #ws: WebSocket
+export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
+  eventEmitter: TypedEmitter<SwapServiceEvents>
 
+  #ledgerService!: NeonDappKitLedgerServiceNeo3
   #network: Network<BSNeo3NetworkId>
-
   #privateAccountToUse: Account | null = null
-
   #privateTokenToReceive: Token | null = null
-
   #privateTokenToUse: Token | null = null
-
   #privateAmountToReceive: string | null = null
   #privateAmountToUse: string | null = null
-
   #privateMinimumReceived: string | null = null
   #privateMaximumSelling: string | null = null
-
-  #privateReservesToReceive: string | null = null
-  #privateReservesToUse: string | null = null
-
   #privateSlippage: number = 0.5
   #privateDeadline: string = '10'
-
   #privatePriceInverse: string | null = null
   #privatePriceImpact: string | null = null
   #privateLiquidityProviderFee: string | null = null
+  #privateRoute: SwapRoute[] = []
+  #privateLastAmountChanged: LastAmountChanged = null
+  #socket: FlamingoSwapSocketService = new FlamingoSwapSocketService()
 
-  #privateRoutes: SwapRoute[] | null = null
-
-  #privateLastAmountChange: 'amountToReceive' | 'amountToUse' | null = null
-
-  constructor(network: Network<BSNeo3NetworkId>) {
+  constructor(network: Network<BSNeo3NetworkId>, ledgerService: NeonDappKitLedgerServiceNeo3) {
+    this.eventEmitter = new EventEmitter() as TypedEmitter<SwapServiceEvents>
     this.#network = network
-    this.eventEmitter = new EventEmitter() as TypedEmitter<SwapControllerServiceEvents>
+    this.#ledgerService = ledgerService
   }
 
-  buildSwapArgs():
-    | SwapControllerServiceSwapToReceiveArgs<BSNeo3NetworkId>
-    | SwapControllerServiceSwapToUseArgs<BSNeo3NetworkId> {
+  buildSwapInvocationArgs(): BuildSwapInvocationArgs {
     if (
       !this.#accountToUse ||
       !this.#amountToReceive ||
       !this.#amountToUse ||
       !this.#tokenToReceive ||
-      !this.#tokenToUse
-    )
+      !this.#tokenToUse ||
+      this.#route.length <= 0
+    ) {
       throw new Error('Required parameters are not set')
-
-    const baseSwapArgs: SwapControllerServiceSwapArgs<BSNeo3NetworkId> = {
-      address: this.#accountToUse.address,
-      amountToReceive: this.#amountToReceive,
-      amountToUse: this.#amountToUse,
-      tokenToReceive: this.#tokenToReceive,
-      tokenToUse: this.#tokenToUse,
-      deadline: this.#deadline,
-      network: this.#network,
     }
 
-    if (this.#lastAmountChange === 'amountToReceive') {
+    const routePath = FlamingoSwapHelper.getRoutePath(this.#route)
+
+    const baseSwapArgs: SwapServiceSwapArgs<BSNeo3NetworkId> = {
+      address: this.#accountToUse.address,
+      deadline: this.#deadline,
+      network: this.#network,
+      routePath,
+    }
+
+    if (this.#lastAmountChanged === 'amountToReceive') {
       if (!this.#maximumSelling) throw new Error("maximumSelling is required for 'amountToReceive' swap type")
 
       return {
         ...baseSwapArgs,
+        amountToReceive: this.#amountToReceive,
         maximumSelling: this.#maximumSelling,
         type: 'swapTokenToReceive',
       }
@@ -94,9 +89,50 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
 
     return {
       ...baseSwapArgs,
+      amountToUse: this.#amountToUse,
       minimumReceived: this.#minimumReceived,
       type: 'swapTokenToUse',
     }
+  }
+
+  listSwappableTokens(network: Network<BSNeo3NetworkId>): PoolGraph {
+    return FlamingoSwapRouteHandler.createPoolGraph(network)
+  }
+
+  async swap(isLedger?: boolean): Promise<void> {
+    const swapInvocationArgs = this.buildSwapInvocationArgs()
+
+    let ledgerTransport: Transport | undefined
+
+    if (isLedger) {
+      if (!this.#ledgerService.getLedgerTransport) {
+        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+      }
+
+      ledgerTransport = await this.#ledgerService.getLedgerTransport(this.#accountToUse!)
+    }
+
+    const account = new wallet.Account(this.#accountToUse!.key)
+
+    const invoker = await NeonInvoker.init({
+      rpcAddress: this.#network.url,
+      account,
+      signingCallback: ledgerTransport ? this.#ledgerService.getSigningCallback(ledgerTransport) : undefined,
+    })
+
+    await invoker.invokeFunction(FlamingoSwapInvocationBuilderNeo3.swapInvocation(swapInvocationArgs))
+  }
+
+  startListeningBlockGeneration(): void {
+    const callback = async () => await this.#setReserves()
+
+    callback()
+
+    this.#socket.onBlockAdded({ callback })
+  }
+
+  stopListeningBlockGeneration(): void {
+    this.#socket.closeConnection()
   }
 
   setAccountToUse(account: Account | null): void {
@@ -106,7 +142,7 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   setAmountToUse(val: string | null): void {
     this.#amountToUse = val
 
-    this.#lastAmountChange = 'amountToUse'
+    this.#lastAmountChanged = 'amountToUse'
 
     this.#recalculateSwapArguments()
   }
@@ -114,7 +150,7 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   setAmountToReceive(val: string | null): void {
     this.#amountToReceive = val
 
-    this.#lastAmountChange = 'amountToReceive'
+    this.#lastAmountChanged = 'amountToReceive'
 
     this.#recalculateSwapArguments()
   }
@@ -132,123 +168,25 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   async setTokenToUse(val: Token | null): Promise<void> {
     this.#tokenToUse = val
 
-    await this.setReserves()
+    await this.#recalculateRoute()
+
+    this.#recalculateSwapArguments()
   }
 
   async setTokenToReceive(val: Token | null): Promise<void> {
     this.#tokenToReceive = val
 
-    await this.setReserves()
-  }
-
-  async swap(isLedger?: boolean): Promise<void> {
-    if (isLedger) throw new Error('Method not implemented.')
-
-    const swapArguments = this.buildSwapArgs()
-
-    const neonInvokerAccount = new wallet.Account(this.#accountToUse!)
-    const invoker = await NeonInvoker.init({
-      rpcAddress: this.#network.url,
-      account: neonInvokerAccount,
-    })
-
-    await invoker.invokeFunction(FlamingoSwapNeonDappKitInvocationBuilder.swapInvocation(swapArguments))
-  }
-
-  async setReserves() {
-    if (!this.#tokenToReceive || !this.#tokenToUse) return
-
-    const invoker = await NeonInvoker.init({
-      rpcAddress: this.#network.url,
-    })
-
-    const invocation = FlamingoSwapNeonDappKitInvocationBuilder.getReservesInvocation({
-      network: this.#network,
-      tokenToReceiveScriptHash: this.#tokenToReceive.hash,
-      tokenToUseScriptHash: this.#tokenToUse.hash,
-    })
-
-    const { stack } = await invoker.testInvoke(invocation)
-    if (
-      !TypeChecker.isStackTypeArray(stack[0]) ||
-      !TypeChecker.isStackTypeInteger(stack[0].value[0]) ||
-      !TypeChecker.isStackTypeInteger(stack[0].value[1])
-    )
-      throw new Error('Invalid reserves response')
-
-    this.#reservesToReceive = stack[0].value[0].value
-    this.#reservesToUse = stack[0].value[1].value
+    await this.#recalculateRoute()
 
     this.#recalculateSwapArguments()
   }
 
-  startListeningBlockGeneration() {
-    this.#ws = new WebSocket(BLOCKCHAIN_WSS_URL)
+  async #setReserves() {
+    if (!this.#tokenToReceive || !this.#tokenToUse) return
 
-    this.#ws.onopen = () => {
-      const block_added = {
-        jsonrpc: '2.0',
-        method: 'subscribe',
-        params: ['block_added'],
-        id: 1,
-      }
-      this.#ws.send(JSON.stringify(block_added))
-    }
+    await this.#recalculateRoute()
 
-    this.#ws.onmessage = async () => {
-      this.setReserves()
-    }
-  }
-
-  stopListeningBlockGeneration() {
-    if (this.#ws) {
-      this.#ws.close()
-      this.#ws = null
-    }
-  }
-
-  #recalculateSwapArguments() {
-    if (!this.#tokenToReceive || !this.#tokenToUse || !this.#reservesToReceive || !this.#reservesToUse) return
-
-    if (
-      (this.#lastAmountChange === 'amountToReceive' && this.#amountToReceive) ||
-      (this.#lastAmountChange === 'amountToUse' && this.#amountToUse)
-    ) {
-      const amountToReceive = this.#lastAmountChange === 'amountToReceive' ? this.#amountToReceive : null
-      const amountToUse = this.#lastAmountChange === 'amountToUse' ? this.#amountToUse : null
-
-      const {
-        amountToUseToDisplay,
-        amountToReceiveToDisplay,
-        maximumSelling,
-        minimumReceived,
-        liquidityProviderFee,
-        priceImpact,
-        priceInverse,
-      } = FlamingoSwapHelper.getSwapFields({
-        network: this.#network,
-        amountToReceive,
-        amountToUse,
-        tokenToUse: this.#tokenToUse,
-        tokenToReceive: this.#tokenToReceive,
-        reservesToUse: this.#reservesToUse,
-        reservesToReceive: this.#reservesToReceive,
-        slippage: this.#slippage,
-      })
-
-      this.#amountToUse = amountToUseToDisplay
-      this.#amountToReceive = amountToReceiveToDisplay
-      this.#maximumSelling = maximumSelling
-      this.#minimumReceived = minimumReceived
-      this.#liquidityProviderFee = liquidityProviderFee
-      this.#priceImpact = priceImpact
-      this.#priceInverse = priceInverse
-      this.#routes = [] // TODO: It will be implemented in Swap Multi Invoke issue
-
-      return
-    }
-
-    this.#clearFields()
+    this.#recalculateSwapArguments()
   }
 
   #clearFields() {
@@ -261,12 +199,64 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
     this.#priceInverse = null
   }
 
-  // Getters and setters
-  get #lastAmountChange(): 'amountToReceive' | 'amountToUse' | null {
-    return this.#privateLastAmountChange
+  #recalculateSwapArguments() {
+    if (!this.#tokenToReceive || !this.#tokenToUse) return
+
+    if (
+      (this.#lastAmountChanged === 'amountToReceive' && this.#amountToReceive) ||
+      (this.#lastAmountChanged === 'amountToUse' && this.#amountToUse)
+    ) {
+      const amountToReceive = this.#lastAmountChanged === 'amountToReceive' ? this.#amountToReceive : null
+      const amountToUse = this.#lastAmountChanged === 'amountToUse' ? this.#amountToUse : null
+
+      const {
+        amountToUseToDisplay,
+        amountToReceiveToDisplay,
+        maximumSelling,
+        minimumReceived,
+        liquidityProviderFee,
+        priceImpact,
+        priceInverse,
+      } = FlamingoSwapDetailsHandler.calculateSwapDetails({
+        network: this.#network,
+        amountToReceive,
+        amountToUse,
+        tokenToUse: this.#tokenToUse,
+        tokenToReceive: this.#tokenToReceive,
+        slippage: this.#slippage,
+        route: cloneDeep(this.#route),
+      })
+
+      this.#amountToUse = amountToUseToDisplay
+      this.#amountToReceive = amountToReceiveToDisplay
+      this.#maximumSelling = maximumSelling
+      this.#minimumReceived = minimumReceived
+      this.#liquidityProviderFee = liquidityProviderFee
+      this.#priceImpact = priceImpact
+      this.#priceInverse = priceInverse
+
+      return
+    }
+
+    this.#clearFields()
   }
-  set #lastAmountChange(val: 'amountToReceive' | 'amountToUse' | null) {
-    this.#privateLastAmountChange = val
+
+  async #recalculateRoute() {
+    if (!this.#tokenToReceive || !this.#tokenToUse) return
+
+    this.#route = await FlamingoSwapRouteHandler.calculateBestRouteForSwap({
+      tokenToReceive: this.#tokenToReceive,
+      tokenToUse: this.#tokenToUse,
+      network: this.#network,
+    })
+  }
+
+  // Getters and setters
+  get #lastAmountChanged(): 'amountToReceive' | 'amountToUse' | null {
+    return this.#privateLastAmountChanged
+  }
+  set #lastAmountChanged(val: 'amountToReceive' | 'amountToUse' | null) {
+    this.#privateLastAmountChanged = val
     this.eventEmitter.emit('lastAmountChanged', val)
   }
 
@@ -342,28 +332,12 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
     this.eventEmitter.emit('priceInverse', val)
   }
 
-  get #routes(): SwapRoute[] | null {
-    return this.#privateRoutes
+  get #route(): SwapRoute[] {
+    return this.#privateRoute
   }
-  set #routes(val: SwapRoute[] | null) {
-    this.#privateRoutes = val
-    this.eventEmitter.emit('routes', val)
-  }
-
-  get #reservesToUse(): string | null {
-    return this.#privateReservesToUse
-  }
-  set #reservesToUse(val: string | null) {
-    this.#privateReservesToUse = val
-    this.eventEmitter.emit('reservesToUse', val)
-  }
-
-  get #reservesToReceive(): string | null {
-    return this.#privateReservesToReceive
-  }
-  set #reservesToReceive(val: string | null) {
-    this.#privateReservesToReceive = val
-    this.eventEmitter.emit('reservesToReceive', val)
+  set #route(val: SwapRoute[]) {
+    this.#privateRoute = val
+    this.eventEmitter.emit('route', val)
   }
 
   get #slippage(): number {

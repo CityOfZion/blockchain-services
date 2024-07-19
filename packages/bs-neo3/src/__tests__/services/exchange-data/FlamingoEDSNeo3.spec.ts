@@ -1,6 +1,6 @@
 import { Network } from '@cityofzion/blockchain-service'
-import { BSNeo3Helper, BSNeo3NetworkId } from '../BSNeo3Helper'
-import { FlamingoEDSNeo3 } from '../FlamingoEDSNeo3'
+import { BSNeo3Helper, BSNeo3NetworkId } from '../../../helpers/BSNeo3Helper'
+import { FlamingoEDSNeo3 } from '../../../services/exchange-data/FlamingoEDSNeo3'
 
 let flamingoEDSNeo3: FlamingoEDSNeo3
 let network: Network<BSNeo3NetworkId>

@@ -8,7 +8,7 @@ import {
   NftsResponse,
 } from '@cityofzion/blockchain-service'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
-import { BSNeo3NetworkId } from './BSNeo3Helper'
+import { BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
 
 export abstract class RpcNDSNeo3 implements NftDataService {
   readonly #network: Network<BSNeo3NetworkId>

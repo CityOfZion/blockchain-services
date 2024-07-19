@@ -1,35 +1,34 @@
 import {
+  Account,
+  AccountWithDerivationPath,
+  BDSClaimable,
   BlockchainDataService,
   BlockchainService,
-  BSClaimable,
-  Account,
-  ExchangeDataService,
-  BDSClaimable,
-  Token,
-  BSWithNameService,
-  Network,
-  TransferParam,
   BSCalculableFee,
-  NftDataService,
-  BSWithNft,
-  AccountWithDerivationPath,
+  BSClaimable,
   BSWithExplorerService,
-  ExplorerService,
   BSWithLedger,
+  BSWithNameService,
+  BSWithNft,
+  ExchangeDataService,
+  ExplorerService,
+  Network,
+  NftDataService,
+  Token,
+  TransferParam,
 } from '@cityofzion/blockchain-service'
-import { api, u, wallet } from '@cityofzion/neon-js'
+import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import Neon from '@cityofzion/neon-core'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
-
-import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
+import { api, u, wallet } from '@cityofzion/neon-js'
 import Transport from '@ledgerhq/hw-transport'
-import { BSNeo3NetworkId, BSNeo3Helper } from './BSNeo3Helper'
-import { NeonDappKitLedgerServiceNeo3 } from './NeonDappKitLedgerServiceNeo3'
-import { DoraBDSNeo3 } from './DoraBDSNeo3'
-import { FlamingoEDSNeo3 } from './FlamingoEDSNeo3'
-import { GhostMarketNDSNeo3 } from './GhostMarketNDSNeo3'
-import { DoraESNeo3 } from './DoraESNeo3'
+import { BSNeo3Helper, BSNeo3NetworkId } from './helpers/BSNeo3Helper'
+import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
+import { FlamingoEDSNeo3 } from './services/exchange-data/FlamingoEDSNeo3'
+import { DoraESNeo3 } from './services/explorer/DoraESNeo3'
+import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedgerServiceNeo3'
+import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
 
 export class BSNeo3<BSCustomName extends string = string>
   implements

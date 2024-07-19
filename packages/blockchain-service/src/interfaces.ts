@@ -246,13 +246,13 @@ export interface LedgerService {
 }
 
 export type SwapRoute = {
-  assetToUseSymbol: string
-  reservesToUse: string
-  assetToReceiveSymbol: string
-  reservesToReceive: string
+  tokenToUse: Token
+  reserveTokenToUse: string
+  tokenToReceive: Token
+  reserveTokenToReceive: string
 }
 
-export type SwapControllerServiceEvents = {
+export type SwapServiceEvents = {
   accountToUse: (account: Account | null) => void | Promise<void>
   amountToUse: (amount: string | null) => void | Promise<void>
   tokenToUse: (token: Token | null) => void | Promise<void>
@@ -267,45 +267,51 @@ export type SwapControllerServiceEvents = {
   liquidityProviderFee: (liquidityProviderFee: string | null) => void | Promise<void>
   priceImpact: (priceImpact: string | null) => void | Promise<void>
   priceInverse: (priceInverse: string | null) => void | Promise<void>
-  routes: (routes: SwapRoute[] | null) => void | Promise<void>
+  route: (route: SwapRoute[] | null) => void | Promise<void>
   lastAmountChanged: (lastAmountChanged: 'amountToUse' | 'amountToReceive' | null) => void | Promise<void>
 }
 
-export type SwapControllerServiceSwapArgs<T extends string> = {
-  amountToUse: string
-  amountToReceive: string
-  tokenToUse: Token
-  tokenToReceive: Token
+export type SwapServiceSwapArgs<T extends string> = {
   address: string
+  routePath: Token[]
   deadline: string
   network: Network<T>
 }
 
-export type SwapControllerServiceSwapToUseArgs<T extends string> = {
+export type SwapServiceSwapToUseArgs<T extends string> = {
+  amountToUse: string
   minimumReceived: string
   type: 'swapTokenToUse'
-} & SwapControllerServiceSwapArgs<T>
+} & SwapServiceSwapArgs<T>
 
-export type SwapControllerServiceSwapToReceiveArgs<T extends string> = {
+export type SwapServiceSwapToReceiveArgs<T extends string> = {
+  amountToReceive: string
   maximumSelling: string
   type: 'swapTokenToReceive'
-} & SwapControllerServiceSwapArgs<T>
+} & SwapServiceSwapArgs<T>
 
-export interface SwapControllerService<AvailableNetworkIds extends string> {
-  eventEmitter: TypedEmitter<SwapControllerServiceEvents>
+export type PoolGraph = Record<string, string[]>
+
+export interface SwapService<AvailableNetworkIds extends string> {
+  eventEmitter: TypedEmitter<SwapServiceEvents>
+
+  buildSwapInvocationArgs():
+    | SwapServiceSwapToUseArgs<AvailableNetworkIds>
+    | SwapServiceSwapToReceiveArgs<AvailableNetworkIds>
 
   setAccountToUse(account: Account | null): void
   setAmountToUse(amount: string | null): void
-  setTokenToUse(token: Token | null): void
   setAmountToReceive(amount: string | null): void
-  setTokenToReceive(token: Token | null): void
   setDeadline(deadline: string): void
   setSlippage(slippage: number): void
-  swap(isLedger?: boolean): void
-  buildSwapArgs():
-    | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds>
-    | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
-  setReserves(): void
+
+  setTokenToUse(token: Token | null): void
+  setTokenToReceive(token: Token | null): void
+
   startListeningBlockGeneration(): void
   stopListeningBlockGeneration(): void
+
+  listSwappableTokens(network: Network<AvailableNetworkIds>): PoolGraph
+
+  swap(isLedger?: boolean): void
 }

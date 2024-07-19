@@ -14,9 +14,9 @@ import {
 } from '@cityofzion/blockchain-service'
 import { rpc, u } from '@cityofzion/neon-core'
 import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
-import { BSNeo3NetworkId, BSNeo3Helper } from './BSNeo3Helper'
+import { BSNeo3Helper, BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
 
-export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
+export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
   readonly _tokenCache: Map<string, Token> = new Map()
   readonly _feeToken: Token
   readonly _claimToken: Token
