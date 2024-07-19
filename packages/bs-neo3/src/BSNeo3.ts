@@ -20,7 +20,6 @@ import {
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Neon from '@cityofzion/neon-core'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
-
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
 import Transport from '@ledgerhq/hw-transport'

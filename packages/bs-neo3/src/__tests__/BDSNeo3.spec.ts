@@ -1,7 +1,7 @@
-import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
 import { DoraBDSNeo3 } from '../DoraBDSNeo3'
 import { RPCBDSNeo3 } from '../RpcBDSNeo3'
 import { BSNeo3Helper } from '../BSNeo3Helper'
+import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
 
 const network = BSNeo3Helper.TESTNET_NETWORKS[0]
 const tokens = BSNeo3Helper.getTokens(network)

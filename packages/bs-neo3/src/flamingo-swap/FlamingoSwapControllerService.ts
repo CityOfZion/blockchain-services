@@ -12,13 +12,20 @@ import {
 import TypedEmitter from 'typed-emitter'
 import EventEmitter from 'events'
 import { FlamingoSwapNeonDappKitInvocationBuilder } from './FlamingoSwapNeonDappKitInvocationBuilder'
-import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
+import { NeonInvoker } from '@cityofzion/neon-dappkit'
 import { wallet } from '@cityofzion/neon-core'
 import { FlamingoSwapHelper } from './FlamingoSwapHelper'
 import WebSocket from 'isomorphic-ws'
 import { BSNeo3NetworkId } from '../BSNeo3Helper'
+import { FlamingoSwapMultiInvoke } from './FlamingoSwapMultiInvoke'
+import { BLOCKCHAIN_WSS_URL } from './FlamingoSwapConstants'
+import cloneDeep from 'lodash.clonedeep'
 
-const BLOCKCHAIN_WSS_URL = 'wss://rpc10.n3.nspcc.ru:10331/ws'
+export type LastAmountChanged = 'amountToReceive' | 'amountToUse' | null
+
+type BuildSwapInvocationArgs =
+  | SwapControllerServiceSwapToUseArgs<BSNeo3NetworkId>
+  | SwapControllerServiceSwapToReceiveArgs<BSNeo3NetworkId>
 
 export class FlamingoSwapControllerService implements SwapControllerService<BSNeo3NetworkId> {
   eventEmitter: TypedEmitter<SwapControllerServiceEvents>
@@ -39,9 +46,6 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   #privateMinimumReceived: string | null = null
   #privateMaximumSelling: string | null = null
 
-  #privateReservesToReceive: string | null = null
-  #privateReservesToUse: string | null = null
-
   #privateSlippage: number = 0.5
   #privateDeadline: string = '10'
 
@@ -49,42 +53,42 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   #privatePriceImpact: string | null = null
   #privateLiquidityProviderFee: string | null = null
 
-  #privateRoutes: SwapRoute[] | null = null
+  #privateRoute: SwapRoute[] = []
 
-  #privateLastAmountChange: 'amountToReceive' | 'amountToUse' | null = null
+  #privateLastAmountChanged: LastAmountChanged = null
 
   constructor(network: Network<BSNeo3NetworkId>) {
     this.#network = network
     this.eventEmitter = new EventEmitter() as TypedEmitter<SwapControllerServiceEvents>
   }
 
-  buildSwapArgs():
-    | SwapControllerServiceSwapToReceiveArgs<BSNeo3NetworkId>
-    | SwapControllerServiceSwapToUseArgs<BSNeo3NetworkId> {
+  buildSwapInvocationArgs(): BuildSwapInvocationArgs {
     if (
       !this.#accountToUse ||
       !this.#amountToReceive ||
       !this.#amountToUse ||
       !this.#tokenToReceive ||
-      !this.#tokenToUse
-    )
+      !this.#tokenToUse ||
+      this.#route.length <= 0
+    ) {
       throw new Error('Required parameters are not set')
+    }
+
+    const routePath = FlamingoSwapHelper.getRoutePath(this.#route)
 
     const baseSwapArgs: SwapControllerServiceSwapArgs<BSNeo3NetworkId> = {
       address: this.#accountToUse.address,
-      amountToReceive: this.#amountToReceive,
-      amountToUse: this.#amountToUse,
-      tokenToReceive: this.#tokenToReceive,
-      tokenToUse: this.#tokenToUse,
       deadline: this.#deadline,
       network: this.#network,
+      routePath,
     }
 
-    if (this.#lastAmountChange === 'amountToReceive') {
+    if (this.#lastAmountChanged === 'amountToReceive') {
       if (!this.#maximumSelling) throw new Error("maximumSelling is required for 'amountToReceive' swap type")
 
       return {
         ...baseSwapArgs,
+        amountToReceive: this.#amountToReceive,
         maximumSelling: this.#maximumSelling,
         type: 'swapTokenToReceive',
       }
@@ -94,6 +98,7 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
 
     return {
       ...baseSwapArgs,
+      amountToUse: this.#amountToUse,
       minimumReceived: this.#minimumReceived,
       type: 'swapTokenToUse',
     }
@@ -106,7 +111,7 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   setAmountToUse(val: string | null): void {
     this.#amountToUse = val
 
-    this.#lastAmountChange = 'amountToUse'
+    this.#lastAmountChanged = 'amountToUse'
 
     this.#recalculateSwapArguments()
   }
@@ -114,7 +119,7 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   setAmountToReceive(val: string | null): void {
     this.#amountToReceive = val
 
-    this.#lastAmountChange = 'amountToReceive'
+    this.#lastAmountChanged = 'amountToReceive'
 
     this.#recalculateSwapArguments()
   }
@@ -132,19 +137,31 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   async setTokenToUse(val: Token | null): Promise<void> {
     this.#tokenToUse = val
 
-    await this.setReserves()
+    await this.#recalculateRoute()
+
+    this.#recalculateSwapArguments()
   }
 
   async setTokenToReceive(val: Token | null): Promise<void> {
     this.#tokenToReceive = val
 
-    await this.setReserves()
+    await this.#recalculateRoute()
+
+    this.#recalculateSwapArguments()
+  }
+
+  async #recalculateRoute() {
+    if (!this.#tokenToReceive || !this.#tokenToUse) return
+
+    this.#route = await FlamingoSwapMultiInvoke.calculateBestRouteForSwap({
+      tokenToReceive: this.#tokenToReceive,
+      tokenToUse: this.#tokenToUse,
+      network: this.#network,
+    })
   }
 
   async swap(isLedger?: boolean): Promise<void> {
     if (isLedger) throw new Error('Method not implemented.')
-
-    const swapArguments = this.buildSwapArgs()
 
     const neonInvokerAccount = new wallet.Account(this.#accountToUse!)
     const invoker = await NeonInvoker.init({
@@ -152,32 +169,14 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
       account: neonInvokerAccount,
     })
 
-    await invoker.invokeFunction(FlamingoSwapNeonDappKitInvocationBuilder.swapInvocation(swapArguments))
+    const swapInvocationArgs = this.buildSwapInvocationArgs()
+    await invoker.invokeFunction(FlamingoSwapNeonDappKitInvocationBuilder.swapInvocation(swapInvocationArgs))
   }
 
   async setReserves() {
     if (!this.#tokenToReceive || !this.#tokenToUse) return
 
-    const invoker = await NeonInvoker.init({
-      rpcAddress: this.#network.url,
-    })
-
-    const invocation = FlamingoSwapNeonDappKitInvocationBuilder.getReservesInvocation({
-      network: this.#network,
-      tokenToReceiveScriptHash: this.#tokenToReceive.hash,
-      tokenToUseScriptHash: this.#tokenToUse.hash,
-    })
-
-    const { stack } = await invoker.testInvoke(invocation)
-    if (
-      !TypeChecker.isStackTypeArray(stack[0]) ||
-      !TypeChecker.isStackTypeInteger(stack[0].value[0]) ||
-      !TypeChecker.isStackTypeInteger(stack[0].value[1])
-    )
-      throw new Error('Invalid reserves response')
-
-    this.#reservesToReceive = stack[0].value[0].value
-    this.#reservesToUse = stack[0].value[1].value
+    await this.#recalculateRoute()
 
     this.#recalculateSwapArguments()
   }
@@ -196,7 +195,7 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
     }
 
     this.#ws.onmessage = async () => {
-      this.setReserves()
+      await this.setReserves()
     }
   }
 
@@ -208,14 +207,14 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   }
 
   #recalculateSwapArguments() {
-    if (!this.#tokenToReceive || !this.#tokenToUse || !this.#reservesToReceive || !this.#reservesToUse) return
+    if (!this.#tokenToReceive || !this.#tokenToUse) return
 
     if (
-      (this.#lastAmountChange === 'amountToReceive' && this.#amountToReceive) ||
-      (this.#lastAmountChange === 'amountToUse' && this.#amountToUse)
+      (this.#lastAmountChanged === 'amountToReceive' && this.#amountToReceive) ||
+      (this.#lastAmountChanged === 'amountToUse' && this.#amountToUse)
     ) {
-      const amountToReceive = this.#lastAmountChange === 'amountToReceive' ? this.#amountToReceive : null
-      const amountToUse = this.#lastAmountChange === 'amountToUse' ? this.#amountToUse : null
+      const amountToReceive = this.#lastAmountChanged === 'amountToReceive' ? this.#amountToReceive : null
+      const amountToUse = this.#lastAmountChanged === 'amountToUse' ? this.#amountToUse : null
 
       const {
         amountToUseToDisplay,
@@ -231,9 +230,8 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
         amountToUse,
         tokenToUse: this.#tokenToUse,
         tokenToReceive: this.#tokenToReceive,
-        reservesToUse: this.#reservesToUse,
-        reservesToReceive: this.#reservesToReceive,
         slippage: this.#slippage,
+        route: cloneDeep(this.#route),
       })
 
       this.#amountToUse = amountToUseToDisplay
@@ -243,7 +241,6 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
       this.#liquidityProviderFee = liquidityProviderFee
       this.#priceImpact = priceImpact
       this.#priceInverse = priceInverse
-      this.#routes = [] // TODO: It will be implemented in Swap Multi Invoke issue
 
       return
     }
@@ -262,11 +259,11 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
   }
 
   // Getters and setters
-  get #lastAmountChange(): 'amountToReceive' | 'amountToUse' | null {
-    return this.#privateLastAmountChange
+  get #lastAmountChanged(): 'amountToReceive' | 'amountToUse' | null {
+    return this.#privateLastAmountChanged
   }
-  set #lastAmountChange(val: 'amountToReceive' | 'amountToUse' | null) {
-    this.#privateLastAmountChange = val
+  set #lastAmountChanged(val: 'amountToReceive' | 'amountToUse' | null) {
+    this.#privateLastAmountChanged = val
     this.eventEmitter.emit('lastAmountChanged', val)
   }
 
@@ -342,30 +339,13 @@ export class FlamingoSwapControllerService implements SwapControllerService<BSNe
     this.eventEmitter.emit('priceInverse', val)
   }
 
-  get #routes(): SwapRoute[] | null {
-    return this.#privateRoutes
+  get #route(): SwapRoute[] {
+    return this.#privateRoute
   }
-  set #routes(val: SwapRoute[] | null) {
-    this.#privateRoutes = val
-    this.eventEmitter.emit('routes', val)
+  set #route(val: SwapRoute[]) {
+    this.#privateRoute = val
+    this.eventEmitter.emit('route', val)
   }
-
-  get #reservesToUse(): string | null {
-    return this.#privateReservesToUse
-  }
-  set #reservesToUse(val: string | null) {
-    this.#privateReservesToUse = val
-    this.eventEmitter.emit('reservesToUse', val)
-  }
-
-  get #reservesToReceive(): string | null {
-    return this.#privateReservesToReceive
-  }
-  set #reservesToReceive(val: string | null) {
-    this.#privateReservesToReceive = val
-    this.eventEmitter.emit('reservesToReceive', val)
-  }
-
   get #slippage(): number {
     return this.#privateSlippage
   }

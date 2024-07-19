@@ -13,6 +13,8 @@ export * from './RpcNDSNeo3'
 
 export * from './NeonDappKitLedgerServiceNeo3'
 
+export * from './flamingo-swap/FlamingoSwapConstants'
 export * from './flamingo-swap/FlamingoSwapControllerService'
 export * from './flamingo-swap/FlamingoSwapHelper'
+export * from './flamingo-swap/FlamingoSwapMultiInvoke'
 export * from './flamingo-swap/FlamingoSwapNeonDappKitInvocationBuilder'
