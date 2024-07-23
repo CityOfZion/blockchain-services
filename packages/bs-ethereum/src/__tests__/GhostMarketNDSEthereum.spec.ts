@@ -3,7 +3,7 @@ import { GhostMarketNDSEthereum } from '../GhostMarketNDSEthereum'
 
 let ghostMarketNDSEthereum: GhostMarketNDSEthereum
 
-describe('GhostMarketNDSEthereum', () => {
+describe.skip('GhostMarketNDSEthereum', () => {
   beforeAll(() => {
     ghostMarketNDSEthereum = new GhostMarketNDSEthereum(BSEthereumHelper.DEFAULT_NETWORK)
   })

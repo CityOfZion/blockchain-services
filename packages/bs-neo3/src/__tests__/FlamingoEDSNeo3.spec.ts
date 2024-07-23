@@ -1,69 +1,57 @@
-import { BSNeo3Helper } from '../BSNeo3Helper'
+import { Network } from '@cityofzion/blockchain-service'
+import { BSNeo3Helper, BSNeo3NetworkId } from '../BSNeo3Helper'
 import { FlamingoEDSNeo3 } from '../FlamingoEDSNeo3'
 
 let flamingoEDSNeo3: FlamingoEDSNeo3
+let network: Network<BSNeo3NetworkId>
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    flamingoEDSNeo3 = new FlamingoEDSNeo3(
-      BSNeo3Helper.DEFAULT_NETWORK.id,
-      BSNeo3Helper.getTokens(BSNeo3Helper.DEFAULT_NETWORK)
-    )
+    network = BSNeo3Helper.DEFAULT_NETWORK
+    flamingoEDSNeo3 = new FlamingoEDSNeo3(network)
   })
+
   it('Should return a list with prices of tokens using USD', async () => {
-    const tokenPriceList = await flamingoEDSNeo3.getTokenPrices('USD')
+    const tokenPriceList = await flamingoEDSNeo3.getTokenPrices({ tokens: BSNeo3Helper.getTokens(network) })
 
     tokenPriceList.forEach(tokenPrice => {
       expect(tokenPrice).toEqual({
-        price: expect.any(Number),
-        symbol: expect.any(String),
-        hash: expect.any(String),
+        usdPrice: expect.any(Number),
+        token: expect.objectContaining({
+          decimals: expect.any(Number),
+          hash: expect.any(String),
+          name: expect.any(String),
+          symbol: expect.any(String),
+        }),
       })
     })
   }, 60000)
 
-  it('Should return a list with prices of tokens using BRL', async () => {
-    const tokenPriceListInUSD = await flamingoEDSNeo3.getTokenPrices('USD')
-    const tokenPriceList = await flamingoEDSNeo3.getTokenPrices('BRL')
+  it('Should return the BRL currency ratio', async () => {
+    const ratio = await flamingoEDSNeo3.getCurrencyRatio('BRL')
 
-    tokenPriceList.forEach((tokenPrice, index) => {
-      expect(tokenPrice.price).toBeGreaterThan(tokenPriceListInUSD[index].price)
-      expect(tokenPrice).toEqual({
-        price: expect.any(Number),
-        symbol: expect.any(String),
-        hash: expect.any(String),
-      })
-    })
-  }, 60000)
+    expect(ratio).toEqual(expect.any(Number))
+  })
 
-  it('Should return a list with prices of tokens using EUR', async () => {
-    const tokenPriceListInUSD = await flamingoEDSNeo3.getTokenPrices('USD')
-    const tokenPriceList = await flamingoEDSNeo3.getTokenPrices('EUR')
+  it('Should return EUR currency ratio', async () => {
+    const ratio = await flamingoEDSNeo3.getCurrencyRatio('EUR')
 
-    tokenPriceList.forEach((tokenPrice, index) => {
-      expect(tokenPrice.price).toBeLessThan(tokenPriceListInUSD[index].price)
-      expect(tokenPrice).toEqual({
-        price: expect.any(Number),
-        symbol: expect.any(String),
-        hash: expect.any(String),
-      })
-    })
-  }, 60000)
+    expect(ratio).toEqual(expect.any(Number))
+  })
 
   it("Should return the token's price history", async () => {
+    const token = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'GAS')!
     const tokenPriceHistory = await flamingoEDSNeo3.getTokenPriceHistory({
-      tokenSymbol: 'NEO',
-      currency: 'USD',
+      token,
       limit: 24,
       type: 'hour',
     })
 
     tokenPriceHistory.forEach(tokenPrice => {
       expect(tokenPrice).toEqual({
-        price: expect.any(Number),
+        usdPrice: expect.any(Number),
         timestamp: expect.any(Number),
-        symbol: 'NEO',
-        hash: expect.any(String),
+        token,
       })
     })
   }, 60000)

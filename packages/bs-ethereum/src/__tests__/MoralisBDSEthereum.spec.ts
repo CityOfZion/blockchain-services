@@ -1,12 +1,13 @@
 import { BSEthereumHelper } from '../BSEthereumHelper'
-import { BitqueryBDSEthereum } from '../BitqueryBDSEthereum'
+import { MoralisBDSEthereum } from '../MoralisBDSEthereum'
 
-const bitqueryBDSEthereum = new BitqueryBDSEthereum(BSEthereumHelper.DEFAULT_NETWORK)
+const moralisBDSEthereum = new MoralisBDSEthereum(BSEthereumHelper.DEFAULT_NETWORK)
 
-describe.skip('BitqueryBDSEthereum', () => {
+describe('MoralisBDSEthereum', () => {
   it('Should be able to get transaction - %s', async () => {
     const hash = '0x12f994e6cecbe4495b4fdef08a2db8551943813b21f3434aa5c2356f8686fa8b'
-    const transaction = await bitqueryBDSEthereum.getTransaction(hash)
+
+    const transaction = await moralisBDSEthereum.getTransaction(hash)
 
     expect(transaction).toEqual(
       expect.objectContaining({
@@ -31,8 +32,8 @@ describe.skip('BitqueryBDSEthereum', () => {
 
   it('Should be able to get transactions of address - %s', async () => {
     const address = '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89'
-    const response = await bitqueryBDSEthereum.getTransactionsByAddress({ address: address, page: 1 })
-    expect(response.totalCount).toBeGreaterThan(0)
+    const response = await moralisBDSEthereum.getTransactionsByAddress({ address: address, page: 1 })
+
     response.transactions.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
@@ -60,11 +61,11 @@ describe.skip('BitqueryBDSEthereum', () => {
 
   it('Should be able to get eth info - %s', async () => {
     const hash = '-'
-    const token = await bitqueryBDSEthereum.getTokenInfo(hash)
+    const token = await moralisBDSEthereum.getTokenInfo(hash)
 
     expect(token).toEqual({
       symbol: 'ETH',
-      name: 'Ethereum',
+      name: 'ETH',
       hash: '-',
       decimals: 18,
     })
@@ -72,10 +73,10 @@ describe.skip('BitqueryBDSEthereum', () => {
 
   it('Should be able to get token info - %s', async () => {
     const hash = '0xB8c77482e45F1F44dE1745F52C74426C631bDD52'
-    const token = await bitqueryBDSEthereum.getTokenInfo(hash)
+    const token = await moralisBDSEthereum.getTokenInfo(hash)
 
     expect(token).toEqual({
-      hash: '0xb8c77482e45f1f44de1745f52c74426c631bdd52',
+      hash: '0xB8c77482e45F1F44dE1745F52C74426C631bDD52',
       name: 'BNB',
       symbol: 'BNB',
       decimals: 18,
@@ -84,7 +85,7 @@ describe.skip('BitqueryBDSEthereum', () => {
 
   it('Should be able to get balance - %s', async () => {
     const address = '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89'
-    const balance = await bitqueryBDSEthereum.getBalance(address)
+    const balance = await moralisBDSEthereum.getBalance(address)
 
     balance.forEach(balance => {
       expect(balance).toEqual(
@@ -102,7 +103,7 @@ describe.skip('BitqueryBDSEthereum', () => {
   })
 
   it('Should be able to get a list of rpc - %s', async () => {
-    const list = await bitqueryBDSEthereum.getRpcList()
+    const list = await moralisBDSEthereum.getRpcList()
     expect(list.length).toBeGreaterThan(0)
     list.forEach(rpc => {
       expect(rpc).toEqual({

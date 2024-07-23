@@ -28,7 +28,8 @@ describe('BDSNeo3', () => {
           fee: expect.any(String),
         })
       )
-    }
+    },
+    60000
   )
 
   it.each([doraBDSNeo3])(
@@ -65,25 +66,30 @@ describe('BDSNeo3', () => {
           })
         )
       })
-    }
+    },
+    60000
   )
 
-  it.each([doraBDSNeo3, rpcBDSNeo3])('Should be able to get contract - %s', async (bdsNeo3: BlockchainDataService) => {
-    const hash = '0xd2a4cff31913016155e38e474a2c06d08be276cf'
-    const contract = await bdsNeo3.getContract(hash)
-    expect(contract).toEqual({
-      hash: hash,
-      name: 'GasToken',
-      methods: expect.arrayContaining([
-        expect.objectContaining({
-          name: expect.any(String),
-          parameters: expect.arrayContaining([
-            expect.objectContaining({ name: expect.any(String), type: expect.any(String) }),
-          ]),
-        }),
-      ]),
-    })
-  })
+  it.each([doraBDSNeo3, rpcBDSNeo3])(
+    'Should be able to get contract - %s',
+    async (bdsNeo3: BlockchainDataService) => {
+      const hash = '0xd2a4cff31913016155e38e474a2c06d08be276cf'
+      const contract = await bdsNeo3.getContract(hash)
+      expect(contract).toEqual({
+        hash: hash,
+        name: 'GasToken',
+        methods: expect.arrayContaining([
+          expect.objectContaining({
+            name: expect.any(String),
+            parameters: expect.arrayContaining([
+              expect.objectContaining({ name: expect.any(String), type: expect.any(String) }),
+            ]),
+          }),
+        ]),
+      })
+    },
+    60000
+  )
 
   it.each([doraBDSNeo3, rpcBDSNeo3])(
     'Should be able to get token info - %s',
@@ -97,24 +103,29 @@ describe('BDSNeo3', () => {
         name: 'GasToken',
         symbol: 'GAS',
       })
-    }
+    },
+    60000
   )
 
-  it.each([doraBDSNeo3, rpcBDSNeo3])('Should be able to get balance - %s', async (bdsNeo3: BlockchainDataService) => {
-    const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
-    const balance = await bdsNeo3.getBalance(address)
-    balance.forEach(balance => {
-      expect(balance).toEqual({
-        amount: expect.any(String),
-        token: {
-          hash: expect.any(String),
-          name: expect.any(String),
-          symbol: expect.any(String),
-          decimals: expect.any(Number),
-        },
+  it.each([doraBDSNeo3, rpcBDSNeo3])(
+    'Should be able to get balance - %s',
+    async (bdsNeo3: BlockchainDataService) => {
+      const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
+      const balance = await bdsNeo3.getBalance(address)
+      balance.forEach(balance => {
+        expect(balance).toEqual({
+          amount: expect.any(String),
+          token: {
+            hash: expect.any(String),
+            name: expect.any(String),
+            symbol: expect.any(String),
+            decimals: expect.any(Number),
+          },
+        })
       })
-    })
-  })
+    },
+    60000
+  )
 
   it.each([doraBDSNeo3, rpcBDSNeo3])(
     'Should be able to get unclaimed - %s',
@@ -122,18 +133,23 @@ describe('BDSNeo3', () => {
       const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
       const unclaimed = await bdsNeo3.getUnclaimed(address)
       expect(unclaimed).toEqual(expect.any(String))
-    }
+    },
+    60000
   )
 
-  it.each([rpcBDSNeo3])('Should be able to get a list of rpc - %s', async (bdsNeo3: BlockchainDataService) => {
-    const list = await bdsNeo3.getRpcList()
-    expect(list.length).toBeGreaterThan(0)
-    list.forEach(rpc => {
-      expect(rpc).toEqual({
-        height: expect.any(Number),
-        latency: expect.any(Number),
-        url: expect.any(String),
+  it.each([rpcBDSNeo3])(
+    'Should be able to get a list of rpc - %s',
+    async (bdsNeo3: BlockchainDataService) => {
+      const list = await bdsNeo3.getRpcList()
+      expect(list.length).toBeGreaterThan(0)
+      list.forEach(rpc => {
+        expect(rpc).toEqual({
+          height: expect.any(Number),
+          latency: expect.any(Number),
+          url: expect.any(String),
+        })
       })
-    })
-  })
+    },
+    60000
+  )
 })

@@ -121,13 +121,15 @@ export type ContractParameter = {
   type: string
 }
 export type TransactionsByAddressResponse = {
-  totalCount: number
-  limit: number
+  totalCount?: number
+  limit?: number
+  nextCursor?: string
   transactions: TransactionResponse[]
 }
 export type TransactionsByAddressParams = {
   address: string
   page?: number
+  cursor?: string
 }
 export type ContractMethod = {
   name: string
@@ -163,26 +165,27 @@ export interface BDSClaimable {
 }
 
 export type TokenPricesResponse = {
-  price: number
-  symbol: string
-  hash: string
+  usdPrice: number
+  token: Token
 }
 export type TokenPricesHistoryResponse = {
-  price: number
+  usdPrice: number
   timestamp: number
-  symbol: string
-  hash: string
+  token: Token
 }
-export type Currency = 'USD' | 'BRL' | 'EUR'
-export type GetTokenPriceHistory = {
-  tokenSymbol: string
-  currency: Currency
+
+export type GetTokenPriceHistoryParams = {
+  token: Token
   type: 'hour' | 'day'
   limit: number
 }
+export type GetTokenPricesParams = {
+  tokens: Token[]
+}
 export interface ExchangeDataService {
-  getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]>
-  getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]>
+  getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]>
+  getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]>
+  getCurrencyRatio(currency: string): Promise<number>
 }
 export interface NftResponse {
   id: string

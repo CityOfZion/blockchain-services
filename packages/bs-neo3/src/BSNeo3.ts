@@ -109,7 +109,7 @@ export class BSNeo3<BSCustomName extends string = string>
     this.network = network
 
     this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
-    this.exchangeDataService = new FlamingoEDSNeo3(network, this.tokens)
+    this.exchangeDataService = new FlamingoEDSNeo3(network)
     this.nftDataService = new GhostMarketNDSNeo3(network)
     this.explorerService = new DoraESNeo3(network)
   }

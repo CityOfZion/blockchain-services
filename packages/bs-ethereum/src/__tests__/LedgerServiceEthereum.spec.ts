@@ -1,13 +1,13 @@
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import { LedgerSigner } from '../LedgerServiceEthereum'
+import { EthersLedgerSigner } from '../EthersLedgerServiceEthereum'
 import { ethers } from 'ethers'
 
-let ledgerSigner: LedgerSigner
+let ledgerSigner: EthersLedgerSigner
 
 describe.skip('LedgerServiceEthereum', () => {
   beforeAll(async () => {
     const transport = await TransportNodeHid.create()
-    ledgerSigner = new LedgerSigner(transport)
+    ledgerSigner = new EthersLedgerSigner(transport)
   }, 60000)
 
   it('Should be able to get address', async () => {

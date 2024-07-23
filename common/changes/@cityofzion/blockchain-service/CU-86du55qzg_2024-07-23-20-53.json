@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Adapt interfaces to work with Moralis",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

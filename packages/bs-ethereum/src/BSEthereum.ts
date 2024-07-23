@@ -17,13 +17,12 @@ import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
 import * as ethersBytes from '@ethersproject/bytes'
 import * as ethersBigNumber from '@ethersproject/bignumber'
-import { BitqueryEDSEthereum } from './BitqueryEDSEthereum'
 import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
-import { RpcBDSEthereum } from './RpcBDSEthereum'
-import { BitqueryBDSEthereum } from './BitqueryBDSEthereum'
 import { EthersLedgerServiceEthereum } from './EthersLedgerServiceEthereum'
 import Transport from '@ledgerhq/hw-transport'
 import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
+import { MoralisBDSEthereum } from './MoralisBDSEthereum'
+import { MoralisEDSEthereum } from './MoralisEDSEthereum'
 
 export class BSEthereum<BSCustomName extends string = string>
   implements
@@ -69,11 +68,8 @@ export class BSEthereum<BSCustomName extends string = string>
 
     this.network = network
 
-    const bitqueryNetwork = BitqueryBDSEthereum.MIRROR_NETWORK_BY_NETWORK_ID[network.id]
-
-    this.blockchainDataService = bitqueryNetwork ? new BitqueryBDSEthereum(network) : new RpcBDSEthereum(network)
-
-    this.exchangeDataService = new BitqueryEDSEthereum(network, this.tokens)
+    this.blockchainDataService = new MoralisBDSEthereum(network)
+    this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)
     this.nftDataService = new GhostMarketNDSEthereum(network)
   }
 

@@ -1,8 +1,7 @@
 import {
-  Currency,
   ExchangeDataService,
-  GetTokenPriceHistory,
-  Token,
+  GetTokenPriceHistoryParams,
+  GetTokenPricesParams,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from './interfaces'
@@ -27,43 +26,37 @@ type CryptoCompareHistoryResponse = {
 
 export class CryptoCompareEDS implements ExchangeDataService {
   readonly #axiosInstance: AxiosInstance
-  readonly #tokens: Token[]
 
-  constructor(tokens: Token[] = []) {
-    this.#tokens = tokens
+  constructor() {
     this.#axiosInstance = axios.create({ baseURL: 'https://min-api.cryptocompare.com' })
   }
 
-  async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
-    const tokenSymbols = this.#tokens.map(token => token.symbol)
+  async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
     const { data: prices } = await this.#axiosInstance.get<CryptoCompareDataResponse>('/data/pricemultifull', {
       params: {
-        fsyms: tokenSymbols.join(','),
-        tsyms: currency,
+        fsyms: params.tokens.map(token => token.symbol).join(','),
+        tsyms: 'USD',
       },
     })
 
-    return Object.entries(prices.RAW)
-      .map(([symbol, priceObject]) => {
-        const price = priceObject[currency].PRICE
-        const token = this.#tokens.find(token => token.symbol === symbol)
-        if (!token || !price) return
+    return Object.entries(prices.RAW).map(([symbol, priceObject]) => {
+      const usdPrice = priceObject.USD.PRICE
+      const token = params.tokens.find(token => token.symbol === symbol)!
 
-        return {
-          symbol,
-          price,
-          hash: token?.hash,
-        }
-      })
-      .filter((price): price is TokenPricesResponse => price !== undefined)
+      return {
+        usdPrice,
+        token,
+      }
+    })
   }
 
-  async getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]> {
+  async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
     const path = `/data/${params.type === 'hour' ? 'histohour' : 'histoday'}`
+
     const response = await this.#axiosInstance.get<CryptoCompareHistoryResponse>(path, {
       params: {
-        fsym: params.tokenSymbol,
-        tsym: params.currency,
+        fsym: params.token.symbol,
+        tsym: 'USD',
         limit: params.limit,
       },
     })
@@ -71,17 +64,18 @@ export class CryptoCompareEDS implements ExchangeDataService {
     const history: TokenPricesHistoryResponse[] = []
 
     response.data.Data.forEach(data => {
-      const token = this.#tokens.find(token => token.symbol === params.tokenSymbol)
-      if (!token) return
-
       history.push({
-        price: data.close,
+        usdPrice: data.close,
         timestamp: data.time,
-        symbol: params.tokenSymbol,
-        hash: token.hash,
+        token: params.token,
       })
     })
 
     return history
+  }
+
+  async getCurrencyRatio(currency: string): Promise<number> {
+    const { data } = await axios.get<number>(`https://api.flamingo.finance/fiat/exchange-rate?pair=USD_${currency}`)
+    return data
   }
 }
