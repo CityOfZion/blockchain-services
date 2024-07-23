@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Wed, 17 Jul 2024 16:13:43 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jul 2024 21:44:02 GMT and should not be manually modified.
+
+## 1.1.0
+Tue, 23 Jul 2024 21:44:02 GMT
+
+### Minor changes
+
+- Adapt interfaces to work with Moralis
 
 ## 1.0.2
 Wed, 17 Jul 2024 16:13:43 GMT

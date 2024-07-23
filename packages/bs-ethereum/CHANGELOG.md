@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 18 Jul 2024 00:45:56 GMT and should not be manually modified.
+This log was last generated on Tue, 23 Jul 2024 21:44:02 GMT and should not be manually modified.
+
+## 2.1.0
+Tue, 23 Jul 2024 21:44:02 GMT
+
+### Minor changes
+
+- Moralis support
 
 ## 2.0.3
 Thu, 18 Jul 2024 00:45:56 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.1.0",
+      "tag": "@cityofzion/blockchain-service_v1.1.0",
+      "date": "Tue, 23 Jul 2024 21:44:02 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adapt interfaces to work with Moralis"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.2",
       "tag": "@cityofzion/blockchain-service_v1.0.2",
       "date": "Wed, 17 Jul 2024 16:13:43 GMT",
