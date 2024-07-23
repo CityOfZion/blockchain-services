@@ -1,10 +1,9 @@
 import {
   CryptoCompareEDS,
-  Currency,
   ExchangeDataService,
-  GetTokenPriceHistory,
+  GetTokenPriceHistoryParams,
+  GetTokenPricesParams,
   Network,
-  Token,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
@@ -21,37 +20,35 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
   readonly #network: Network<BSNeo3NetworkId>
   readonly #axiosInstance: AxiosInstance
 
-  constructor(network: Network<BSNeo3NetworkId>, tokens: Token[]) {
-    super(tokens)
+  constructor(network: Network<BSNeo3NetworkId>) {
+    super()
+
     this.#network = network
     this.#axiosInstance = axios.create({ baseURL: 'https://api.flamingo.finance' })
   }
 
-  async getTokenPrices(currency: Currency): Promise<TokenPricesResponse[]> {
+  async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
     if (!BSNeo3Helper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
 
-    const { data: prices } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/token-info/prices')
+    const { data } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/token-info/prices')
 
-    let currencyRatio: number = 1
+    const prices: TokenPricesResponse[] = []
 
-    if (currency !== 'USD') {
-      currencyRatio = await this.getCurrencyRatio(currency)
-    }
+    data.forEach(item => {
+      const token = params.tokens.find(token => token.hash === item.hash)
+      if (!token) return
 
-    return prices.map(price => ({
-      price: price.usd_price * currencyRatio,
-      symbol: price.symbol,
-      hash: price.hash,
-    }))
+      prices.push({
+        usdPrice: item.usd_price,
+        token,
+      })
+    })
+
+    return prices
   }
 
-  async getTokenPriceHistory(params: GetTokenPriceHistory): Promise<TokenPricesHistoryResponse[]> {
+  async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
     if (!BSNeo3Helper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
     return await super.getTokenPriceHistory(params)
-  }
-
-  private async getCurrencyRatio(currency: Currency): Promise<number> {
-    const { data } = await this.#axiosInstance.get<number>(`/fiat/exchange-rate?pair=USD_${currency}`)
-    return data
   }
 }

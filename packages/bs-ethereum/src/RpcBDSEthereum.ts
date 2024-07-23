@@ -14,16 +14,17 @@ import { ERC20_ABI } from './assets/abis/ERC20'
 import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
 
 export class RpcBDSEthereum implements BlockchainDataService {
-  readonly #network: Network<BSEthereumNetworkId>
+  _network: Network<BSEthereumNetworkId>
+  _tokenCache: Map<string, Token> = new Map()
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
   constructor(network: Network<BSEthereumNetworkId>) {
-    this.#network = network
+    this._network = network
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this._network.url)
 
     const transaction = await provider.getTransaction(hash)
     if (!transaction || !transaction.blockHash || !transaction.to) throw new Error('Transaction not found')
@@ -31,7 +32,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
     const block = await provider.getBlock(transaction.blockHash)
     if (!block) throw new Error('Block not found')
 
-    const token = BSEthereumHelper.getNativeAsset(this.#network)
+    const token = BSEthereumHelper.getNativeAsset(this._network)
 
     return {
       block: block.number,
@@ -55,34 +56,42 @@ export class RpcBDSEthereum implements BlockchainDataService {
     throw new Error("RPC doesn't support get transactions history of address")
   }
 
-  async getContract(): Promise<ContractResponse> {
+  async getContract(_hash: string): Promise<ContractResponse> {
     throw new Error("RPC doesn't support contract info")
   }
 
   async getTokenInfo(hash: string): Promise<Token> {
-    const nativeAsset = BSEthereumHelper.getNativeAsset(this.#network)
+    const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
 
     if (nativeAsset.hash === hash) return nativeAsset
 
-    const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
+    if (this._tokenCache.has(hash)) {
+      return this._tokenCache.get(hash)!
+    }
+
+    const provider = new ethers.providers.JsonRpcProvider(this._network.url)
     const contract = new ethers.Contract(hash, ERC20_ABI, provider)
 
     const decimals = await contract.decimals()
     const symbol = await contract.symbol()
 
-    return {
+    const token: Token = {
       decimals,
       symbol,
       hash,
       name: symbol,
     }
+
+    this._tokenCache.set(hash, token)
+
+    return token
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this._network.url)
     const balance = await provider.getBalance(address)
 
-    const token = BSEthereumHelper.getNativeAsset(this.#network)
+    const token = BSEthereumHelper.getNativeAsset(this._network)
 
     return [
       {
@@ -93,14 +102,14 @@ export class RpcBDSEthereum implements BlockchainDataService {
   }
 
   async getBlockHeight(): Promise<number> {
-    const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this._network.url)
     return await provider.getBlockNumber()
   }
 
   async getRpcList(): Promise<RpcResponse[]> {
     const list: RpcResponse[] = []
 
-    const urls = BSEthereumHelper.getRpcList(this.#network)
+    const urls = BSEthereumHelper.getRpcList(this._network)
 
     const promises = urls.map(url => {
       // eslint-disable-next-line no-async-promise-executor

@@ -9,17 +9,17 @@ export class DoraESNeo3 implements ExplorerService {
   }
 
   buildTransactionUrl(hash: string): string {
-    if (!BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+    if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
     return `https://dora.coz.io/transaction/neo3/${this.#network.id}/${hash}`
   }
 
   buildContractUrl(contractHash: string): string {
-    if (!BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+    if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
     return `https://dora.coz.io/contract/neo3/${this.#network.id}/${contractHash}`
   }
 
   buildNftUrl({ contractHash, tokenId }: BuildNftUrlParams): string {
-    if (!BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+    if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
     return `https://dora.coz.io/nft/neo3/${this.#network.id}/${contractHash}/${tokenId}`
   }
 }

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Fix classes to new interfaces",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

@@ -1,68 +1,59 @@
-import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
+import { Network } from '@cityofzion/blockchain-service'
+import { BSNeoLegacyHelper, BSNeoLegacyNetworkId } from '../BSNeoLegacyHelper'
 import { CryptoCompareEDSNeoLegacy } from '../CryptoCompareEDSNeoLegacy'
 
 let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
+let network: Network<BSNeoLegacyNetworkId>
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    const network = BSNeoLegacyHelper.DEFAULT_NETWORK
-    const tokens = BSNeoLegacyHelper.getTokens(network)
-    cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(network.id, tokens)
+    network = BSNeoLegacyHelper.DEFAULT_NETWORK
+    cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(network)
   })
 
   it('Should return a list with prices of tokens using USD', async () => {
-    const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('USD')
+    const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices({
+      tokens: BSNeoLegacyHelper.getTokens(network),
+    })
+
     tokenPriceList.forEach(tokenPrice => {
       expect(tokenPrice).toEqual({
-        price: expect.any(Number),
-        symbol: expect.any(String),
-        hash: expect.any(String),
+        usdPrice: expect.any(Number),
+        token: expect.objectContaining({
+          decimals: expect.any(Number),
+          hash: expect.any(String),
+          name: expect.any(String),
+          symbol: expect.any(String),
+        }),
       })
     })
   })
 
-  it('Should return a list with prices of tokens using BRL', async () => {
-    const tokenPriceListInUSD = await cryptoCompareEDSNeoLegacy.getTokenPrices('USD')
-    const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('BRL')
+  it('Should return the BRL currency ratio', async () => {
+    const ratio = await cryptoCompareEDSNeoLegacy.getCurrencyRatio('BRL')
 
-    tokenPriceList.forEach((tokenPrice, index) => {
-      expect(tokenPrice.price).toBeGreaterThan(tokenPriceListInUSD[index].price)
-      expect(tokenPrice).toEqual({
-        price: expect.any(Number),
-        symbol: expect.any(String),
-        hash: expect.any(String),
-      })
-    })
+    expect(ratio).toEqual(expect.any(Number))
   })
 
-  it('Should return a list with prices of tokens using EUR', async () => {
-    const tokenPriceListInUSD = await cryptoCompareEDSNeoLegacy.getTokenPrices('USD')
-    const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices('EUR')
+  it('Should return EUR currency ratio', async () => {
+    const ratio = await cryptoCompareEDSNeoLegacy.getCurrencyRatio('EUR')
 
-    tokenPriceList.forEach((tokenPrice, index) => {
-      expect(tokenPrice.price).toBeLessThan(tokenPriceListInUSD[index].price)
-      expect(tokenPrice).toEqual({
-        price: expect.any(Number),
-        symbol: expect.any(String),
-        hash: expect.any(String),
-      })
-    })
+    expect(ratio).toEqual(expect.any(Number))
   })
 
   it("Should return the token's price history", async () => {
+    const token = BSNeoLegacyHelper.getTokens(network).find(token => token.symbol === 'GAS')!
     const tokenPriceHistory = await cryptoCompareEDSNeoLegacy.getTokenPriceHistory({
-      tokenSymbol: 'GAS',
-      currency: 'USD',
+      token,
       limit: 24,
       type: 'hour',
     })
 
     tokenPriceHistory.forEach(tokenPrice => {
       expect(tokenPrice).toEqual({
-        price: expect.any(Number),
+        usdPrice: expect.any(Number),
         timestamp: expect.any(Number),
-        symbol: 'GAS',
-        hash: expect.any(String),
+        token,
       })
     })
   })

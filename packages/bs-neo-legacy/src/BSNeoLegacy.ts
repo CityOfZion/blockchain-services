@@ -62,7 +62,7 @@ export class BSNeoLegacy<BSCustomName extends string = string>
 
     this.network = network
     this.blockchainDataService = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken, this.tokens)
-    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network, this.tokens)
+    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network)
     this.explorerService = new NeoTubeESNeoLegacy(network)
   }
 

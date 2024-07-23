@@ -26,7 +26,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    if (!BSNeo3Helper.isCustomNet(this._network)) {
+    if (BSNeo3Helper.isCustomNet(this._network)) {
       return await super.getTransaction(hash)
     }
 
@@ -51,7 +51,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
     address,
     page = 1,
   }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    if (!BSNeo3Helper.isCustomNet(this._network)) {
+    if (BSNeo3Helper.isCustomNet(this._network)) {
       return await super.getTransactionsByAddress({ address, page })
     }
 
@@ -126,7 +126,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
-    if (!BSNeo3Helper.isCustomNet(this._network)) {
+    if (BSNeo3Helper.isCustomNet(this._network)) {
       return await super.getContract(contractHash)
     }
 
@@ -143,7 +143,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    if (!BSNeo3Helper.isCustomNet(this._network)) {
+    if (BSNeo3Helper.isCustomNet(this._network)) {
       return await super.getTokenInfo(tokenHash)
     }
 
@@ -171,7 +171,7 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    if (!BSNeo3Helper.isCustomNet(this._network)) {
+    if (BSNeo3Helper.isCustomNet(this._network)) {
       return await super.getBalance(address)
     }
 

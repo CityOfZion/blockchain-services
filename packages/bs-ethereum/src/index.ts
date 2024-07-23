@@ -5,9 +5,9 @@ export * from './RpcNDSEthereum'
 
 export * from './BSEthereumHelper'
 
-export * from './BitqueryBDSEthereum'
+export * from './MoralisBDSEthereum'
 export * from './RpcBDSEthereum'
 
-export * from './BitqueryEDSEthereum'
+export * from './MoralisEDSEthereum'
 
 export * from './EthersLedgerServiceEthereum'
