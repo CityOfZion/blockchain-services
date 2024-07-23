@@ -1,11 +1,11 @@
 import { BSNeo3 } from '../BSNeo3'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import { BSNeo3Helper, BSNeo3NetworkId } from '../BSNeo3Helper'
 import { Network } from '@cityofzion/blockchain-service'
-import { AvailableNetworkIds, BSNeo3Helper } from '../BSNeo3Helper'
 
 let bsNeo3: BSNeo3
-let network: Network<AvailableNetworkIds>
+let network: Network<BSNeo3NetworkId>
 
 describe('BSNeo3', () => {
   beforeAll(async () => {

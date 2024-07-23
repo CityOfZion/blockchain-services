@@ -1,12 +1,14 @@
-import { ContractInvocation, ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
+import { Arg, ContractInvocation, ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
 import { tx, u } from '@cityofzion/neon-core'
 import {
   Network,
-  SwapControllerServiceSwapToUseArgs,
   SwapControllerServiceSwapToReceiveArgs,
+  SwapControllerServiceSwapToUseArgs,
+  Token,
 } from '@cityofzion/blockchain-service'
-import { FlamingoSwapHelper, SwapScriptHashes } from './FlamingoSwapHelper'
+import { FlamingoSwapHelper } from './FlamingoSwapHelper'
 import { BSNeo3NetworkId } from '../BSNeo3Helper'
+import { FlamingoSwapConstants, FlamingoSwapScriptHashes } from './FlamingoSwapConstants'
 
 type TransferArgs = {
   address: string
@@ -15,10 +17,9 @@ type TransferArgs = {
   contractScriptHash: string
 }
 
-type GetReservesArgs = {
+export type GetReservesArgs = {
   network: Network<BSNeo3NetworkId>
-  tokenToReceiveScriptHash: string
-  tokenToUseScriptHash: string
+  route: { tokenToUse: Token; tokenToReceive: Token }[]
 }
 
 export class FlamingoSwapNeonDappKitInvocationBuilder {
@@ -26,34 +27,41 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     data: SwapControllerServiceSwapToReceiveArgs<BSNeo3NetworkId> | SwapControllerServiceSwapToUseArgs<BSNeo3NetworkId>
   ) {
     return data.type === 'swapTokenToReceive'
-      ? this.swapTokenToReceiveForTokenToUseInvocation(data)
-      : this.swapTokenToUseForTokenToReceiveInvocation(data)
+      ? this.#swapTokenToReceiveForTokenToUseInvocation(data)
+      : this.#swapTokenToUseForTokenToReceiveInvocation(data)
   }
 
-  static getReservesInvocation({
-    network,
-    tokenToReceiveScriptHash,
-    tokenToUseScriptHash,
-  }: GetReservesArgs): ContractInvocationMulti {
-    const scriptHashes = FlamingoSwapHelper.getSwapScriptHashes(network)
+  static getReservesInvocation({ network, route }: GetReservesArgs): ContractInvocationMulti {
+    const scriptHashes = FlamingoSwapHelper.getFlamingoSwapScriptHashes(network)
+
+    const invocations: ContractInvocation[] = []
+
+    route.map(routeItem => {
+      if (
+        routeItem.tokenToUse.hash === FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO').hash ||
+        routeItem.tokenToReceive.hash === FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO').hash
+      ) {
+        return // Exit the current iteration of the loop and continue to the next iteration.
+      }
+
+      invocations.push({
+        scriptHash: scriptHashes.flamingoSwapRouter,
+        operation: 'getReserves',
+        args: [
+          {
+            type: 'Hash160',
+            value: routeItem.tokenToReceive.hash,
+          },
+          {
+            type: 'Hash160',
+            value: routeItem.tokenToUse.hash,
+          },
+        ],
+      })
+    })
 
     return {
-      invocations: [
-        {
-          scriptHash: scriptHashes.flamingoSwapRouter,
-          operation: 'getReserves',
-          args: [
-            {
-              type: 'Hash160',
-              value: this.overrideScriptHash(network, tokenToReceiveScriptHash),
-            },
-            {
-              type: 'Hash160',
-              value: this.overrideScriptHash(network, tokenToUseScriptHash),
-            },
-          ],
-        },
-      ],
+      invocations,
       signers: [
         {
           scopes: 1,
@@ -62,21 +70,24 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     }
   }
 
-  private static swapTokenToReceiveForTokenToUseInvocation({
+  static #swapTokenToReceiveForTokenToUseInvocation({
     address,
     amountToReceive,
     maximumSelling,
-    tokenToReceive,
-    tokenToUse,
+    routePath,
     deadline,
     network,
   }: SwapControllerServiceSwapToReceiveArgs<BSNeo3NetworkId>): ContractInvocationMulti {
     const invocations: ContractInvocation[] = []
     const allowedContracts: string[] = []
 
-    const scriptHashes = FlamingoSwapHelper.getSwapScriptHashes(network)
+    const scriptHashes = FlamingoSwapHelper.getFlamingoSwapScriptHashes(network)
+
+    const tokenToUse = routePath[0]
+    const tokenToReceive = routePath[routePath.length - 1]
 
     const tokenToReceiveOverrode = FlamingoSwapHelper.overrideToken(network, tokenToReceive)
+
     const amountToReceiveFormatted = u.BigInteger.fromDecimal(
       Number(amountToReceive),
       tokenToReceiveOverrode.decimals
@@ -101,16 +112,7 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
         },
         {
           type: 'Array',
-          value: [
-            {
-              type: 'Hash160',
-              value: tokenToUse.hash,
-            },
-            {
-              type: 'Hash160',
-              value: tokenToReceiveOverrode.hash,
-            },
-          ],
+          value: this.#buildContractScriptHashesArgs(routePath),
         },
         {
           type: 'Integer',
@@ -119,24 +121,27 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
       ],
     })
 
-    const isNeoSwapped = tokenToReceive.hash === scriptHashes.neo
-    if (isNeoSwapped) {
+    if (FlamingoSwapHelper.isNeoToken(network, tokenToReceive)) {
       const amountToUseInTransferFormatted = u.BigInteger.fromNumber(
-        Number(amountToReceiveFormatted) * FlamingoSwapHelper.GAS_PER_NEO
+        Number(amountToReceiveFormatted) * FlamingoSwapConstants.GAS_PER_NEO
       ).toString()
-      const transferContractInvocation = this.transferContractInvocation({
+
+      const bNEO = FlamingoSwapHelper.getFlamingoSwapToken(network, 'bNEO')
+      const GAS = FlamingoSwapHelper.getFlamingoSwapToken(network, 'GAS')
+
+      const transferContractInvocation = this.#transferContractInvocation({
         address,
         amountToUse: amountToUseInTransferFormatted,
-        tokenToUseScriptHash: scriptHashes.bneo,
-        contractScriptHash: scriptHashes.gas,
+        tokenToUseScriptHash: bNEO.hash,
+        contractScriptHash: GAS.hash,
       })
 
       invocations.push(transferContractInvocation)
 
-      allowedContracts.push(...this.allowedContractsTransfer(scriptHashes))
+      allowedContracts.push(...this.#allowedContractsTransfer(network))
     }
 
-    allowedContracts.push(...this.allowedContractsSwap(scriptHashes, tokenToReceive.hash, tokenToUse.hash))
+    allowedContracts.push(...this.#allowedContractsSwap(scriptHashes, routePath))
 
     return {
       invocations,
@@ -149,32 +154,36 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     }
   }
 
-  private static swapTokenToUseForTokenToReceiveInvocation({
+  static #swapTokenToUseForTokenToReceiveInvocation({
     address,
     amountToUse,
     deadline,
-    tokenToReceive,
-    tokenToUse,
+    routePath,
     minimumReceived,
     network,
   }: SwapControllerServiceSwapToUseArgs<BSNeo3NetworkId>): ContractInvocationMulti {
     const invocations: ContractInvocation[] = []
     const allowedContracts: string[] = []
 
-    const scriptHashes = FlamingoSwapHelper.getSwapScriptHashes(network)
+    const scriptHashes = FlamingoSwapHelper.getFlamingoSwapScriptHashes(network)
 
-    const isNeoSwapped = tokenToUse.hash === scriptHashes.neo
-    if (isNeoSwapped) {
-      const transferContractInvocation = this.transferContractInvocation({
+    const tokenToUse = routePath[0]
+    const tokenToReceive = routePath[routePath.length - 1]
+
+    if (FlamingoSwapHelper.isNeoToken(network, tokenToUse)) {
+      const NEO = FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO')
+      const bNEO = FlamingoSwapHelper.getFlamingoSwapToken(network, 'bNEO')
+
+      const transferContractInvocation = this.#transferContractInvocation({
         address,
         amountToUse,
-        tokenToUseScriptHash: scriptHashes.bneo,
-        contractScriptHash: scriptHashes.neo,
+        tokenToUseScriptHash: bNEO.hash,
+        contractScriptHash: NEO.hash,
       })
 
       invocations.push(transferContractInvocation)
 
-      allowedContracts.push(...this.allowedContractsTransfer(scriptHashes))
+      allowedContracts.push(...this.#allowedContractsTransfer(network))
     }
 
     const tokenToUseOverrode = FlamingoSwapHelper.overrideToken(network, tokenToUse)
@@ -203,16 +212,7 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
         },
         {
           type: 'Array',
-          value: [
-            {
-              type: 'Hash160',
-              value: tokenToUseOverrode.hash,
-            },
-            {
-              type: 'Hash160',
-              value: tokenToReceive.hash,
-            },
-          ],
+          value: this.#buildContractScriptHashesArgs(routePath),
         },
         {
           type: 'Integer',
@@ -221,7 +221,7 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
       ],
     })
 
-    allowedContracts.push(...this.allowedContractsSwap(scriptHashes, tokenToReceive.hash, tokenToUse.hash))
+    allowedContracts.push(...this.#allowedContractsSwap(scriptHashes, routePath))
 
     return {
       invocations,
@@ -234,7 +234,14 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     }
   }
 
-  private static transferContractInvocation({
+  static #buildContractScriptHashesArgs(routePath: Token[]): Arg[] {
+    return routePath.map(token => ({
+      type: 'Hash160',
+      value: token.hash,
+    }))
+  }
+
+  static #transferContractInvocation({
     address,
     amountToUse,
     contractScriptHash,
@@ -264,27 +271,20 @@ export class FlamingoSwapNeonDappKitInvocationBuilder {
     }
   }
 
-  private static allowedContractsSwap(
-    scriptHashes: SwapScriptHashes,
-    tokenInScriptHash: string,
-    tokenOutScriptHash: string
-  ): string[] {
+  static #allowedContractsSwap(scriptHashes: FlamingoSwapScriptHashes, routePath: Token[]): string[] {
     return [
       scriptHashes.flamingoSwapRouter,
       scriptHashes.flamingoFactory,
       scriptHashes.flamingoPairWhiteList,
-      tokenInScriptHash,
-      tokenOutScriptHash,
+      ...routePath.map(token => token.hash),
     ]
   }
 
-  private static allowedContractsTransfer(scriptHashes: SwapScriptHashes): string[] {
-    return [scriptHashes.gas, scriptHashes.flpBneoGas, scriptHashes.bneo]
-  }
-
-  private static overrideScriptHash(network: Network<BSNeo3NetworkId>, scriptHash: string): string {
-    const swapScriptHashes = FlamingoSwapHelper.getSwapScriptHashes(network)
-
-    return scriptHash === swapScriptHashes.neo ? swapScriptHashes.bneo : scriptHash
+  static #allowedContractsTransfer(network: Network): string[] {
+    return [
+      FlamingoSwapHelper.getFlamingoSwapToken(network, 'GAS').hash,
+      FlamingoSwapHelper.getFlamingoSwapPool(network, 'FLP-bNEO-GAS').hash,
+      FlamingoSwapHelper.getFlamingoSwapToken(network, 'bNEO').hash,
+    ]
   }
 }

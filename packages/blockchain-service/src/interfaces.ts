@@ -246,10 +246,10 @@ export interface LedgerService {
 }
 
 export type SwapRoute = {
-  assetToUseSymbol: string
-  reservesToUse: string
-  assetToReceiveSymbol: string
-  reservesToReceive: string
+  tokenToUse: Token
+  reserveTokenToUse: string
+  tokenToReceive: Token
+  reserveTokenToReceive: string
 }
 
 export type SwapControllerServiceEvents = {
@@ -267,32 +267,37 @@ export type SwapControllerServiceEvents = {
   liquidityProviderFee: (liquidityProviderFee: string | null) => void | Promise<void>
   priceImpact: (priceImpact: string | null) => void | Promise<void>
   priceInverse: (priceInverse: string | null) => void | Promise<void>
-  routes: (routes: SwapRoute[] | null) => void | Promise<void>
+  route: (route: SwapRoute[] | null) => void | Promise<void>
   lastAmountChanged: (lastAmountChanged: 'amountToUse' | 'amountToReceive' | null) => void | Promise<void>
 }
 
 export type SwapControllerServiceSwapArgs<T extends string> = {
-  amountToUse: string
-  amountToReceive: string
-  tokenToUse: Token
-  tokenToReceive: Token
   address: string
+  routePath: Token[]
   deadline: string
   network: Network<T>
 }
 
 export type SwapControllerServiceSwapToUseArgs<T extends string> = {
+  amountToUse: string
   minimumReceived: string
   type: 'swapTokenToUse'
 } & SwapControllerServiceSwapArgs<T>
 
 export type SwapControllerServiceSwapToReceiveArgs<T extends string> = {
+  amountToReceive: string
   maximumSelling: string
   type: 'swapTokenToReceive'
 } & SwapControllerServiceSwapArgs<T>
 
 export interface SwapControllerService<AvailableNetworkIds extends string> {
   eventEmitter: TypedEmitter<SwapControllerServiceEvents>
+
+  buildSwapInvocationArgs():
+    | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds>
+    | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
+
+  swap(isLedger?: boolean): void
 
   setAccountToUse(account: Account | null): void
   setAmountToUse(amount: string | null): void
@@ -301,10 +306,6 @@ export interface SwapControllerService<AvailableNetworkIds extends string> {
   setTokenToReceive(token: Token | null): void
   setDeadline(deadline: string): void
   setSlippage(slippage: number): void
-  swap(isLedger?: boolean): void
-  buildSwapArgs():
-    | SwapControllerServiceSwapToUseArgs<AvailableNetworkIds>
-    | SwapControllerServiceSwapToReceiveArgs<AvailableNetworkIds>
   setReserves(): void
   startListeningBlockGeneration(): void
   stopListeningBlockGeneration(): void
