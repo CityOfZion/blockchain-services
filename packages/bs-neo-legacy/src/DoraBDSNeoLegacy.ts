@@ -114,7 +114,9 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = this.#tokens.find(token => token.hash === tokenHash)
+    const localToken = this.#tokens.find(
+      token => BSNeoLegacyHelper.normalizeHash(token.hash) === BSNeoLegacyHelper.normalizeHash(tokenHash)
+    )
     if (localToken) return localToken
 
     if (this.#tokenCache.has(tokenHash)) {
@@ -140,7 +142,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     const data = await api.NeoLegacyREST.balance(address, this.#network.id)
 
     const promises = data.map<Promise<BalanceResponse>>(async balance => {
-      const hash = balance.asset.replace('0x', '')
+      const hash = BSNeoLegacyHelper.normalizeHash(balance.asset)
 
       let token: Token = {
         hash,

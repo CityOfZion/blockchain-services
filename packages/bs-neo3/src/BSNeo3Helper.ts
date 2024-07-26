@@ -76,4 +76,8 @@ export class BSNeo3Helper {
   static isCustomNet(network: Network<BSNeo3NetworkId>) {
     return !this.ALL_NETWORK_IDS.includes(network.id)
   }
+
+  static normalizeHash(hash: string): string {
+    return hash.startsWith('0x') ? hash.slice(2) : hash
+  }
 }

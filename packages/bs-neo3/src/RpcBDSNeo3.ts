@@ -80,7 +80,9 @@ export class RPCBDSNeo3 implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = this._tokens.find(token => token.hash === tokenHash)
+    const localToken = this._tokens.find(
+      token => BSNeo3Helper.normalizeHash(token.hash) === BSNeo3Helper.normalizeHash(tokenHash)
+    )
     if (localToken) return localToken
 
     if (this._tokenCache.has(tokenHash)) {

@@ -168,7 +168,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
 
     const balances: BalanceResponse[] = [
       {
-        amount: nativeBalance,
+        amount: ethers.utils.formatUnits(nativeBalance, nativeToken.decimals),
         token: nativeToken,
       },
     ]
@@ -179,7 +179,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
       if (balance.possible_spam) return
 
       balances.push({
-        amount: balance.balance,
+        amount: ethers.utils.formatUnits(balance.balance, balance.decimals),
         token: {
           decimals: balance.decimals,
           hash: balance.token_address,
@@ -199,7 +199,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
 
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
 
-    if (nativeAsset.hash === hash) return nativeAsset
+    if (BSEthereumHelper.normalizeHash(nativeAsset.hash) === BSEthereumHelper.normalizeHash(hash)) return nativeAsset
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!
@@ -240,7 +240,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
     if (data.value && Number(data.value) > 0) {
       const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
       transfers.push({
-        amount: data.value,
+        amount: ethers.utils.formatUnits(data.value, nativeToken.decimals),
         from: data.from_address,
         to: data.to_address,
         type: 'token',

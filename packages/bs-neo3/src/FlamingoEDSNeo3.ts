@@ -35,7 +35,9 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
     const prices: TokenPricesResponse[] = []
 
     data.forEach(item => {
-      const token = params.tokens.find(token => token.hash === item.hash)
+      const token = params.tokens.find(
+        token => BSNeo3Helper.normalizeHash(token.hash) === BSNeo3Helper.normalizeHash(item.hash)
+      )
       if (!token) return
 
       prices.push({
