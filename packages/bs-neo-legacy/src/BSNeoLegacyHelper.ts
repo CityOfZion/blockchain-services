@@ -78,4 +78,8 @@ export class BSNeoLegacyHelper {
   static isMainnet(network: Network<BSNeoLegacyNetworkId>) {
     return this.MAINNET_NETWORK_IDS.includes(network.id)
   }
+
+  static normalizeHash(hash: string): string {
+    return hash.startsWith('0x') ? hash.slice(2) : hash
+  }
 }

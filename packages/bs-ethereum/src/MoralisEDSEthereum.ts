@@ -97,7 +97,10 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     return data.map(item => {
       let token: Token
 
-      if (item.tokenAddress === wrappedNativeToken?.hash) {
+      if (
+        BSEthereumHelper.normalizeHash(item.tokenAddress) ===
+        BSEthereumHelper.normalizeHash(wrappedNativeToken?.hash ?? '')
+      ) {
         token = nativeToken
       } else {
         token = {
@@ -122,7 +125,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
 
     let token: Token
-    if (params.token.hash === nativeToken.hash) {
+    if (BSEthereumHelper.normalizeHash(params.token.hash) === BSEthereumHelper.normalizeHash(nativeToken.hash)) {
       token = await this.#getWrappedNativeToken()
     } else {
       token = params.token

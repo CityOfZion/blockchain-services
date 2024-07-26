@@ -250,7 +250,8 @@ export class BSEthereumHelper {
   static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
 
   static getNativeAsset(network: Network<BSEthereumNetworkId>) {
-    return { ...this.#NATIVE_ASSET, symbol: this.getNativeSymbol(network) }
+    const symbol = this.getNativeSymbol(network)
+    return { ...this.#NATIVE_ASSET, symbol, name: symbol }
   }
 
   static getNativeSymbol(network: Network<BSEthereumNetworkId>) {
@@ -263,5 +264,9 @@ export class BSEthereumHelper {
 
   static isMainnet(network: Network<BSEthereumNetworkId>) {
     return this.MAINNET_NETWORK_IDS.includes(network.id)
+  }
+
+  static normalizeHash(hash: string): string {
+    return hash.startsWith('0x') ? hash.slice(2) : hash
   }
 }

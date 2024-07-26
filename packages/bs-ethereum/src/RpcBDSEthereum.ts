@@ -63,7 +63,7 @@ export class RpcBDSEthereum implements BlockchainDataService {
   async getTokenInfo(hash: string): Promise<Token> {
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
 
-    if (nativeAsset.hash === hash) return nativeAsset
+    if (BSEthereumHelper.normalizeHash(nativeAsset.hash) === BSEthereumHelper.normalizeHash(hash)) return nativeAsset
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!

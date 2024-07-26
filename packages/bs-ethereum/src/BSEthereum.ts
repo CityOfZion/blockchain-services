@@ -167,7 +167,8 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
 
-    const isNative = this.feeToken.hash === param.intent.tokenHash
+    const isNative =
+      BSEthereumHelper.normalizeHash(this.feeToken.hash) === BSEthereumHelper.normalizeHash(param.intent.tokenHash)
     if (isNative) {
       transactionParams = {
         to: param.intent.receiverAddress,
@@ -207,7 +208,8 @@ export class BSEthereum<BSCustomName extends string = string>
 
     let estimated: ethers.BigNumber
 
-    const isNative = this.feeToken.hash === param.intent.tokenHash
+    const isNative =
+      BSEthereumHelper.normalizeHash(this.feeToken.hash) === BSEthereumHelper.normalizeHash(param.intent.tokenHash)
     const decimals = param.intent.tokenDecimals ?? 18
     const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
 

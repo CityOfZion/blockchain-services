@@ -115,9 +115,11 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     const intents = [transferIntent, ...(tipIntent ? [tipIntent] : [])]
 
     for (const intent of intents) {
-      const tokenHashFixed = intent.tokenHash.replace('0x', '')
+      const tokenHashFixed = BSNeoLegacyHelper.normalizeHash(intent.tokenHash)
 
-      const nativeAsset = BSNeoLegacyHelper.NATIVE_ASSETS.find(asset => asset.hash === tokenHashFixed)
+      const nativeAsset = BSNeoLegacyHelper.NATIVE_ASSETS.find(
+        asset => BSNeoLegacyHelper.normalizeHash(asset.hash) === tokenHashFixed
+      )
       if (nativeAsset) {
         nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
         continue
