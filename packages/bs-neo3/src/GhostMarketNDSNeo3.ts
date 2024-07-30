@@ -94,7 +94,8 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
     }
 
     if (srcImage.startsWith('ipfs://')) {
-      const [, imageId] = srcImage.split('://')
+      const splitImage = srcImage.split('/')
+      const imageId = splitImage.slice(-2).join('/')
 
       return `https://ghostmarket.mypinata.cloud/ipfs/${imageId}`
     }

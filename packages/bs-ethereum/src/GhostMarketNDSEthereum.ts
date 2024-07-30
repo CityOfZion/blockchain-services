@@ -72,7 +72,6 @@ export class GhostMarketNDSEthereum extends RpcNDSEthereum {
 
     const request = await axios.get<GhostMarketAssets>(url)
     const nfts = request.data.assets ?? []
-
     return { nextCursor: request.data.next, items: nfts.map(this.parse.bind(this)) }
   }
 
@@ -93,7 +92,8 @@ export class GhostMarketNDSEthereum extends RpcNDSEthereum {
     }
 
     if (srcImage.startsWith('ipfs://')) {
-      const [, imageId] = srcImage.split('://')
+      const splitImage = srcImage.split('/')
+      const imageId = splitImage.slice(-2).join('/')
 
       return `https://ghostmarket.mypinata.cloud/ipfs/${imageId}`
     }
