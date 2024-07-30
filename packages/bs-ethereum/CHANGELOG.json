@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.1.2",
+      "tag": "@cityofzion/bs-ethereum_v2.1.2",
+      "date": "Tue, 30 Jul 2024 18:09:30 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix GhostMarket IPFS NFT image"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.1.1",
       "tag": "@cityofzion/bs-ethereum_v2.1.1",
       "date": "Mon, 29 Jul 2024 14:31:19 GMT",

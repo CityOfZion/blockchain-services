@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 29 Jul 2024 14:31:19 GMT and should not be manually modified.
+This log was last generated on Tue, 30 Jul 2024 18:09:30 GMT and should not be manually modified.
+
+## 1.1.2
+Tue, 30 Jul 2024 18:09:30 GMT
+
+### Patches
+
+- Fix GhostMarket IPFS NFT image
 
 ## 1.1.1
 Mon, 29 Jul 2024 14:31:19 GMT
