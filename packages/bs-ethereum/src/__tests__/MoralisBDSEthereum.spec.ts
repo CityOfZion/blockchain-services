@@ -32,7 +32,7 @@ describe('MoralisBDSEthereum', () => {
 
   it('Should be able to get transactions of address - %s', async () => {
     const address = '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89'
-    const response = await moralisBDSEthereum.getTransactionsByAddress({ address: address, page: 1 })
+    const response = await moralisBDSEthereum.getTransactionsByAddress({ address: address })
 
     response.transactions.forEach(transaction => {
       expect(transaction).toEqual(

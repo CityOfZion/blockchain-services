@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Implement new BlockchainDataService for NeoX using Blockscout",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

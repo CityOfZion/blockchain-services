@@ -121,15 +121,12 @@ export type ContractParameter = {
   type: string
 }
 export type TransactionsByAddressResponse = {
-  totalCount?: number
-  limit?: number
-  nextCursor?: string
   transactions: TransactionResponse[]
+  nextPageParams?: any
 }
 export type TransactionsByAddressParams = {
   address: string
-  page?: number
-  cursor?: string
+  nextPageParams?: any
 }
 export type ContractMethod = {
   name: string

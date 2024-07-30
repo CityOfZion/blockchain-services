@@ -62,9 +62,9 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
   async getTransactionsByAddress({
     address,
-    page = 1,
+    nextPageParams = 1,
   }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    const data = await api.NeoLegacyREST.getAddressAbstracts(address, page, this.#network.id)
+    const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#network.id)
     const transactions = new Map<string, TransactionResponse>()
 
     const promises = data.entries.map(async entry => {
@@ -95,9 +95,10 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     })
     await Promise.all(promises)
 
+    const totalPages = Math.ceil(data.total_entries / data.page_size)
+
     return {
-      totalCount: data.total_entries,
-      limit: data.page_size,
+      nextPageParams: nextPageParams < totalPages ? nextPageParams + 1 : undefined,
       transactions: Array.from(transactions.values()),
     }
   }

@@ -49,13 +49,13 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
 
   async getTransactionsByAddress({
     address,
-    page = 1,
+    nextPageParams = 1,
   }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
     if (BSNeo3Helper.isCustomNet(this._network)) {
-      return await super.getTransactionsByAddress({ address, page })
+      return await super.getTransactionsByAddress({ address, nextPageParams })
     }
 
-    const data = await NeoRest.addressTXFull(address, page, this._network.id)
+    const data = await NeoRest.addressTXFull(address, nextPageParams, this._network.id)
 
     const promises = data.items.map(async (item): Promise<TransactionResponse> => {
       const transferPromises: Promise<TransactionTransferAsset | TransactionTransferNft>[] = []
@@ -118,10 +118,12 @@ export class DoraBDSNeo3 extends RPCBDSNeo3 {
 
     const transactions = await Promise.all(promises)
 
+    const limit = 15
+    const totalPages = Math.ceil(data.totalCount / limit)
+
     return {
-      totalCount: data.totalCount,
+      nextPageParams: nextPageParams < totalPages ? nextPageParams + 1 : undefined,
       transactions,
-      limit: 15,
     }
   }
 
