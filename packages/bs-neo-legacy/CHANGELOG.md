@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Mon, 29 Jul 2024 14:31:19 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Aug 2024 15:38:35 GMT and should not be manually modified.
+
+## 1.2.0
+Fri, 02 Aug 2024 15:38:35 GMT
+
+### Minor changes
+
+- Implement new BlockchainDataService for NeoX using Blockscout
 
 ## 1.1.1
 Mon, 29 Jul 2024 14:31:19 GMT
