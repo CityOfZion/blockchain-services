@@ -15,7 +15,8 @@ export type BSEthereumNetworkId = NetworkId<
   | '43114'
   | '59144'
   | '11155111'
-  | '12227331'
+  | '47763'
+  | '12227332'
 >
 
 export class BSEthereumHelper {
@@ -40,7 +41,8 @@ export class BSEthereumHelper {
     '43114': 'AVAX',
     '59144': 'ETH',
     '11155111': 'ETH',
-    '12227331': 'GAS',
+    '47763': 'GAS',
+    '12227332': 'GAS',
   }
 
   static #RPC_LIST_BY_NETWORK_ID: Record<BSEthereumNetworkId, string[]> = {
@@ -132,21 +134,28 @@ export class BSEthereumHelper {
       'https://1rpc.io/sepolia',
       'https://eth-sepolia.api.onfinality.io/public',
     ],
-    '12227331': ['https://neoxseed1.ngd.network'],
+    '47763': ['https://mainnet-1.rpc.banelabs.org'],
+    '12227332': ['https://neoxt4seed1.ngd.network'],
   }
 
   static DERIVATION_PATH = "m/44'/60'/0'/0/?"
   static DEFAULT_PATH = "44'/60'/0'/0/0"
 
-  static NEOX_TESTNET_NETWORK_ID: BSEthereumNetworkId = '12227331'
-  static NEOX_NETWORK_IDS: BSEthereumNetworkId[] = [this.NEOX_TESTNET_NETWORK_ID]
+  static NEOX_TESTNET_NETWORK_ID: BSEthereumNetworkId = '12227332'
+  static NEOX_MAINNET_NETWORK_ID: BSEthereumNetworkId = '47763'
+  static NEOX_NETWORK_IDS: BSEthereumNetworkId[] = [this.NEOX_TESTNET_NETWORK_ID, this.NEOX_MAINNET_NETWORK_ID]
 
   static NEOX_TESTNET_NETWORK: Network<BSEthereumNetworkId> = {
     id: this.NEOX_TESTNET_NETWORK_ID,
     name: 'NeoX Testnet',
     url: this.#RPC_LIST_BY_NETWORK_ID[this.NEOX_TESTNET_NETWORK_ID][0],
   }
-  static NEOX_NETWORKS: Network<BSEthereumNetworkId>[] = [this.NEOX_TESTNET_NETWORK]
+  static NEOX_MAINNET_NETWORK: Network<BSEthereumNetworkId> = {
+    id: this.NEOX_MAINNET_NETWORK_ID,
+    name: 'NeoX Mainnet',
+    url: this.#RPC_LIST_BY_NETWORK_ID[this.NEOX_MAINNET_NETWORK_ID][0],
+  }
+  static NEOX_NETWORKS: Network<BSEthereumNetworkId>[] = [this.NEOX_TESTNET_NETWORK, this.NEOX_MAINNET_NETWORK]
 
   static MAINNET_NETWORK_IDS: BSEthereumNetworkId[] = [
     '1',
@@ -160,14 +169,9 @@ export class BSEthereumHelper {
     '42220',
     '43114',
     '59144',
+    this.NEOX_MAINNET_NETWORK_ID,
   ]
-  static TESTNET_NETWORK_IDS: BSEthereumNetworkId[] = [
-    '1101',
-    '80002',
-    '11155111',
-    '12227331',
-    this.NEOX_TESTNET_NETWORK_ID,
-  ]
+  static TESTNET_NETWORK_IDS: BSEthereumNetworkId[] = ['1101', '80002', '11155111', this.NEOX_TESTNET_NETWORK_ID]
   static ALL_NETWORK_IDS: BSEthereumNetworkId[] = [...this.MAINNET_NETWORK_IDS, ...this.TESTNET_NETWORK_IDS]
 
   static MAINNET_NETWORKS: Network<BSEthereumNetworkId>[] = [
@@ -226,6 +230,7 @@ export class BSEthereumHelper {
       name: 'Linea Mainnet',
       url: this.#RPC_LIST_BY_NETWORK_ID['59144'][0],
     },
+    this.NEOX_MAINNET_NETWORK,
   ]
   static TESTNET_NETWORKS: Network<BSEthereumNetworkId>[] = [
     {
@@ -251,6 +256,7 @@ export class BSEthereumHelper {
 
   static getNativeAsset(network: Network<BSEthereumNetworkId>) {
     const symbol = this.getNativeSymbol(network)
+
     return { ...this.#NATIVE_ASSET, symbol, name: symbol }
   }
 

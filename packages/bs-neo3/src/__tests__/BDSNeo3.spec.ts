@@ -36,7 +36,7 @@ describe('BDSNeo3', () => {
     'Should be able to get transactions of address - %s',
     async (bdsNeo3: BlockchainDataService) => {
       const address = 'NPB3Cze4wki9J36nnrT45qmi6P52Bhfqph'
-      const response = await bdsNeo3.getTransactionsByAddress({ address, page: 1 })
+      const response = await bdsNeo3.getTransactionsByAddress({ address, nextPageParams: 1 })
       response.transactions.forEach(transaction => {
         expect(transaction).toEqual(
           expect.objectContaining({

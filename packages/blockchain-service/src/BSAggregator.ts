@@ -68,10 +68,10 @@ export class BSAggregator<
 
         if (index !== 0) {
           try {
-            const { totalCount } = await service.blockchainDataService.getTransactionsByAddress({
+            const { transactions } = await service.blockchainDataService.getTransactionsByAddress({
               address: generatedAccount.address,
             })
-            if (!totalCount || totalCount <= 0) hasError = true
+            if (!transactions || transactions.length <= 0) hasError = true
           } catch {
             hasError = true
           }

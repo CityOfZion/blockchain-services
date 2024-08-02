@@ -307,7 +307,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
     const { data } = await client.get<MoralisWalletHistoryResponse>(`/wallets/${params.address}/history`, {
       params: {
         limit: 15,
-        cursor: params.cursor,
+        cursor: params.nextPageParams,
       },
     })
 
@@ -370,7 +370,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
     await Promise.allSettled(promises)
 
     return {
-      nextCursor: data.cursor,
+      nextPageParams: data.cursor,
       transactions,
     }
   }

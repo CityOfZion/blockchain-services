@@ -23,6 +23,8 @@ import Transport from '@ledgerhq/hw-transport'
 import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
 import { MoralisBDSEthereum } from './MoralisBDSEthereum'
 import { MoralisEDSEthereum } from './MoralisEDSEthereum'
+import { BlockscoutNeoXBDSEthereum } from './BlockscoutNeoXBDSEthereum'
+import { BlockscoutNeoXEDSEthereum } from './BlockscoutNeoXEDSEthereum'
 
 export class BSEthereum<BSCustomName extends string = string>
   implements
@@ -68,8 +70,14 @@ export class BSEthereum<BSCustomName extends string = string>
 
     this.network = network
 
-    this.blockchainDataService = new MoralisBDSEthereum(network)
-    this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)
+    if (BlockscoutNeoXBDSEthereum.isSupported(network)) {
+      this.exchangeDataService = new BlockscoutNeoXEDSEthereum(network)
+      this.blockchainDataService = new BlockscoutNeoXBDSEthereum(network)
+    } else {
+      this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)
+      this.blockchainDataService = new MoralisBDSEthereum(network)
+    }
+
     this.nftDataService = new GhostMarketNDSEthereum(network)
   }
 
