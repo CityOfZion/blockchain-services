@@ -27,10 +27,7 @@ type MoralisERC20PriceResponse = {
   tokenDecimals: string
   usdPrice: number
   tokenAddress: string
-}
-
-type MoralisBlockResponse = {
-  timestamp: string
+  blockTimestamp: string
 }
 
 export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeDataService {
@@ -38,6 +35,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
   readonly #blockchainDataService: BlockchainDataService
   readonly #numberOfBlockByHour = (15 / 60) * 60
   readonly #numberOfBlockByDay = this.#numberOfBlockByHour * 24
+  readonly #maxTokenPricesPerCall = 24
 
   constructor(network: Network<BSEthereumNetworkId>, blockchainDataService: BlockchainDataService) {
     super()
@@ -90,32 +88,45 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
       }
     })
 
-    const { data } = await client.post<MoralisERC20PriceResponse[]>(`/erc20/prices`, {
-      tokens: tokensBody,
-    })
+    const splitTokensBody = []
+    for (let i = 0; i < tokensBody.length; i += this.#maxTokenPricesPerCall) {
+      splitTokensBody.push(tokensBody.slice(i, i + this.#maxTokenPricesPerCall))
+    }
 
-    return data.map(item => {
-      let token: Token
+    const response: TokenPricesResponse[] = []
 
-      if (
-        BSEthereumHelper.normalizeHash(item.tokenAddress) ===
-        BSEthereumHelper.normalizeHash(wrappedNativeToken?.hash ?? '')
-      ) {
-        token = nativeToken
-      } else {
-        token = {
-          decimals: Number(item.tokenDecimals),
-          hash: item.tokenAddress,
-          name: item.tokenName,
-          symbol: item.tokenSymbol,
-        }
-      }
+    await Promise.allSettled(
+      splitTokensBody.slice(0, 1).map(async body => {
+        const { data } = await client.post<MoralisERC20PriceResponse[]>('/erc20/prices', {
+          tokens: body,
+        })
 
-      return {
-        usdPrice: item.usdPrice,
-        token,
-      }
-    })
+        data.forEach(item => {
+          let token: Token
+
+          if (
+            BSEthereumHelper.normalizeHash(item.tokenAddress) ===
+            BSEthereumHelper.normalizeHash(wrappedNativeToken?.hash ?? '')
+          ) {
+            token = nativeToken
+          } else {
+            token = {
+              decimals: Number(item.tokenDecimals),
+              hash: item.tokenAddress,
+              name: item.tokenName,
+              symbol: item.tokenSymbol,
+            }
+          }
+
+          response.push({
+            usdPrice: item.usdPrice,
+            token,
+          })
+        })
+      })
+    )
+
+    return response
   }
 
   async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
@@ -132,27 +143,31 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     }
 
     const client = MoralisBDSEthereum.getClient(this.#network)
-    const actualBlockNumber = (await this.#blockchainDataService.getBlockHeight()) - 1 // Last block is not included
+    const currentBlockNumber = (await this.#blockchainDataService.getBlockHeight()) - 1 // Last block is not included
+
+    const tokensBody = Array.from({ length: params.limit }).map((_, index) => ({
+      token_address: token.hash,
+      to_block:
+        currentBlockNumber - index * (params.type === 'hour' ? this.#numberOfBlockByHour : this.#numberOfBlockByDay),
+    }))
+
+    const splitTokensBody = []
+    for (let i = 0; i < tokensBody.length; i += this.#maxTokenPricesPerCall) {
+      splitTokensBody.push(tokensBody.slice(i, i + this.#maxTokenPricesPerCall))
+    }
 
     const history: TokenPricesHistoryResponse[] = []
 
     await Promise.allSettled(
-      Array.from({ length: params.limit }).map(async (_, index) => {
-        const block =
-          actualBlockNumber - index * (params.type === 'hour' ? this.#numberOfBlockByHour : this.#numberOfBlockByDay)
+      splitTokensBody.map(async body => {
+        const priceResponse = await client.post<MoralisERC20PriceResponse[]>('/erc20/prices', { tokens: body })
 
-        const priceResponse = await client.get<MoralisERC20PriceResponse>(`/erc20/${token.hash}/price`, {
-          params: {
-            to_block: block,
-          },
-        })
-
-        const blockResponse = await client.get<MoralisBlockResponse>(`/block/${block}`)
-
-        history.push({
-          timestamp: new Date(blockResponse.data.timestamp).getTime(),
-          usdPrice: priceResponse.data.usdPrice,
-          token: params.token,
+        priceResponse.data.forEach(item => {
+          history.push({
+            timestamp: Number(item.blockTimestamp),
+            usdPrice: item.usdPrice,
+            token: params.token,
+          })
         })
       })
     )
