@@ -176,14 +176,14 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
     const { data: erc20Balances } = await client.get<MoralisERC20BalanceResponse[]>(`${address}/erc20`)
 
     erc20Balances.forEach(balance => {
-      if (balance.possible_spam) return
+      if (balance.possible_spam || !balance.decimals || !balance.token_address || !balance.symbol) return
 
       balances.push({
         amount: ethers.utils.formatUnits(balance.balance, balance.decimals),
         token: {
           decimals: balance.decimals,
           hash: balance.token_address,
-          name: balance.name,
+          name: balance.name ?? '',
           symbol: balance.symbol,
         },
       })
