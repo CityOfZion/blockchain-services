@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.2.1",
+      "tag": "@cityofzion/bs-ethereum_v2.2.1",
+      "date": "Mon, 05 Aug 2024 21:00:40 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fixes for token prices"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.2.0",
       "tag": "@cityofzion/bs-ethereum_v2.2.0",
       "date": "Fri, 02 Aug 2024 15:38:35 GMT",
