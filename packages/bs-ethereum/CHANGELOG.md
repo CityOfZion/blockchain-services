@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 05 Aug 2024 21:00:40 GMT and should not be manually modified.
+This log was last generated on Tue, 06 Aug 2024 00:34:36 GMT and should not be manually modified.
+
+## 2.2.2
+Tue, 06 Aug 2024 00:34:36 GMT
+
+### Patches
+
+- Fix getTokenPrices method wrong slice
 
 ## 2.2.1
 Mon, 05 Aug 2024 21:00:40 GMT
