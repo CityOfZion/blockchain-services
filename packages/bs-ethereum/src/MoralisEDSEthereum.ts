@@ -96,7 +96,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     const response: TokenPricesResponse[] = []
 
     await Promise.allSettled(
-      splitTokensBody.slice(0, 1).map(async body => {
+      splitTokensBody.map(async body => {
         const { data } = await client.post<MoralisERC20PriceResponse[]>('/erc20/prices', {
           tokens: body,
         })
