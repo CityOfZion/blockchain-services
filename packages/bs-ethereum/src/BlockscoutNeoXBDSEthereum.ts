@@ -126,6 +126,10 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
     const { data } = await client.get<BlockscoutTransactionResponse>(`/transactions/${txid}`)
 
+    if (!data || 'message' in data) {
+      throw new Error('Transaction not found')
+    }
+
     const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
     const transfers = this.#parseTransfers(data, nativeToken)
 
@@ -153,6 +157,10 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
         },
       }
     )
+
+    if (!data || 'message' in data) {
+      throw new Error('Transactions not found')
+    }
 
     const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
 
@@ -209,7 +217,7 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
               symbol: tokenTransfer.token.symbol,
               name: tokenTransfer.token.name,
               hash: tokenTransfer.token.address,
-              decimals: tokenTransfer.total.decimals,
+              decimals: Number(tokenTransfer.total.decimals),
             },
           })
 
@@ -240,6 +248,11 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
       const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
 
       const { data } = await client.get<BlockscoutSmartContractResponse>(`/smart-contracts/${contractHash}`)
+
+      if (!data || 'message' in data) {
+        throw new Error('Contract not found')
+      }
+
       const methods: ContractMethod[] = []
 
       data.abi.forEach(abi => {
@@ -284,6 +297,9 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
 
     const { data } = await client.get<BlockscoutTokensResponse>(`/tokens/${tokenHash}`)
+    if (!data || 'message' in data) {
+      throw new Error('Token not found')
+    }
 
     return {
       decimals: parseInt(data.decimals),
@@ -301,6 +317,9 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
 
     const { data: nativeBalance } = await client.get<{ coin_balance: string }>(`/addresses/${address}`)
+    if (!nativeBalance || 'message' in nativeBalance) {
+      throw new Error('Native balance not found')
+    }
 
     const balances: BalanceResponse[] = [
       {
@@ -312,6 +331,9 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     const { data: erc20Balances } = await client.get<BlockscoutBalanceResponse[]>(
       `/addresses/${address}/token-balances`
     )
+    if (!erc20Balances || 'message' in erc20Balances) {
+      throw new Error('ERC20 balance not found')
+    }
 
     erc20Balances.forEach(balance => {
       const token: Token = {
@@ -338,6 +360,9 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
 
     const { data } = await client.get<BlockscoutBlocksResponse>('/blocks')
+    if (!data || 'message' in data) {
+      throw new Error('Block not found')
+    }
 
     return data.items[0].height
   }
