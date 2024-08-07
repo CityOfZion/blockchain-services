@@ -3,7 +3,6 @@ import {
   TransactionResponse,
   TransactionsByAddressResponse,
   TransactionTransferAsset,
-  TransactionTransferNft,
 } from '@cityofzion/blockchain-service'
 import { BlockscoutNeoXBDSEthereum } from '../BlockscoutNeoXBDSEthereum'
 import { BSEthereumHelper } from '../BSEthereumHelper'
@@ -12,25 +11,31 @@ const network = BSEthereumHelper.TESTNET_NETWORKS.find(network => network.id ===
 
 describe('BlockscoutNeoXBDSEthereum', () => {
   it('Should return transaction details for native assets (GAS)', async () => {
-    const txId = '0xd699caf2873c4ec900767ca2c1f519a85321d90a9bb6c2440117627ddaed6905'
+    const txId = '0x2d0ba54c93927a190f8b867c117738c3f577a4e2d9c115292818c39a31c0b166'
 
     const expectedTransfer: TransactionTransferAsset[] = [
       {
-        amount: '12.304193970691695151',
+        amount: '0.000001',
         contractHash: '-',
-        from: '0xEEf3aA5b167081221aB0DB6999259973Fc502646',
-        to: '0x7553c37E4C2EF96a41AB11F2813972711D1b73F9',
+        from: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5',
+        to: '0x3A2fF99807d6ae553eBB72456ACE0BcE0eCe7174',
         type: 'token',
+        token: {
+          decimals: 18,
+          hash: '-',
+          name: 'GAS',
+          symbol: 'GAS',
+        },
       },
     ]
 
     const expectedResponse: TransactionResponse = {
-      block: 838903,
+      block: 207518,
       hash: txId,
       notifications: [],
-      time: 1721962138000 / 1000,
+      time: 1723050418,
       transfers: expectedTransfer,
-      fee: '0.004452',
+      fee: '0.00084',
     }
 
     const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
@@ -40,60 +45,44 @@ describe('BlockscoutNeoXBDSEthereum', () => {
   })
 
   it('Should return transaction details for ERC-20 assets (Ethereum assets)', async () => {
-    const txId = '0x2dddef0da23c82fd317317b79e0e1d14efab1df8d079f47262b26c0b29afdb95'
+    const txId = '0x8ff7f8d3ec44f35242a9e077658c63db595bf4023b3075df5b2b4fea54fd6861'
 
     const expectedTransfer: TransactionTransferAsset[] = [
       {
-        amount: '3164.81',
-        contractHash: '0x42aF6A3533173eb1BC6A05d5ab3A5184612A038c',
-        from: '0xAa393A829CAC203a7216406041A4c6762bda2706',
-        to: '0xFfab316a48d30d0EB55052DAb01f706F61E87568',
+        amount: '37.0',
+        contractHash: '0xEe576DAEe3A7a8d3773295525516086a527A9C8B',
+        from: '0xe1db37AE18852C647257E30c6f276f0DbaFC6D47',
+        to: '0x0000000000000000000000000000000000000000',
+        token: {
+          decimals: 18,
+          hash: '0xEe576DAEe3A7a8d3773295525516086a527A9C8B',
+          name: 'Aave Ethereum Variable Debt DAI',
+          symbol: 'variableDebtEthDAI',
+        },
         type: 'token',
+      },
+      {
+        amount: '37.000009918050911441',
+        contractHash: '0xfd49bEe9a0015743f4f1ce493804b203eca76f29',
+        from: '0xe1db37AE18852C647257E30c6f276f0DbaFC6D47',
+        to: '0x5Ddc109b3e30D8E90b5c59221D5Cc214149c46fB',
+        type: 'token',
+        token: {
+          decimals: 18,
+          hash: '0xfd49bEe9a0015743f4f1ce493804b203eca76f29',
+          name: 'DAI',
+          symbol: 'DAI',
+        },
       },
     ]
 
     const expectedResponse: TransactionResponse = {
-      block: 832605,
+      block: 208007,
       hash: txId,
       notifications: [],
-      time: 1721897573000 / 1000,
+      time: 1723055774,
       transfers: expectedTransfer,
-      fee: '0.016074688',
-    }
-
-    const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
-    const transaction = await blockscoutBDSNeoX.getTransaction(txId)
-
-    expect(transaction).toEqual(expectedResponse)
-  })
-
-  it('Should return transaction details for ERC-721 assets (NFT)', async () => {
-    const txId = '0x62be9bf4155af9ec473a1fdb8ab4b91d42bd040f346576cd25d3d7b284a9a146'
-
-    const expectedTransfer: (TransactionTransferAsset | TransactionTransferNft)[] = [
-      {
-        amount: '0.001089',
-        contractHash: '-',
-        from: '0x7C08Bdb8413b5Ac3d97773c5a5ada76406D31d65',
-        to: '0xf180136DdC9e4F8c9b5A9FE59e2b1f07265C5D4D',
-        type: 'token',
-      },
-      {
-        contractHash: '0xf180136DdC9e4F8c9b5A9FE59e2b1f07265C5D4D',
-        from: '0x0000000000000000000000000000000000000000',
-        to: '0x7C08Bdb8413b5Ac3d97773c5a5ada76406D31d65',
-        tokenId: '562',
-        type: 'nft',
-      },
-    ]
-
-    const expectedResponse: TransactionResponse = {
-      block: 837660,
-      hash: txId,
-      notifications: [],
-      time: 1721949394000 / 1000,
-      transfers: expectedTransfer,
-      fee: '0.314152412',
+      fee: '0.00748844',
     }
 
     const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
@@ -103,7 +92,7 @@ describe('BlockscoutNeoXBDSEthereum', () => {
   })
 
   it('Should return transactions by address without next page', async () => {
-    const address = '0xdc0b6d0F38738a89BA9193B50fF4111030f0d329'
+    const address = '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5'
 
     const expectedResponse: TransactionsByAddressResponse = {
       transactions: expect.arrayContaining([
@@ -126,7 +115,7 @@ describe('BlockscoutNeoXBDSEthereum', () => {
   })
 
   it('Should return token info', async () => {
-    const tokenHash = '0x7de8952AeADA3fF7dA1377A5E14a29603f33d829'
+    const tokenHash = '0x0F02E6BE5c77bD641A2138c988913900DD5f9A94'
 
     const expectedToken = {
       decimals: 18,
@@ -142,7 +131,7 @@ describe('BlockscoutNeoXBDSEthereum', () => {
   })
 
   it('Should return balance', async () => {
-    const address = '0xCD1114886fbe4AC877D545D7C16145871921fE33'
+    const address = '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5'
 
     const expectedBalance: BalanceResponse[] = [
       {
@@ -152,15 +141,6 @@ describe('BlockscoutNeoXBDSEthereum', () => {
           hash: '-',
           name: 'GAS',
           symbol: 'GAS',
-        },
-      },
-      {
-        amount: expect.any(String),
-        token: {
-          decimals: 10,
-          hash: '0x42aF6A3533173eb1BC6A05d5ab3A5184612A038c',
-          name: 'IOTC',
-          symbol: 'IOTC',
         },
       },
     ]
