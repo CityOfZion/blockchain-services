@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 06 Aug 2024 00:34:36 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Aug 2024 14:42:22 GMT and should not be manually modified.
+
+## 2.2.3
+Wed, 07 Aug 2024 14:42:22 GMT
+
+### Patches
+
+- Fix time format
 
 ## 2.2.2
 Tue, 06 Aug 2024 00:34:36 GMT
