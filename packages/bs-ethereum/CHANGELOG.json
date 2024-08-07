@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.2.5",
+      "tag": "@cityofzion/bs-ethereum_v2.2.5",
+      "date": "Wed, 07 Aug 2024 19:36:45 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Adapt BlockscoutNeoXBDSEthereum to expect errors to be responded to with status code 200"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.2.4",
       "tag": "@cityofzion/bs-ethereum_v2.2.4",
       "date": "Wed, 07 Aug 2024 16:51:33 GMT",

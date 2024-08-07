@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 07 Aug 2024 16:51:33 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Aug 2024 19:36:45 GMT and should not be manually modified.
+
+## 2.2.5
+Wed, 07 Aug 2024 19:36:45 GMT
+
+### Patches
+
+- Adapt BlockscoutNeoXBDSEthereum to expect errors to be responded to with status code 200
 
 ## 2.2.4
 Wed, 07 Aug 2024 16:51:33 GMT
