@@ -291,7 +291,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
       block: Number(data.block_number),
       hash,
       notifications: [],
-      time: new Date(data.block_timestamp).getTime(),
+      time: new Date(data.block_timestamp).getTime() / 1000,
       transfers,
       fee: data.transaction_fee,
     }
@@ -361,7 +361,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
         block: Number(item.block_number),
         hash: item.hash,
         notifications: [],
-        time: new Date(item.block_timestamp).getTime(),
+        time: new Date(item.block_timestamp).getTime() / 1000,
         transfers,
         fee: item.transaction_fee,
       })

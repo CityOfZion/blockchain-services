@@ -28,7 +28,7 @@ describe('BlockscoutNeoXBDSEthereum', () => {
       block: 838903,
       hash: txId,
       notifications: [],
-      time: 1721962138000,
+      time: 1721962138000 / 1000,
       transfers: expectedTransfer,
       fee: '0.004452',
     }
@@ -56,7 +56,7 @@ describe('BlockscoutNeoXBDSEthereum', () => {
       block: 832605,
       hash: txId,
       notifications: [],
-      time: 1721897573000,
+      time: 1721897573000 / 1000,
       transfers: expectedTransfer,
       fee: '0.016074688',
     }
@@ -91,7 +91,7 @@ describe('BlockscoutNeoXBDSEthereum', () => {
       block: 837660,
       hash: txId,
       notifications: [],
-      time: 1721949394000,
+      time: 1721949394000 / 1000,
       transfers: expectedTransfer,
       fee: '0.314152412',
     }
