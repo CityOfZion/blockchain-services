@@ -127,14 +127,13 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     const { data } = await client.get<BlockscoutTransactionResponse>(`/transactions/${txid}`)
 
     const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
-
     const transfers = this.#parseTransfers(data, nativeToken)
 
     return {
       block: data.block,
       hash: data.hash,
       fee: ethers.utils.formatUnits(data.fee.value, nativeToken.decimals),
-      time: new Date(data.timestamp).getTime(),
+      time: new Date(data.timestamp).getTime() / 1000,
       notifications: [],
       transfers,
     }
@@ -166,7 +165,7 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
         block: item.block,
         hash: item.hash,
         fee: ethers.utils.formatUnits(item.fee.value, nativeToken.decimals),
-        time: new Date(item.timestamp).getTime(),
+        time: new Date(item.timestamp).getTime() / 1000,
         notifications: [],
         transfers,
       })
