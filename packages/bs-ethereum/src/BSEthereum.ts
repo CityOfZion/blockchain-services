@@ -178,9 +178,11 @@ export class BSEthereum<BSCustomName extends string = string>
     const isNative =
       BSEthereumHelper.normalizeHash(this.feeToken.hash) === BSEthereumHelper.normalizeHash(param.intent.tokenHash)
     if (isNative) {
+      const gasPrice = await provider.getGasPrice()
       transactionParams = {
         to: param.intent.receiverAddress,
         value: amount,
+        gasPrice,
       }
     } else {
       const contract = new ethers.Contract(param.intent.tokenHash, [
