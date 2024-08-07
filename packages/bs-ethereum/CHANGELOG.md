@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 07 Aug 2024 14:42:22 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Aug 2024 16:51:33 GMT and should not be manually modified.
+
+## 2.2.4
+Wed, 07 Aug 2024 16:51:33 GMT
+
+### Patches
+
+- Fix error when making a transaction with NeoX on TestNet
 
 ## 2.2.3
 Wed, 07 Aug 2024 14:42:22 GMT

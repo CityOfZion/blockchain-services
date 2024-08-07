@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.2.4",
+      "tag": "@cityofzion/bs-ethereum_v2.2.4",
+      "date": "Wed, 07 Aug 2024 16:51:33 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix error when making a transaction with NeoX on TestNet"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.2.3",
       "tag": "@cityofzion/bs-ethereum_v2.2.3",
       "date": "Wed, 07 Aug 2024 14:42:22 GMT",
