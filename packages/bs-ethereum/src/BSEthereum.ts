@@ -173,22 +173,26 @@ export class BSEthereum<BSCustomName extends string = string>
     const decimals = param.intent.tokenDecimals ?? 18
     const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
 
-    let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
+    const gasPrice = await provider.getGasPrice()
+
+    let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
+      gasPrice,
+    }
 
     const isNative =
       BSEthereumHelper.normalizeHash(this.feeToken.hash) === BSEthereumHelper.normalizeHash(param.intent.tokenHash)
     if (isNative) {
-      const gasPrice = await provider.getGasPrice()
-      transactionParams = {
-        to: param.intent.receiverAddress,
-        value: amount,
-        gasPrice,
-      }
+      transactionParams.to = param.intent.receiverAddress
+      transactionParams.value = amount
     } else {
       const contract = new ethers.Contract(param.intent.tokenHash, [
         'function transfer(address to, uint amount) returns (bool)',
       ])
-      transactionParams = await contract.populateTransaction.transfer(param.intent.receiverAddress, amount)
+      const populatedTransaction = await contract.populateTransaction.transfer(param.intent.receiverAddress, amount)
+      transactionParams = {
+        ...populatedTransaction,
+        ...transactionParams,
+      }
     }
 
     const transaction = await signer.sendTransaction(transactionParams)
