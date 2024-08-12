@@ -49,6 +49,7 @@ interface BlockscoutTransactionResponse {
       token_id: string
     }
   }[]
+  raw_input: string
 }
 
 interface NextPageParams {
@@ -68,9 +69,10 @@ interface BlockscoutTransactionByAddressResponse {
 
 interface BlockscoutTokensResponse {
   name: string
-  decimals: string
+  decimals: string | null
   address: string
   symbol: string
+  type: string
 }
 
 interface BlockscoutBlocksResponse {
@@ -131,7 +133,53 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     }
 
     const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
-    const transfers = this.#parseTransfers(data, nativeToken)
+
+    const transfers: (TransactionTransferAsset | TransactionTransferNft)[] = []
+
+    const hasNativeTokenBeingTransferred = data.value !== '0'
+    if (hasNativeTokenBeingTransferred) {
+      transfers.push({
+        amount: ethers.utils.formatUnits(data.value, nativeToken.decimals),
+        from: data.from.hash,
+        to: data.to.hash,
+        type: 'token',
+        contractHash: nativeToken.hash,
+        token: nativeToken,
+      })
+    }
+
+    const hasTokenTransfers = data.token_transfers && data.token_transfers.length > 0
+    if (hasTokenTransfers) {
+      for (const tokenTransfer of data.token_transfers) {
+        if (tokenTransfer.token.type === 'ERC-20') {
+          transfers.push({
+            amount: ethers.utils.formatUnits(tokenTransfer.total.value, tokenTransfer.total.decimals),
+            from: tokenTransfer.from.hash,
+            to: tokenTransfer.to.hash,
+            type: 'token',
+            contractHash: tokenTransfer.token.address,
+            token: {
+              symbol: tokenTransfer.token.symbol,
+              name: tokenTransfer.token.name,
+              hash: tokenTransfer.token.address,
+              decimals: Number(tokenTransfer.total.decimals),
+            },
+          })
+
+          continue
+        }
+
+        if (tokenTransfer.token.type === 'ERC-721') {
+          transfers.push({
+            tokenId: tokenTransfer.total.token_id,
+            from: tokenTransfer.from.hash,
+            to: tokenTransfer.to.hash,
+            type: 'nft',
+            contractHash: tokenTransfer.token.address,
+          })
+        }
+      }
+    }
 
     return {
       block: data.block,
@@ -166,8 +214,48 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
 
     const transactions: TransactionResponse[] = []
 
-    data.items.forEach(item => {
-      const transfers = this.#parseTransfers(item, nativeToken)
+    const promises = data.items.map(async item => {
+      const transfers: (TransactionTransferAsset | TransactionTransferNft)[] = []
+
+      const hasNativeTokenBeingTransferred = item.value !== '0'
+      if (hasNativeTokenBeingTransferred) {
+        transfers.push({
+          amount: ethers.utils.formatUnits(item.value, nativeToken.decimals),
+          from: item.from.hash,
+          to: item.to.hash,
+          type: 'token',
+          contractHash: nativeToken.hash,
+          token: nativeToken,
+        })
+      }
+
+      if (item.raw_input) {
+        try {
+          const ERC20Interface = new ethers.utils.Interface(ERC20_ABI)
+
+          const result = ERC20Interface.decodeFunctionData('transfer', item.raw_input)
+          if (!result) throw new Error('Invalid ERC20 transfer')
+
+          const contractHash = item.to.hash
+
+          const token = await this.getTokenInfo(contractHash)
+
+          const to = result[0]
+          const value = result[1]
+
+          transfers.push({
+            amount: ethers.utils.formatUnits(value, token.decimals),
+            from: item.from.hash,
+            to,
+            type: 'token',
+            contractHash: item.to.hash,
+            token,
+          })
+        } catch (error) {
+          console.log(error)
+          /* empty */
+        }
+      }
 
       transactions.push({
         block: item.block,
@@ -179,64 +267,12 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
       })
     })
 
+    await Promise.allSettled(promises)
+
     return {
       transactions,
       nextPageParams: data.next_page_params,
     }
-  }
-
-  #parseTransfers(
-    item: BlockscoutTransactionResponse,
-    nativeToken: { symbol: string; name: string; hash: string; decimals: number }
-  ) {
-    const transfers: (TransactionTransferAsset | TransactionTransferNft)[] = []
-
-    const hasNativeTokenBeingTransferred = item.value !== '0'
-    if (hasNativeTokenBeingTransferred) {
-      transfers.push({
-        amount: ethers.utils.formatUnits(item.value, nativeToken.decimals),
-        from: item.from.hash,
-        to: item.to.hash,
-        type: 'token',
-        contractHash: nativeToken.hash,
-        token: nativeToken,
-      })
-    }
-
-    const hasTokenTransfers = item.token_transfers && item.token_transfers.length > 0
-    if (hasTokenTransfers) {
-      for (const tokenTransfer of item.token_transfers) {
-        if (tokenTransfer.token.type === 'ERC-20') {
-          transfers.push({
-            amount: ethers.utils.formatUnits(tokenTransfer.total.value, tokenTransfer.total.decimals),
-            from: tokenTransfer.from.hash,
-            to: tokenTransfer.to.hash,
-            type: 'token',
-            contractHash: tokenTransfer.token.address,
-            token: {
-              symbol: tokenTransfer.token.symbol,
-              name: tokenTransfer.token.name,
-              hash: tokenTransfer.token.address,
-              decimals: Number(tokenTransfer.total.decimals),
-            },
-          })
-
-          continue
-        }
-
-        if (tokenTransfer.token.type === 'ERC-721') {
-          transfers.push({
-            tokenId: tokenTransfer.total.token_id,
-            from: tokenTransfer.from.hash,
-            to: tokenTransfer.to.hash,
-            type: 'nft',
-            contractHash: tokenTransfer.token.address,
-          })
-        }
-      }
-    }
-
-    return transfers
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
@@ -301,8 +337,12 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
       throw new Error('Token not found')
     }
 
+    if (data.type !== 'ERC-20') {
+      throw new Error('Token is not an ERC-20 token')
+    }
+
     return {
-      decimals: parseInt(data.decimals),
+      decimals: data.decimals ? parseInt(data.decimals) : BSEthereumHelper.DEFAULT_DECIMALS,
       hash: tokenHash,
       name: data.name,
       symbol: data.symbol,
@@ -321,10 +361,11 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
       throw new Error('Native balance not found')
     }
 
+    const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
     const balances: BalanceResponse[] = [
       {
-        amount: ethers.utils.formatUnits(nativeBalance.coin_balance, 18),
-        token: BSEthereumHelper.getNativeAsset(this._network),
+        amount: ethers.utils.formatUnits(nativeBalance.coin_balance, nativeToken.decimals),
+        token: nativeToken,
       },
     ]
 
@@ -336,17 +377,25 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     }
 
     erc20Balances.forEach(balance => {
-      const token: Token = {
-        decimals: parseInt(balance.token.decimals),
-        hash: balance.token.address,
-        name: balance.token.symbol,
-        symbol: balance.token.symbol,
-      }
+      try {
+        if (balance.token.type !== 'ERC-20') {
+          return
+        }
 
-      balances.push({
-        amount: ethers.utils.formatUnits(balance.value, token.decimals),
-        token,
-      })
+        const token: Token = {
+          decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumHelper.DEFAULT_DECIMALS,
+          hash: balance.token.address,
+          name: balance.token.symbol,
+          symbol: balance.token.symbol,
+        }
+
+        balances.push({
+          amount: ethers.utils.formatUnits(balance.value, token.decimals),
+          token,
+        })
+      } catch {
+        /* empty */
+      }
     })
 
     return balances

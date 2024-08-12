@@ -20,6 +20,7 @@ export type BSEthereumNetworkId = NetworkId<
 >
 
 export class BSEthereumHelper {
+  static DEFAULT_DECIMALS = 18
   static #NATIVE_ASSET: Token = {
     decimals: 18,
     hash: '-',

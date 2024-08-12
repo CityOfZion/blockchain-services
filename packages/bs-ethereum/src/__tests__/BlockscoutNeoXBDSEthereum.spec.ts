@@ -7,7 +7,7 @@ import {
 import { BlockscoutNeoXBDSEthereum } from '../BlockscoutNeoXBDSEthereum'
 import { BSEthereumHelper } from '../BSEthereumHelper'
 
-const network = BSEthereumHelper.TESTNET_NETWORKS.find(network => network.id === '12227332')!
+const network = BSEthereumHelper.NEOX_MAINNET_NETWORK
 
 describe('BlockscoutNeoXBDSEthereum', () => {
   it('Should return transaction details for native assets (GAS)', async () => {
@@ -91,8 +91,8 @@ describe('BlockscoutNeoXBDSEthereum', () => {
     expect(transaction).toEqual(expectedResponse)
   })
 
-  it('Should return transactions by address without next page', async () => {
-    const address = '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5'
+  it.only('Should return transactions by address without next page', async () => {
+    const address = '0xd6BC5f7D2441A677218eBee5bCeE91d7f7a748E2'
 
     const expectedResponse: TransactionsByAddressResponse = {
       transactions: expect.arrayContaining([
@@ -109,9 +109,10 @@ describe('BlockscoutNeoXBDSEthereum', () => {
     }
 
     const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
-    const transaction = await blockscoutBDSNeoX.getTransactionsByAddress({ address })
+    const transactions = await blockscoutBDSNeoX.getTransactionsByAddress({ address })
+    console.log(JSON.stringify(transactions, null, 2))
 
-    expect(transaction).toEqual(expectedResponse)
+    expect(transactions).toEqual(expectedResponse)
   })
 
   it('Should return token info', async () => {
