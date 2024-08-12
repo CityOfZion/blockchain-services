@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Remove console.log",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

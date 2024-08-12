@@ -110,8 +110,6 @@ describe('BlockscoutNeoXBDSEthereum', () => {
 
     const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
     const transactions = await blockscoutBDSNeoX.getTransactionsByAddress({ address })
-    console.log(JSON.stringify(transactions, null, 2))
-
     expect(transactions).toEqual(expectedResponse)
   })
 
