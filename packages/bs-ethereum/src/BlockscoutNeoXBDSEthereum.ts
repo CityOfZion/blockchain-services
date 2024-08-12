@@ -252,7 +252,6 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
             token,
           })
         } catch (error) {
-          console.log(error)
           /* empty */
         }
       }
