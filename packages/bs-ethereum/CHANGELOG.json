@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.2.7",
+      "tag": "@cityofzion/bs-ethereum_v2.2.7",
+      "date": "Mon, 12 Aug 2024 20:59:02 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix balance error when there is ERC721 and transactions by address not returning all transfers"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.2.6",
       "tag": "@cityofzion/bs-ethereum_v2.2.6",
       "date": "Fri, 09 Aug 2024 20:04:44 GMT",

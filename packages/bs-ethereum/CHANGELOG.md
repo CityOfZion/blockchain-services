@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Fri, 09 Aug 2024 20:04:44 GMT and should not be manually modified.
+This log was last generated on Mon, 12 Aug 2024 20:59:02 GMT and should not be manually modified.
+
+## 2.2.7
+Mon, 12 Aug 2024 20:59:02 GMT
+
+### Patches
+
+- Fix balance error when there is ERC721 and transactions by address not returning all transfers
 
 ## 2.2.6
 Fri, 09 Aug 2024 20:04:44 GMT
