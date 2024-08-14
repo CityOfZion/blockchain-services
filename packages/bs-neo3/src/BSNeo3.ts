@@ -96,7 +96,7 @@ export class BSNeo3<BSCustomName extends string = string>
               ? u.BigInteger.fromDecimal(intent.amount, intent.tokenDecimals).toString()
               : intent.amount,
           },
-          { type: 'Any', value: '' },
+          { type: 'Any', value: null },
         ],
       }
     })
