@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 02 Aug 2024 15:38:35 GMT and should not be manually modified.
+This log was last generated on Wed, 14 Aug 2024 18:41:00 GMT and should not be manually modified.
+
+## 1.2.1
+Wed, 14 Aug 2024 18:41:00 GMT
+
+### Patches
+
+- Fix issue where sending assets from NEON3 is being incorrectly flagged as arbitrary contract invocation
 
 ## 1.2.0
 Fri, 02 Aug 2024 15:38:35 GMT
