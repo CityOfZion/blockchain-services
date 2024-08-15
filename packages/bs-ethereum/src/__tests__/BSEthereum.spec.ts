@@ -117,10 +117,10 @@ describe('BSEthereum', () => {
     const transactionHash = await bsEthereum.transfer({
       senderAccount: account,
       intent: {
-        amount: '0.00000001',
+        amount: '0.00001',
         receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-        tokenDecimals: 18,
-        tokenHash: '0xba62bcfcaafc6622853cca2be6ac7d845bc0f2dc',
+        tokenDecimals: 6,
+        tokenHash: '0x1291070C5f838DCCDddc56312893d3EfE9B372a8',
       },
     })
 
@@ -197,7 +197,7 @@ describe('BSEthereum', () => {
     const transactionHash = await service.transfer({
       senderAccount: account,
       intent: {
-        amount: '0.00000001',
+        amount: '0.0000000000001',
         receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
         tokenDecimals: 18,
         tokenHash: '-',
