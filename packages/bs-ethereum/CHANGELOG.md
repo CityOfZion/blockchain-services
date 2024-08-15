@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 12 Aug 2024 21:13:30 GMT and should not be manually modified.
+This log was last generated on Thu, 15 Aug 2024 20:31:52 GMT and should not be manually modified.
+
+## 2.2.9
+Thu, 15 Aug 2024 20:31:52 GMT
+
+### Patches
+
+- Change transaction transfer to type 2
 
 ## 2.2.8
 Mon, 12 Aug 2024 21:13:30 GMT
