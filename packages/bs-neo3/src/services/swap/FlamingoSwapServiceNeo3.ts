@@ -1,7 +1,6 @@
 import {
   Account,
   Network,
-  PoolGraph,
   SwapRoute,
   SwapService,
   SwapServiceEvents,
@@ -95,8 +94,8 @@ export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
     }
   }
 
-  listSwappableTokens(network: Network<BSNeo3NetworkId>): PoolGraph {
-    return FlamingoSwapRouteHandler.createPoolGraph(network)
+  listSwappableTokensSymbol(network: Network<BSNeo3NetworkId>): string[] {
+    return Object.keys(FlamingoSwapRouteHandler.createPoolGraph(network))
   }
 
   async swap(isLedger?: boolean): Promise<void> {

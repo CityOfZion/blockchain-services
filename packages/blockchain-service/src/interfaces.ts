@@ -311,7 +311,7 @@ export interface SwapService<AvailableNetworkIds extends string> {
   startListeningBlockGeneration(): void
   stopListeningBlockGeneration(): void
 
-  listSwappableTokens(network: Network<AvailableNetworkIds>): PoolGraph
+  listSwappableTokensSymbol(network: Network<AvailableNetworkIds>): string[]
 
   swap(isLedger?: boolean): void
 }

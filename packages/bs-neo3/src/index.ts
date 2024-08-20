@@ -3,10 +3,10 @@ export * from './BSNeo3'
 export * from './builder/invocation/FlamingoSwapInvocationBuilderNeo3'
 export * from './builder/invocation/NeonDappKitInvocationBuilderNeo3'
 
-export * from './constants/FlamingoSwapConstants'
-
 export * from './helpers/BSNeo3Helper'
 export * from './helpers/FlamingoSwapHelper'
+
+export * from './constants/FlamingoSwapConstants'
 
 export * from './services/blockchain-data/DoraBDSNeo3'
 export * from './services/blockchain-data/RpcBDSNeo3'

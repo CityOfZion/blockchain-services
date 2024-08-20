@@ -1,16 +1,16 @@
 import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
-import { RPCBDSNeo3 } from '../../../services/blockchain-data/RpcBDSNeo3'
+import { RpcBDSNeo3 } from '../../../services/blockchain-data/RpcBDSNeo3'
 
 const network = BSNeo3Helper.TESTNET_NETWORKS[0]
 const tokens = BSNeo3Helper.getTokens(network)
 
 const GAS = tokens.find(token => token.symbol === 'GAS')!
 
-let rpcBDSNeo3: RPCBDSNeo3
+let rpcBDSNeo3: RpcBDSNeo3
 
 describe('RpcBDSNeo3', () => {
   beforeEach(() => {
-    rpcBDSNeo3 = new RPCBDSNeo3(network, GAS, GAS, tokens)
+    rpcBDSNeo3 = new RpcBDSNeo3(network, GAS, GAS, tokens)
   })
 
   it('Should be able to get transaction', async () => {
