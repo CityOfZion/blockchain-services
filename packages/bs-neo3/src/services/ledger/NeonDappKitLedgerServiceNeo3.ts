@@ -1,7 +1,7 @@
 import { Account, LedgerService, LedgerServiceEmitter } from '@cityofzion/blockchain-service'
-import Transport from '@ledgerhq/hw-transport'
-import { wallet, api, u } from '@cityofzion/neon-js'
 import { NeonParser } from '@cityofzion/neon-dappkit'
+import { api, u, wallet } from '@cityofzion/neon-js'
+import Transport from '@ledgerhq/hw-transport'
 import EventEmitter from 'events'
 
 enum LedgerStatus {

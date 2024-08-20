@@ -1,5 +1,5 @@
-import { BSNeo3Helper } from '../BSNeo3Helper'
-import { DoraESNeo3 } from '../DoraESNeo3'
+import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
+import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
 
 let doraESNeo3: DoraESNeo3
 

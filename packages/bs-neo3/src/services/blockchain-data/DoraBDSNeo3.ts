@@ -1,26 +1,26 @@
 import {
   BalanceResponse,
   ContractResponse,
-  TransactionsByAddressParams,
-  TransactionsByAddressResponse,
-  TransactionResponse,
-  TransactionNotifications,
   Network,
   Token,
-  TransactionTransferNft,
+  TransactionNotifications,
+  TransactionResponse,
+  TransactionsByAddressParams,
+  TransactionsByAddressResponse,
   TransactionTransferAsset,
+  TransactionTransferNft,
 } from '@cityofzion/blockchain-service'
-import { wallet, u } from '@cityofzion/neon-js'
 import { NeoRESTApi } from '@cityofzion/dora-ts/dist/api'
-import { RPCBDSNeo3 } from './RpcBDSNeo3'
-import { BSNeo3Helper, BSNeo3NetworkId } from './BSNeo3Helper'
+import { u, wallet } from '@cityofzion/neon-js'
+import { BSNeo3Helper, BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
+import { RpcBDSNeo3 } from './RpcBDSNeo3'
 
 const NeoRest = new NeoRESTApi({
   doraUrl: 'https://dora.coz.io',
   endpoint: '/api/v2/neo3',
 })
 
-export class DoraBDSNeo3 extends RPCBDSNeo3 {
+export class DoraBDSNeo3 extends RpcBDSNeo3 {
   constructor(network: Network<BSNeo3NetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
     super(network, feeToken, claimToken, tokens)
   }

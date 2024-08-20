@@ -1,7 +1,6 @@
 import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
-
-import mainnetTokens from './assets/tokens/mainnet.json'
-import commonTokens from './assets/tokens/common.json'
+import commonTokens from '../assets/tokens/common.json'
+import mainnetTokens from '../assets/tokens/mainnet.json'
 
 export type BSNeo3NetworkId = NetworkId<'mainnet' | 'testnet'>
 
