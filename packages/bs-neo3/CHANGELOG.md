@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Wed, 14 Aug 2024 18:41:00 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Aug 2024 17:24:34 GMT and should not be manually modified.
+
+## 1.3.0
+Tue, 20 Aug 2024 17:24:34 GMT
+
+### Minor changes
+
+- Implement swap multi invoke support
 
 ## 1.2.1
 Wed, 14 Aug 2024 18:41:00 GMT
