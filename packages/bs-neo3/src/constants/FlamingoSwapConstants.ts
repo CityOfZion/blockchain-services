@@ -46,12 +46,6 @@ export class FlamingoSwapConstants {
       hash: '0x5b53998b399d10cd25727269e865acc785ef5c1a',
       name: 'FLM',
     },
-    FLUND: {
-      symbol: 'FLUND',
-      decimals: 8,
-      hash: '0x3d0085f442ead25ff3a7507c8eaa27cc8623a6be',
-      name: 'FLUND',
-    },
     TIPS: {
       symbol: 'TIPS',
       decimals: 8,
@@ -160,81 +154,6 @@ export class FlamingoSwapConstants {
       hash: '0x1883231a31dc912805cc08a281d4c268c4cac345',
       name: 'fBNB',
     },
-    // ============ Ethereum Assets ============ //
-    WETH: {
-      symbol: 'WETH',
-      decimals: 18,
-      hash: '0xb603cea165119701b58d56d10d2060fbfb3efad8',
-      name: 'WETH',
-    },
-    WBTC: {
-      symbol: 'WBTC',
-      decimals: 8,
-      hash: '0x557563dc4ed3fd256eba55b9622f53331ab97c2f',
-      name: 'WBTC',
-    },
-    USDT: {
-      symbol: 'USDT',
-      decimals: 6,
-      hash: '0xad3f96ae966ad60347f31845b7e4b333104c52fb',
-      name: 'USDT',
-    },
-    xWETH: {
-      symbol: 'xWETH',
-      decimals: 18,
-      hash: '0xd38fc89febb12e5d32faa72e07d486a268b9c63a',
-      name: 'xWETH',
-    },
-    xWBTC: {
-      symbol: 'xWBTC',
-      decimals: 8,
-      hash: '0x447b931cc604a30dc16c49002f35a7aab7888b78',
-      name: 'xWBTC',
-    },
-    xUSDT: {
-      symbol: 'xUSDT',
-      decimals: 6,
-      hash: '0xf15b5430321f4e51f5f534cedada7fbb78fa6680',
-      name: 'xUSDT',
-    },
-    // ============ Ontology Assets ============ //
-    ONTd: {
-      symbol: 'ONTd',
-      decimals: 9,
-      hash: '0x869951e3397550e800d5faf579857cdb637a0051',
-      name: 'ONTd',
-    },
-    // ============ BSC Assets ============ //
-    CAKE: {
-      symbol: 'CAKE',
-      decimals: 18,
-      hash: '0x778140d3A1e0024Be11e723a8af2C4d521feBA4f',
-      name: 'CAKE',
-    },
-    BNB: {
-      symbol: 'BNB',
-      decimals: 18,
-      hash: '0x0000000000000000000000000000000000000000',
-      name: 'BNB',
-    },
-    xfCAKE: {
-      symbol: 'xfCAKE',
-      decimals: 18,
-      hash: '0x64A647dC1634d164896D7146f7Ad314665DFeB18',
-      name: 'xfCAKE',
-    },
-    bNUDES: {
-      symbol: 'bNUDES',
-      decimals: 8,
-      hash: '0xeA5143686D0edb60dcE657CeDA8367a92a2Bff58',
-      name: 'bNUDES',
-    },
-    FUSD: {
-      symbol: 'FUSD',
-      decimals: 8,
-      hash: '0xcdaddd3e196bb1c1978364dd78b8cec5d4753f58',
-      name: 'FUSD',
-    },
   } as const
 
   static readonly MAINNET_FLAMINGO_SWAP_TOKENS: FlamingoSwapTokens = {
@@ -244,12 +163,6 @@ export class FlamingoSwapConstants {
       decimals: 8,
       hash: '0xf0151f528127558851b39c2cd8aa47da7418ab28',
       name: 'FLM',
-    },
-    FLUND: {
-      symbol: 'FLUND',
-      decimals: 8,
-      hash: '0xa9603a59e21d29e37ac39cf1b5f5abf5006b22a3',
-      name: 'FLUND',
     },
     TIPS: {
       symbol: 'TIPS',
@@ -376,69 +289,6 @@ export class FlamingoSwapConstants {
       decimals: 18,
       hash: '0xb56f0fba45cc57a948b342186274dfd863996bb3',
       name: 'fBNB',
-    },
-    // ============ Ethereum Assets ============ //
-    WETH: {
-      symbol: 'WETH',
-      decimals: 18,
-      hash: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-      name: 'WETH',
-    },
-    WBTC: {
-      symbol: 'WBTC',
-      decimals: 8,
-      hash: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
-      name: 'WBTC',
-    },
-    USDT: {
-      symbol: 'USDT',
-      decimals: 6,
-      hash: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-      name: 'USDT',
-    },
-    xWETH: {
-      symbol: 'xWETH',
-      decimals: 18,
-      hash: '0x46b2E0224efb03D43eba88AB5A1995480e6A76b6',
-      name: 'xWETH',
-    },
-    xWBTC: {
-      symbol: 'xWBTC',
-      decimals: 8,
-      hash: '0xebd0e8988ac25a793dc27368f96a5a72e34efcd7',
-      name: 'xWBTC',
-    },
-    xUSDT: {
-      symbol: 'xUSDT',
-      decimals: 6,
-      hash: '0xa93727e8661d4f82cfd50f7d8fd3f38ec8493b84',
-      name: 'xUSDT',
-    },
-    // ============ Ontology Assets ============ //
-    ONTd: {
-      symbol: 'ONTd',
-      decimals: 9,
-      hash: '33ae7eae016193ba0fe238b223623bc78faac158',
-      name: 'ONTd',
-    },
-    WING: {
-      symbol: 'WING',
-      decimals: 9,
-      hash: '00c59fcd27a562d6397883eab1f2fff56e58ef80',
-      name: 'WING',
-    },
-    // ============ BSC Assets ============ //
-    CAKE: {
-      symbol: 'CAKE',
-      decimals: 18,
-      hash: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82',
-      name: 'CAKE',
-    },
-    xfCAKE: {
-      symbol: 'xfCAKE',
-      decimals: 18,
-      hash: '0xD05923B7E0c86f31A4a6dFA4d5bbF191AbEe6Ab2',
-      name: 'xfCAKE',
     },
   } as const
 

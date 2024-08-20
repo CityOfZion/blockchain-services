@@ -66,29 +66,30 @@ export class FlamingoSwapRouteHandler {
   }
 
   static createPoolGraph(network: Network<BSNeo3NetworkId>): PoolGraph {
+    const poolGraph: PoolGraph = {}
+
     const pools = FlamingoSwapHelper.getFlamingoSwapPools(network)
     const tokens = FlamingoSwapHelper.getFlamingoSwapTokens(network)
 
     const { NEO, bNEO } = tokens
 
-    const poolGraph: PoolGraph = {}
-
     // Initialize poolGraph with empty arrays
-    Object.values(tokens).forEach(token => {
-      poolGraph[token.symbol] = []
+    Object.keys(tokens).forEach(tokenSymbol => {
+      poolGraph[tokenSymbol] = []
     })
 
     // Add edges to poolGraph
     Object.values(pools).forEach(pool => {
-      const tokenA = pool.tokens[0].symbol
-      const tokenB = pool.tokens[1].symbol
-      poolGraph[tokenA].push(tokenB)
-      poolGraph[tokenB].push(tokenA)
+      const tokenASymbol = pool.tokens[0].symbol
+      const tokenBSymbol = pool.tokens[1].symbol
+
+      poolGraph[tokenASymbol].push(tokenBSymbol)
+      poolGraph[tokenBSymbol].push(tokenASymbol)
     })
 
     // Remove duplicates from poolGraph
-    Object.keys(poolGraph).forEach(tokenSymbol => {
-      poolGraph[tokenSymbol] = [...new Set(poolGraph[tokenSymbol])]
+    Object.keys(tokens).forEach(tokenSymbol => {
+      poolGraph[tokenSymbol] = Array.from(new Set(poolGraph[tokenSymbol]))
     })
 
     // Include NEO to the poolGraph
