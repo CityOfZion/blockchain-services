@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Tue, 20 Aug 2024 17:24:34 GMT and should not be manually modified.
+This log was last generated on Tue, 20 Aug 2024 20:50:53 GMT and should not be manually modified.
+
+## 1.3.1
+Tue, 20 Aug 2024 20:50:53 GMT
+
+### Patches
+
+- Fixing swappable tokens list
+- Fixing list swappable tokens
 
 ## 1.3.0
 Tue, 20 Aug 2024 17:24:34 GMT
