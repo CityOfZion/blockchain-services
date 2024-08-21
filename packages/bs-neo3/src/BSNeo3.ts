@@ -10,10 +10,12 @@ import {
   BSWithLedger,
   BSWithNameService,
   BSWithNft,
+  BSWithSwap,
   ExchangeDataService,
   ExplorerService,
   Network,
   NftDataService,
+  SwapService,
   Token,
   TransferParam,
 } from '@cityofzion/blockchain-service'
@@ -29,6 +31,7 @@ import { FlamingoEDSNeo3 } from './services/exchange-data/FlamingoEDSNeo3'
 import { DoraESNeo3 } from './services/explorer/DoraESNeo3'
 import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedgerServiceNeo3'
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
+import { FlamingoSwapServiceNeo3 } from './services/swap/FlamingoSwapServiceNeo3'
 
 export class BSNeo3<BSCustomName extends string = string>
   implements
@@ -38,7 +41,8 @@ export class BSNeo3<BSCustomName extends string = string>
     BSCalculableFee,
     BSWithNft,
     BSWithExplorerService,
-    BSWithLedger
+    BSWithLedger,
+    BSWithSwap<BSNeo3NetworkId>
 {
   blockchainName: BSCustomName
   derivationPath: string
@@ -101,6 +105,10 @@ export class BSNeo3<BSCustomName extends string = string>
     })
 
     return invocations
+  }
+
+  createSwapService(): SwapService<BSNeo3NetworkId> {
+    return new FlamingoSwapServiceNeo3(this.network, this.ledgerService)
   }
 
   setNetwork(network: Network<BSNeo3NetworkId>) {

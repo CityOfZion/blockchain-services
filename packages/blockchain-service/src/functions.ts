@@ -6,6 +6,7 @@ import {
   BSWithLedger,
   BSWithNameService,
   BSWithNft,
+  BSWithSwap,
 } from './interfaces'
 
 export function hasNameService(service: BlockchainService): service is BlockchainService & BSWithNameService {
@@ -30,6 +31,10 @@ export function hasExplorerService(service: BlockchainService): service is Block
 
 export function hasLedger(service: BlockchainService): service is BlockchainService & BSWithLedger {
   return 'ledgerService' in service
+}
+
+export function hasSwap(service: BlockchainService): service is BlockchainService & BSWithSwap {
+  return 'createSwapService' in service
 }
 
 function wait(ms: number) {
