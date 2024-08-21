@@ -8,9 +8,14 @@ import {
   FlamingoSwapScriptHashes,
   FlamingoSwapTokens,
 } from '../constants/FlamingoSwapConstants'
+import { FlamingoSwapRouteHandler } from '../services/swap/handlers'
 import { BSNeo3NetworkId } from './BSNeo3Helper'
 
 export class FlamingoSwapHelper {
+  static listSwappableTokensSymbol(network: Network<BSNeo3NetworkId>): string[] {
+    return Object.keys(FlamingoSwapRouteHandler.createPoolGraph(network))
+  }
+
   static getFlamingoSwapPools(network: Network<BSNeo3NetworkId>): FlamingoSwapPools {
     const pools = FlamingoSwapConstants.FLAMINGO_SWAP_POOLS[network.id]
     if (!pools) {

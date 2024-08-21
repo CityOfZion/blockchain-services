@@ -11,6 +11,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { wallet } from '@cityofzion/neon-core'
 import { NeonInvoker } from '@cityofzion/neon-dappkit'
+import { api } from '@cityofzion/neon-js'
 import Transport from '@ledgerhq/hw-transport'
 import EventEmitter from 'events'
 import cloneDeep from 'lodash.clonedeep'
@@ -28,7 +29,7 @@ type LastAmountChanged = 'amountToReceive' | 'amountToUse' | null
 export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
   eventEmitter: TypedEmitter<SwapServiceEvents>
 
-  #ledgerService!: NeonDappKitLedgerServiceNeo3
+  #ledgerService?: NeonDappKitLedgerServiceNeo3
   #network: Network<BSNeo3NetworkId>
   #privateAccountToUse: Account | null = null
   #privateTokenToReceive: Token | null = null
@@ -46,7 +47,7 @@ export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
   #privateLastAmountChanged: LastAmountChanged = null
   #socket: FlamingoSwapSocketService = new FlamingoSwapSocketService()
 
-  constructor(network: Network<BSNeo3NetworkId>, ledgerService: NeonDappKitLedgerServiceNeo3) {
+  constructor(network: Network<BSNeo3NetworkId>, ledgerService?: NeonDappKitLedgerServiceNeo3) {
     this.eventEmitter = new EventEmitter() as TypedEmitter<SwapServiceEvents>
     this.#network = network
     this.#ledgerService = ledgerService
@@ -94,21 +95,23 @@ export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
     }
   }
 
-  listSwappableTokensSymbol(network: Network<BSNeo3NetworkId>): string[] {
-    return Object.keys(FlamingoSwapRouteHandler.createPoolGraph(network))
-  }
-
   async swap(isLedger?: boolean): Promise<void> {
     const swapInvocationArgs = this.buildSwapInvocationArgs()
 
     let ledgerTransport: Transport | undefined
+    let signingCallback: api.SigningFunction | undefined
 
     if (isLedger) {
+      if (!this.#ledgerService) {
+        throw new Error('You must provide a ledger service to use Ledger')
+      }
+
       if (!this.#ledgerService.getLedgerTransport) {
         throw new Error('You must provide a getLedgerTransport function to use Ledger')
       }
 
       ledgerTransport = await this.#ledgerService.getLedgerTransport(this.#accountToUse!)
+      signingCallback = this.#ledgerService.getSigningCallback(ledgerTransport)
     }
 
     const account = new wallet.Account(this.#accountToUse!.key)
@@ -116,7 +119,7 @@ export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#network.url,
       account,
-      signingCallback: ledgerTransport ? this.#ledgerService.getSigningCallback(ledgerTransport) : undefined,
+      signingCallback,
     })
 
     await invoker.invokeFunction(FlamingoSwapInvocationBuilderNeo3.swapInvocation(swapInvocationArgs))

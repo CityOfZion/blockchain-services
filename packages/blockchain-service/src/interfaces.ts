@@ -86,6 +86,10 @@ export interface BSWithLedger {
   generateAccountFromPublicKey(publicKey: string): Account
 }
 
+export interface BSWithSwap<BSAvailableNetworks extends string = string> {
+  createSwapService(): SwapService<BSAvailableNetworks>
+}
+
 export type TransactionNotifications = {
   eventName: string
   state: {
@@ -310,8 +314,6 @@ export interface SwapService<AvailableNetworkIds extends string> {
 
   startListeningBlockGeneration(): void
   stopListeningBlockGeneration(): void
-
-  listSwappableTokensSymbol(network: Network<AvailableNetworkIds>): string[]
 
   swap(isLedger?: boolean): void
 }
