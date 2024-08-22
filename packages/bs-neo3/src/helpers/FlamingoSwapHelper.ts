@@ -97,6 +97,12 @@ export class FlamingoSwapHelper {
     return overrodeRoute
   }
 
+  static overrideRoutePath(network: Network<BSNeo3NetworkId>, routePath: Token[]): Token[] {
+    const overrodeRoutePath = routePath.map(token => this.overrideToken(network, token))
+
+    return overrodeRoutePath.filter((item, index, arr) => arr.indexOf(item) === index)
+  }
+
   static normalizeHash(hash: string): string {
     return hash.startsWith('0x') ? hash.slice(2) : hash
   }

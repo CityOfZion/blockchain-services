@@ -27,10 +27,12 @@ export class FlamingoSwapInvocationBuilderNeo3 {
     const tokenToReceive = routePath[routePath.length - 1]
 
     const scriptHashes = FlamingoSwapHelper.getFlamingoSwapScriptHashes(network)
-    const tokenToReceiveOverrode = FlamingoSwapHelper.overrideToken(network, tokenToReceive)
 
     const invocations: ContractInvocation[] = []
-    const allowedContracts = this.#getAllowedContracts(scriptHashes, routePath)
+    const allowedContracts: string[] = []
+
+    const tokenToReceiveOverrode = FlamingoSwapHelper.overrideToken(network, tokenToReceive)
+    const routePathOverrode = FlamingoSwapHelper.overrideRoutePath(network, routePath)
 
     const amountToReceiveFormatted = FlamingoSwapHelper.formatAmount(amountToReceive, tokenToReceiveOverrode.decimals)
     const maximumSellingFormatted = FlamingoSwapHelper.formatAmount(maximumSelling, tokenToUse.decimals)
@@ -41,19 +43,22 @@ export class FlamingoSwapInvocationBuilderNeo3 {
       amountToReceive: amountToReceiveFormatted,
       maximumSelling: maximumSellingFormatted,
       deadline,
-      args: this.#mapRoutePathToArgs(routePath),
+      args: this.#mapRoutePathToArgs(routePathOverrode),
     })
 
     invocations.push(swapInvocation)
+    allowedContracts.push(...this.#getAllowedContracts(scriptHashes, routePath))
 
     if (FlamingoSwapHelper.isNeoToken(network, tokenToReceive)) {
       const amountToReceiveTransfer = u.BigInteger.fromNumber(
         Number(amountToReceiveFormatted) * FlamingoSwapConstants.GAS_PER_NEO
       ).toString()
 
-      const neoTransferInvocation = this.#buildNEOTransferInvocation(address, amountToReceiveTransfer, network)
+      const gasHash = FlamingoSwapHelper.getFlamingoSwapToken(network, 'GAS').hash
+      const neoTransferInvocation = this.#buildNEOTransferInvocation(address, gasHash, amountToReceiveTransfer, network)
 
       invocations.push(neoTransferInvocation)
+      allowedContracts.push(FlamingoSwapHelper.getFlamingoSwapPool(network, 'FLP-bNEO-GAS').hash)
     }
 
     return {
@@ -76,15 +81,20 @@ export class FlamingoSwapInvocationBuilderNeo3 {
     const scriptHashes = FlamingoSwapHelper.getFlamingoSwapScriptHashes(network)
 
     const invocations: ContractInvocation[] = []
-    const allowedContracts = this.#getAllowedContracts(scriptHashes, routePath)
+    const allowedContracts: string[] = []
 
     if (FlamingoSwapHelper.isNeoToken(network, tokenToUse)) {
-      const neoTransferInvocation = this.#buildNEOTransferInvocation(address, amountToUse, network)
+      const neoHash = FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO').hash
+      const neoTransferInvocation = this.#buildNEOTransferInvocation(address, neoHash, amountToUse, network)
 
       invocations.push(neoTransferInvocation)
+      allowedContracts.push(FlamingoSwapHelper.getFlamingoSwapPool(network, 'FLP-bNEO-GAS').hash)
     }
 
-    const amountToUseFormatted = FlamingoSwapHelper.formatAmount(amountToUse, tokenToUse.decimals)
+    const tokenToUseOverrode = FlamingoSwapHelper.overrideToken(network, tokenToUse)
+    const routePathOverrode = FlamingoSwapHelper.overrideRoutePath(network, routePath)
+
+    const amountToUseFormatted = FlamingoSwapHelper.formatAmount(amountToUse, tokenToUseOverrode.decimals)
     const minimumReceivedFormatted = FlamingoSwapHelper.formatAmount(minimumReceived, tokenToReceive.decimals)
 
     const swapInvocation = NeonDappKitInvocationBuilderNeo3.swapTokenInForTokenOutContractInvocation({
@@ -93,10 +103,11 @@ export class FlamingoSwapInvocationBuilderNeo3 {
       minimumReceived: minimumReceivedFormatted,
       senderAddress: address,
       deadline,
-      args: this.#mapRoutePathToArgs(routePath),
+      args: this.#mapRoutePathToArgs(routePathOverrode),
     })
 
     invocations.push(swapInvocation)
+    allowedContracts.push(...this.#getAllowedContracts(scriptHashes, routePath))
 
     return {
       invocations,
@@ -120,15 +131,19 @@ export class FlamingoSwapInvocationBuilderNeo3 {
     ]
   }
 
-  static #buildNEOTransferInvocation(address: string, amount: string, network: Network): ContractInvocation {
+  static #buildNEOTransferInvocation(
+    senderAddress: string,
+    contractHash: string,
+    amount: string,
+    network: Network
+  ): ContractInvocation {
     const bNEO = FlamingoSwapHelper.getFlamingoSwapToken(network, 'bNEO')
-    const GAS = FlamingoSwapHelper.getFlamingoSwapToken(network, 'GAS')
 
     return NeonDappKitInvocationBuilderNeo3.transferContractInvocation({
-      senderAddress: address,
-      amount,
+      contractHash,
       tokenHash: bNEO.hash,
-      contractHash: GAS.hash,
+      senderAddress,
+      amount,
     })
   }
 }
