@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.3.3",
+      "tag": "@cityofzion/bs-neo3_v1.3.3",
+      "date": "Thu, 22 Aug 2024 18:40:33 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fixing NEO implementation"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.3.2",
       "tag": "@cityofzion/bs-neo3_v1.3.2",
       "date": "Wed, 21 Aug 2024 16:07:49 GMT",

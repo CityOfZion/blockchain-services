@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Wed, 21 Aug 2024 16:07:49 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Aug 2024 18:40:33 GMT and should not be manually modified.
+
+## 1.3.3
+Thu, 22 Aug 2024 18:40:33 GMT
+
+### Patches
+
+- Fixing NEO implementation
 
 ## 1.3.2
 Wed, 21 Aug 2024 16:07:49 GMT
