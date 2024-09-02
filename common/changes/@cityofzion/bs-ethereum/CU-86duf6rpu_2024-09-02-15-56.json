@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Added new explorer service to NeoX",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}
