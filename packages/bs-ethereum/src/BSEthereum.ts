@@ -2,12 +2,14 @@ import {
   Account,
   AccountWithDerivationPath,
   BSCalculableFee,
+  BSWithExplorerService,
   BSWithLedger,
   BSWithNameService,
   BSWithNft,
   BlockchainDataService,
   BlockchainService,
   ExchangeDataService,
+  ExplorerService,
   Network,
   NftDataService,
   Token,
@@ -25,6 +27,7 @@ import { MoralisBDSEthereum } from './MoralisBDSEthereum'
 import { MoralisEDSEthereum } from './MoralisEDSEthereum'
 import { BlockscoutNeoXBDSEthereum } from './BlockscoutNeoXBDSEthereum'
 import { BlockscoutNeoXEDSEthereum } from './BlockscoutNeoXEDSEthereum'
+import { BlockscoutNeoXESEthereum } from './BlockscoutNeoXESEthereum'
 
 export class BSEthereum<BSCustomName extends string = string>
   implements
@@ -32,7 +35,8 @@ export class BSEthereum<BSCustomName extends string = string>
     BSWithNft,
     BSWithNameService,
     BSCalculableFee,
-    BSWithLedger
+    BSWithLedger,
+    BSWithExplorerService
 {
   readonly blockchainName: BSCustomName
   readonly derivationPath: string
@@ -44,6 +48,7 @@ export class BSEthereum<BSCustomName extends string = string>
   tokens!: Token[]
   nftDataService!: NftDataService
   network!: Network<BSEthereumNetworkId>
+  explorerService!: ExplorerService
 
   constructor(
     blockchainName: BSCustomName,
@@ -129,6 +134,7 @@ export class BSEthereum<BSCustomName extends string = string>
     }
 
     this.nftDataService = new GhostMarketNDSEthereum(network)
+    this.explorerService = new BlockscoutNeoXESEthereum(network)
   }
 
   validateAddress(address: string): boolean {
