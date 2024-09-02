@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 21 Aug 2024 16:07:49 GMT and should not be manually modified.
+This log was last generated on Mon, 02 Sep 2024 16:05:12 GMT and should not be manually modified.
+
+## 2.2.13
+Mon, 02 Sep 2024 16:05:12 GMT
+
+### Patches
+
+- Added new explorer service to NeoX
 
 ## 2.2.12
 Wed, 21 Aug 2024 16:07:49 GMT

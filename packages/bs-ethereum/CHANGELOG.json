@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.2.13",
+      "tag": "@cityofzion/bs-ethereum_v2.2.13",
+      "date": "Mon, 02 Sep 2024 16:05:12 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Added new explorer service to NeoX"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.2.12",
       "tag": "@cityofzion/bs-ethereum_v2.2.12",
       "date": "Wed, 21 Aug 2024 16:07:49 GMT",
