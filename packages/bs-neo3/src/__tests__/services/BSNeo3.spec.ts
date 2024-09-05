@@ -2,14 +2,14 @@ import { Network } from '@cityofzion/blockchain-service'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3 } from '../../BSNeo3'
-import { BSNeo3Helper, BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 
 let bsNeo3: BSNeo3
 let network: Network<BSNeo3NetworkId>
 
 describe('BSNeo3', () => {
   beforeAll(async () => {
-    network = BSNeo3Helper.TESTNET_NETWORKS[0]
+    network = BSNeo3Constants.TESTNET_NETWORKS[0]
     bsNeo3 = new BSNeo3('neo3', network)
   }, 60000)
 
@@ -124,13 +124,11 @@ describe('BSNeo3', () => {
     expect(transactionHash).toEqual(expect.any(String))
   })
 
-  it.skip('Should be able to transfer with ledger', async () => {
+  it.only('Should be able to transfer with ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSNeo3('neo3', network, async () => transport)
 
-    const publicKey = await service.ledgerService.getPublicKey(transport)
-
-    const account = service.generateAccountFromPublicKey(publicKey)
+    const account = await service.ledgerService.getAccount(transport, 0)
 
     const balance = await service.blockchainDataService.getBalance(account.address)
     const gasBalance = balance.find(b => b.token.symbol === service.feeToken.symbol)

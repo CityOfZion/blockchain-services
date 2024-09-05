@@ -1,4 +1,5 @@
-import { AccountWithDerivationPath, BlockchainService } from './interfaces'
+import { fetchAccountsForBlockchainServices } from './functions'
+import { Account, BlockchainService } from './interfaces'
 
 export class BSAggregator<
   BSCustomName extends string = string,
@@ -48,44 +49,12 @@ export class BSAggregator<
     return this.#blockchainServices.filter(bs => bs.validateEncrypted(keyOrJson)).map(bs => bs.blockchainName)
   }
 
-  async generateAccountFromMnemonicAllBlockchains(
-    mnemonic: string,
-    skippedAddresses?: string[]
-  ): Promise<Map<BSCustomName, AccountWithDerivationPath[]>> {
-    const mnemonicAccounts = new Map<BSCustomName, AccountWithDerivationPath[]>()
-
-    const promises = this.#blockchainServices.map(async service => {
-      let index = 0
-      const accounts: AccountWithDerivationPath[] = []
-      let hasError = false
-
-      while (!hasError) {
-        const generatedAccount = service.generateAccountFromMnemonic(mnemonic, index)
-        if (skippedAddresses && skippedAddresses.find(address => address === generatedAccount.address)) {
-          index++
-          continue
-        }
-
-        if (index !== 0) {
-          try {
-            const { transactions } = await service.blockchainDataService.getTransactionsByAddress({
-              address: generatedAccount.address,
-            })
-            if (!transactions || transactions.length <= 0) hasError = true
-          } catch {
-            hasError = true
-          }
-        }
-
-        accounts.push(generatedAccount)
-        index++
+  async generateAccountsFromMnemonic(mnemonic: string): Promise<Map<BSCustomName, Account[]>> {
+    return fetchAccountsForBlockchainServices(
+      this.#blockchainServices,
+      async (service: BlockchainService, index: number) => {
+        return service.generateAccountFromMnemonic(mnemonic, index)
       }
-
-      mnemonicAccounts.set(service.blockchainName, accounts)
-    })
-
-    await Promise.all(promises)
-
-    return mnemonicAccounts
+    )
   }
 }

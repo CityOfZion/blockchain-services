@@ -8,7 +8,7 @@ import {
   NftsResponse,
 } from '@cityofzion/blockchain-service'
 import { BigNumber, ethers } from 'ethers'
-import { ERC20_ABI } from './assets/abis/ERC20'
+import { ERC20_ABI } from '../../assets/abis/ERC20'
 
 export abstract class RpcNDSEthereum implements NftDataService {
   readonly #network: Network

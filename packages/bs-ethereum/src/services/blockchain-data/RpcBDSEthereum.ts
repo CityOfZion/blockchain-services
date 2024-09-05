@@ -10,8 +10,9 @@ import {
   TransactionsByAddressResponse,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
-import { ERC20_ABI } from './assets/abis/ERC20'
-import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
+import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
+import { ERC20_ABI } from '../../assets/abis/ERC20'
 
 export class RpcBDSEthereum implements BlockchainDataService {
   _network: Network<BSEthereumNetworkId>

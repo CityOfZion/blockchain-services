@@ -7,8 +7,8 @@ import {
   TypeChecker,
 } from '@cityofzion/neon-dappkit-types'
 import { NeonDappKitInvocationBuilderNeo3 } from '../../../builder/invocation/NeonDappKitInvocationBuilderNeo3'
-import { BSNeo3NetworkId } from '../../../helpers/BSNeo3Helper'
 import { FlamingoSwapHelper } from '../../../helpers/FlamingoSwapHelper'
+import { BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
 
 type CalculateBestRouteForSwapArgs = {
   tokenToUse: Token

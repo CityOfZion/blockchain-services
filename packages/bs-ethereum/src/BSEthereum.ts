@@ -1,6 +1,5 @@
 import {
   Account,
-  AccountWithDerivationPath,
   BSCalculableFee,
   BSWithExplorerService,
   BSWithLedger,
@@ -19,15 +18,16 @@ import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
 import * as ethersBytes from '@ethersproject/bytes'
 import * as ethersBigNumber from '@ethersproject/bignumber'
-import { GhostMarketNDSEthereum } from './GhostMarketNDSEthereum'
-import { EthersLedgerServiceEthereum } from './EthersLedgerServiceEthereum'
+import { BSEthereumConstants, BSEthereumNetworkId } from './constants/BSEthereumConstants'
+import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServiceEthereum'
 import Transport from '@ledgerhq/hw-transport'
-import { BSEthereumNetworkId, BSEthereumHelper } from './BSEthereumHelper'
-import { MoralisBDSEthereum } from './MoralisBDSEthereum'
-import { MoralisEDSEthereum } from './MoralisEDSEthereum'
-import { BlockscoutNeoXBDSEthereum } from './BlockscoutNeoXBDSEthereum'
-import { BlockscoutNeoXEDSEthereum } from './BlockscoutNeoXEDSEthereum'
-import { BlockscoutNeoXESEthereum } from './BlockscoutNeoXESEthereum'
+import { BSEthereumHelper } from './helpers/BSEthereumHelper'
+import { BlockscoutBDSEthereum } from './services/blockchain-data/BlockscoutBDSEthereum'
+import { BlockscoutEDSEthereum } from './services/exchange-data/BlockscoutEDSEthereum'
+import { MoralisBDSEthereum } from './services/blockchain-data/MoralisBDSEthereum'
+import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
+import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
+import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 
 export class BSEthereum<BSCustomName extends string = string>
   implements
@@ -39,7 +39,7 @@ export class BSEthereum<BSCustomName extends string = string>
     BSWithExplorerService
 {
   readonly blockchainName: BSCustomName
-  readonly derivationPath: string
+  readonly bip44DerivationPath: string
 
   feeToken!: Token
   blockchainDataService!: BlockchainDataService
@@ -55,37 +55,39 @@ export class BSEthereum<BSCustomName extends string = string>
     network?: Network<BSEthereumNetworkId>,
     getLedgerTransport?: (account: Account) => Promise<Transport>
   ) {
-    network = network ?? BSEthereumHelper.DEFAULT_NETWORK
+    network = network ?? BSEthereumConstants.DEFAULT_NETWORK
 
     this.blockchainName = blockchainName
-    this.ledgerService = new EthersLedgerServiceEthereum(getLedgerTransport)
-    this.derivationPath = BSEthereumHelper.DERIVATION_PATH
+    this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
+    this.bip44DerivationPath = BSEthereumConstants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.setNetwork(network)
   }
 
-  async #buildTransferParams(param: TransferParam) {
+  async #generateSigner(account: Account, isLedger?: boolean): Promise<ethers.Signer> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
-    let ledgerTransport: Transport | undefined
-
-    if (param.isLedger) {
+    if (isLedger) {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
-      ledgerTransport = await this.ledgerService.getLedgerTransport(param.senderAccount)
+
+      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+
+      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+      return this.ledgerService.getSigner(ledgerTransport, account.bip44Path, provider)
     }
 
-    let signer: ethers.Signer
-    if (ledgerTransport) {
-      signer = this.ledgerService.getSigner(ledgerTransport, provider)
-    } else {
-      signer = new ethers.Wallet(param.senderAccount.key, provider)
-    }
+    return new ethers.Wallet(account.key, provider)
+  }
+
+  async #buildTransferParams(param: TransferParam) {
+    const signer = await this.#generateSigner(param.senderAccount, param.isLedger)
+    if (!signer.provider) throw new Error('Signer must have provider')
 
     const decimals = param.intent.tokenDecimals ?? 18
     const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
 
-    const gasPrice = await provider.getGasPrice()
+    const gasPrice = await signer.provider.getGasPrice()
 
     let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
       type: 2,
@@ -125,16 +127,16 @@ export class BSEthereum<BSCustomName extends string = string>
 
     this.network = network
 
-    if (BlockscoutNeoXBDSEthereum.isSupported(network)) {
-      this.exchangeDataService = new BlockscoutNeoXEDSEthereum(network)
-      this.blockchainDataService = new BlockscoutNeoXBDSEthereum(network)
+    if (BlockscoutBDSEthereum.isSupported(network)) {
+      this.exchangeDataService = new BlockscoutEDSEthereum(network)
+      this.blockchainDataService = new BlockscoutBDSEthereum(network)
     } else {
       this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)
       this.blockchainDataService = new MoralisBDSEthereum(network)
     }
 
     this.nftDataService = new GhostMarketNDSEthereum(network)
-    this.explorerService = new BlockscoutNeoXESEthereum(network)
+    this.explorerService = new BlockscoutESEthereum(network)
   }
 
   validateAddress(address: string): boolean {
@@ -163,15 +165,15 @@ export class BSEthereum<BSCustomName extends string = string>
     return true
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): AccountWithDerivationPath {
-    const path = this.derivationPath.replace('?', index.toString())
-    const wallet = ethers.Wallet.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic, path)
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {
+    const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
+    const wallet = ethers.Wallet.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic, bip44Path)
 
     return {
       address: wallet.address,
       key: wallet.privateKey,
       type: 'privateKey',
-      derivationPath: path,
+      bip44Path,
     }
   }
 
@@ -215,7 +217,7 @@ export class BSEthereum<BSCustomName extends string = string>
     try {
       gasLimit = await signer.estimateGas(transactionParams)
     } catch {
-      gasLimit = BSEthereumHelper.DEFAULT_GAS_LIMIT
+      gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
     }
 
     const transaction = await signer.sendTransaction({

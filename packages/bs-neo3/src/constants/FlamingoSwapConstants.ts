@@ -1,6 +1,6 @@
 import { Token } from '@cityofzion/blockchain-service'
 import BigNumber from 'bignumber.js'
-import { BSNeo3NetworkId } from '../helpers/BSNeo3Helper'
+import { BSNeo3NetworkId } from './BSNeo3Constants'
 
 export type FlamingoSwapScriptHashes = {
   flamingoSwapRouter: string

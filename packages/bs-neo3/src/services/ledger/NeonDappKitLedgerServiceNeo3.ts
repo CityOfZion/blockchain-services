@@ -1,8 +1,14 @@
-import { Account, LedgerService, LedgerServiceEmitter } from '@cityofzion/blockchain-service'
+import {
+  Account,
+  LedgerService,
+  LedgerServiceEmitter,
+  fetchAccountsForBlockchainServices,
+} from '@cityofzion/blockchain-service'
 import { NeonParser } from '@cityofzion/neon-dappkit'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Transport from '@ledgerhq/hw-transport'
 import EventEmitter from 'events'
+import { BSNeo3 } from '../../BSNeo3'
 
 enum LedgerStatus {
   OK = 0x9000,
@@ -19,96 +25,119 @@ enum LedgerSecondParameter {
 }
 
 export class NeonDappKitLedgerServiceNeo3 implements LedgerService {
+  #blockchainService: BSNeo3
+
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
+  getLedgerTransport?: (account: Account) => Promise<Transport>
 
-  constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
-
-  async getAddress(transport: Transport): Promise<string> {
-    const publicKey = await this.getPublicKey(transport)
-    const { address } = new wallet.Account(publicKey)
-
-    return address
+  constructor(blockchainService: BSNeo3, getLedgerTransport?: (account: Account) => Promise<Transport>) {
+    this.#blockchainService = blockchainService
+    this.getLedgerTransport = getLedgerTransport
   }
 
-  getSigningCallback(transport: Transport): api.SigningFunction {
-    return async (transaction, { witnessIndex, network }) => {
-      const publicKey = await this.getPublicKey(transport)
-      const account = new wallet.Account(publicKey)
-
-      const witnessScriptHash = wallet.getScriptHashFromVerificationScript(
-        transaction.witnesses[witnessIndex].verificationScript.toString()
-      )
-
-      if (account.scriptHash !== witnessScriptHash) {
-        throw new Error('Invalid witness script hash')
-      }
-
-      const signature = await this.getSignature(transport, transaction.serialize(false), network, witnessIndex)
-
-      return signature
-    }
-  }
-
-  async getSignature(transport: Transport, serializedTransaction: string, networkMagic: number, addressIndex = 0) {
-    try {
-      this.emitter.emit('getSignatureStart')
-
-      const bip44 = this.#toBip44(addressIndex)
-      // Send the BIP44 account as first chunk
-      await this.#sendChunk(transport, LedgerCommand.SIGN, 0, LedgerSecondParameter.MORE_DATA, bip44)
-
-      // Send the network magic as second chunk
-      await this.#sendChunk(
-        transport,
-        LedgerCommand.SIGN,
-        1,
-        LedgerSecondParameter.MORE_DATA,
-        NeonParser.numToHex(networkMagic, 4, true)
-      )
-
-      const chunks = serializedTransaction.match(/.{1,510}/g) || []
-
-      for (let i = 0; i < chunks.length - 1; i++) {
-        // We plus 2 because we already sent 2 chunks before
-        const commandIndex = 2 + i
-        await this.#sendChunk(transport, LedgerCommand.SIGN, commandIndex, LedgerSecondParameter.MORE_DATA, chunks[i])
-      }
-
-      // Again we plus 2 because we already sent 2 chunks before getting the chunks
-      const lastChunkIndex = 2 + chunks.length
-      const response = await this.#sendChunk(
-        transport,
-        LedgerCommand.SIGN,
-        lastChunkIndex,
-        LedgerSecondParameter.LAST_DATA,
-        chunks[chunks.length - 1]
-      )
-
-      if (response.length <= 2) {
-        throw new Error(`No more data but Ledger did not return signature!`)
-      }
-
-      const signature = this.#derSignatureToHex(response.toString('hex'))
-
-      return signature
-    } finally {
-      this.emitter.emit('getSignatureEnd')
-    }
-  }
-
-  async getPublicKey(transport: Transport, addressIndex = 0): Promise<string> {
-    const bip44 = this.#toBip44(addressIndex)
+  async getAccount(transport: Transport, index: number): Promise<Account> {
+    const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
+    const bip44PathHex = this.#bip44PathToHex(bip44Path)
 
     const result = await this.#sendChunk(
       transport,
       LedgerCommand.GET_PUBLIC_KEY,
       0x00,
       LedgerSecondParameter.LAST_DATA,
-      bip44
+      bip44PathHex
     )
-    const publicKey = result.toString('hex').substring(0, 130)
 
-    return publicKey
+    const publicKey = result.toString('hex').substring(0, 130)
+    const { address } = new wallet.Account(publicKey)
+
+    return {
+      address,
+      key: publicKey,
+      type: 'publicKey',
+      bip44Path,
+    }
+  }
+
+  async getAccounts(transport: Transport): Promise<Account[]> {
+    const accountsByBlockchainService = await fetchAccountsForBlockchainServices(
+      [this.#blockchainService],
+      async (_service, index) => {
+        return this.getAccount(transport, index)
+      }
+    )
+
+    const accounts = accountsByBlockchainService.get(this.#blockchainService.blockchainName)
+    return accounts ?? []
+  }
+
+  getSigningCallback(transport: Transport, account: Account): api.SigningFunction {
+    return async (transaction, { witnessIndex, network }) => {
+      try {
+        this.emitter.emit('getSignatureStart')
+
+        if (!account.bip44Path) {
+          throw new Error('Account must have a bip 44 path to sign with Ledger')
+        }
+
+        const neonJsAccount = new wallet.Account(account.key)
+
+        const witnessScriptHash = wallet.getScriptHashFromVerificationScript(
+          transaction.witnesses[witnessIndex].verificationScript.toString()
+        )
+
+        if (neonJsAccount.scriptHash !== witnessScriptHash) {
+          throw new Error('Invalid witness script hash')
+        }
+
+        const bip44PathHex = this.#bip44PathToHex(account.bip44Path)
+
+        // Send the BIP44 account as first chunk
+        await this.#sendChunk(transport, LedgerCommand.SIGN, 0, LedgerSecondParameter.MORE_DATA, bip44PathHex)
+
+        // Send the network magic as second chunk
+        await this.#sendChunk(
+          transport,
+          LedgerCommand.SIGN,
+          1,
+          LedgerSecondParameter.MORE_DATA,
+          NeonParser.numToHex(network, 4, true)
+        )
+
+        const serializedTransaction = transaction.serialize(false)
+
+        // Split the serialized transaction into chunks of 510 bytes
+        const chunks = serializedTransaction.match(/.{1,510}/g) || []
+
+        // Send all chunks except the last one
+        for (let i = 0; i < chunks.length - 1; i++) {
+          // We plus 2 because we already sent 2 chunks before
+          const commandIndex = 2 + i
+          await this.#sendChunk(transport, LedgerCommand.SIGN, commandIndex, LedgerSecondParameter.MORE_DATA, chunks[i])
+        }
+
+        // Again, we plus 2 because we already sent 2 chunks before getting the chunks
+        const lastChunkIndex = 2 + chunks.length
+
+        // Send the last chunk signaling that it is the last one and get the signature
+        const response = await this.#sendChunk(
+          transport,
+          LedgerCommand.SIGN,
+          lastChunkIndex,
+          LedgerSecondParameter.LAST_DATA,
+          chunks[chunks.length - 1]
+        )
+
+        if (response.length <= 2) {
+          throw new Error('Invalid signature returned from Ledger')
+        }
+
+        const signature = this.#derSignatureToHex(response.toString('hex'))
+
+        return signature
+      } finally {
+        this.emitter.emit('getSignatureEnd')
+      }
+    }
   }
 
   #sendChunk(
@@ -121,17 +150,25 @@ export class NeonDappKitLedgerServiceNeo3 implements LedgerService {
     return transport.send(0x80, command, commandIndex, secondParameter, Buffer.from(chunk, 'hex'), [LedgerStatus.OK])
   }
 
-  #toBip44(addressIndex = 0, changeIndex = 0, accountIndex = 0) {
-    const accountHex = this.#to8BitHex(accountIndex + 0x80000000)
-    const changeHex = this.#to8BitHex(changeIndex)
-    const addressHex = this.#to8BitHex(addressIndex)
+  #bip44PathToHex(path: string): string {
+    let result = ''
+    const components = path.split('/')
 
-    return '8000002C' + '80000378' + accountHex + changeHex + addressHex
-  }
+    components.forEach(element => {
+      let number = parseInt(element, 10)
 
-  #to8BitHex(num: number): string {
-    const hex = num.toString(16)
-    return '0'.repeat(8 - hex.length) + hex
+      if (isNaN(number)) {
+        return
+      }
+
+      if (element.length > 1 && element[element.length - 1] === "'") {
+        number += 0x80000000
+      }
+
+      result += number.toString(16).padStart(8, '0')
+    })
+
+    return result
   }
 
   #derSignatureToHex(response: string): string {

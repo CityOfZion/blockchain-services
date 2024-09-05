@@ -9,8 +9,9 @@ import {
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { BSEthereumHelper, BSEthereumNetworkId } from './BSEthereumHelper'
-import { MoralisBDSEthereum } from './MoralisBDSEthereum'
+import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
+import { MoralisBDSEthereum } from '../blockchain-data/MoralisBDSEthereum'
 
 type MoralisERC20MetadataResponse = {
   address: string

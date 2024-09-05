@@ -2,13 +2,13 @@ import { Network, SwapServiceSwapToReceiveArgs, SwapServiceSwapToUseArgs } from 
 import { ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
 import { FlamingoSwapInvocationBuilderNeo3 } from '../../../builder/invocation/FlamingoSwapInvocationBuilderNeo3'
 import { FlamingoSwapConstants } from '../../../constants/FlamingoSwapConstants'
-import { BSNeo3Helper, BSNeo3NetworkId } from '../../../helpers/BSNeo3Helper'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
 
 let network: Network<BSNeo3NetworkId>
 
 describe('FlamingoSwapInvocationBuilderNeo3', () => {
   beforeEach(() => {
-    network = BSNeo3Helper.DEFAULT_NETWORK
+    network = BSNeo3Constants.DEFAULT_NETWORK
   })
 
   it('Should match the invocation script swapping NEO to GAS - swapTokenToUse', () => {

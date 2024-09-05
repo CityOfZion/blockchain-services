@@ -1,60 +1,47 @@
-import { Account, LedgerService, LedgerServiceEmitter } from '@cityofzion/blockchain-service'
+import {
+  Account,
+  LedgerService,
+  LedgerServiceEmitter,
+  fetchAccountsForBlockchainServices,
+} from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
 import { ethers, Signer } from 'ethers'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { defineReadOnly } from '@ethersproject/properties'
 import EventEmitter from 'events'
-import { BSEthereumHelper } from './BSEthereumHelper'
+import { BSEthereum } from '../../BSEthereum'
+import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 
 export class EthersLedgerSigner extends Signer implements TypedDataSigner {
   #transport: Transport
   #emitter?: LedgerServiceEmitter
-  #path: string
+  #bip44Path: string
+  #ledgerApp: LedgerEthereumApp
 
-  constructor(transport: Transport, provider?: ethers.providers.Provider, emitter?: LedgerServiceEmitter) {
+  constructor(
+    transport: Transport,
+    bip44Path: string,
+    provider?: ethers.providers.Provider,
+    emitter?: LedgerServiceEmitter
+  ) {
     super()
 
-    this.#path = BSEthereumHelper.DEFAULT_PATH
+    this.#bip44Path = bip44Path
     this.#transport = transport
     this.#emitter = emitter
+    this.#ledgerApp = new LedgerEthereumApp(transport)
+
     defineReadOnly(this, 'provider', provider)
   }
 
   connect(provider: ethers.providers.Provider): EthersLedgerSigner {
-    return new EthersLedgerSigner(this.#transport, provider, this.#emitter)
-  }
-
-  #retry<T = any>(callback: () => Promise<T>): Promise<T> {
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-      // Wait up to 5 seconds
-      for (let i = 0; i < 50; i++) {
-        try {
-          const result = await callback()
-          return resolve(result)
-        } catch (error: any) {
-          if (error.id !== 'TransportLocked') {
-            return reject(error)
-          }
-        }
-        await wait(100)
-      }
-
-      return reject(new Error('timeout'))
-    })
+    return new EthersLedgerSigner(this.#transport, this.#bip44Path, provider, this.#emitter)
   }
 
   async getAddress(): Promise<string> {
-    const ledgerApp = new LedgerEthereumApp(this.#transport)
-    const { address } = await this.#retry(() => ledgerApp.getAddress(this.#path))
-    return ethers.utils.getAddress(address)
-  }
-
-  async getPublicKey(): Promise<string> {
-    const ledgerApp = new LedgerEthereumApp(this.#transport)
-    const { publicKey } = await this.#retry(() => ledgerApp.getAddress(this.#path))
-    return '0x' + publicKey
+    const { address } = await this.#ledgerApp.getAddress(this.#bip44Path)
+    return address
   }
 
   async signMessage(message: string | ethers.utils.Bytes): Promise<string> {
@@ -63,12 +50,10 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
         message = ethers.utils.toUtf8Bytes(message)
       }
 
-      const ledgerApp = new LedgerEthereumApp(this.#transport)
-
       this.#emitter?.emit('getSignatureStart')
 
-      const obj = await this.#retry(() =>
-        ledgerApp.signPersonalMessage(this.#path, ethers.utils.hexlify(message).substring(2))
+      const obj = await BSEthereumHelper.retry(() =>
+        this.#ledgerApp.signPersonalMessage(this.#bip44Path, ethers.utils.hexlify(message).substring(2))
       )
 
       this.#emitter?.emit('getSignatureEnd')
@@ -86,8 +71,6 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
   async signTransaction(transaction: ethers.utils.Deferrable<ethers.providers.TransactionRequest>): Promise<string> {
     try {
-      const ledgerApp = new LedgerEthereumApp(this.#transport)
-
       const tx = await ethers.utils.resolveProperties(transaction)
       const unsignedTransaction: ethers.utils.UnsignedTransaction = {
         chainId: tx.chainId ?? undefined,
@@ -105,8 +88,8 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       this.#emitter?.emit('getSignatureStart')
 
-      const signature = await this.#retry(() =>
-        ledgerApp.signTransaction(this.#path, serializedUnsignedTransaction, resolution)
+      const signature = await BSEthereumHelper.retry(() =>
+        this.#ledgerApp.signTransaction(this.#bip44Path, serializedUnsignedTransaction, resolution)
       )
 
       this.#emitter?.emit('getSignatureEnd')
@@ -142,14 +125,12 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       const payload = ethers.utils._TypedDataEncoder.getPayload(populated.domain, types, populated.value)
 
-      const ledgerApp = new LedgerEthereumApp(this.#transport)
-
       this.#emitter?.emit('getSignatureStart')
 
       let obj: { v: number; s: string; r: string }
 
       try {
-        obj = await this.#retry(() => ledgerApp.signEIP712Message(this.#path, payload))
+        obj = await BSEthereumHelper.retry(() => this.#ledgerApp.signEIP712Message(this.#bip44Path, payload))
       } catch {
         const domainSeparatorHex = ethers.utils._TypedDataEncoder.hashDomain(payload.domain)
         const hashStructMessageHex = ethers.utils._TypedDataEncoder.hashStruct(
@@ -157,8 +138,8 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
           types,
           payload.message
         )
-        obj = await this.#retry(() =>
-          ledgerApp.signEIP712HashedMessage(this.#path, domainSeparatorHex, hashStructMessageHex)
+        obj = await BSEthereumHelper.retry(() =>
+          this.#ledgerApp.signEIP712HashedMessage(this.#bip44Path, domainSeparatorHex, hashStructMessageHex)
         )
       }
 
@@ -177,27 +158,44 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 }
 
 export class EthersLedgerServiceEthereum implements LedgerService {
+  #blockchainService: BSEthereum
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
+  getLedgerTransport?: (account: Account) => Promise<Transport>
 
-  constructor(public getLedgerTransport?: (account: Account) => Promise<Transport>) {}
-
-  async getAddress(transport: Transport): Promise<string> {
-    const signer = this.getSigner(transport)
-    return await signer.getAddress()
+  constructor(blockchainService: BSEthereum, getLedgerTransport?: (account: Account) => Promise<Transport>) {
+    this.#blockchainService = blockchainService
+    this.getLedgerTransport = getLedgerTransport
   }
 
-  async getPublicKey(transport: Transport): Promise<string> {
-    const signer = this.getSigner(transport)
-    return await signer.getPublicKey()
+  async getAccounts(transport: Transport): Promise<Account[]> {
+    const accountsByBlockchainService = await fetchAccountsForBlockchainServices(
+      [this.#blockchainService],
+      async (_service, index) => {
+        return this.getAccount(transport, index)
+      }
+    )
+
+    const accounts = accountsByBlockchainService.get(this.#blockchainService.blockchainName)
+    return accounts ?? []
   }
 
-  getSigner(transport: Transport, provider?: ethers.providers.Provider): EthersLedgerSigner {
-    return new EthersLedgerSigner(transport, provider, this.emitter)
-  }
-}
+  async getAccount(transport: Transport, index: number): Promise<Account> {
+    const ledgerApp = new LedgerEthereumApp(transport)
+    const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
 
-function wait(duration: number): Promise<void> {
-  return new Promise(resolve => {
-    setTimeout(resolve, duration)
-  })
+    const { publicKey, address } = await BSEthereumHelper.retry(() => ledgerApp.getAddress(bip44Path))
+
+    const publicKeyWithPrefix = '0x' + publicKey
+
+    return {
+      address,
+      key: publicKeyWithPrefix,
+      type: 'publicKey',
+      bip44Path,
+    }
+  }
+
+  getSigner(transport: Transport, path: string, provider?: ethers.providers.Provider): EthersLedgerSigner {
+    return new EthersLedgerSigner(transport, path, provider, this.emitter)
+  }
 }

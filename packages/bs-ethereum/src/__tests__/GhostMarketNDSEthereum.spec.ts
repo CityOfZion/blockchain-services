@@ -1,11 +1,11 @@
-import { BSEthereumHelper } from '../BSEthereumHelper'
-import { GhostMarketNDSEthereum } from '../GhostMarketNDSEthereum'
+import { BSEthereumConstants } from '../constants/BSEthereumConstants'
+import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 
 let ghostMarketNDSEthereum: GhostMarketNDSEthereum
 
 describe.skip('GhostMarketNDSEthereum', () => {
   beforeAll(() => {
-    ghostMarketNDSEthereum = new GhostMarketNDSEthereum(BSEthereumHelper.DEFAULT_NETWORK)
+    ghostMarketNDSEthereum = new GhostMarketNDSEthereum(BSEthereumConstants.DEFAULT_NETWORK)
   })
 
   it('Get NFT', async () => {

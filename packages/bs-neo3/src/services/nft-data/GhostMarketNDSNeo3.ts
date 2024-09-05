@@ -1,8 +1,8 @@
 import { GetNftParam, GetNftsByAddressParams, Network, NftResponse, NftsResponse } from '@cityofzion/blockchain-service'
 import axios from 'axios'
 import qs from 'query-string'
-import { BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
 import { RpcNDSNeo3 } from './RpcNDSNeo3'
+import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 
 type GhostMarketNFT = {
   tokenId: string

@@ -9,7 +9,7 @@ import {
   FlamingoSwapTokens,
 } from '../constants/FlamingoSwapConstants'
 import { FlamingoSwapRouteHandler } from '../services/swap/handlers'
-import { BSNeo3NetworkId } from './BSNeo3Helper'
+import { BSNeo3NetworkId } from '../constants/BSNeo3Constants'
 
 export class FlamingoSwapHelper {
   static listSwappableTokensSymbol(network: Network<BSNeo3NetworkId>): string[] {

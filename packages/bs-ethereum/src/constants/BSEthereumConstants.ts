@@ -19,18 +19,19 @@ export type BSEthereumNetworkId = NetworkId<
   | '12227332'
 >
 
-export class BSEthereumHelper {
+export class BSEthereumConstants {
   static DEFAULT_DECIMALS = 18
 
   static DEFAULT_GAS_LIMIT = 0x5208
 
-  static #NATIVE_ASSET: Token = {
+  static NATIVE_ASSET: Token = {
     decimals: 18,
     hash: '-',
     name: 'ETH',
     symbol: 'ETH',
   }
-  static #NATIVE_SYMBOL_BY_NETWORK_ID: Record<BSEthereumNetworkId, string> = {
+
+  static NATIVE_SYMBOL_BY_NETWORK_ID: Record<BSEthereumNetworkId, string> = {
     '1': 'ETH',
     '10': 'ETH',
     '25': 'CRO',
@@ -49,7 +50,7 @@ export class BSEthereumHelper {
     '12227332': 'GAS',
   }
 
-  static #RPC_LIST_BY_NETWORK_ID: Record<BSEthereumNetworkId, string[]> = {
+  static RPC_LIST_BY_NETWORK_ID: Record<BSEthereumNetworkId, string[]> = {
     '1': [
       'https://eth.llamarpc.com',
       'https://mainnet.infura.io/v3/',
@@ -142,8 +143,7 @@ export class BSEthereumHelper {
     '12227332': ['https://neoxt4seed1.ngd.network'],
   }
 
-  static DERIVATION_PATH = "m/44'/60'/0'/0/?"
-  static DEFAULT_PATH = "44'/60'/0'/0/0"
+  static DEFAULT_BIP44_DERIVATION_PATH = "m/44'/60'/0'/0/?"
 
   static NEOX_TESTNET_NETWORK_ID: BSEthereumNetworkId = '12227332'
   static NEOX_MAINNET_NETWORK_ID: BSEthereumNetworkId = '47763'
@@ -152,12 +152,12 @@ export class BSEthereumHelper {
   static NEOX_TESTNET_NETWORK: Network<BSEthereumNetworkId> = {
     id: this.NEOX_TESTNET_NETWORK_ID,
     name: 'NeoX Testnet',
-    url: this.#RPC_LIST_BY_NETWORK_ID[this.NEOX_TESTNET_NETWORK_ID][0],
+    url: this.RPC_LIST_BY_NETWORK_ID[this.NEOX_TESTNET_NETWORK_ID][0],
   }
   static NEOX_MAINNET_NETWORK: Network<BSEthereumNetworkId> = {
     id: this.NEOX_MAINNET_NETWORK_ID,
     name: 'NeoX Mainnet',
-    url: this.#RPC_LIST_BY_NETWORK_ID[this.NEOX_MAINNET_NETWORK_ID][0],
+    url: this.RPC_LIST_BY_NETWORK_ID[this.NEOX_MAINNET_NETWORK_ID][0],
   }
   static NEOX_NETWORKS: Network<BSEthereumNetworkId>[] = [this.NEOX_TESTNET_NETWORK, this.NEOX_MAINNET_NETWORK]
 
@@ -182,57 +182,57 @@ export class BSEthereumHelper {
     {
       id: '1',
       name: 'Ethereum Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['1'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['1'][0],
     },
     {
       id: '10',
       name: 'Optimism Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['10'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['10'][0],
     },
     {
       id: '25',
       name: 'Cronos Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['25'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['25'][0],
     },
     {
       id: '56',
       name: 'Binance Smart Chain Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['56'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['56'][0],
     },
     {
       id: '137',
       name: 'Polygon Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['137'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['137'][0],
     },
     {
       id: '250',
       name: 'Fantom Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['250'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['250'][0],
     },
     {
       id: '8453',
       name: 'Base Protocol Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['8453'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['8453'][0],
     },
     {
       id: '42161',
       name: 'Arbitrum Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['42161'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['42161'][0],
     },
     {
       id: '42220',
       name: 'Celo Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['42220'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['42220'][0],
     },
     {
       id: '43114',
       name: 'Avalanche Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['43114'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['43114'][0],
     },
     {
       id: '59144',
       name: 'Linea Mainnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['59144'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['59144'][0],
     },
     this.NEOX_MAINNET_NETWORK,
   ]
@@ -240,43 +240,21 @@ export class BSEthereumHelper {
     {
       id: '1101',
       name: 'Polygon zkEVM Testnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['1101'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['1101'][0],
     },
     {
       id: '80002',
       name: 'Polygon Testnet Amoy',
-      url: this.#RPC_LIST_BY_NETWORK_ID['80002'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['80002'][0],
     },
     {
       id: '11155111',
       name: 'Sepolia Testnet',
-      url: this.#RPC_LIST_BY_NETWORK_ID['11155111'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID['11155111'][0],
     },
     this.NEOX_TESTNET_NETWORK,
   ]
   static ALL_NETWORKS: Network<BSEthereumNetworkId>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
 
   static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
-
-  static getNativeAsset(network: Network<BSEthereumNetworkId>) {
-    const symbol = this.getNativeSymbol(network)
-
-    return { ...this.#NATIVE_ASSET, symbol, name: symbol }
-  }
-
-  static getNativeSymbol(network: Network<BSEthereumNetworkId>) {
-    return this.#NATIVE_SYMBOL_BY_NETWORK_ID[network.id] ?? 'ETH'
-  }
-
-  static getRpcList(network: Network<BSEthereumNetworkId>) {
-    return this.#RPC_LIST_BY_NETWORK_ID[network.id] ?? []
-  }
-
-  static isMainnet(network: Network<BSEthereumNetworkId>) {
-    return this.MAINNET_NETWORK_IDS.includes(network.id)
-  }
-
-  static normalizeHash(hash: string): string {
-    return hash.startsWith('0x') ? hash.slice(2) : hash
-  }
 }

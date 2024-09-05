@@ -1,5 +1,6 @@
 import { BuildNftUrlParams, ExplorerService, Network } from '@cityofzion/blockchain-service'
-import { BSNeoLegacyNetworkId, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
+import { BSNeoLegacyHelper } from './BSNeoLegacyHelper'
+import { BSNeoLegacyNetworkId } from './BsNeoLegacyConstants'
 
 export class NeoTubeESNeoLegacy implements ExplorerService {
   #network: Network<BSNeoLegacyNetworkId>

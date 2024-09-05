@@ -1,7 +1,7 @@
-import { BSEthereumHelper } from '../BSEthereumHelper'
-import { MoralisBDSEthereum } from '../MoralisBDSEthereum'
+import { BSEthereumConstants } from '../constants/BSEthereumConstants'
+import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 
-const moralisBDSEthereum = new MoralisBDSEthereum(BSEthereumHelper.DEFAULT_NETWORK)
+const moralisBDSEthereum = new MoralisBDSEthereum(BSEthereumConstants.DEFAULT_NETWORK)
 
 describe('MoralisBDSEthereum', () => {
   it('Should be able to get transaction - %s', async () => {

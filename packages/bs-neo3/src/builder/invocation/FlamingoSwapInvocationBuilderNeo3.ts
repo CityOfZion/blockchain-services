@@ -2,9 +2,9 @@ import { Network, SwapServiceSwapToReceiveArgs, SwapServiceSwapToUseArgs, Token 
 import { tx, u } from '@cityofzion/neon-core'
 import { Arg, ContractInvocation, ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
 import { FlamingoSwapConstants, FlamingoSwapScriptHashes } from '../../constants/FlamingoSwapConstants'
-import { BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
 import { FlamingoSwapHelper } from '../../helpers/FlamingoSwapHelper'
 import { NeonDappKitInvocationBuilderNeo3 } from './NeonDappKitInvocationBuilderNeo3'
+import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 
 export class FlamingoSwapInvocationBuilderNeo3 {
   static swapInvocation(

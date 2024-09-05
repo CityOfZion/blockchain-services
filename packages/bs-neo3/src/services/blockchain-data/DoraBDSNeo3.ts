@@ -12,8 +12,9 @@ import {
 } from '@cityofzion/blockchain-service'
 import { NeoRESTApi } from '@cityofzion/dora-ts/dist/api'
 import { u, wallet } from '@cityofzion/neon-js'
-import { BSNeo3Helper, BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
+import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
+import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 
 const NeoRest = new NeoRESTApi({
   doraUrl: 'https://dora.coz.io',
