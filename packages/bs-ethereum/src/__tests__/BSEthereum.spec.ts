@@ -85,12 +85,14 @@ describe('BSEthereum', () => {
 
     const fee = await bsEthereum.calculateTransferFee({
       senderAccount: account,
-      intent: {
-        amount: '0.1',
-        receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-        tokenDecimals: 18,
-        tokenHash: '0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc',
-      },
+      intents: [
+        {
+          amount: '0.1',
+          receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
+          tokenDecimals: 18,
+          tokenHash: '0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc',
+        },
+      ],
     })
 
     expect(fee).toEqual(expect.any(String))
@@ -99,14 +101,16 @@ describe('BSEthereum', () => {
   it.skip('Should be able to transfer a native token', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 
-    const transactionHash = await bsEthereum.transfer({
+    const [transactionHash] = await bsEthereum.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-        tokenDecimals: 18,
-        tokenHash: '-',
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
+          tokenDecimals: 18,
+          tokenHash: '-',
+        },
+      ],
     })
 
     expect(transactionHash).toEqual(expect.any(String))
@@ -115,14 +119,16 @@ describe('BSEthereum', () => {
   it.skip('Should be able to transfer a ERC20 token', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 
-    const transactionHash = await bsEthereum.transfer({
+    const [transactionHash] = await bsEthereum.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00001',
-        receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-        tokenDecimals: 6,
-        tokenHash: '0x1291070C5f838DCCDddc56312893d3EfE9B372a8',
-      },
+      intents: [
+        {
+          amount: '0.00001',
+          receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
+          tokenDecimals: 6,
+          tokenHash: '0x1291070C5f838DCCDddc56312893d3EfE9B372a8',
+        },
+      ],
     })
 
     expect(transactionHash).toEqual(expect.any(String))
@@ -133,14 +139,16 @@ describe('BSEthereum', () => {
     const service = new BSEthereum('neo3', network, async () => transport)
     const [account] = await service.ledgerService.getAccounts(transport)
 
-    const transactionHash = await service.transfer({
+    const [transactionHash] = await service.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-        tokenDecimals: 18,
-        tokenHash: '-',
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+          tokenDecimals: 18,
+          tokenHash: '-',
+        },
+      ],
       isLedger: true,
     })
 
@@ -148,20 +156,22 @@ describe('BSEthereum', () => {
     await transport.close()
   }, 50000)
 
-  it.only('Should be able to transfer a ERC20 token with ledger', async () => {
+  it.skip('Should be able to transfer a ERC20 token with ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSEthereum('neo3', network, async () => transport)
 
     const [account] = await service.ledgerService.getAccounts(transport)
 
-    const transactionHash = await service.transfer({
+    const [transactionHash] = await service.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-        tokenDecimals: 18,
-        tokenHash: '0xcf185f2F3Fe19D82bFdcee59E3330FD7ba5f27ce',
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+          tokenDecimals: 18,
+          tokenHash: '0xcf185f2F3Fe19D82bFdcee59E3330FD7ba5f27ce',
+        },
+      ],
       isLedger: true,
     })
 
@@ -178,14 +188,17 @@ describe('BSEthereum', () => {
     const polygonNetwork = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '80002')!
     const service = new BSEthereum('neo3', polygonNetwork)
     const account = service.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
-    const transactionHash = await service.transfer({
+
+    const [transactionHash] = await service.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-        tokenDecimals: 18,
-        tokenHash: '-',
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+          tokenDecimals: 18,
+          tokenHash: '-',
+        },
+      ],
     })
 
     expect(transactionHash).toEqual(expect.any(String))
@@ -194,16 +207,67 @@ describe('BSEthereum', () => {
   it.skip('Should be able to transfer a native token using a EVM', async () => {
     const service = new BSEthereum('neo3', BSEthereumConstants.NEOX_TESTNET_NETWORK)
     const account = service.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
-    const transactionHash = await service.transfer({
+
+    const [transactionHash] = await service.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.0000000000001',
-        receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-        tokenDecimals: 18,
-        tokenHash: '-',
-      },
+      intents: [
+        {
+          amount: '0.0000000000001',
+          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+          tokenDecimals: 18,
+          tokenHash: '-',
+        },
+      ],
     })
 
     expect(transactionHash).toEqual(expect.any(String))
   }, 60000)
+
+  it.skip('Should be able to calculate transfer fee for more than one intent', async () => {
+    const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+
+    const fee = await bsEthereum.calculateTransferFee({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+          tokenDecimals: 18,
+          tokenHash: '-',
+        },
+        {
+          amount: '0.00000001',
+          receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
+          tokenDecimals: 18,
+          tokenHash: '-',
+        },
+      ],
+    })
+
+    expect(fee).toEqual(expect.any(String))
+  }, 50000)
+
+  it.only('Should be able to transfer more than one intent', async () => {
+    const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+
+    const transactionHashes = await bsEthereum.transfer({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+          tokenDecimals: 18,
+          tokenHash: '-',
+        },
+        {
+          amount: '0.00000001',
+          receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
+          tokenDecimals: 18,
+          tokenHash: '-',
+        },
+      ],
+    })
+
+    expect(transactionHashes).toHaveLength(2)
+  }, 50000)
 })

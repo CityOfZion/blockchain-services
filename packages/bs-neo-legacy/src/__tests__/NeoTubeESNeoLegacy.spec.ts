@@ -1,5 +1,5 @@
-import { BSNeoLegacyConstants } from '../BsNeoLegacyConstants'
-import { NeoTubeESNeoLegacy } from '../NeoTubeESNeoLegacy'
+import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
+import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
 
 let neoTubeESNeoLegacy: NeoTubeESNeoLegacy
 

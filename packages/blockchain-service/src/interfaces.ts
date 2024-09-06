@@ -32,7 +32,7 @@ export type IntentTransferParam = {
 
 export type TransferParam = {
   senderAccount: Account
-  intent: IntentTransferParam
+  intents: IntentTransferParam[]
   tipIntent?: IntentTransferParam
   priorityFee?: string
   isLedger?: boolean
@@ -54,7 +54,7 @@ export interface BlockchainService<BSCustomName extends string = string, BSAvail
   validateAddress(address: string): boolean
   validateEncrypted(keyOrJson: string): boolean
   validateKey(key: string): boolean
-  transfer(param: TransferParam): Promise<string>
+  transfer(param: TransferParam): Promise<string[]>
 }
 
 export interface BSCalculableFee {

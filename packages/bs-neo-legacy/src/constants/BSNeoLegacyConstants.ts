@@ -1,5 +1,5 @@
-import mainnetTokens from './assets/tokens/mainnet.json'
-import commonTokens from './assets/tokens/common.json'
+import mainnetTokens from '../assets/tokens/mainnet.json'
+import commonTokens from '../assets/tokens/common.json'
 
 import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
 

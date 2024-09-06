@@ -106,10 +106,10 @@ export class BSNeo3<BSCustomName extends string = string>
     }
   }
 
-  #buildTransferInvocation({ intent, tipIntent }: TransferParam, account: Neon.wallet.Account): ContractInvocation[] {
-    const intents = [intent, ...(tipIntent ? [tipIntent] : [])]
+  #buildTransferInvocation({ intents, tipIntent }: TransferParam, account: Neon.wallet.Account): ContractInvocation[] {
+    const concatIntents = [...intents, ...(tipIntent ? [tipIntent] : [])]
 
-    const invocations: ContractInvocation[] = intents.map(intent => {
+    const invocations: ContractInvocation[] = concatIntents.map(intent => {
       return {
         operation: 'transfer',
         scriptHash: intent.tokenHash,
@@ -218,7 +218,7 @@ export class BSNeo3<BSCustomName extends string = string>
     return total.toString()
   }
 
-  async transfer(param: TransferParam): Promise<string> {
+  async transfer(param: TransferParam): Promise<string[]> {
     const { neonJsAccount, signingCallback } = await this.generateSigningCallback(param.senderAccount, param.isLedger)
 
     const invoker = await NeonInvoker.init({
@@ -234,7 +234,7 @@ export class BSNeo3<BSCustomName extends string = string>
       signers: [],
     })
 
-    return transactionHash
+    return [transactionHash]
   }
 
   async claim(account: Account, isLedger?: boolean): Promise<string> {

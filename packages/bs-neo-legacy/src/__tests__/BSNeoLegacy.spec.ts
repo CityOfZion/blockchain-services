@@ -1,6 +1,6 @@
-import { BSNeoLegacy } from '../BSNeoLegacy'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
-import { BSNeoLegacyConstants } from '../BsNeoLegacyConstants'
+import { BSNeoLegacy } from '../services/BSNeoLegacy'
+import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 
 let bsNeoLegacy: BSNeoLegacy
 
@@ -76,14 +76,16 @@ describe('BSNeoLegacy', () => {
     const gasBalance = balance.find(b => b.token.symbol === 'GAS')!
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
 
-    const transactionHash = await bsNeoLegacy.transfer({
+    const [transactionHash] = await bsNeoLegacy.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
-        tokenHash: gasBalance.token.hash,
-        tokenDecimals: gasBalance.token.decimals,
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
+          tokenHash: gasBalance.token.hash,
+          tokenDecimals: gasBalance.token.decimals,
+        },
+      ],
     })
 
     expect(transactionHash).toEqual(expect.any(String))
@@ -96,14 +98,16 @@ describe('BSNeoLegacy', () => {
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
     expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000001)
 
-    const transactionHash = await bsNeoLegacy.transfer({
+    const [transactionHash] = await bsNeoLegacy.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
-        tokenHash: LXBalance.token.hash,
-        tokenDecimals: LXBalance.token.decimals,
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
+          tokenHash: LXBalance.token.hash,
+          tokenDecimals: LXBalance.token.decimals,
+        },
+      ],
     })
 
     expect(transactionHash).toEqual(expect.any(String))
@@ -118,20 +122,60 @@ describe('BSNeoLegacy', () => {
     const gasBalance = balance.find(item => item.token.symbol === bsNeoLegacy.feeToken.symbol)!
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
 
-    const transactionHash = await bsNeoLegacy.transfer({
+    const [transactionHash] = await bsNeoLegacy.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
-        tokenHash: LXBalance.token.hash,
-        tokenDecimals: LXBalance.token.decimals,
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
+          tokenHash: LXBalance.token.hash,
+          tokenDecimals: LXBalance.token.decimals,
+        },
+      ],
       tipIntent: {
         amount: '0.00000001',
         receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
         tokenHash: gasBalance.token.hash,
         tokenDecimals: gasBalance.token.decimals,
       },
+    })
+
+    expect(transactionHash).toEqual(expect.any(String))
+  })
+
+  it.only('Should be able to transfer more than one intent', async () => {
+    bsNeoLegacy.setNetwork(BSNeoLegacyConstants.DEFAULT_NETWORK)
+    const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
+
+    const LXBalance = balance.find(item => item.token.symbol === 'LX')!
+    expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000002)
+
+    const gasBalance = balance.find(item => item.token.symbol === bsNeoLegacy.feeToken.symbol)!
+    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
+
+    const [transactionHash] = await bsNeoLegacy.transfer({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
+          tokenHash: LXBalance.token.hash,
+          tokenDecimals: LXBalance.token.decimals,
+        },
+        {
+          amount: '0.00000001',
+          receiverAddress: 'AJybR5Uhwvs7WqGaruQ38dkyZkaKG9tyDK',
+          tokenHash: LXBalance.token.hash,
+          tokenDecimals: LXBalance.token.decimals,
+        },
+        {
+          amount: '0.00000001',
+          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
+          tokenHash: gasBalance.token.hash,
+          tokenDecimals: gasBalance.token.decimals,
+        },
+      ],
     })
 
     expect(transactionHash).toEqual(expect.any(String))
