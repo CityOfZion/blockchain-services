@@ -1,14 +1,14 @@
 import { Network, SwapRoute } from '@cityofzion/blockchain-service'
 import BigNumber from 'bignumber.js'
 import { FlamingoSwapConstants } from '../../constants/FlamingoSwapConstants'
-import { BSNeo3Helper, BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
 import { FlamingoSwapHelper } from '../../helpers/FlamingoSwapHelper'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 
 let network: Network<BSNeo3NetworkId>
 
 describe('FlamingoSwapHelper', () => {
   beforeEach(() => {
-    network = BSNeo3Helper.DEFAULT_NETWORK
+    network = BSNeo3Constants.DEFAULT_NETWORK
   })
 
   it('Should be able to get flamingo swap pools', () => {

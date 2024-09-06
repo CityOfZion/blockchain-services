@@ -7,8 +7,9 @@ import {
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { BSEthereumHelper, BSEthereumNetworkId } from './BSEthereumHelper'
-import { BlockscoutNeoXBDSEthereum } from './BlockscoutNeoXBDSEthereum'
+import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
+import { BlockscoutBDSEthereum } from '../blockchain-data/BlockscoutBDSEthereum'
 
 interface BlockscoutTokenPriceResponse {
   exchange_rate: string
@@ -18,7 +19,7 @@ interface BlockscoutStatsResponse {
   coin_price: string
 }
 
-export class BlockscoutNeoXEDSEthereum extends CryptoCompareEDS implements ExchangeDataService {
+export class BlockscoutEDSEthereum extends CryptoCompareEDS implements ExchangeDataService {
   readonly #network: Network<BSEthereumNetworkId>
 
   constructor(network: Network) {
@@ -28,11 +29,11 @@ export class BlockscoutNeoXEDSEthereum extends CryptoCompareEDS implements Excha
 
   async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
     if (!BSEthereumHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
-    if (!BlockscoutNeoXBDSEthereum.isSupported(this.#network)) {
+    if (!BlockscoutBDSEthereum.isSupported(this.#network)) {
       throw new Error('Exchange is not supported on this network')
     }
 
-    const client = BlockscoutNeoXBDSEthereum.getClient(this.#network)
+    const client = BlockscoutBDSEthereum.getClient(this.#network)
 
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
 
@@ -43,9 +44,11 @@ export class BlockscoutNeoXEDSEthereum extends CryptoCompareEDS implements Excha
         if (BSEthereumHelper.normalizeHash(token.hash) !== BSEthereumHelper.normalizeHash(nativeToken.hash)) {
           const { data } = await client.get<BlockscoutTokenPriceResponse>(`/tokens/${token.hash}`)
 
+          const exchangeRateNumber = Number(data.exchange_rate)
+
           prices.push({
             token,
-            usdPrice: Number(data.exchange_rate),
+            usdPrice: isNaN(exchangeRateNumber) ? 0 : exchangeRateNumber,
           })
 
           return
@@ -53,9 +56,11 @@ export class BlockscoutNeoXEDSEthereum extends CryptoCompareEDS implements Excha
 
         const { data } = await client.get<BlockscoutStatsResponse>(`/stats`)
 
+        const coinPriceNumber = Number(data.coin_price)
+
         prices.push({
           token,
-          usdPrice: Number(data.coin_price),
+          usdPrice: isNaN(coinPriceNumber) ? 0 : coinPriceNumber,
         })
       } catch {
         prices.push({

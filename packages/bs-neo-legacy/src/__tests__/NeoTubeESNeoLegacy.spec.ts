@@ -1,11 +1,11 @@
-import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
+import { BSNeoLegacyConstants } from '../BsNeoLegacyConstants'
 import { NeoTubeESNeoLegacy } from '../NeoTubeESNeoLegacy'
 
 let neoTubeESNeoLegacy: NeoTubeESNeoLegacy
 
 describe('NeoTubeESNeoLegacy', () => {
   beforeAll(() => {
-    const network = BSNeoLegacyHelper.DEFAULT_NETWORK
+    const network = BSNeoLegacyConstants.DEFAULT_NETWORK
     neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(network)
   })
 

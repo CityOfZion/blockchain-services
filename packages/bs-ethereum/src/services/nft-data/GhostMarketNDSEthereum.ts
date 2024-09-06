@@ -3,7 +3,7 @@ import qs from 'query-string'
 import axios from 'axios'
 
 import { RpcNDSEthereum } from './RpcNDSEthereum'
-import { BSEthereumNetworkId } from './BSEthereumHelper'
+import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 
 type GhostMarketNFT = {
   tokenId: string

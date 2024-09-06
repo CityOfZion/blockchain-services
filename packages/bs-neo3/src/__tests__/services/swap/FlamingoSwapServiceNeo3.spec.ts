@@ -7,17 +7,18 @@ import {
   Token,
 } from '@cityofzion/blockchain-service'
 import { FlamingoSwapConstants } from '../../../constants/FlamingoSwapConstants'
-import { BSNeo3Helper, BSNeo3NetworkId } from '../../../helpers/BSNeo3Helper'
-import { NeonDappKitLedgerServiceNeo3 } from '../../../services/ledger/NeonDappKitLedgerServiceNeo3'
 import { FlamingoSwapServiceNeo3 } from '../../../services/swap/FlamingoSwapServiceNeo3'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
+import { BSNeo3 } from '../../../BSNeo3'
 
 let flamingoSwapServiceNeo3: FlamingoSwapServiceNeo3
 let network: Network<BSNeo3NetworkId>
 
 describe('FlamingoSwapServiceNeo3', () => {
   beforeEach(() => {
-    network = BSNeo3Helper.DEFAULT_NETWORK
-    flamingoSwapServiceNeo3 = new FlamingoSwapServiceNeo3(network, new NeonDappKitLedgerServiceNeo3())
+    network = BSNeo3Constants.DEFAULT_NETWORK
+    const bsNeo3 = new BSNeo3('neo3', network)
+    flamingoSwapServiceNeo3 = new FlamingoSwapServiceNeo3(network, bsNeo3)
   })
 
   it('Should be able to build swap invocation args with type "swapTokenToUse" - GAS to SWTH', async () => {

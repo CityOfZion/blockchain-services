@@ -1,11 +1,11 @@
-import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
+import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 
 let ghostMarketNDSNeo3: GhostMarketNDSNeo3
 
 describe('GhostMarketNDSNeo3', () => {
   beforeAll(() => {
-    ghostMarketNDSNeo3 = new GhostMarketNDSNeo3(BSNeo3Helper.DEFAULT_NETWORK)
+    ghostMarketNDSNeo3 = new GhostMarketNDSNeo3(BSNeo3Constants.DEFAULT_NETWORK)
   })
 
   it('Get NFT', async () => {

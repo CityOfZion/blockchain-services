@@ -1,13 +1,14 @@
 import { Network } from '@cityofzion/blockchain-service'
-import { BSNeo3Helper, BSNeo3NetworkId } from '../../../helpers/BSNeo3Helper'
 import { FlamingoEDSNeo3 } from '../../../services/exchange-data/FlamingoEDSNeo3'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
+import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 
 let flamingoEDSNeo3: FlamingoEDSNeo3
 let network: Network<BSNeo3NetworkId>
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    network = BSNeo3Helper.DEFAULT_NETWORK
+    network = BSNeo3Constants.DEFAULT_NETWORK
     flamingoEDSNeo3 = new FlamingoEDSNeo3(network)
   })
 

@@ -11,10 +11,11 @@ import {
   TransactionsByAddressResponse,
 } from '@cityofzion/blockchain-service'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
-import { BSEthereumHelper, BSEthereumNetworkId } from './BSEthereumHelper'
 import axios from 'axios'
 import { ethers } from 'ethers'
-import { ERC20_ABI } from './assets/abis/ERC20'
+import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
+import { ERC20_ABI } from '../../assets/abis/ERC20'
 
 type MoralisNativeBalanceResponse = {
   balance: string

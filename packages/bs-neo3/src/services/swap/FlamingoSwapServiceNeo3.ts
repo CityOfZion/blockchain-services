@@ -9,18 +9,15 @@ import {
   SwapServiceSwapToUseArgs,
   Token,
 } from '@cityofzion/blockchain-service'
-import { wallet } from '@cityofzion/neon-core'
 import { NeonInvoker } from '@cityofzion/neon-dappkit'
-import { api } from '@cityofzion/neon-js'
-import Transport from '@ledgerhq/hw-transport'
 import EventEmitter from 'events'
 import cloneDeep from 'lodash.clonedeep'
 import TypedEmitter from 'typed-emitter'
 import { FlamingoSwapInvocationBuilderNeo3 } from '../../builder/invocation/FlamingoSwapInvocationBuilderNeo3'
-import { BSNeo3NetworkId } from '../../helpers/BSNeo3Helper'
 import { FlamingoSwapHelper } from '../../helpers/FlamingoSwapHelper'
-import { NeonDappKitLedgerServiceNeo3 } from '../ledger/NeonDappKitLedgerServiceNeo3'
 import { FlamingoSwapDetailsHandler, FlamingoSwapRouteHandler, FlamingoSwapSocketService } from './handlers'
+import { BSNeo3 } from '../../BSNeo3'
+import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 
 type BuildSwapInvocationArgs = SwapServiceSwapToUseArgs<BSNeo3NetworkId> | SwapServiceSwapToReceiveArgs<BSNeo3NetworkId>
 
@@ -29,7 +26,7 @@ type LastAmountChanged = 'amountToReceive' | 'amountToUse' | null
 export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
   eventEmitter: TypedEmitter<SwapServiceEvents>
 
-  #ledgerService?: NeonDappKitLedgerServiceNeo3
+  #blockchainService: BSNeo3
   #network: Network<BSNeo3NetworkId>
   #privateAccountToUse: Account | null = null
   #privateTokenToReceive: Token | null = null
@@ -47,10 +44,10 @@ export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
   #privateLastAmountChanged: LastAmountChanged = null
   #socket: FlamingoSwapSocketService = new FlamingoSwapSocketService()
 
-  constructor(network: Network<BSNeo3NetworkId>, ledgerService?: NeonDappKitLedgerServiceNeo3) {
+  constructor(network: Network<BSNeo3NetworkId>, blockchainService: BSNeo3) {
     this.eventEmitter = new EventEmitter() as TypedEmitter<SwapServiceEvents>
     this.#network = network
-    this.#ledgerService = ledgerService
+    this.#blockchainService = blockchainService
   }
 
   buildSwapInvocationArgs(): BuildSwapInvocationArgs {
@@ -97,28 +94,16 @@ export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
 
   async swap(isLedger?: boolean): Promise<void> {
     const swapInvocationArgs = this.buildSwapInvocationArgs()
+    if (!this.#accountToUse) throw new Error('Account to use is not set')
 
-    let ledgerTransport: Transport | undefined
-    let signingCallback: api.SigningFunction | undefined
-
-    if (isLedger) {
-      if (!this.#ledgerService) {
-        throw new Error('You must provide a ledger service to use Ledger')
-      }
-
-      if (!this.#ledgerService.getLedgerTransport) {
-        throw new Error('You must provide a getLedgerTransport function to use Ledger')
-      }
-
-      ledgerTransport = await this.#ledgerService.getLedgerTransport(this.#accountToUse!)
-      signingCallback = this.#ledgerService.getSigningCallback(ledgerTransport)
-    }
-
-    const account = new wallet.Account(this.#accountToUse!.key)
+    const { neonJsAccount, signingCallback } = await this.#blockchainService.generateSigningCallback(
+      this.#accountToUse,
+      isLedger
+    )
 
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#network.url,
-      account,
+      account: neonJsAccount,
       signingCallback,
     })
 

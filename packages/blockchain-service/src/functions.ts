@@ -1,4 +1,5 @@
 import {
+  Account,
   BlockchainService,
   BSCalculableFee,
   BSClaimable,
@@ -59,4 +60,42 @@ export async function waitForTransaction(service: BlockchainService, txId: strin
   } while (attempts < maxAttempts)
 
   return false
+}
+
+export async function fetchAccountsForBlockchainServices<BSCustomName extends string = string>(
+  blockchainServices: BlockchainService<BSCustomName>[],
+  getAccountCallback: (service: BlockchainService<BSCustomName>, index: number) => Promise<Account>
+): Promise<Map<BSCustomName, Account[]>> {
+  const accountsByBlockchainService = new Map<BSCustomName, Account[]>()
+
+  const promises = blockchainServices.map(async service => {
+    let index = 0
+    const accounts: Account[] = []
+    let shouldBreak = false
+
+    while (!shouldBreak) {
+      const generatedAccount = await getAccountCallback(service, index)
+
+      if (index !== 0) {
+        try {
+          const { transactions } = await service.blockchainDataService.getTransactionsByAddress({
+            address: generatedAccount.address,
+          })
+
+          if (!transactions || transactions.length <= 0) shouldBreak = true
+        } catch {
+          shouldBreak = true
+        }
+      }
+
+      accounts.push(generatedAccount)
+      index++
+    }
+
+    accountsByBlockchainService.set(service.blockchainName, accounts)
+  })
+
+  await Promise.all(promises)
+
+  return accountsByBlockchainService
 }

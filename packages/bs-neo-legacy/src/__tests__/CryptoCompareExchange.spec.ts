@@ -1,13 +1,14 @@
 import { Network } from '@cityofzion/blockchain-service'
-import { BSNeoLegacyHelper, BSNeoLegacyNetworkId } from '../BSNeoLegacyHelper'
+import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
 import { CryptoCompareEDSNeoLegacy } from '../CryptoCompareEDSNeoLegacy'
+import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../BsNeoLegacyConstants'
 
 let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
 let network: Network<BSNeoLegacyNetworkId>
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    network = BSNeoLegacyHelper.DEFAULT_NETWORK
+    network = BSNeoLegacyConstants.DEFAULT_NETWORK
     cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(network)
   })
 

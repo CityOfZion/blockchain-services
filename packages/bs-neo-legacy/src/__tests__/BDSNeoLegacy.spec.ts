@@ -1,8 +1,9 @@
 import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
 import { DoraBDSNeoLegacy } from '../DoraBDSNeoLegacy'
 import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
+import { BSNeoLegacyConstants } from '../BsNeoLegacyConstants'
 
-const network = BSNeoLegacyHelper.TESTNET_NETWORKS[0]
+const network = BSNeoLegacyConstants.TESTNET_NETWORKS[0]
 const tokens = BSNeoLegacyHelper.getTokens(network)
 const gasToken = tokens.find(t => t.symbol === 'GAS')!
 const doraBDSNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens)
@@ -35,7 +36,7 @@ describe('BDSNeoLegacy', () => {
     async (bdsNeoLegacy: BlockchainDataService) => {
       const address = 'AeGgZTTWPzyVtNiQRcpngkV75Xip1hznmi'
       try {
-        const response = await bdsNeoLegacy.getTransactionsByAddress({ address, page: 1 })
+        const response = await bdsNeoLegacy.getTransactionsByAddress({ address })
         response.transactions.forEach(transaction => {
           expect(transaction).toEqual(
             expect.objectContaining({

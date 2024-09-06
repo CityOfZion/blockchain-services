@@ -1,7 +1,8 @@
+import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from '../../../services/blockchain-data/RpcBDSNeo3'
 
-const network = BSNeo3Helper.TESTNET_NETWORKS[0]
+const network = BSNeo3Constants.TESTNET_NETWORKS[0]
 const tokens = BSNeo3Helper.getTokens(network)
 
 const GAS = tokens.find(token => token.symbol === 'GAS')!

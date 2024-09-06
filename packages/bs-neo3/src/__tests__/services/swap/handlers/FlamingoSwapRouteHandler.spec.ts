@@ -1,13 +1,13 @@
 import { Network, SwapRoute } from '@cityofzion/blockchain-service'
-import { BSNeo3Helper, BSNeo3NetworkId } from '../../../../helpers/BSNeo3Helper'
 import { FlamingoSwapHelper } from '../../../../helpers/FlamingoSwapHelper'
 import { FlamingoSwapRouteHandler } from '../../../../services/swap/handlers'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../../../constants/BSNeo3Constants'
 
 let network: Network<BSNeo3NetworkId>
 
 describe('FlamingoSwapRouteHandler', () => {
   beforeEach(() => {
-    network = BSNeo3Helper.DEFAULT_NETWORK
+    network = BSNeo3Constants.DEFAULT_NETWORK
   })
 
   it('should calculate best route for swap - GAS to NEO', async () => {

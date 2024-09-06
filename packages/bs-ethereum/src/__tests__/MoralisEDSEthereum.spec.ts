@@ -1,14 +1,15 @@
 import { Network } from '@cityofzion/blockchain-service'
-import { BSEthereumHelper, BSEthereumNetworkId } from '../BSEthereumHelper'
-import { MoralisBDSEthereum } from '../MoralisBDSEthereum'
-import { MoralisEDSEthereum } from '../MoralisEDSEthereum'
+import { MoralisEDSEthereum } from '../services/exchange-data/MoralisEDSEthereum'
+import { BSEthereumConstants, BSEthereumNetworkId } from '../constants/BSEthereumConstants'
+import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
+import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 
 let moralisEDSEthereum: MoralisEDSEthereum
 let network: Network<BSEthereumNetworkId>
 
 describe('FlamingoEDSNeo3', () => {
   beforeAll(() => {
-    network = BSEthereumHelper.DEFAULT_NETWORK
+    network = BSEthereumConstants.DEFAULT_NETWORK
     const moralisBDSEthereum = new MoralisBDSEthereum(network)
     moralisEDSEthereum = new MoralisEDSEthereum(network, moralisBDSEthereum)
   })

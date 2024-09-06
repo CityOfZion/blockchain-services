@@ -1,10 +1,13 @@
-import { BSEthereumHelper } from '../BSEthereumHelper'
-import { RpcBDSEthereum } from '../RpcBDSEthereum'
+import { BSEthereumConstants } from '../constants/BSEthereumConstants'
+import { RpcBDSEthereum } from '../services/blockchain-data/RpcBDSEthereum'
 
-const network = BSEthereumHelper.TESTNET_NETWORKS.find(network => network.id === '11155111')!
-const rpcBDSEthereum = new RpcBDSEthereum(network)
+const network = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '11155111')!
+let rpcBDSEthereum: RpcBDSEthereum
 
 describe('RpcBDSEthereum', () => {
+  beforeAll(async () => {
+    rpcBDSEthereum = new RpcBDSEthereum(network)
+  })
   it('Should be able to get transaction', async () => {
     const hash = '0x48eac645fac2280d7ac89a319372d7a38d52516f8b3003574bfaaed31b471ff3'
     const transaction = await rpcBDSEthereum.getTransaction(hash)
@@ -28,7 +31,7 @@ describe('RpcBDSEthereum', () => {
         })
       )
     })
-  })
+  }, 60000)
 
   it('Should be able to get eth info', async () => {
     const hash = '-'

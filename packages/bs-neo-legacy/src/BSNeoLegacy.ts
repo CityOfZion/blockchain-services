@@ -8,7 +8,6 @@ import {
   Token,
   Network,
   TransferParam,
-  AccountWithDerivationPath,
   BSWithExplorerService,
   ExplorerService,
 } from '@cityofzion/blockchain-service'
@@ -16,14 +15,15 @@ import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
 import { CryptoCompareEDSNeoLegacy } from './CryptoCompareEDSNeoLegacy'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
-import { BSNeoLegacyNetworkId, BSNeoLegacyHelper } from './BSNeoLegacyHelper'
+import { BSNeoLegacyHelper } from './BSNeoLegacyHelper'
 import { NeoTubeESNeoLegacy } from './NeoTubeESNeoLegacy'
+import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from './BsNeoLegacyConstants'
 
 export class BSNeoLegacy<BSCustomName extends string = string>
   implements BlockchainService<BSCustomName, BSNeoLegacyNetworkId>, BSClaimable, BSWithExplorerService
 {
   readonly blockchainName: BSCustomName
-  readonly derivationPath: string
+  readonly bip44DerivationPath: string
 
   feeToken!: Token
   claimToken!: Token
@@ -37,11 +37,11 @@ export class BSNeoLegacy<BSCustomName extends string = string>
   legacyNetwork: string
 
   constructor(blockchainName: BSCustomName, network?: Network<BSNeoLegacyNetworkId>) {
-    network = network ?? BSNeoLegacyHelper.DEFAULT_NETWORK
+    network = network ?? BSNeoLegacyConstants.DEFAULT_NETWORK
 
     this.blockchainName = blockchainName
-    this.legacyNetwork = BSNeoLegacyHelper.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
-    this.derivationPath = BSNeoLegacyHelper.DERIVATION_PATH
+    this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
+    this.bip44DerivationPath = BSNeoLegacyConstants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.setNetwork(network)
   }
@@ -56,7 +56,7 @@ export class BSNeoLegacy<BSCustomName extends string = string>
   }
 
   setNetwork(network: Network<BSNeoLegacyNetworkId>) {
-    if (!BSNeoLegacyHelper.ALL_NETWORK_IDS.includes(network.id)) throw new Error('Custom network is not supported')
+    if (!BSNeoLegacyConstants.ALL_NETWORK_IDS.includes(network.id)) throw new Error('Custom network is not supported')
 
     this.#setTokens(network)
 
@@ -78,13 +78,13 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): AccountWithDerivationPath {
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {
     keychain.importMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
-    const path = this.derivationPath.replace('?', index.toString())
-    const childKey = keychain.generateChildKey('neo', path)
+    const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
+    const childKey = keychain.generateChildKey('neo', bip44Path)
     const key = childKey.getWIF()
     const { address } = new wallet.Account(key)
-    return { address, key, type: 'wif', derivationPath: path }
+    return { address, key, type: 'wif', bip44Path }
   }
 
   generateAccountFromKey(key: string): Account {
@@ -117,7 +117,7 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     for (const intent of intents) {
       const tokenHashFixed = BSNeoLegacyHelper.normalizeHash(intent.tokenHash)
 
-      const nativeAsset = BSNeoLegacyHelper.NATIVE_ASSETS.find(
+      const nativeAsset = BSNeoLegacyConstants.NATIVE_ASSETS.find(
         asset => BSNeoLegacyHelper.normalizeHash(asset.hash) === tokenHashFixed
       )
       if (nativeAsset) {

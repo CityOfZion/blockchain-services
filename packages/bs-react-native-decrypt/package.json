@@ -63,7 +63,6 @@
   "engines": {
     "node": ">= 16.0.0"
   },
-  "packageManager": "^yarn@1.22.15",
   "react-native-builder-bob": {
     "source": "src",
     "output": "dist",

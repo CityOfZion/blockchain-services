@@ -4,12 +4,12 @@ import {
   TransactionsByAddressResponse,
   TransactionTransferAsset,
 } from '@cityofzion/blockchain-service'
-import { BlockscoutNeoXBDSEthereum } from '../BlockscoutNeoXBDSEthereum'
-import { BSEthereumHelper } from '../BSEthereumHelper'
+import { BSEthereumConstants } from '../constants/BSEthereumConstants'
+import { BlockscoutBDSEthereum } from '../services/blockchain-data/BlockscoutBDSEthereum'
 
-const network = BSEthereumHelper.NEOX_MAINNET_NETWORK
+const network = BSEthereumConstants.NEOX_TESTNET_NETWORK
 
-describe('BlockscoutNeoXBDSEthereum', () => {
+describe('BlockscoutBDSEthereum', () => {
   it('Should return transaction details for native assets (GAS)', async () => {
     const txId = '0x2d0ba54c93927a190f8b867c117738c3f577a4e2d9c115292818c39a31c0b166'
 
@@ -38,7 +38,7 @@ describe('BlockscoutNeoXBDSEthereum', () => {
       fee: '0.00084',
     }
 
-    const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
+    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(network)
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
@@ -85,14 +85,14 @@ describe('BlockscoutNeoXBDSEthereum', () => {
       fee: '0.00748844',
     }
 
-    const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
+    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(network)
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
   })
 
-  it.only('Should return transactions by address without next page', async () => {
-    const address = '0xd6BC5f7D2441A677218eBee5bCeE91d7f7a748E2'
+  it('Should return transactions by address', async () => {
+    const address = '0x5E1BE25D4A2De0083012f1B5A8030a7023fFA5bc'
 
     const expectedResponse: TransactionsByAddressResponse = {
       transactions: expect.arrayContaining([
@@ -105,10 +105,10 @@ describe('BlockscoutNeoXBDSEthereum', () => {
           transfers: expect.any(Array),
         }),
       ]),
-      nextPageParams: null,
+      nextPageParams: expect.any(Object),
     }
 
-    const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
+    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(network)
     const transactions = await blockscoutBDSNeoX.getTransactionsByAddress({ address })
     expect(transactions).toEqual(expectedResponse)
   })
@@ -123,7 +123,7 @@ describe('BlockscoutNeoXBDSEthereum', () => {
       symbol: 'USDT',
     }
 
-    const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
+    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(network)
     const token = await blockscoutBDSNeoX.getTokenInfo(tokenHash)
 
     expect(token).toEqual(expectedToken)
@@ -144,14 +144,14 @@ describe('BlockscoutNeoXBDSEthereum', () => {
       },
     ]
 
-    const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
+    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(network)
     const balance = await blockscoutBDSNeoX.getBalance(address)
 
     expect(balance).toEqual(expectedBalance)
   })
 
   it('Should return block height', async () => {
-    const blockscoutBDSNeoX = new BlockscoutNeoXBDSEthereum(network)
+    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(network)
     const blockHeight = await blockscoutBDSNeoX.getBlockHeight()
 
     expect(blockHeight).toBeGreaterThan(0)

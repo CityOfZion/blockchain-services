@@ -12,9 +12,10 @@ import {
 } from '@cityofzion/blockchain-service'
 import axios from 'axios'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
-import { BSEthereumHelper, BSEthereumNetworkId } from './BSEthereumHelper'
 import { ethers } from 'ethers'
-import { ERC20_ABI } from './assets/abis/ERC20'
+import { ERC20_ABI } from '../../assets/abis/ERC20'
+import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 
 interface BlockscoutTransactionResponse {
   fee: {
@@ -92,18 +93,18 @@ interface BlockscoutSmartContractResponse {
   abi: typeof ERC20_ABI
 }
 
-export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
+export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   static BASE_URL_BY_CHAIN_ID: Partial<Record<BSEthereumNetworkId, string>> = {
     '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
     '47763': 'https://dora.coz.io/api/neox/mainnet',
   }
 
   static isSupported(network: Network<BSEthereumNetworkId>) {
-    return !!BlockscoutNeoXBDSEthereum.BASE_URL_BY_CHAIN_ID[network.id]
+    return !!BlockscoutBDSEthereum.BASE_URL_BY_CHAIN_ID[network.id]
   }
 
   static getClient(network: Network<BSEthereumNetworkId>) {
-    const baseURL = BlockscoutNeoXBDSEthereum.BASE_URL_BY_CHAIN_ID[network.id]
+    const baseURL = BlockscoutBDSEthereum.BASE_URL_BY_CHAIN_ID[network.id]
 
     if (!baseURL) {
       throw new Error('Unsupported network')
@@ -121,11 +122,11 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
   async getTransaction(txid: string): Promise<TransactionResponse> {
-    if (!BlockscoutNeoXBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
       return super.getTransaction(txid)
     }
 
-    const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSEthereum.getClient(this._network)
     const { data } = await client.get<BlockscoutTransactionResponse>(`/transactions/${txid}`)
 
     if (!data || 'message' in data) {
@@ -192,11 +193,11 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
   }
 
   async getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    if (!BlockscoutNeoXBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
       return super.getTransactionsByAddress(params)
     }
 
-    const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSEthereum.getClient(this._network)
     const { data } = await client.get<BlockscoutTransactionByAddressResponse>(
       `/addresses/${params.address}/transactions`,
       {
@@ -275,12 +276,12 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
-    if (!BlockscoutNeoXBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
       return super.getContract(contractHash)
     }
 
     try {
-      const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
+      const client = BlockscoutBDSEthereum.getClient(this._network)
 
       const { data } = await client.get<BlockscoutSmartContractResponse>(`/smart-contracts/${contractHash}`)
 
@@ -315,7 +316,7 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    if (!BlockscoutNeoXBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
       return super.getTokenInfo(tokenHash)
     }
 
@@ -329,7 +330,7 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
       return this._tokenCache.get(tokenHash)!
     }
 
-    const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSEthereum.getClient(this._network)
 
     const { data } = await client.get<BlockscoutTokensResponse>(`/tokens/${tokenHash}`)
     if (!data || 'message' in data) {
@@ -341,7 +342,7 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
     }
 
     return {
-      decimals: data.decimals ? parseInt(data.decimals) : BSEthereumHelper.DEFAULT_DECIMALS,
+      decimals: data.decimals ? parseInt(data.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
       hash: tokenHash,
       name: data.name,
       symbol: data.symbol,
@@ -349,11 +350,11 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    if (!BlockscoutNeoXBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
       return super.getBalance(address)
     }
 
-    const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSEthereum.getClient(this._network)
 
     const { data: nativeBalance } = await client.get<{ coin_balance: string }>(`/addresses/${address}`)
     if (!nativeBalance || 'message' in nativeBalance) {
@@ -382,7 +383,7 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
         }
 
         const token: Token = {
-          decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumHelper.DEFAULT_DECIMALS,
+          decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
           hash: balance.token.address,
           name: balance.token.symbol,
           symbol: balance.token.symbol,
@@ -401,11 +402,11 @@ export class BlockscoutNeoXBDSEthereum extends RpcBDSEthereum {
   }
 
   async getBlockHeight(): Promise<number> {
-    if (!BlockscoutNeoXBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
       return super.getBlockHeight()
     }
 
-    const client = BlockscoutNeoXBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSEthereum.getClient(this._network)
 
     const { data } = await client.get<BlockscoutBlocksResponse>('/blocks')
     if (!data || 'message' in data) {

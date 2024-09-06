@@ -5,9 +5,7 @@ export type Account = {
   key: string
   type: 'wif' | 'privateKey' | 'publicKey'
   address: string
-}
-export type AccountWithDerivationPath = Account & {
-  derivationPath: string
+  bip44Path?: string
 }
 export interface Token {
   symbol: string
@@ -42,14 +40,14 @@ export type TransferParam = {
 
 export interface BlockchainService<BSCustomName extends string = string, BSAvailableNetworks extends string = string> {
   readonly blockchainName: BSCustomName
-  readonly derivationPath: string
+  readonly bip44DerivationPath: string
   readonly feeToken: Token
   exchangeDataService: ExchangeDataService
   blockchainDataService: BlockchainDataService
   tokens: Token[]
   network: Network<BSAvailableNetworks>
   setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void
-  generateAccountFromMnemonic(mnemonic: string | string, index: number): AccountWithDerivationPath
+  generateAccountFromMnemonic(mnemonic: string | string, index: number): Account
   generateAccountFromKey(key: string): Account
   decrypt(keyOrJson: string, password: string): Promise<Account>
   encrypt(key: string, password: string): Promise<string>
@@ -245,8 +243,8 @@ export type LedgerServiceEmitter = TypedEmitter<{
 export interface LedgerService {
   emitter: LedgerServiceEmitter
   getLedgerTransport?: (account: Account) => Promise<Transport>
-  getAddress(transport: Transport): Promise<string>
-  getPublicKey(transport: Transport): Promise<string>
+  getAccounts(transport: Transport): Promise<Account[]>
+  getAccount(transport: Transport, index: number): Promise<Account>
 }
 
 export type SwapRoute = {
