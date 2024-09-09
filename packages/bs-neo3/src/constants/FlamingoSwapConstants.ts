@@ -200,12 +200,6 @@ export class FlamingoSwapConstants {
       hash: '0x8c07b4c9f5bc170a3922eac4f5bb7ef17b0acc8b',
       name: 'LRB',
     },
-    USDL: {
-      symbol: 'USDL',
-      decimals: 8,
-      hash: '0xa8c51aa0c177187aeed3db88bdfa908ccbc9b1a5',
-      name: 'USDL',
-    },
     SOM: {
       symbol: 'SOM',
       decimals: 8,
@@ -691,12 +685,6 @@ export class FlamingoSwapConstants {
       decimals: 8,
       hash: '0x1f86bab6d548a3bd4e9292be0937c074da78ab77',
       tokens: [this.FLAMINGO_SWAP_TOKENS.mainnet.LRB, this.FLAMINGO_SWAP_TOKENS.mainnet.FLM],
-    },
-    'FRP-FLM-USDL': {
-      symbol: 'FRP-FLM-USDL',
-      decimals: 8,
-      hash: '0x33a1e91d8187d6f62b5b2c9847b450c90d770b32',
-      tokens: [this.FLAMINGO_SWAP_TOKENS.mainnet.USDL, this.FLAMINGO_SWAP_TOKENS.mainnet.FLM],
     },
     'FLP-FLM-FUSD': {
       symbol: 'FLP-FLM-FUSD',
