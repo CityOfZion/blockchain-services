@@ -3,6 +3,7 @@ import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3 } from '../../BSNeo3'
 import { BSNeo3Constants, BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
+import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 
 let bsNeo3: BSNeo3
 let network: Network<BSNeo3NetworkId>
@@ -90,19 +91,17 @@ describe('BSNeo3', () => {
 
     const fee = await bsNeo3.calculateTransferFee({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-        tokenHash: bsNeo3.feeToken.hash,
-        tokenDecimals: bsNeo3.feeToken.decimals,
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: bsNeo3.feeToken.hash,
+          tokenDecimals: bsNeo3.feeToken.decimals,
+        },
+      ],
     })
 
-    expect(fee).toEqual({
-      total: expect.any(Number),
-      networkFee: expect.any(Number),
-      systemFee: expect.any(Number),
-    })
+    expect(fee).toEqual(expect.any(String))
   })
 
   it.skip('Should be able to transfer', async () => {
@@ -111,14 +110,16 @@ describe('BSNeo3', () => {
     const gasBalance = balance.find(b => b.token.symbol === bsNeo3.feeToken.symbol)
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
 
-    const transactionHash = await bsNeo3.transfer({
+    const [transactionHash] = await bsNeo3.transfer({
       senderAccount: account,
-      intent: {
-        amount: '0.00000001',
-        receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-        tokenHash: bsNeo3.feeToken.hash,
-        tokenDecimals: bsNeo3.feeToken.decimals,
-      },
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: bsNeo3.feeToken.hash,
+          tokenDecimals: bsNeo3.feeToken.decimals,
+        },
+      ],
     })
 
     expect(transactionHash).toEqual(expect.any(String))
@@ -134,17 +135,19 @@ describe('BSNeo3', () => {
     const gasBalance = balance.find(b => b.token.symbol === service.feeToken.symbol)
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
 
-    const transactionHash = await service.transfer({
+    const [transactionHash] = await service.transfer({
       senderAccount: account,
-      intent: {
-        amount: '1',
-        receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-        tokenHash: service.feeToken.hash,
-        tokenDecimals: service.feeToken.decimals,
-      },
+      intents: [
+        {
+          amount: '1',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: service.feeToken.hash,
+          tokenDecimals: service.feeToken.decimals,
+        },
+      ],
       isLedger: true,
     })
-
+    transport.close()
     expect(transactionHash).toEqual(expect.any(String))
   }, 60000)
 
@@ -161,4 +164,104 @@ describe('BSNeo3', () => {
     const owner = await bsNeo3.resolveNameServiceDomain('neo.neo')
     expect(owner).toEqual('Nj39M97Rk2e23JiULBBMQmvpcnKaRHqxFf')
   })
+
+  it.skip('Should be able to calculate transfer fee more than one intent', async () => {
+    const account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const NEO = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'NEO')!
+    const GAS = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'GAS')!
+
+    const fee = await bsNeo3.calculateTransferFee({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: GAS.hash,
+          tokenDecimals: GAS.decimals,
+        },
+        {
+          amount: '1',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: NEO.hash,
+          tokenDecimals: NEO.decimals,
+        },
+      ],
+    })
+
+    expect(fee).toEqual(expect.any(String))
+  })
+
+  it.skip('Should be able to transfer more than one intent', async () => {
+    const account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const balance = await bsNeo3.blockchainDataService.getBalance(account.address)
+
+    const NEO = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'NEO')!
+    const GAS = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'GAS')!
+
+    const gasBalance = balance.find(b => b.token.symbol === GAS.symbol)
+    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
+
+    const neoBalance = balance.find(b => b.token.symbol === NEO.symbol)
+    expect(Number(neoBalance?.amount)).toBeGreaterThan(1)
+
+    const [transactionHash] = await bsNeo3.transfer({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: GAS.hash,
+          tokenDecimals: GAS.decimals,
+        },
+        {
+          amount: '1',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: NEO.hash,
+          tokenDecimals: NEO.decimals,
+        },
+      ],
+    })
+
+    expect(transactionHash).toEqual(expect.any(String))
+  })
+
+  it.only('Should be able to transfer more than one intent with ledger', async () => {
+    const transport = await TransportNodeHid.create()
+    const service = new BSNeo3('neo3', network, async () => transport)
+
+    const account = await service.ledgerService.getAccount(transport, 0)
+
+    const balance = await service.blockchainDataService.getBalance(account.address)
+
+    const NEO = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'NEO')!
+    const GAS = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'GAS')!
+
+    const gasBalance = balance.find(b => b.token.symbol === GAS.symbol)
+    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
+
+    const neoBalance = balance.find(b => b.token.symbol === NEO.symbol)
+    expect(Number(neoBalance?.amount)).toBeGreaterThan(1)
+
+    const [transactionHash] = await service.transfer({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: GAS.hash,
+          tokenDecimals: GAS.decimals,
+        },
+        {
+          amount: '1',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          tokenHash: NEO.hash,
+          tokenDecimals: NEO.decimals,
+        },
+      ],
+      isLedger: true,
+    })
+
+    transport.close()
+    expect(transactionHash).toEqual(expect.any(String))
+  }, 60000)
 })

@@ -7,8 +7,8 @@ import {
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { BSNeoLegacyHelper } from './BSNeoLegacyHelper'
-import { BSNeoLegacyNetworkId } from './BsNeoLegacyConstants'
+import { BSNeoLegacyNetworkId } from '../../constants/BSNeoLegacyConstants'
+import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
 export class CryptoCompareEDSNeoLegacy extends CryptoCompareEDS implements ExchangeDataService {
   #network: Network<BSNeoLegacyNetworkId>

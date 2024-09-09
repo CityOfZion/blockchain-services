@@ -9,6 +9,7 @@ import {
   BlockchainService,
   ExchangeDataService,
   ExplorerService,
+  IntentTransferParam,
   Network,
   NftDataService,
   Token,
@@ -80,29 +81,28 @@ export class BSEthereum<BSCustomName extends string = string>
     return new ethers.Wallet(account.key, provider)
   }
 
-  async #buildTransferParams(param: TransferParam) {
-    const signer = await this.#generateSigner(param.senderAccount, param.isLedger)
-    if (!signer.provider) throw new Error('Signer must have provider')
+  async #buildTransferParams(intent: IntentTransferParam) {
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
-    const decimals = param.intent.tokenDecimals ?? 18
-    const amount = ethersBigNumber.parseFixed(param.intent.amount, decimals)
+    const decimals = intent.tokenDecimals ?? 18
+    const amount = ethersBigNumber.parseFixed(intent.amount, decimals)
 
-    const gasPrice = await signer.provider.getGasPrice()
+    const gasPrice = await provider.getGasPrice()
 
     let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
       type: 2,
     }
 
     const isNative =
-      BSEthereumHelper.normalizeHash(this.feeToken.hash) === BSEthereumHelper.normalizeHash(param.intent.tokenHash)
+      BSEthereumHelper.normalizeHash(this.feeToken.hash) === BSEthereumHelper.normalizeHash(intent.tokenHash)
     if (isNative) {
-      transactionParams.to = param.intent.receiverAddress
+      transactionParams.to = intent.receiverAddress
       transactionParams.value = amount
     } else {
-      const contract = new ethers.Contract(param.intent.tokenHash, [
+      const contract = new ethers.Contract(intent.tokenHash, [
         'function transfer(address to, uint amount) returns (bool)',
       ])
-      const populatedTransaction = await contract.populateTransaction.transfer(param.intent.receiverAddress, amount)
+      const populatedTransaction = await contract.populateTransaction.transfer(intent.receiverAddress, amount)
       transactionParams = {
         ...populatedTransaction,
         ...transactionParams,
@@ -111,7 +111,6 @@ export class BSEthereum<BSCustomName extends string = string>
 
     return {
       transactionParams,
-      signer,
       gasPrice,
     }
   }
@@ -210,30 +209,52 @@ export class BSEthereum<BSCustomName extends string = string>
     return wallet.encrypt(password)
   }
 
-  async transfer(param: TransferParam): Promise<string> {
-    const { signer, transactionParams, gasPrice } = await this.#buildTransferParams(param)
+  async transfer(param: TransferParam): Promise<string[]> {
+    const signer = await this.#generateSigner(param.senderAccount, param.isLedger)
 
-    let gasLimit: ethers.BigNumberish
-    try {
-      gasLimit = await signer.estimateGas(transactionParams)
-    } catch {
-      gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
+    const sentTransactionHashes: string[] = []
+
+    for (const intent of param.intents) {
+      try {
+        const { transactionParams, gasPrice } = await this.#buildTransferParams(intent)
+
+        let gasLimit: ethers.BigNumberish
+        try {
+          gasLimit = await signer.estimateGas(transactionParams)
+        } catch {
+          gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
+        }
+
+        const transaction = await signer.sendTransaction({
+          ...transactionParams,
+          gasLimit,
+          maxPriorityFeePerGas: gasPrice,
+          maxFeePerGas: gasPrice,
+        })
+
+        sentTransactionHashes.push(transaction.hash)
+      } catch {
+        /* empty */
+      }
     }
 
-    const transaction = await signer.sendTransaction({
-      ...transactionParams,
-      gasLimit,
-      maxPriorityFeePerGas: gasPrice,
-      maxFeePerGas: gasPrice,
-    })
-
-    return transaction.hash
+    return sentTransactionHashes
   }
 
   async calculateTransferFee(param: TransferParam): Promise<string> {
-    const { signer, transactionParams, gasPrice } = await this.#buildTransferParams(param)
-    const estimated = await signer.estimateGas(transactionParams)
-    return ethers.utils.formatEther(gasPrice.mul(estimated))
+    const signer = await this.#generateSigner(param.senderAccount, param.isLedger)
+
+    let fee = ethers.utils.parseEther('0')
+
+    for (const intent of param.intents) {
+      const { gasPrice, transactionParams } = await this.#buildTransferParams(intent)
+      const estimated = await signer.estimateGas(transactionParams)
+      const intentFee = gasPrice.mul(estimated)
+
+      fee = fee.add(intentFee)
+    }
+
+    return ethers.utils.formatEther(fee)
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {

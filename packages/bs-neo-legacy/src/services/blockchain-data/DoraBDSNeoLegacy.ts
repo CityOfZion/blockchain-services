@@ -13,8 +13,8 @@ import {
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { rpc } from '@cityofzion/neon-js'
-import { BSNeoLegacyHelper } from './BSNeoLegacyHelper'
-import { BSNeoLegacyNetworkId } from './BsNeoLegacyConstants'
+import { BSNeoLegacyNetworkId } from '../../constants/BSNeoLegacyConstants'
+import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
 export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   readonly #network: Network<BSNeoLegacyNetworkId>

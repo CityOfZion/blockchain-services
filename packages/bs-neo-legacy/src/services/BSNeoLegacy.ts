@@ -12,12 +12,12 @@ import {
   ExplorerService,
 } from '@cityofzion/blockchain-service'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
-import { DoraBDSNeoLegacy } from './DoraBDSNeoLegacy'
-import { CryptoCompareEDSNeoLegacy } from './CryptoCompareEDSNeoLegacy'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
-import { BSNeoLegacyHelper } from './BSNeoLegacyHelper'
-import { NeoTubeESNeoLegacy } from './NeoTubeESNeoLegacy'
-import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from './BsNeoLegacyConstants'
+import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
+import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
+import { CryptoCompareEDSNeoLegacy } from './exchange-data/CryptoCompareEDSNeoLegacy'
+import { DoraBDSNeoLegacy } from './blockchain-data/DoraBDSNeoLegacy'
+import { NeoTubeESNeoLegacy } from './explorer/NeoTubeESNeoLegacy'
 
 export class BSNeoLegacy<BSCustomName extends string = string>
   implements BlockchainService<BSCustomName, BSNeoLegacyNetworkId>, BSClaimable, BSWithExplorerService
@@ -104,7 +104,7 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     return wallet.encrypt(key, password)
   }
 
-  async transfer({ intent: transferIntent, senderAccount, tipIntent, ...params }: TransferParam): Promise<string> {
+  async transfer({ intents, senderAccount, tipIntent, ...params }: TransferParam): Promise<string[]> {
     const apiProvider = new api.neoCli.instance(this.network.url)
     const account = new wallet.Account(senderAccount.key)
     const priorityFee = Number(params.priorityFee ?? 0)
@@ -112,9 +112,9 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     const nativeIntents: ReturnType<typeof api.makeIntent> = []
     const nep5ScriptBuilder = new sc.ScriptBuilder()
 
-    const intents = [transferIntent, ...(tipIntent ? [tipIntent] : [])]
+    const concatIntents = [...intents, ...(tipIntent ? [tipIntent] : [])]
 
-    for (const intent of intents) {
+    for (const intent of concatIntents) {
       const tokenHashFixed = BSNeoLegacyHelper.normalizeHash(intent.tokenHash)
 
       const nativeAsset = BSNeoLegacyConstants.NATIVE_ASSETS.find(
@@ -159,7 +159,7 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     }
 
     if (!response.tx) throw new Error('Failed to send transaction')
-    return response.tx.hash
+    return [response.tx.hash]
   }
 
   async claim(account: Account): Promise<string> {

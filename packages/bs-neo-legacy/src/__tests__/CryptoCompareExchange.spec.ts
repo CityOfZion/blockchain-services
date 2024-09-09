@@ -1,7 +1,7 @@
 import { Network } from '@cityofzion/blockchain-service'
-import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
-import { CryptoCompareEDSNeoLegacy } from '../CryptoCompareEDSNeoLegacy'
-import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../BsNeoLegacyConstants'
+import { CryptoCompareEDSNeoLegacy } from '../services/exchange-data/CryptoCompareEDSNeoLegacy'
+import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
+import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
 
 let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
 let network: Network<BSNeoLegacyNetworkId>

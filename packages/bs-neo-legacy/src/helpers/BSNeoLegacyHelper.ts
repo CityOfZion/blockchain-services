@@ -1,6 +1,6 @@
 import { Network } from '@cityofzion/blockchain-service'
-import commonTokens from './assets/tokens/common.json'
-import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from './BsNeoLegacyConstants'
+import commonTokens from '../assets/tokens/common.json'
+import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
 
 export class BSNeoLegacyHelper {
   static getLegacyNetwork(network: Network<BSNeoLegacyNetworkId>) {

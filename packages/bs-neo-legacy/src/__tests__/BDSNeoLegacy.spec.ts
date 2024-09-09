@@ -1,7 +1,7 @@
 import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-service'
-import { DoraBDSNeoLegacy } from '../DoraBDSNeoLegacy'
-import { BSNeoLegacyHelper } from '../BSNeoLegacyHelper'
-import { BSNeoLegacyConstants } from '../BsNeoLegacyConstants'
+import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
+import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
+import { DoraBDSNeoLegacy } from '../services/blockchain-data/DoraBDSNeoLegacy'
 
 const network = BSNeoLegacyConstants.TESTNET_NETWORKS[0]
 const tokens = BSNeoLegacyHelper.getTokens(network)
