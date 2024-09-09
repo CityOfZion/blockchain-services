@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.3.0",
+      "tag": "@cityofzion/bs-neo-legacy_v1.3.0",
+      "date": "Mon, 09 Sep 2024 15:52:55 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add to support ledger multi account"
+          },
+          {
+            "comment": "Add support to send in bulk"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.4.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.2.3",
       "tag": "@cityofzion/bs-neo-legacy_v1.2.3",
       "date": "Wed, 21 Aug 2024 16:07:49 GMT",

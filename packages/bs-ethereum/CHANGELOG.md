@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 02 Sep 2024 16:05:12 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Sep 2024 15:52:55 GMT and should not be manually modified.
+
+## 2.3.0
+Mon, 09 Sep 2024 15:52:55 GMT
+
+### Minor changes
+
+- Add to support ledger multi account
+- Add support to send in bulk
 
 ## 2.2.13
 Mon, 02 Sep 2024 16:05:12 GMT

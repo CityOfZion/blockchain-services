@@ -1,6 +1,18 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Thu, 22 Aug 2024 18:40:33 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Sep 2024 15:52:55 GMT and should not be manually modified.
+
+## 1.4.0
+Mon, 09 Sep 2024 15:52:55 GMT
+
+### Minor changes
+
+- Add to support ledger multi account
+- Add support to send in bulk
+
+### Patches
+
+- Make USDL unavailable for swap
 
 ## 1.3.3
 Thu, 22 Aug 2024 18:40:33 GMT

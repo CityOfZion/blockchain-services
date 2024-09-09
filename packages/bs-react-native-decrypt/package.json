@@ -1,6 +1,6 @@
 {
   "name": "@cityofzion/bs-react-native-decrypt",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Native Decrypt for Neo Blockchain",
   "main": "dist/commonjs/index",
   "module": "dist/module/index",

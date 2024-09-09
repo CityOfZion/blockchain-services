@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.3.0",
+      "tag": "@cityofzion/bs-ethereum_v2.3.0",
+      "date": "Mon, 09 Sep 2024 15:52:55 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add to support ledger multi account"
+          },
+          {
+            "comment": "Add support to send in bulk"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.4.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.2.13",
       "tag": "@cityofzion/bs-ethereum_v2.2.13",
       "date": "Mon, 02 Sep 2024 16:05:12 GMT",

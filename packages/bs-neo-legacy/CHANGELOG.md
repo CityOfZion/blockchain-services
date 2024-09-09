@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Wed, 21 Aug 2024 16:07:49 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Sep 2024 15:52:55 GMT and should not be manually modified.
+
+## 1.3.0
+Mon, 09 Sep 2024 15:52:55 GMT
+
+### Minor changes
+
+- Add to support ledger multi account
+- Add support to send in bulk
 
 ## 1.2.3
 Wed, 21 Aug 2024 16:07:49 GMT
