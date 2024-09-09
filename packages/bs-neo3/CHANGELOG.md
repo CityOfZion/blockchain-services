@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 09 Sep 2024 15:52:55 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Sep 2024 17:25:50 GMT and should not be manually modified.
+
+## 1.4.1
+Mon, 09 Sep 2024 17:25:50 GMT
+
+### Patches
+
+- Update export
 
 ## 1.4.0
 Mon, 09 Sep 2024 15:52:55 GMT
