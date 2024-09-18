@@ -8,8 +8,8 @@ import {
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
+import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 
 type FlamingoTokenInfoPricesResponse = {
   symbol: string

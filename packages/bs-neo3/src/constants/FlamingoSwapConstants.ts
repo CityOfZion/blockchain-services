@@ -36,7 +36,7 @@ export class FlamingoSwapConstants {
 
   static readonly FEE_RATE = new BigNumber(0.003)
 
-  static readonly GAS_PER_NEO = 0.001
+  static readonly UNWRAPPING_FEE = 0.001
 
   static readonly TESTNET_FLAMINGO_SWAP_TOKENS: FlamingoSwapTokens = {
     // ============ Neo Assets ============ //

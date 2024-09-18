@@ -1,8 +1,8 @@
 import { Network, SwapRoute, Token } from '@cityofzion/blockchain-service'
 import BigNumber from 'bignumber.js'
+import { BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
 import { FlamingoSwapConstants } from '../../../constants/FlamingoSwapConstants'
 import { FlamingoSwapHelper } from '../../../helpers/FlamingoSwapHelper'
-import { BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
 
 type CalculateSwapDetailsArgs = {
   amountToUse: string | null

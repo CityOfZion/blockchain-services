@@ -1,6 +1,7 @@
 import { Network, SwapRoute, Token } from '@cityofzion/blockchain-service'
 import { u } from '@cityofzion/neon-core'
 import BigNumber from 'bignumber.js'
+import { BSNeo3NetworkId } from '../constants/BSNeo3Constants'
 import {
   FlamingoSwapConstants,
   FlamingoSwapPoolInfo,
@@ -9,7 +10,6 @@ import {
   FlamingoSwapTokens,
 } from '../constants/FlamingoSwapConstants'
 import { FlamingoSwapRouteHandler } from '../services/swap/handlers'
-import { BSNeo3NetworkId } from '../constants/BSNeo3Constants'
 
 export class FlamingoSwapHelper {
   static listSwappableTokensSymbol(network: Network<BSNeo3NetworkId>): string[] {
@@ -113,7 +113,59 @@ export class FlamingoSwapHelper {
     return this.normalizeHash(token.hash) === this.normalizeHash(NEO.hash)
   }
 
+  static isBneoToken(network: Network<BSNeo3NetworkId>, token: Token): boolean {
+    const bNEO = this.getFlamingoSwapToken(network, 'bNEO')
+
+    return this.normalizeHash(token.hash) === this.normalizeHash(bNEO.hash)
+  }
+
   static formatAmount(amount: string, decimals: number): string {
     return u.BigInteger.fromDecimal(Number(amount), decimals).toString()
+  }
+
+  static isSwapUnwrappingNeo(network: Network<BSNeo3NetworkId>, route: Token[]): boolean {
+    if (route.length < 3) {
+      return false
+    }
+
+    const lastToken = route[route.length - 1]
+
+    return this.isNeoToken(network, lastToken)
+  }
+
+  static isSwapWrappingNeo(network: Network<BSNeo3NetworkId>, route: Token[]): boolean {
+    if (route.length < 3) {
+      return false
+    }
+
+    const firstToken = route[0]
+
+    return this.isNeoToken(network, firstToken)
+  }
+
+  static isWrapNeo(network: Network<BSNeo3NetworkId>, route: Token[]): boolean {
+    if (route.length !== 2) {
+      return false
+    }
+
+    const firstToken = route[0]
+    const lastToken = route[1]
+
+    return this.isNeoToken(network, firstToken) && this.isBneoToken(network, lastToken)
+  }
+
+  static isUnwrapNeo(network: Network<BSNeo3NetworkId>, route: Token[]): boolean {
+    if (route.length !== 2) {
+      return false
+    }
+
+    const firstToken = route[0]
+    const lastToken = route[1]
+
+    return this.isBneoToken(network, firstToken) && this.isNeoToken(network, lastToken)
+  }
+
+  static getUnwrappedAmount(amount: string): string {
+    return u.BigInteger.fromNumber(Number(amount) * FlamingoSwapConstants.UNWRAPPING_FEE).toString()
   }
 }
