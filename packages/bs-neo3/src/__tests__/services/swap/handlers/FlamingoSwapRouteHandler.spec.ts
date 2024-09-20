@@ -35,6 +35,25 @@ describe('FlamingoSwapRouteHandler', () => {
     expect(response).toEqual(expectedResponse)
   })
 
+  it('should calculate best route for swap - bNEO to NEO', async () => {
+    const expectedResponse: SwapRoute[] = [
+      {
+        tokenToUse: FlamingoSwapHelper.getFlamingoSwapToken(network, 'bNEO'),
+        reserveTokenToUse: '0',
+        tokenToReceive: FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO'),
+        reserveTokenToReceive: '0',
+      },
+    ]
+
+    const response = await FlamingoSwapRouteHandler.calculateBestRouteForSwap({
+      network,
+      tokenToReceive: FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO'),
+      tokenToUse: FlamingoSwapHelper.getFlamingoSwapToken(network, 'bNEO'),
+    })
+
+    expect(response).toEqual(expectedResponse)
+  })
+
   it('should calculate best route for swap - NEO to GAS', async () => {
     const expectedResponse: SwapRoute[] = [
       {
@@ -54,6 +73,25 @@ describe('FlamingoSwapRouteHandler', () => {
     const response = await FlamingoSwapRouteHandler.calculateBestRouteForSwap({
       network,
       tokenToReceive: FlamingoSwapHelper.getFlamingoSwapToken(network, 'GAS'),
+      tokenToUse: FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO'),
+    })
+
+    expect(response).toEqual(expectedResponse)
+  })
+
+  it('should calculate best route for swap - NEO to bNEO', async () => {
+    const expectedResponse: SwapRoute[] = [
+      {
+        tokenToUse: FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO'),
+        reserveTokenToUse: '0',
+        tokenToReceive: FlamingoSwapHelper.getFlamingoSwapToken(network, 'bNEO'),
+        reserveTokenToReceive: '0',
+      },
+    ]
+
+    const response = await FlamingoSwapRouteHandler.calculateBestRouteForSwap({
+      network,
+      tokenToReceive: FlamingoSwapHelper.getFlamingoSwapToken(network, 'bNEO'),
       tokenToUse: FlamingoSwapHelper.getFlamingoSwapToken(network, 'NEO'),
     })
 
