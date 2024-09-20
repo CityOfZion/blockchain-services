@@ -13,11 +13,11 @@ import { NeonInvoker } from '@cityofzion/neon-dappkit'
 import EventEmitter from 'events'
 import cloneDeep from 'lodash.clonedeep'
 import TypedEmitter from 'typed-emitter'
+import { BSNeo3 } from '../../BSNeo3'
 import { FlamingoSwapInvocationBuilderNeo3 } from '../../builder/invocation/FlamingoSwapInvocationBuilderNeo3'
+import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { FlamingoSwapHelper } from '../../helpers/FlamingoSwapHelper'
 import { FlamingoSwapDetailsHandler, FlamingoSwapRouteHandler, FlamingoSwapSocketService } from './handlers'
-import { BSNeo3 } from '../../BSNeo3'
-import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 
 type BuildSwapInvocationArgs = SwapServiceSwapToUseArgs<BSNeo3NetworkId> | SwapServiceSwapToReceiveArgs<BSNeo3NetworkId>
 
@@ -195,6 +195,33 @@ export class FlamingoSwapServiceNeo3 implements SwapService<BSNeo3NetworkId> {
     ) {
       const amountToReceive = this.#lastAmountChanged === 'amountToReceive' ? this.#amountToReceive : null
       const amountToUse = this.#lastAmountChanged === 'amountToUse' ? this.#amountToUse : null
+
+      const initialRoutePath = [this.#tokenToReceive, this.#tokenToUse]
+
+      if (
+        FlamingoSwapHelper.isWrapNeo(this.#network, initialRoutePath) ||
+        FlamingoSwapHelper.isUnwrapNeo(this.#network, initialRoutePath)
+      ) {
+        const amount = amountToUse ?? amountToReceive
+
+        this.#amountToUse = amount
+        this.#amountToReceive = amount
+        this.#maximumSelling = amount
+        this.#minimumReceived = amount
+        this.#liquidityProviderFee = null
+        this.#priceImpact = null
+        this.#priceInverse = null
+        this.#route = [
+          {
+            reserveTokenToReceive: '0',
+            reserveTokenToUse: '0',
+            tokenToReceive: this.#tokenToReceive,
+            tokenToUse: this.#tokenToUse,
+          },
+        ]
+
+        return
+      }
 
       const {
         amountToUseToDisplay,

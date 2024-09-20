@@ -1,8 +1,8 @@
 import { Network, SwapRoute } from '@cityofzion/blockchain-service'
 import BigNumber from 'bignumber.js'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { FlamingoSwapConstants } from '../../constants/FlamingoSwapConstants'
 import { FlamingoSwapHelper } from '../../helpers/FlamingoSwapHelper'
-import { BSNeo3Constants, BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 
 let network: Network<BSNeo3NetworkId>
 

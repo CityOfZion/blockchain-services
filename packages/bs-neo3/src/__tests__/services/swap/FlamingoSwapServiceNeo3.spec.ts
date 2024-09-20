@@ -6,10 +6,10 @@ import {
   SwapServiceSwapToUseArgs,
   Token,
 } from '@cityofzion/blockchain-service'
+import { BSNeo3 } from '../../../BSNeo3'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
 import { FlamingoSwapConstants } from '../../../constants/FlamingoSwapConstants'
 import { FlamingoSwapServiceNeo3 } from '../../../services/swap/FlamingoSwapServiceNeo3'
-import { BSNeo3Constants, BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
-import { BSNeo3 } from '../../../BSNeo3'
 
 let flamingoSwapServiceNeo3: FlamingoSwapServiceNeo3
 let network: Network<BSNeo3NetworkId>

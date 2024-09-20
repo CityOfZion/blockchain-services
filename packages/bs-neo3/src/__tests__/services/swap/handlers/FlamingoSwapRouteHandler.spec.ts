@@ -1,7 +1,7 @@
 import { Network, SwapRoute } from '@cityofzion/blockchain-service'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../../../constants/BSNeo3Constants'
 import { FlamingoSwapHelper } from '../../../../helpers/FlamingoSwapHelper'
 import { FlamingoSwapRouteHandler } from '../../../../services/swap/handlers'
-import { BSNeo3Constants, BSNeo3NetworkId } from '../../../../constants/BSNeo3Constants'
 
 let network: Network<BSNeo3NetworkId>
 
