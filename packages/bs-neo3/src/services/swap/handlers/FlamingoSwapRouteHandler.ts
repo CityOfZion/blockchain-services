@@ -60,6 +60,23 @@ export class FlamingoSwapRouteHandler {
 
     if (routePath.length === 0) return []
 
+    const isWrapOrUnwrapNeo =
+      FlamingoSwapHelper.isWrapNeo(network, [tokenToUse, tokenToReceive]) ||
+      FlamingoSwapHelper.isUnwrapNeo(network, [tokenToReceive, tokenToUse])
+
+    if (isWrapOrUnwrapNeo) {
+      const swapRoute: SwapRoute[] = [
+        {
+          reserveTokenToReceive: '0',
+          reserveTokenToUse: '0',
+          tokenToReceive,
+          tokenToUse,
+        },
+      ]
+
+      return swapRoute
+    }
+
     const { stack: reservesStack } = await this.#invokeReserves({ network, routePath })
 
     return this.#createSwapRoute({ network, routePath, reservesStack })
