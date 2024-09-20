@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.4.3",
+      "tag": "@cityofzion/bs-neo3_v1.4.3",
+      "date": "Fri, 20 Sep 2024 18:26:56 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update route displayed"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.4.2",
       "tag": "@cityofzion/bs-neo3_v1.4.2",
       "date": "Fri, 20 Sep 2024 15:17:55 GMT",
