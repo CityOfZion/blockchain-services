@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.4.2",
+      "tag": "@cityofzion/bs-neo3_v1.4.2",
+      "date": "Fri, 20 Sep 2024 15:17:55 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Including wrap logic"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.4.1",
       "tag": "@cityofzion/bs-neo3_v1.4.1",
       "date": "Mon, 09 Sep 2024 17:25:50 GMT",

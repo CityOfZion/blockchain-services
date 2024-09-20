@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 09 Sep 2024 17:25:50 GMT and should not be manually modified.
+This log was last generated on Fri, 20 Sep 2024 15:17:55 GMT and should not be manually modified.
+
+## 1.4.2
+Fri, 20 Sep 2024 15:17:55 GMT
+
+### Patches
+
+- Including wrap logic
 
 ## 1.4.1
 Mon, 09 Sep 2024 17:25:50 GMT
