@@ -215,6 +215,8 @@ export class BSEthereum<BSCustomName extends string = string>
     const sentTransactionHashes: string[] = []
 
     for (const intent of param.intents) {
+      let transactionHash = ''
+
       try {
         const { transactionParams, gasPrice } = await this.#buildTransferParams(intent)
 
@@ -231,11 +233,12 @@ export class BSEthereum<BSCustomName extends string = string>
           maxPriorityFeePerGas: gasPrice,
           maxFeePerGas: gasPrice,
         })
-
-        sentTransactionHashes.push(transaction.hash)
+        transactionHash = transaction.hash
       } catch {
         /* empty */
       }
+
+      sentTransactionHashes.push(transactionHash)
     }
 
     return sentTransactionHashes

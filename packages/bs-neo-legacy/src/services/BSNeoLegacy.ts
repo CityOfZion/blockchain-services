@@ -137,7 +137,7 @@ export class BSNeoLegacy<BSCustomName extends string = string>
       ])
     }
 
-    let response
+    let response: any
 
     if (nep5ScriptBuilder.isEmpty()) {
       response = await api.sendAsset({
@@ -159,7 +159,8 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     }
 
     if (!response.tx) throw new Error('Failed to send transaction')
-    return [response.tx.hash]
+
+    return intents.map(() => response.tx!.hash)
   }
 
   async claim(account: Account): Promise<string> {
