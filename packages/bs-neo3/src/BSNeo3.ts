@@ -234,7 +234,7 @@ export class BSNeo3<BSCustomName extends string = string>
       signers: [],
     })
 
-    return [transactionHash]
+    return param.intents.map(() => transactionHash)
   }
 
   async claim(account: Account, isLedger?: boolean): Promise<string> {
