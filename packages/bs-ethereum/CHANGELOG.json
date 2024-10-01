@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.5.0",
+      "tag": "@cityofzion/bs-ethereum_v2.5.0",
+      "date": "Tue, 01 Oct 2024 20:21:36 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Implement testNetwork method"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.6.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.4.0",
       "tag": "@cityofzion/bs-ethereum_v2.4.0",
       "date": "Tue, 01 Oct 2024 16:41:24 GMT",
