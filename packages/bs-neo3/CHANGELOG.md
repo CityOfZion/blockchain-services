@@ -1,6 +1,17 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 20 Sep 2024 18:26:56 GMT and should not be manually modified.
+This log was last generated on Tue, 01 Oct 2024 16:41:24 GMT and should not be manually modified.
+
+## 1.5.0
+Tue, 01 Oct 2024 16:41:24 GMT
+
+### Minor changes
+
+- Implement clone self method
+
+### Patches
+
+- Fix issue where the array returned by transfer method is inconsistent
 
 ## 1.4.3
 Fri, 20 Sep 2024 18:26:56 GMT

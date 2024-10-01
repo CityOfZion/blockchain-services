@@ -1,6 +1,17 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Mon, 09 Sep 2024 15:52:55 GMT and should not be manually modified.
+This log was last generated on Tue, 01 Oct 2024 16:41:24 GMT and should not be manually modified.
+
+## 1.4.0
+Tue, 01 Oct 2024 16:41:24 GMT
+
+### Minor changes
+
+- Implement clone self method
+
+### Patches
+
+- Fix issue where the array returned by transfer method is inconsistent
 
 ## 1.3.0
 Mon, 09 Sep 2024 15:52:55 GMT
