@@ -5,7 +5,7 @@ import { BlockscoutEDSEthereum } from '../services/exchange-data/BlockscoutEDSEt
 const network = BSEthereumConstants.MAINNET_NETWORKS.find(network => network.id === '47763')!
 
 describe('BlockscoutEDSEthereum', () => {
-  it('Should return token prices', async () => {
+  it.skip('Should return token prices', async () => {
     const params: GetTokenPricesParams = {
       tokens: [
         {

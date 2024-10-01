@@ -14,6 +14,7 @@ import {
   NftDataService,
   Token,
   TransferParam,
+  GetLedgerTransport,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
@@ -21,7 +22,6 @@ import * as ethersBytes from '@ethersproject/bytes'
 import * as ethersBigNumber from '@ethersproject/bignumber'
 import { BSEthereumConstants, BSEthereumNetworkId } from './constants/BSEthereumConstants'
 import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServiceEthereum'
-import Transport from '@ledgerhq/hw-transport'
 import { BSEthereumHelper } from './helpers/BSEthereumHelper'
 import { BlockscoutBDSEthereum } from './services/blockchain-data/BlockscoutBDSEthereum'
 import { BlockscoutEDSEthereum } from './services/exchange-data/BlockscoutEDSEthereum'
@@ -39,6 +39,8 @@ export class BSEthereum<BSCustomName extends string = string>
     BSWithLedger,
     BSWithExplorerService
 {
+  readonly #getLedgerTransport?: GetLedgerTransport
+
   readonly blockchainName: BSCustomName
   readonly bip44DerivationPath: string
 
@@ -54,12 +56,13 @@ export class BSEthereum<BSCustomName extends string = string>
   constructor(
     blockchainName: BSCustomName,
     network?: Network<BSEthereumNetworkId>,
-    getLedgerTransport?: (account: Account) => Promise<Transport>
+    getLedgerTransport?: GetLedgerTransport
   ) {
     network = network ?? BSEthereumConstants.DEFAULT_NETWORK
 
     this.blockchainName = blockchainName
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
+    this.#getLedgerTransport = getLedgerTransport
     this.bip44DerivationPath = BSEthereumConstants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.setNetwork(network)
@@ -119,6 +122,10 @@ export class BSEthereum<BSCustomName extends string = string>
     const nativeAsset = BSEthereumHelper.getNativeAsset(network)
     this.tokens = [nativeAsset]
     this.feeToken = nativeAsset
+  }
+
+  clone() {
+    return new BSEthereum(this.blockchainName, this.network, this.#getLedgerTransport)
   }
 
   setNetwork(network: Network<BSEthereumNetworkId>) {

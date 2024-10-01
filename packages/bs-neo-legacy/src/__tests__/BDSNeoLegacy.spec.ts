@@ -83,7 +83,7 @@ describe('BDSNeoLegacy', () => {
   })
 
   it.each([doraBDSNeoLegacy])('Should be able to get token info - %s', async (bdsNeoLegacy: BlockchainDataService) => {
-    const hash = '0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
+    const hash = '602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
     const token = await bdsNeoLegacy.getTokenInfo(hash)
     expect(token).toEqual({
       decimals: 8,

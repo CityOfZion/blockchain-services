@@ -70,6 +70,12 @@ describe('BSNeoLegacy', () => {
     expect(encryptedKey).toEqual(expect.any(String))
   })
 
+  it('Should be able to clone the BSNeoLegacy', () => {
+    const newBsNeoLegacy = bsNeoLegacy.clone()
+
+    expect(newBsNeoLegacy).toEqual(bsNeoLegacy)
+  })
+
   it.skip('Should be able to transfer a native asset', async () => {
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
@@ -143,7 +149,7 @@ describe('BSNeoLegacy', () => {
     expect(transactionHash).toEqual(expect.any(String))
   })
 
-  it.only('Should be able to transfer more than one intent', async () => {
+  it.skip('Should be able to transfer more than one intent', async () => {
     bsNeoLegacy.setNetwork(BSNeoLegacyConstants.DEFAULT_NETWORK)
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)

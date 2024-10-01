@@ -3,6 +3,7 @@ import {
   LedgerService,
   LedgerServiceEmitter,
   fetchAccountsForBlockchainServices,
+  GetLedgerTransport,
 } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
@@ -160,9 +161,9 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 export class EthersLedgerServiceEthereum implements LedgerService {
   #blockchainService: BSEthereum
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
-  getLedgerTransport?: (account: Account) => Promise<Transport>
+  getLedgerTransport?: GetLedgerTransport
 
-  constructor(blockchainService: BSEthereum, getLedgerTransport?: (account: Account) => Promise<Transport>) {
+  constructor(blockchainService: BSEthereum, getLedgerTransport?: GetLedgerTransport) {
     this.#blockchainService = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }

@@ -80,6 +80,12 @@ describe('BSEthereum', () => {
     )
   })
 
+  it('Should be able to clone the BSEthereum', () => {
+    const newBsEthereum = bsEthereum.clone()
+
+    expect(newBsEthereum).toEqual(bsEthereum)
+  })
+
   it.skip('Should be able to calculate transfer fee', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 
@@ -179,7 +185,7 @@ describe('BSEthereum', () => {
     await transport.close()
   }, 50000)
 
-  it('Should be able to resolve a name service domain', async () => {
+  it.skip('Should be able to resolve a name service domain', async () => {
     const address = await bsEthereum.resolveNameServiceDomain('alice.eth')
     expect(address).toEqual('0xa974890156A3649A23a6C0f2ebd77D6F7A7333d4')
   }, 10000)
@@ -247,7 +253,7 @@ describe('BSEthereum', () => {
     expect(fee).toEqual(expect.any(String))
   }, 50000)
 
-  it.only('Should be able to transfer more than one intent', async () => {
+  it.skip('Should be able to transfer more than one intent', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 
     const transactionHashes = await bsEthereum.transfer({

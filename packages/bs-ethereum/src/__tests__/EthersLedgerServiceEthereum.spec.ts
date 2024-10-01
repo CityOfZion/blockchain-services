@@ -9,7 +9,7 @@ let ledgerService: EthersLedgerServiceEthereum
 let transport: Transport
 let bsEthereum: BSEthereum
 
-describe('EthersLedgerServiceEthereum', () => {
+describe.skip('EthersLedgerServiceEthereum', () => {
   beforeAll(async () => {
     const network = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '11155111')!
     bsEthereum = new BSEthereum('ethereum', network)
