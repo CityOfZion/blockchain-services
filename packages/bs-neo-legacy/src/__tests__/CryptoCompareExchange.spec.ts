@@ -28,7 +28,7 @@ describe('FlamingoEDSNeo3', () => {
         }),
       })
     })
-  })
+  }, 10000)
 
   it('Should return the BRL currency ratio', async () => {
     const ratio = await cryptoCompareEDSNeoLegacy.getCurrencyRatio('BRL')

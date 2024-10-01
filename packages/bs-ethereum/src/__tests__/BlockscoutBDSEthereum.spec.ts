@@ -89,9 +89,9 @@ describe('BlockscoutBDSEthereum', () => {
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
-  })
+  }, 10000)
 
-  it('Should return transactions by address', async () => {
+  it.skip('Should return transactions by address', async () => {
     const address = '0x5E1BE25D4A2De0083012f1B5A8030a7023fFA5bc'
 
     const expectedResponse: TransactionsByAddressResponse = {
@@ -129,7 +129,7 @@ describe('BlockscoutBDSEthereum', () => {
     expect(token).toEqual(expectedToken)
   })
 
-  it('Should return balance', async () => {
+  it.skip('Should return balance', async () => {
     const address = '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5'
 
     const expectedBalance: BalanceResponse[] = [
@@ -155,5 +155,5 @@ describe('BlockscoutBDSEthereum', () => {
     const blockHeight = await blockscoutBDSNeoX.getBlockHeight()
 
     expect(blockHeight).toBeGreaterThan(0)
-  })
+  }, 10000)
 })

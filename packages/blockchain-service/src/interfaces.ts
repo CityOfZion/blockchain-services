@@ -46,9 +46,9 @@ export interface BlockchainService<BSCustomName extends string = string, BSAvail
   blockchainDataService: BlockchainDataService
   tokens: Token[]
   network: Network<BSAvailableNetworks>
-  clone: () => BlockchainService<BSCustomName, BSAvailableNetworks>
+  testNetwork: (network: Network<BSAvailableNetworks>) => Promise<void>
   setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void
-  generateAccountFromMnemonic(mnemonic: string | string, index: number): Account
+  generateAccountFromMnemonic(mnemonic: string, index: number): Account
   generateAccountFromKey(key: string): Account
   decrypt(keyOrJson: string, password: string): Promise<Account>
   encrypt(key: string, password: string): Promise<string>

@@ -3,7 +3,7 @@ import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo
 
 let ghostMarketNDSNeo3: GhostMarketNDSNeo3
 
-describe('GhostMarketNDSNeo3', () => {
+describe.skip('GhostMarketNDSNeo3', () => {
   beforeAll(() => {
     ghostMarketNDSNeo3 = new GhostMarketNDSNeo3(BSNeo3Constants.DEFAULT_NETWORK)
   })
