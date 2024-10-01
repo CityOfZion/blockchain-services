@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Implement testNetwork method",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

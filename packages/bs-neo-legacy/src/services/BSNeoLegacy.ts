@@ -55,8 +55,10 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
   }
 
-  clone() {
-    return new BSNeoLegacy(this.blockchainName, this.network)
+  async testNetwork(network: Network<BSNeoLegacyNetworkId>) {
+    const blockchainDataServiceClone = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken, this.tokens)
+
+    await blockchainDataServiceClone.getBlockHeight()
   }
 
   setNetwork(network: Network<BSNeoLegacyNetworkId>) {

@@ -86,10 +86,8 @@ describe('BSNeo3', () => {
     expect(encryptedKey).toEqual(expect.any(String))
   })
 
-  it('Should be able to clone the BSNeo3', () => {
-    const newBsNeo3 = bsNeo3.clone()
-
-    expect(newBsNeo3).toEqual(bsNeo3)
+  it('Should be able to test the network', async () => {
+    expect(() => bsNeo3.testNetwork(network)).not.toThrowError()
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {

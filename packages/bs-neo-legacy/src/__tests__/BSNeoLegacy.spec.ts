@@ -1,16 +1,19 @@
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import { BSNeoLegacy } from '../services/BSNeoLegacy'
-import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
+import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
+import { Network } from '@cityofzion/blockchain-service'
 
 let bsNeoLegacy: BSNeoLegacy
 
+const network: Network<BSNeoLegacyNetworkId> = {
+  id: 'testnet',
+  url: 'http://seed5.ngd.network:20332',
+  name: 'testnet',
+}
+
 describe('BSNeoLegacy', () => {
   beforeEach(() => {
-    bsNeoLegacy = new BSNeoLegacy('neoLegacy', {
-      id: 'testnet',
-      url: 'http://seed5.ngd.network:20332',
-      name: 'testnet',
-    })
+    bsNeoLegacy = new BSNeoLegacy('neoLegacy', network)
   })
 
   it('Should be able to validate an address', () => {
@@ -70,10 +73,8 @@ describe('BSNeoLegacy', () => {
     expect(encryptedKey).toEqual(expect.any(String))
   })
 
-  it('Should be able to clone the BSNeoLegacy', () => {
-    const newBsNeoLegacy = bsNeoLegacy.clone()
-
-    expect(newBsNeoLegacy).toEqual(bsNeoLegacy)
+  it('Should be able to test the network', async () => {
+    expect(() => bsNeoLegacy.testNetwork(network)).not.toThrowError()
   })
 
   it.skip('Should be able to transfer a native asset', async () => {

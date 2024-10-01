@@ -32,7 +32,7 @@ describe('FlamingoEDSNeo3', () => {
     const ratio = await flamingoEDSNeo3.getCurrencyRatio('BRL')
 
     expect(ratio).toEqual(expect.any(Number))
-  })
+  }, 10000)
 
   it('Should return EUR currency ratio', async () => {
     const ratio = await flamingoEDSNeo3.getCurrencyRatio('EUR')

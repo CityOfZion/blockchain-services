@@ -29,6 +29,7 @@ import { MoralisBDSEthereum } from './services/blockchain-data/MoralisBDSEthereu
 import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
 import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
+import { RpcBDSEthereum } from './services/blockchain-data/RpcBDSEthereum'
 
 export class BSEthereum<BSCustomName extends string = string>
   implements
@@ -124,8 +125,10 @@ export class BSEthereum<BSCustomName extends string = string>
     this.feeToken = nativeAsset
   }
 
-  clone() {
-    return new BSEthereum(this.blockchainName, this.network, this.#getLedgerTransport)
+  async testNetwork(network: Network<BSEthereumNetworkId>) {
+    const blockchainDataServiceClone = new RpcBDSEthereum(network)
+
+    await blockchainDataServiceClone.getBlockHeight()
   }
 
   setNetwork(network: Network<BSEthereumNetworkId>) {
@@ -158,17 +161,15 @@ export class BSEthereum<BSCustomName extends string = string>
       if (!key.startsWith('0x')) {
         key = '0x' + key
       }
-      if (ethersBytes.hexDataLength(key) !== 32) return false
 
-      return true
+      return ethersBytes.hexDataLength(key) === 32
     } catch (error) {
       return false
     }
   }
 
   validateNameServiceDomainFormat(domainName: string): boolean {
-    if (!domainName.endsWith('.eth')) return false
-    return true
+    return domainName.endsWith('.eth')
   }
 
   generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {

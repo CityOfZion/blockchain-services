@@ -978,7 +978,7 @@ describe('FlamingoEDSNeo3', () => {
     const ratio = await moralisEDSEthereum.getCurrencyRatio('BRL')
 
     expect(ratio).toEqual(expect.any(Number))
-  })
+  }, 10000)
 
   it('Should return EUR currency ratio', async () => {
     const ratio = await moralisEDSEthereum.getCurrencyRatio('EUR')

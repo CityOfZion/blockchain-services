@@ -32,6 +32,7 @@ import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedge
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
 import { FlamingoSwapServiceNeo3 } from './services/swap/FlamingoSwapServiceNeo3'
 import { BSNeo3Constants, BSNeo3NetworkId } from './constants/BSNeo3Constants'
+import { RpcBDSNeo3 } from './services/blockchain-data/RpcBDSNeo3'
 
 export class BSNeo3<BSCustomName extends string = string>
   implements
@@ -86,10 +87,6 @@ export class BSNeo3<BSCustomName extends string = string>
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
   }
 
-  clone() {
-    return new BSNeo3(this.blockchainName, this.network, this.#getLedgerTransport)
-  }
-
   async generateSigningCallback(account: Account, isLedger?: boolean) {
     const neonJsAccount = new wallet.Account(account.key)
 
@@ -116,7 +113,7 @@ export class BSNeo3<BSCustomName extends string = string>
   #buildTransferInvocation({ intents, tipIntent }: TransferParam, account: Neon.wallet.Account): ContractInvocation[] {
     const concatIntents = [...intents, ...(tipIntent ? [tipIntent] : [])]
 
-    const invocations: ContractInvocation[] = concatIntents.map(intent => {
+    return concatIntents.map(intent => {
       return {
         operation: 'transfer',
         scriptHash: intent.tokenHash,
@@ -133,12 +130,16 @@ export class BSNeo3<BSCustomName extends string = string>
         ],
       }
     })
-
-    return invocations
   }
 
   createSwapService(): SwapService<BSNeo3NetworkId> {
     return new FlamingoSwapServiceNeo3(this.network, this)
+  }
+
+  async testNetwork(network: Network<BSNeo3NetworkId>) {
+    const blockchainDataServiceClone = new RpcBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
+
+    await blockchainDataServiceClone.getBlockHeight()
   }
 
   setNetwork(network: Network<BSNeo3NetworkId>) {
@@ -164,8 +165,7 @@ export class BSNeo3<BSCustomName extends string = string>
   }
 
   validateNameServiceDomainFormat(domainName: string): boolean {
-    if (!domainName.endsWith('.neo')) return false
-    return true
+    return domainName.endsWith('.neo')
   }
 
   generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {
@@ -203,8 +203,7 @@ export class BSNeo3<BSCustomName extends string = string>
   }
 
   async encrypt(key: string, password: string): Promise<string> {
-    const encryptedKey = await wallet.encrypt(key, password)
-    return encryptedKey
+    return await wallet.encrypt(key, password)
   }
 
   async calculateTransferFee(param: TransferParam): Promise<string> {
@@ -249,11 +248,9 @@ export class BSNeo3<BSCustomName extends string = string>
 
     const facade = await api.NetworkFacade.fromConfig({ node: this.network.url })
 
-    const transactionHash = await facade.claimGas(neonJsAccount, {
+    return await facade.claimGas(neonJsAccount, {
       signingCallback: signingCallback,
     })
-
-    return transactionHash
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<any> {
@@ -276,7 +273,7 @@ export class BSNeo3<BSCustomName extends string = string>
     const parsed = parser.parseRpcResponse(response.stack[0] as any, {
       type: 'Hash160',
     })
-    const address = parser.accountInputToAddress(parsed.replace('0x', ''))
-    return address
+
+    return parser.accountInputToAddress(parsed.replace('0x', ''))
   }
 }

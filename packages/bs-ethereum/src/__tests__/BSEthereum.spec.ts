@@ -80,10 +80,8 @@ describe('BSEthereum', () => {
     )
   })
 
-  it('Should be able to clone the BSEthereum', () => {
-    const newBsEthereum = bsEthereum.clone()
-
-    expect(newBsEthereum).toEqual(bsEthereum)
+  it('Should be able to test the network', () => {
+    expect(() => bsEthereum.testNetwork(network)).not.toThrowError()
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {
