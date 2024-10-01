@@ -55,6 +55,10 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
   }
 
+  clone() {
+    return new BSNeoLegacy(this.blockchainName, this.network)
+  }
+
   setNetwork(network: Network<BSNeoLegacyNetworkId>) {
     if (!BSNeoLegacyConstants.ALL_NETWORK_IDS.includes(network.id)) throw new Error('Custom network is not supported')
 

@@ -46,6 +46,7 @@ export interface BlockchainService<BSCustomName extends string = string, BSAvail
   blockchainDataService: BlockchainDataService
   tokens: Token[]
   network: Network<BSAvailableNetworks>
+  clone: () => BlockchainService<BSCustomName, BSAvailableNetworks>
   setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void
   generateAccountFromMnemonic(mnemonic: string | string, index: number): Account
   generateAccountFromKey(key: string): Account
@@ -240,9 +241,12 @@ export type LedgerServiceEmitter = TypedEmitter<{
   getSignatureStart(): void | Promise<void>
   getSignatureEnd(): void | Promise<void>
 }>
+
+export type GetLedgerTransport = (account: Account) => Promise<Transport>
+
 export interface LedgerService {
   emitter: LedgerServiceEmitter
-  getLedgerTransport?: (account: Account) => Promise<Transport>
+  getLedgerTransport?: GetLedgerTransport
   getAccounts(transport: Transport): Promise<Account[]>
   getAccount(transport: Transport, index: number): Promise<Account>
 }

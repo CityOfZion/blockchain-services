@@ -12,6 +12,7 @@ import {
   BSWithSwap,
   ExchangeDataService,
   ExplorerService,
+  GetLedgerTransport,
   Network,
   NftDataService,
   SwapService,
@@ -23,7 +24,6 @@ import Neon from '@cityofzion/neon-core'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
 import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
 import { api, u, wallet } from '@cityofzion/neon-js'
-import Transport from '@ledgerhq/hw-transport'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
 import { FlamingoEDSNeo3 } from './services/exchange-data/FlamingoEDSNeo3'
@@ -44,6 +44,8 @@ export class BSNeo3<BSCustomName extends string = string>
     BSWithLedger,
     BSWithSwap<BSNeo3NetworkId>
 {
+  readonly #getLedgerTransport?: GetLedgerTransport
+
   blockchainName: BSCustomName
   bip44DerivationPath: string
 
@@ -63,12 +65,13 @@ export class BSNeo3<BSCustomName extends string = string>
   constructor(
     blockchainName: BSCustomName,
     network?: Network<BSNeo3NetworkId>,
-    getLedgerTransport?: (account: Account) => Promise<Transport>
+    getLedgerTransport?: GetLedgerTransport
   ) {
     network = network ?? BSNeo3Constants.DEFAULT_NETWORK
 
     this.blockchainName = blockchainName
     this.ledgerService = new NeonDappKitLedgerServiceNeo3(this, getLedgerTransport)
+    this.#getLedgerTransport = getLedgerTransport
     this.bip44DerivationPath = BSNeo3Constants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.setNetwork(network)
@@ -81,6 +84,10 @@ export class BSNeo3<BSCustomName extends string = string>
     this.feeToken = tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = tokens.find(token => token.symbol === 'NEO')!
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
+  }
+
+  clone() {
+    return new BSNeo3(this.blockchainName, this.network, this.#getLedgerTransport)
   }
 
   async generateSigningCallback(account: Account, isLedger?: boolean) {

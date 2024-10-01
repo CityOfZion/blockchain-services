@@ -110,7 +110,7 @@ describe('DoraBDSNeo3', () => {
         },
       })
     })
-  })
+  }, 10000)
 
   it('Should be able to get unclaimed', async () => {
     const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'

@@ -86,6 +86,12 @@ describe('BSNeo3', () => {
     expect(encryptedKey).toEqual(expect.any(String))
   })
 
+  it('Should be able to clone the BSNeo3', () => {
+    const newBsNeo3 = bsNeo3.clone()
+
+    expect(newBsNeo3).toEqual(bsNeo3)
+  })
+
   it.skip('Should be able to calculate transfer fee', async () => {
     const account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 
@@ -125,7 +131,7 @@ describe('BSNeo3', () => {
     expect(transactionHash).toEqual(expect.any(String))
   })
 
-  it.only('Should be able to transfer with ledger', async () => {
+  it.skip('Should be able to transfer with ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSNeo3('neo3', network, async () => transport)
 
@@ -225,7 +231,7 @@ describe('BSNeo3', () => {
     expect(transactionHash).toEqual(expect.any(String))
   })
 
-  it.only('Should be able to transfer more than one intent with ledger', async () => {
+  it.skip('Should be able to transfer more than one intent with ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSNeo3('neo3', network, async () => transport)
 

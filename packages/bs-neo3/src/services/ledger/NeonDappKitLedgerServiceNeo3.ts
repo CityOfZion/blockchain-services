@@ -3,6 +3,7 @@ import {
   LedgerService,
   LedgerServiceEmitter,
   fetchAccountsForBlockchainServices,
+  GetLedgerTransport,
 } from '@cityofzion/blockchain-service'
 import { NeonParser } from '@cityofzion/neon-dappkit'
 import { api, u, wallet } from '@cityofzion/neon-js'
@@ -28,9 +29,9 @@ export class NeonDappKitLedgerServiceNeo3 implements LedgerService {
   #blockchainService: BSNeo3
 
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
-  getLedgerTransport?: (account: Account) => Promise<Transport>
+  getLedgerTransport?: GetLedgerTransport
 
-  constructor(blockchainService: BSNeo3, getLedgerTransport?: (account: Account) => Promise<Transport>) {
+  constructor(blockchainService: BSNeo3, getLedgerTransport?: GetLedgerTransport) {
     this.#blockchainService = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
