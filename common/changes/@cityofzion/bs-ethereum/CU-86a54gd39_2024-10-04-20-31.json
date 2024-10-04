@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Implement Neo X support for NFTs",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

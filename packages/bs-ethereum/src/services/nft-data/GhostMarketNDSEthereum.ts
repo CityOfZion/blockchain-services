@@ -3,7 +3,7 @@ import qs from 'query-string'
 import axios from 'axios'
 
 import { RpcNDSEthereum } from './RpcNDSEthereum'
-import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 
 type GhostMarketNFT = {
   tokenId: string
@@ -40,20 +40,12 @@ type GhostMarketAssets = {
   assets: GhostMarketNFT[]
   next: string
 }
+
 export class GhostMarketNDSEthereum extends RpcNDSEthereum {
-  static CONFIG_BY_NETWORK_ID: Partial<
-    Record<
-      BSEthereumNetworkId,
-      {
-        url: string
-        chain: string
-      }
-    >
-  > = {
-    '1': {
-      url: 'https://api.ghostmarket.io/api/v2',
-      chain: 'eth',
-    },
+  static readonly BASE_URL = 'https://api.ghostmarket.io/api/v2'
+  static CONFIG_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
+    '1': 'eth',
+    [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: 'neox',
   }
 
   #network: Network<BSEthereumNetworkId>
@@ -102,17 +94,19 @@ export class GhostMarketNDSEthereum extends RpcNDSEthereum {
   }
 
   private getUrlWithParams(params: any) {
-    const config = GhostMarketNDSEthereum.CONFIG_BY_NETWORK_ID[this.#network.id]
-    if (!config) throw new Error('Unsupported network')
+    const chain = GhostMarketNDSEthereum.CONFIG_BY_NETWORK_ID[this.#network.id]
+
+    if (!chain) throw new Error('Unsupported network')
 
     const parameters = qs.stringify(
       {
-        chain: config.chain,
+        chain,
         ...params,
       },
       { arrayFormat: 'bracket' }
     )
-    return `${config.url}/assets?${parameters}`
+
+    return `${GhostMarketNDSEthereum.BASE_URL}/assets?${parameters}`
   }
 
   private parse(data: GhostMarketNFT) {
