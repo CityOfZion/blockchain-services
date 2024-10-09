@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 09 Oct 2024 13:15:36 GMT and should not be manually modified.
+This log was last generated on Wed, 09 Oct 2024 18:36:56 GMT and should not be manually modified.
+
+## 2.6.1
+Wed, 09 Oct 2024 18:36:56 GMT
+
+### Patches
+
+- Fix imageId of Ghostmarket IPFS image and add new tests for it
 
 ## 2.6.0
 Wed, 09 Oct 2024 13:15:36 GMT

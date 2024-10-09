@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Tue, 01 Oct 2024 20:21:36 GMT and should not be manually modified.
+This log was last generated on Wed, 09 Oct 2024 18:36:56 GMT and should not be manually modified.
+
+## 1.6.1
+Wed, 09 Oct 2024 18:36:56 GMT
+
+### Patches
+
+- Fix imageId of Ghostmarket IPFS image and add new tests for it
 
 ## 1.6.0
 Tue, 01 Oct 2024 20:21:36 GMT

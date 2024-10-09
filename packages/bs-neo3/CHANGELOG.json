@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.6.1",
+      "tag": "@cityofzion/bs-neo3_v1.6.1",
+      "date": "Wed, 09 Oct 2024 18:36:56 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix imageId of Ghostmarket IPFS image and add new tests for it"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.6.0",
       "tag": "@cityofzion/bs-neo3_v1.6.0",
       "date": "Tue, 01 Oct 2024 20:21:36 GMT",
