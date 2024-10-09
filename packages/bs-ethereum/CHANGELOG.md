@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 01 Oct 2024 20:21:36 GMT and should not be manually modified.
+This log was last generated on Wed, 09 Oct 2024 13:15:36 GMT and should not be manually modified.
+
+## 2.6.0
+Wed, 09 Oct 2024 13:15:36 GMT
+
+### Minor changes
+
+- Implement Neo X support for NFTs
 
 ## 2.5.0
 Tue, 01 Oct 2024 20:21:36 GMT
