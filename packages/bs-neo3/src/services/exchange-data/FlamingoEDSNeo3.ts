@@ -18,6 +18,7 @@ type FlamingoTokenInfoPricesResponse = {
 }[]
 
 export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataService {
+  readonly #BASE_URL = 'https://neo-api.b-cdn.net/flamingo'
   readonly #network: Network<BSNeo3NetworkId>
   readonly #axiosInstance: AxiosInstance
 
@@ -25,29 +26,37 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
     super()
 
     this.#network = network
-    this.#axiosInstance = axios.create({ baseURL: 'https://api.flamingo.finance' })
+    this.#axiosInstance = axios.create({ baseURL: this.#BASE_URL })
   }
 
   async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
     if (!BSNeo3Helper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
 
-    const { data } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/token-info/prices')
-
-    const prices: TokenPricesResponse[] = []
+    const { data } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/live-data/prices/latest')
+    const prices = new Map<string, TokenPricesResponse>()
+    const { tokens } = params
+    const neoSymbol = 'NEO'
 
     data.forEach(item => {
-      const token = params.tokens.find(
-        token => BSNeo3Helper.normalizeHash(token.hash) === BSNeo3Helper.normalizeHash(item.hash)
+      const token = tokens.find(
+        ({ hash }) => BSNeo3Helper.normalizeHash(hash) === BSNeo3Helper.normalizeHash(item.hash)
       )
+
       if (!token) return
 
-      prices.push({
-        usdPrice: item.usd_price,
-        token,
-      })
+      const { symbol } = token
+      const usdPrice = item.usd_price
+
+      if (symbol === 'bNEO') {
+        const neoToken = tokens.find(token => token.symbol === neoSymbol)
+
+        if (neoToken) prices.set(neoSymbol, { usdPrice, token: neoToken })
+      }
+
+      prices.set(symbol, { usdPrice, token })
     })
 
-    return prices
+    return [...prices.values()]
   }
 
   async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
