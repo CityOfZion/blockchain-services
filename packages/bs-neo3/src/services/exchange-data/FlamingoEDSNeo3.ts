@@ -25,13 +25,13 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
     super()
 
     this.#network = network
-    this.#axiosInstance = axios.create({ baseURL: 'https://api.flamingo.finance' })
+    this.#axiosInstance = axios.create({ baseURL: 'https://neo-api.b-cdn.net/flamingo/' })
   }
 
   async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
     if (!BSNeo3Helper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
 
-    const { data } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/token-info/prices')
+    const { data } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/live-data/prices/latest')
 
     const prices: TokenPricesResponse[] = []
 
