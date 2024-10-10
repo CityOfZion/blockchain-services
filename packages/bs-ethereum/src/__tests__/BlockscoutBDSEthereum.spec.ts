@@ -42,7 +42,7 @@ describe('BlockscoutBDSEthereum', () => {
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
-  })
+  }, 10000)
 
   it('Should return transaction details for ERC-20 assets (Ethereum assets)', async () => {
     const txId = '0x8ff7f8d3ec44f35242a9e077658c63db595bf4023b3075df5b2b4fea54fd6861'

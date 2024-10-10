@@ -75,7 +75,10 @@ export class CryptoCompareEDS implements ExchangeDataService {
   }
 
   async getCurrencyRatio(currency: string): Promise<number> {
-    const { data } = await axios.get<number>(`https://api.flamingo.finance/fiat/exchange-rate?pair=USD_${currency}`)
+    const { data } = await axios.get<number>(
+      `https://neo-api.b-cdn.net/flamingo/live-data/fiat-exchange-rate/USD_${currency}`
+    )
+
     return data
   }
 }
