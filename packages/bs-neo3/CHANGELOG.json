@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.7.0",
+      "tag": "@cityofzion/bs-neo3_v1.7.0",
+      "date": "Fri, 11 Oct 2024 19:26:03 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Update Flamingo Finance API and add new tokens"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.7.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.6.1",
       "tag": "@cityofzion/bs-neo3_v1.6.1",
       "date": "Wed, 09 Oct 2024 18:36:56 GMT",

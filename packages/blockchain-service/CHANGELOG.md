@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 01 Oct 2024 20:21:36 GMT and should not be manually modified.
+This log was last generated on Fri, 11 Oct 2024 19:26:03 GMT and should not be manually modified.
+
+## 1.7.0
+Fri, 11 Oct 2024 19:26:03 GMT
+
+### Minor changes
+
+- Update Flamingo Finance API
 
 ## 1.6.0
 Tue, 01 Oct 2024 20:21:36 GMT
