@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 11 Oct 2024 19:26:03 GMT and should not be manually modified.
+This log was last generated on Fri, 11 Oct 2024 20:36:36 GMT and should not be manually modified.
+
+## 1.7.1
+Fri, 11 Oct 2024 20:36:36 GMT
+
+### Patches
+
+- Adjust NEO token return from Flamingo
 
 ## 1.7.0
 Fri, 11 Oct 2024 19:26:03 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.7.1",
+      "tag": "@cityofzion/bs-neo3_v1.7.1",
+      "date": "Fri, 11 Oct 2024 20:36:36 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Adjust NEO token return from Flamingo"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.0",
       "tag": "@cityofzion/bs-neo3_v1.7.0",
       "date": "Fri, 11 Oct 2024 19:26:03 GMT",
