@@ -7,7 +7,7 @@ import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 let moralisEDSEthereum: MoralisEDSEthereum
 let network: Network<BSEthereumNetworkId>
 
-describe('FlamingoEDSNeo3', () => {
+describe('MoralisEDSEthereum', () => {
   beforeAll(() => {
     network = BSEthereumConstants.DEFAULT_NETWORK
     const moralisBDSEthereum = new MoralisBDSEthereum(network)

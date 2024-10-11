@@ -6,7 +6,7 @@ import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
 let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
 let network: Network<BSNeoLegacyNetworkId>
 
-describe('FlamingoEDSNeo3', () => {
+describe('CryptoCompareEDSNeoLegacy', () => {
   beforeAll(() => {
     network = BSNeoLegacyConstants.DEFAULT_NETWORK
     cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(network)
