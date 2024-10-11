@@ -33,9 +33,17 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
     if (!BSNeo3Helper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
 
     const { data } = await this.#axiosInstance.get<FlamingoTokenInfoPricesResponse>('/live-data/prices/latest')
-    const prices = new Map<string, TokenPricesResponse>()
+    const prices: TokenPricesResponse[] = []
     const { tokens } = params
-    const neoSymbol = 'NEO'
+    const allTokens = BSNeo3Helper.getTokens(this.#network)
+    const neoToken = tokens.find(({ symbol }) => symbol === 'NEO')
+    const bNeoToken = allTokens.find(({ symbol }) => symbol === 'bNEO')!
+
+    if (neoToken)
+      data.forEach(item => {
+        if (BSNeo3Helper.normalizeHash(bNeoToken.hash) === BSNeo3Helper.normalizeHash(item.hash))
+          data.push({ ...item, symbol: neoToken.symbol, hash: neoToken.hash })
+      })
 
     data.forEach(item => {
       const token = tokens.find(
@@ -44,19 +52,10 @@ export class FlamingoEDSNeo3 extends CryptoCompareEDS implements ExchangeDataSer
 
       if (!token) return
 
-      const { symbol } = token
-      const usdPrice = item.usd_price
-
-      if (symbol === 'bNEO') {
-        const neoToken = tokens.find(token => token.symbol === neoSymbol)
-
-        if (neoToken) prices.set(neoSymbol, { usdPrice, token: neoToken })
-      }
-
-      prices.set(symbol, { usdPrice, token })
+      prices.push({ usdPrice: item.usd_price, token })
     })
 
-    return [...prices.values()]
+    return prices
   }
 
   async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
