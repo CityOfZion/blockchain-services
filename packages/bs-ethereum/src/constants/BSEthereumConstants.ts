@@ -1,4 +1,4 @@
-import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
+import { Network, NetworkId } from '@cityofzion/blockchain-service'
 
 export type BSEthereumNetworkId = NetworkId<
   | '1'
@@ -23,13 +23,6 @@ export class BSEthereumConstants {
   static DEFAULT_DECIMALS = 18
 
   static DEFAULT_GAS_LIMIT = 0x5208
-
-  static NATIVE_ASSET: Token = {
-    decimals: 18,
-    hash: '-',
-    name: 'ETH',
-    symbol: 'ETH',
-  }
 
   static NATIVE_SYMBOL_BY_NETWORK_ID: Record<BSEthereumNetworkId, string> = {
     '1': 'ETH',

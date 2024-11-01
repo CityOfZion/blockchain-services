@@ -7,42 +7,52 @@ import {
   BSWithLedger,
   BSWithNameService,
   BSWithNft,
-  BSWithSwap,
 } from './interfaces'
 
-export function hasNameService(service: BlockchainService): service is BlockchainService & BSWithNameService {
+export function hasNameService<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSWithNameService {
   return 'resolveNameServiceDomain' in service && 'validateNameServiceDomainFormat' in service
 }
 
-export function isClaimable(service: BlockchainService): service is BlockchainService & BSClaimable {
+export function isClaimable<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSClaimable<BSName> {
   return 'claim' in service && 'claimToken' in service && 'getUnclaimed' in service.blockchainDataService
 }
 
-export function isCalculableFee(service: BlockchainService): service is BlockchainService & BSCalculableFee {
+export function isCalculableFee<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSCalculableFee<BSName> {
   return 'calculateTransferFee' in service
 }
 
-export function hasNft(service: BlockchainService): service is BlockchainService & BSWithNft {
+export function hasNft<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSWithNft {
   return 'nftDataService' in service
 }
 
-export function hasExplorerService(service: BlockchainService): service is BlockchainService & BSWithExplorerService {
+export function hasExplorerService<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSWithExplorerService {
   return 'explorerService' in service
 }
 
-export function hasLedger(service: BlockchainService): service is BlockchainService & BSWithLedger {
+export function hasLedger<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSWithLedger<BSName> {
   return 'ledgerService' in service
-}
-
-export function hasSwap(service: BlockchainService): service is BlockchainService & BSWithSwap {
-  return 'createSwapService' in service
 }
 
 function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export async function waitForTransaction(service: BlockchainService, txId: string): Promise<boolean> {
+export async function waitForTransaction<BSName extends string = string>(
+  service: BlockchainService<BSName>,
+  txId: string
+): Promise<boolean> {
   const maxAttempts = 30
   const waitMs = service.blockchainDataService.maxTimeToConfirmTransactionInMs / maxAttempts
 
@@ -62,15 +72,15 @@ export async function waitForTransaction(service: BlockchainService, txId: strin
   return false
 }
 
-export async function fetchAccountsForBlockchainServices<BSCustomName extends string = string>(
-  blockchainServices: BlockchainService<BSCustomName>[],
-  getAccountCallback: (service: BlockchainService<BSCustomName>, index: number) => Promise<Account>
-): Promise<Map<BSCustomName, Account[]>> {
-  const accountsByBlockchainService = new Map<BSCustomName, Account[]>()
+export async function fetchAccountsForBlockchainServices<BSName extends string = string>(
+  blockchainServices: BlockchainService<BSName>[],
+  getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>
+): Promise<Map<BSName, Account<BSName>[]>> {
+  const accountsByBlockchainService = new Map<BSName, Account<BSName>[]>()
 
   const promises = blockchainServices.map(async service => {
     let index = 0
-    const accounts: Account[] = []
+    const accounts: Account<BSName>[] = []
     let shouldBreak = false
 
     while (!shouldBreak) {
@@ -92,7 +102,7 @@ export async function fetchAccountsForBlockchainServices<BSCustomName extends st
       index++
     }
 
-    accountsByBlockchainService.set(service.blockchainName, accounts)
+    accountsByBlockchainService.set(service.name, accounts)
   })
 
   await Promise.all(promises)

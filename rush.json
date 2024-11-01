@@ -41,6 +41,11 @@
       "packageName": "@cityofzion/blockchain-service",
       "projectFolder": "packages/blockchain-service",
       "shouldPublish": true
+    },
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "projectFolder": "packages/bs-swap",
+      "shouldPublish": true
     }
   ]
 }

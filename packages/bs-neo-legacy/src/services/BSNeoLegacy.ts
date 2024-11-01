@@ -19,10 +19,10 @@ import { CryptoCompareEDSNeoLegacy } from './exchange-data/CryptoCompareEDSNeoLe
 import { DoraBDSNeoLegacy } from './blockchain-data/DoraBDSNeoLegacy'
 import { NeoTubeESNeoLegacy } from './explorer/NeoTubeESNeoLegacy'
 
-export class BSNeoLegacy<BSCustomName extends string = string>
-  implements BlockchainService<BSCustomName, BSNeoLegacyNetworkId>, BSClaimable, BSWithExplorerService
+export class BSNeoLegacy<BSName extends string = string>
+  implements BlockchainService<BSName, BSNeoLegacyNetworkId>, BSClaimable<BSName>, BSWithExplorerService
 {
-  readonly blockchainName: BSCustomName
+  readonly name: BSName
   readonly bip44DerivationPath: string
 
   feeToken!: Token
@@ -36,10 +36,10 @@ export class BSNeoLegacy<BSCustomName extends string = string>
   network!: Network<BSNeoLegacyNetworkId>
   legacyNetwork: string
 
-  constructor(blockchainName: BSCustomName, network?: Network<BSNeoLegacyNetworkId>) {
+  constructor(name: BSName, network?: Network<BSNeoLegacyNetworkId>) {
     network = network ?? BSNeoLegacyConstants.DEFAULT_NETWORK
 
-    this.blockchainName = blockchainName
+    this.name = name
     this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
     this.bip44DerivationPath = BSNeoLegacyConstants.DEFAULT_BIP44_DERIVATION_PATH
 
@@ -84,24 +84,24 @@ export class BSNeoLegacy<BSCustomName extends string = string>
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account<BSName> {
     keychain.importMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
     const childKey = keychain.generateChildKey('neo', bip44Path)
     const key = childKey.getWIF()
     const { address } = new wallet.Account(key)
-    return { address, key, type: 'wif', bip44Path }
+    return { address, key, type: 'wif', bip44Path, blockchain: this.name }
   }
 
-  generateAccountFromKey(key: string): Account {
+  generateAccountFromKey(key: string): Account<BSName> {
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
     if (!type) throw new Error('Invalid key')
 
     const { address } = new wallet.Account(key)
-    return { address, key, type }
+    return { address, key, type, blockchain: this.name }
   }
 
-  async decrypt(encryptedKey: string, password: string): Promise<Account> {
+  async decrypt(encryptedKey: string, password: string): Promise<Account<BSName>> {
     const key = await wallet.decrypt(encryptedKey, password)
     return this.generateAccountFromKey(key)
   }

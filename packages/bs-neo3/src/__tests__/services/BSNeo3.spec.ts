@@ -5,7 +5,7 @@ import { BSNeo3 } from '../../BSNeo3'
 import { BSNeo3Constants, BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 
-let bsNeo3: BSNeo3
+let bsNeo3: BSNeo3<'neo3'>
 let network: Network<BSNeo3NetworkId>
 
 describe('BSNeo3', () => {
@@ -149,7 +149,6 @@ describe('BSNeo3', () => {
           tokenDecimals: service.feeToken.decimals,
         },
       ],
-      isLedger: true,
     })
     transport.close()
     expect(transactionHash).toEqual(expect.any(String))
@@ -262,7 +261,6 @@ describe('BSNeo3', () => {
           tokenDecimals: NEO.decimals,
         },
       ],
-      isLedger: true,
     })
 
     transport.close()

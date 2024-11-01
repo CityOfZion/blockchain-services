@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Adjust swap interfaces",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

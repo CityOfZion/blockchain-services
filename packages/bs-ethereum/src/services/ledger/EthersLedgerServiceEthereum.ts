@@ -158,17 +158,17 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
   }
 }
 
-export class EthersLedgerServiceEthereum implements LedgerService {
-  #blockchainService: BSEthereum
+export class EthersLedgerServiceEthereum<BSName extends string = string> implements LedgerService<BSName> {
+  #blockchainService: BSEthereum<BSName>
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
-  getLedgerTransport?: GetLedgerTransport
+  getLedgerTransport?: GetLedgerTransport<BSName>
 
-  constructor(blockchainService: BSEthereum, getLedgerTransport?: GetLedgerTransport) {
+  constructor(blockchainService: BSEthereum<BSName>, getLedgerTransport?: GetLedgerTransport<BSName>) {
     this.#blockchainService = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
 
-  async getAccounts(transport: Transport): Promise<Account[]> {
+  async getAccounts(transport: Transport): Promise<Account<BSName>[]> {
     const accountsByBlockchainService = await fetchAccountsForBlockchainServices(
       [this.#blockchainService],
       async (_service, index) => {
@@ -176,11 +176,11 @@ export class EthersLedgerServiceEthereum implements LedgerService {
       }
     )
 
-    const accounts = accountsByBlockchainService.get(this.#blockchainService.blockchainName)
+    const accounts = accountsByBlockchainService.get(this.#blockchainService.name)
     return accounts ?? []
   }
 
-  async getAccount(transport: Transport, index: number): Promise<Account> {
+  async getAccount(transport: Transport, index: number): Promise<Account<BSName>> {
     const ledgerApp = new LedgerEthereumApp(transport)
     const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
 
@@ -193,6 +193,7 @@ export class EthersLedgerServiceEthereum implements LedgerService {
       key: publicKeyWithPrefix,
       type: 'publicKey',
       bip44Path,
+      blockchain: this.#blockchainService.name,
     }
   }
 

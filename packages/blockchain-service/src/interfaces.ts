@@ -1,13 +1,15 @@
 import Transport from '@ledgerhq/hw-transport'
 import TypedEmitter from 'typed-emitter'
 
-export type Account = {
+export type Account<BSName extends string = string> = {
   key: string
   type: 'wif' | 'privateKey' | 'publicKey'
   address: string
   bip44Path?: string
+  isHardware?: boolean
+  blockchain: BSName
 }
-export interface Token {
+export type Token = {
   symbol: string
   name: string
   hash: string
@@ -30,16 +32,15 @@ export type IntentTransferParam = {
   tokenDecimals?: number
 }
 
-export type TransferParam = {
-  senderAccount: Account
+export type TransferParam<BSName extends string = string> = {
+  senderAccount: Account<BSName>
   intents: IntentTransferParam[]
   tipIntent?: IntentTransferParam
   priorityFee?: string
-  isLedger?: boolean
 }
 
-export interface BlockchainService<BSCustomName extends string = string, BSAvailableNetworks extends string = string> {
-  readonly blockchainName: BSCustomName
+export interface BlockchainService<BSName extends string = string, BSAvailableNetworks extends string = string> {
+  readonly name: BSName
   readonly bip44DerivationPath: string
   readonly feeToken: Token
   exchangeDataService: ExchangeDataService
@@ -48,24 +49,24 @@ export interface BlockchainService<BSCustomName extends string = string, BSAvail
   network: Network<BSAvailableNetworks>
   testNetwork: (network: Network<BSAvailableNetworks>) => Promise<void>
   setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void
-  generateAccountFromMnemonic(mnemonic: string, index: number): Account
-  generateAccountFromKey(key: string): Account
-  decrypt(keyOrJson: string, password: string): Promise<Account>
+  generateAccountFromMnemonic(mnemonic: string, index: number): Account<BSName>
+  generateAccountFromKey(key: string): Account<BSName>
+  decrypt(keyOrJson: string, password: string): Promise<Account<BSName>>
   encrypt(key: string, password: string): Promise<string>
   validateAddress(address: string): boolean
   validateEncrypted(keyOrJson: string): boolean
   validateKey(key: string): boolean
-  transfer(param: TransferParam): Promise<string[]>
+  transfer(param: TransferParam<BSName>): Promise<string[]>
 }
 
-export interface BSCalculableFee {
-  calculateTransferFee(param: TransferParam, details?: boolean): Promise<string>
+export interface BSCalculableFee<BSName extends string = string> {
+  calculateTransferFee(param: TransferParam<BSName>, details?: boolean): Promise<string>
 }
-export interface BSClaimable {
+export interface BSClaimable<BSName extends string = string> {
   readonly claimToken: Token
   readonly burnToken: Token
   blockchainDataService: BlockchainDataService & BDSClaimable
-  claim(account: Account, isLedger?: boolean): Promise<string>
+  claim(account: Account<BSName>): Promise<string>
 }
 export interface BSWithNameService {
   resolveNameServiceDomain(domainName: string): Promise<string>
@@ -80,13 +81,9 @@ export interface BSWithNft {
   nftDataService: NftDataService
 }
 
-export interface BSWithLedger {
-  ledgerService: LedgerService
-  generateAccountFromPublicKey(publicKey: string): Account
-}
-
-export interface BSWithSwap<BSAvailableNetworks extends string = string> {
-  createSwapService(): SwapService<BSAvailableNetworks>
+export interface BSWithLedger<BSName extends string = string> {
+  ledgerService: LedgerService<BSName>
+  generateAccountFromPublicKey(publicKey: string): Account<BSName>
 }
 
 export type TransactionNotifications = {
@@ -242,80 +239,66 @@ export type LedgerServiceEmitter = TypedEmitter<{
   getSignatureEnd(): void | Promise<void>
 }>
 
-export type GetLedgerTransport = (account: Account) => Promise<Transport>
+export type GetLedgerTransport<BSName extends string = string> = (account: Account<BSName>) => Promise<Transport>
 
-export interface LedgerService {
+export interface LedgerService<BSName extends string = string> {
   emitter: LedgerServiceEmitter
-  getLedgerTransport?: GetLedgerTransport
-  getAccounts(transport: Transport): Promise<Account[]>
-  getAccount(transport: Transport, index: number): Promise<Account>
+  getLedgerTransport?: GetLedgerTransport<BSName>
+  getAccounts(transport: Transport): Promise<Account<BSName>[]>
+  getAccount(transport: Transport, index: number): Promise<Account<BSName>>
 }
 
-export type SwapRoute = {
-  tokenToUse: Token
-  reserveTokenToUse: string
-  tokenToReceive: Token
-  reserveTokenToReceive: string
+export type SwapServiceToken<BSName extends string = string> = {
+  id: string
+  blockchain?: BSName
+  imageUrl?: string
+  symbol: string
+  name: string
+  hash?: string
+  decimals?: number
 }
 
-export type SwapServiceEvents = {
-  accountToUse: (account: Account | null) => void | Promise<void>
-  amountToUse: (amount: string | null) => void | Promise<void>
-  tokenToUse: (token: Token | null) => void | Promise<void>
-  reservesToUse: (reserves: string | null) => void | Promise<void>
-  amountToReceive: (amount: string | null) => void | Promise<void>
-  tokenToReceive: (token: Token | null) => void | Promise<void>
-  reservesToReceive: (reserves: string | null) => void | Promise<void>
-  minimumReceived: (minimumReceived: string | null) => void | Promise<void>
-  maximumSelling: (maximumSelling: string | null) => void | Promise<void>
-  deadline: (deadline: string) => void | Promise<void>
-  slippage: (slippage: number) => void | Promise<void>
-  liquidityProviderFee: (liquidityProviderFee: string | null) => void | Promise<void>
-  priceImpact: (priceImpact: string | null) => void | Promise<void>
-  priceInverse: (priceInverse: string | null) => void | Promise<void>
-  route: (route: SwapRoute[] | null) => void | Promise<void>
-  lastAmountChanged: (lastAmountChanged: 'amountToUse' | 'amountToReceive' | null) => void | Promise<void>
+export type SwapServiceLoadableValue<T> = { loading: boolean; value: T | null }
+export type SwapServiceValidateValue<T> = SwapServiceLoadableValue<T> & { valid: boolean | null }
+
+export type SwapServiceMinMaxAmount = {
+  min: string
+  max: string | null
 }
 
-export type SwapServiceSwapArgs<T extends string> = {
-  address: string
-  routePath: Token[]
-  deadline: string
-  network: Network<T>
+export type SwapServiceEvents<BSName extends string = string> = {
+  accountToUse: (account: SwapServiceValidateValue<Account<BSName>>) => void | Promise<void>
+  amountToUse: (amount: SwapServiceLoadableValue<string>) => void | Promise<void>
+  amountToUseMinMax: (minMax: SwapServiceLoadableValue<SwapServiceMinMaxAmount>) => void | Promise<void>
+  tokenToUse: (token: SwapServiceLoadableValue<SwapServiceToken<BSName>>) => void | Promise<void>
+  availableTokensToUse: (tokens: SwapServiceLoadableValue<SwapServiceToken<BSName>[]>) => void | Promise<void>
+
+  addressToReceive: (account: SwapServiceValidateValue<string>) => void | Promise<void>
+  amountToReceive: (amount: SwapServiceLoadableValue<string>) => void | Promise<void>
+  tokenToReceive: (token: SwapServiceLoadableValue<SwapServiceToken<BSName>>) => void | Promise<void>
+  availableTokensToReceive: (tokens: SwapServiceLoadableValue<SwapServiceToken<BSName>[]>) => void | Promise<void>
 }
 
-export type SwapServiceSwapToUseArgs<T extends string> = {
-  amountToUse: string
-  minimumReceived: string
-  type: 'swapTokenToUse'
-} & SwapServiceSwapArgs<T>
+export type SwapServiceSwapResult = {
+  transactionHash: string
+  numberOfTransactions: number
+  id: string
+}
 
-export type SwapServiceSwapToReceiveArgs<T extends string> = {
-  amountToReceive: string
-  maximumSelling: string
-  type: 'swapTokenToReceive'
-} & SwapServiceSwapArgs<T>
+export type SwapServiceStatusResponse = {
+  status: 'finished' | 'confirming' | 'exchanging' | 'failed'
+  transactionHashes: string[]
+}
 
-export type PoolGraph = Record<string, string[]>
+export interface SwapService<BSName extends string = string> {
+  eventEmitter: TypedEmitter<SwapServiceEvents<BSName>>
 
-export interface SwapService<AvailableNetworkIds extends string> {
-  eventEmitter: TypedEmitter<SwapServiceEvents>
-
-  buildSwapInvocationArgs():
-    | SwapServiceSwapToUseArgs<AvailableNetworkIds>
-    | SwapServiceSwapToReceiveArgs<AvailableNetworkIds>
-
-  setAccountToUse(account: Account | null): void
-  setAmountToUse(amount: string | null): void
-  setAmountToReceive(amount: string | null): void
-  setDeadline(deadline: string): void
-  setSlippage(slippage: number): void
-
-  setTokenToUse(token: Token | null): void
-  setTokenToReceive(token: Token | null): void
-
-  startListeningBlockGeneration(): void
-  stopListeningBlockGeneration(): void
-
-  swap(isLedger?: boolean): void
+  setTokenToUse(token: SwapServiceToken<BSName> | null): Promise<void>
+  setAccountToUse(account: Account<BSName> | null): Promise<void>
+  setAmountToUse(amount: string | null): Promise<void>
+  setTokenToReceive(token: SwapServiceToken<BSName> | null): Promise<void>
+  setAddressToReceive(address: string | null): Promise<void>
+  swap(): Promise<SwapServiceSwapResult>
+  calculateFee(): Promise<string>
+  getStatus(): Promise<SwapServiceStatusResponse>
 }

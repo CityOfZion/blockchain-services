@@ -1,9 +1,9 @@
 import {
   Account,
-  LedgerService,
-  LedgerServiceEmitter,
   fetchAccountsForBlockchainServices,
   GetLedgerTransport,
+  LedgerService,
+  LedgerServiceEmitter,
 } from '@cityofzion/blockchain-service'
 import { NeonParser } from '@cityofzion/neon-dappkit'
 import { api, u, wallet } from '@cityofzion/neon-js'
@@ -25,18 +25,18 @@ enum LedgerSecondParameter {
   LAST_DATA = 0x00,
 }
 
-export class NeonDappKitLedgerServiceNeo3 implements LedgerService {
-  #blockchainService: BSNeo3
+export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implements LedgerService<BSName> {
+  #blockchainService: BSNeo3<BSName>
 
   emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
-  getLedgerTransport?: GetLedgerTransport
+  getLedgerTransport?: GetLedgerTransport<BSName>
 
-  constructor(blockchainService: BSNeo3, getLedgerTransport?: GetLedgerTransport) {
+  constructor(blockchainService: BSNeo3<BSName>, getLedgerTransport?: GetLedgerTransport<BSName>) {
     this.#blockchainService = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
 
-  async getAccount(transport: Transport, index: number): Promise<Account> {
+  async getAccount(transport: Transport, index: number): Promise<Account<BSName>> {
     const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
     const bip44PathHex = this.#bip44PathToHex(bip44Path)
 
@@ -56,18 +56,20 @@ export class NeonDappKitLedgerServiceNeo3 implements LedgerService {
       key: publicKey,
       type: 'publicKey',
       bip44Path,
+      blockchain: this.#blockchainService.name,
+      isHardware: true,
     }
   }
 
-  async getAccounts(transport: Transport): Promise<Account[]> {
-    const accountsByBlockchainService = await fetchAccountsForBlockchainServices(
+  async getAccounts(transport: Transport): Promise<Account<BSName>[]> {
+    const accountsByBlockchainService = await fetchAccountsForBlockchainServices<BSName>(
       [this.#blockchainService],
       async (_service, index) => {
         return this.getAccount(transport, index)
       }
     )
 
-    const accounts = accountsByBlockchainService.get(this.#blockchainService.blockchainName)
+    const accounts = accountsByBlockchainService.get(this.#blockchainService.name)
     return accounts ?? []
   }
 
@@ -132,9 +134,7 @@ export class NeonDappKitLedgerServiceNeo3 implements LedgerService {
           throw new Error('Invalid signature returned from Ledger')
         }
 
-        const signature = this.#derSignatureToHex(response.toString('hex'))
-
-        return signature
+        return this.#derSignatureToHex(response.toString('hex'))
       } finally {
         this.emitter.emit('getSignatureEnd')
       }

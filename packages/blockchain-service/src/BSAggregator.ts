@@ -1,22 +1,24 @@
 import { fetchAccountsForBlockchainServices } from './functions'
 import { Account, BlockchainService } from './interfaces'
 
-export class BSAggregator<
-  BSCustomName extends string = string,
-  BSCustom extends BlockchainService<BSCustomName, string> = BlockchainService<BSCustomName, string>,
-> {
-  readonly blockchainServicesByName: Record<BSCustomName, BSCustom>
-  readonly #blockchainServices: BSCustom[]
+export class BSAggregator<BSName extends string = string> {
+  readonly blockchainServicesByName: Record<BSName, BlockchainService<BSName>>
+  readonly #blockchainServices: BlockchainService<BSName>[]
 
-  constructor(blockchainServices: Record<BSCustomName, BSCustom>) {
-    this.blockchainServicesByName = blockchainServices
-    this.#blockchainServices = Object.values(blockchainServices)
-  }
+  constructor(blockchainServices: BlockchainService<BSName>[]) {
+    this.#blockchainServices = blockchainServices
 
-  addBlockchain(name: BSCustomName, blockchain: BSCustom) {
-    if (this.blockchainServicesByName[name]) throw new Error(`The blockchain ${name} already exist`)
-    this.blockchainServicesByName[name] = blockchain
-    this.#blockchainServices.push(blockchain)
+    this.blockchainServicesByName = blockchainServices.reduce(
+      (acc, service) => {
+        if (acc[service.name]) {
+          throw new Error(`Duplicate blockchain service name: ${service.name}`)
+        }
+
+        acc[service.name] = service
+        return acc
+      },
+      {} as Record<BSName, BlockchainService<BSName>>
+    )
   }
 
   validateAddressAllBlockchains(address: string) {
@@ -37,22 +39,22 @@ export class BSAggregator<
     return this.#blockchainServices.some(bs => bs.validateEncrypted(keyOrJson))
   }
 
-  getBlockchainNameByAddress(address: string): BSCustomName[] {
-    return this.#blockchainServices.filter(bs => bs.validateAddress(address)).map(bs => bs.blockchainName)
+  getBlockchainNameByAddress(address: string): BSName[] {
+    return this.#blockchainServices.filter(bs => bs.validateAddress(address)).map(bs => bs.name)
   }
 
-  getBlockchainNameByKey(wif: string): BSCustomName[] {
-    return this.#blockchainServices.filter(bs => bs.validateKey(wif)).map(bs => bs.blockchainName)
+  getBlockchainNameByKey(wif: string): BSName[] {
+    return this.#blockchainServices.filter(bs => bs.validateKey(wif)).map(bs => bs.name)
   }
 
-  getBlockchainNameByEncrypted(keyOrJson: string): BSCustomName[] {
-    return this.#blockchainServices.filter(bs => bs.validateEncrypted(keyOrJson)).map(bs => bs.blockchainName)
+  getBlockchainNameByEncrypted(keyOrJson: string): BSName[] {
+    return this.#blockchainServices.filter(bs => bs.validateEncrypted(keyOrJson)).map(bs => bs.name)
   }
 
-  async generateAccountsFromMnemonic(mnemonic: string): Promise<Map<BSCustomName, Account[]>> {
+  async generateAccountsFromMnemonic(mnemonic: string): Promise<Map<BSName, Account<BSName>[]>> {
     return fetchAccountsForBlockchainServices(
       this.#blockchainServices,
-      async (service: BlockchainService, index: number) => {
+      async (service: BlockchainService<BSName>, index: number) => {
         return service.generateAccountFromMnemonic(mnemonic, index)
       }
     )
