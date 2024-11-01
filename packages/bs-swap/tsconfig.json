@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "outDir": "./dist"
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"],
+  "typedocOptions": {
+    "entryPoints": ["./src/index.ts"],
+    "out": "docs",
+    "exclude": "**/node_modules/**"
+  }
+}

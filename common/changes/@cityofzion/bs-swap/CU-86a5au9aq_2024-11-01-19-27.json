@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "comment": "Add support to SimpleSwap",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-swap"
+}

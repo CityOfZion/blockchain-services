@@ -9,13 +9,11 @@ import {
   BSWithLedger,
   BSWithNameService,
   BSWithNft,
-  BSWithSwap,
   ExchangeDataService,
   ExplorerService,
   GetLedgerTransport,
   Network,
   NftDataService,
-  SwapService,
   Token,
   TransferParam,
 } from '@cityofzion/blockchain-service'
@@ -30,24 +28,20 @@ import { FlamingoEDSNeo3 } from './services/exchange-data/FlamingoEDSNeo3'
 import { DoraESNeo3 } from './services/explorer/DoraESNeo3'
 import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedgerServiceNeo3'
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
-import { FlamingoSwapServiceNeo3 } from './services/swap/FlamingoSwapServiceNeo3'
 import { BSNeo3Constants, BSNeo3NetworkId } from './constants/BSNeo3Constants'
 import { RpcBDSNeo3 } from './services/blockchain-data/RpcBDSNeo3'
 
-export class BSNeo3<BSCustomName extends string = string>
+export class BSNeo3<BSName extends string = string>
   implements
-    BlockchainService<BSCustomName, BSNeo3NetworkId>,
-    BSClaimable,
+    BlockchainService<BSName, BSNeo3NetworkId>,
+    BSClaimable<BSName>,
     BSWithNameService,
-    BSCalculableFee,
+    BSCalculableFee<BSName>,
     BSWithNft,
     BSWithExplorerService,
-    BSWithLedger,
-    BSWithSwap<BSNeo3NetworkId>
+    BSWithLedger<BSName>
 {
-  readonly #getLedgerTransport?: GetLedgerTransport
-
-  blockchainName: BSCustomName
+  name: BSName
   bip44DerivationPath: string
 
   tokens!: Token[]
@@ -57,22 +51,17 @@ export class BSNeo3<BSCustomName extends string = string>
 
   blockchainDataService!: BlockchainDataService & BDSClaimable
   nftDataService!: NftDataService
-  ledgerService: NeonDappKitLedgerServiceNeo3
+  ledgerService: NeonDappKitLedgerServiceNeo3<BSName>
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
 
   network!: Network<BSNeo3NetworkId>
 
-  constructor(
-    blockchainName: BSCustomName,
-    network?: Network<BSNeo3NetworkId>,
-    getLedgerTransport?: GetLedgerTransport
-  ) {
+  constructor(name: BSName, network?: Network<BSNeo3NetworkId>, getLedgerTransport?: GetLedgerTransport) {
     network = network ?? BSNeo3Constants.DEFAULT_NETWORK
 
-    this.blockchainName = blockchainName
+    this.name = name
     this.ledgerService = new NeonDappKitLedgerServiceNeo3(this, getLedgerTransport)
-    this.#getLedgerTransport = getLedgerTransport
     this.bip44DerivationPath = BSNeo3Constants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.setNetwork(network)
@@ -87,10 +76,10 @@ export class BSNeo3<BSCustomName extends string = string>
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
   }
 
-  async generateSigningCallback(account: Account, isLedger?: boolean) {
+  async generateSigningCallback(account: Account<BSName>) {
     const neonJsAccount = new wallet.Account(account.key)
 
-    if (isLedger) {
+    if (account.isHardware) {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide a getLedgerTransport function to use Ledger')
 
@@ -110,11 +99,26 @@ export class BSNeo3<BSCustomName extends string = string>
     }
   }
 
-  #buildTransferInvocation({ intents, tipIntent }: TransferParam, account: Neon.wallet.Account): ContractInvocation[] {
+  async #buildTransferInvocation(
+    { intents, tipIntent }: TransferParam,
+    account: Neon.wallet.Account
+  ): Promise<ContractInvocation[]> {
     const concatIntents = [...intents, ...(tipIntent ? [tipIntent] : [])]
 
-    return concatIntents.map(intent => {
-      return {
+    const invocations: ContractInvocation[] = []
+
+    for (const intent of concatIntents) {
+      let decimals = intent.tokenDecimals
+      if (!decimals) {
+        try {
+          const token = await this.blockchainDataService.getTokenInfo(intent.tokenHash)
+          decimals = token.decimals
+        } catch (error) {
+          decimals = 8
+        }
+      }
+
+      invocations.push({
         operation: 'transfer',
         scriptHash: intent.tokenHash,
         args: [
@@ -128,12 +132,10 @@ export class BSNeo3<BSCustomName extends string = string>
           },
           { type: 'Any', value: null },
         ],
-      }
-    })
-  }
+      })
+    }
 
-  createSwapService(): SwapService<BSNeo3NetworkId> {
-    return new FlamingoSwapServiceNeo3(this.network, this)
+    return invocations
   }
 
   async testNetwork(network: Network<BSNeo3NetworkId>) {
@@ -168,16 +170,16 @@ export class BSNeo3<BSCustomName extends string = string>
     return domainName.endsWith('.neo')
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account<BSName> {
     keychain.importMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
     const childKey = keychain.generateChildKey('neo', bip44Path)
     const key = childKey.getWIF()
     const { address } = new wallet.Account(key)
-    return { address, key, type: 'wif', bip44Path }
+    return { address, key, type: 'wif', bip44Path, blockchain: this.name }
   }
 
-  generateAccountFromPublicKey(publicKey: string): Account {
+  generateAccountFromPublicKey(publicKey: string): Account<BSName> {
     if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
 
     const account = new wallet.Account(publicKey)
@@ -186,18 +188,19 @@ export class BSNeo3<BSCustomName extends string = string>
       address: account.address,
       key: account.publicKey,
       type: 'publicKey',
+      blockchain: this.name,
     }
   }
 
-  generateAccountFromKey(key: string): Account {
+  generateAccountFromKey(key: string): Account<BSName> {
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
     if (!type) throw new Error('Invalid key')
 
     const { address } = new wallet.Account(key)
-    return { address, key, type }
+    return { address, key, type, blockchain: this.name }
   }
 
-  async decrypt(encryptedKey: string, password: string): Promise<Account> {
+  async decrypt(encryptedKey: string, password: string): Promise<Account<BSName>> {
     const key = await wallet.decrypt(encryptedKey, password)
     return this.generateAccountFromKey(key)
   }
@@ -206,15 +209,15 @@ export class BSNeo3<BSCustomName extends string = string>
     return await wallet.encrypt(key, password)
   }
 
-  async calculateTransferFee(param: TransferParam): Promise<string> {
-    const { neonJsAccount } = await this.generateSigningCallback(param.senderAccount, param.isLedger)
+  async calculateTransferFee(param: TransferParam<BSName>): Promise<string> {
+    const { neonJsAccount } = await this.generateSigningCallback(param.senderAccount)
 
     const invoker = await NeonInvoker.init({
       rpcAddress: this.network.url,
       account: neonJsAccount,
     })
 
-    const invocations = this.#buildTransferInvocation(param, neonJsAccount)
+    const invocations = await this.#buildTransferInvocation(param, neonJsAccount)
 
     const { total } = await invoker.calculateFee({
       invocations,
@@ -224,8 +227,8 @@ export class BSNeo3<BSCustomName extends string = string>
     return total.toString()
   }
 
-  async transfer(param: TransferParam): Promise<string[]> {
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(param.senderAccount, param.isLedger)
+  async transfer(param: TransferParam<BSName>): Promise<string[]> {
+    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(param.senderAccount)
 
     const invoker = await NeonInvoker.init({
       rpcAddress: this.network.url,
@@ -233,7 +236,7 @@ export class BSNeo3<BSCustomName extends string = string>
       signingCallback: signingCallback,
     })
 
-    const invocations = this.#buildTransferInvocation(param, neonJsAccount)
+    const invocations = await this.#buildTransferInvocation(param, neonJsAccount)
 
     const transactionHash = await invoker.invokeFunction({
       invocations,
@@ -243,8 +246,8 @@ export class BSNeo3<BSCustomName extends string = string>
     return param.intents.map(() => transactionHash)
   }
 
-  async claim(account: Account, isLedger?: boolean): Promise<string> {
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account, isLedger)
+  async claim(account: Account<BSName>): Promise<string> {
+    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account)
 
     const facade = await api.NetworkFacade.fromConfig({ node: this.network.url })
 

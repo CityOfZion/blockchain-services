@@ -5,7 +5,7 @@ export class BSEthereumHelper {
   static getNativeAsset(network: Network<BSEthereumNetworkId>) {
     const symbol = this.getNativeSymbol(network)
 
-    return { ...BSEthereumConstants.NATIVE_ASSET, symbol, name: symbol }
+    return { symbol, name: symbol, decimals: 18, hash: '-' }
   }
 
   static getNativeSymbol(network: Network<BSEthereumNetworkId>) {

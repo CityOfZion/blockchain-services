@@ -6,18 +6,19 @@ import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 
 const network = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '11155111')!
 
-let bsEthereum: BSEthereum
+let bsEthereum: BSEthereum<'ethereum'>
 let wallet: ethers.Wallet
 let account: Account
 
 describe('BSEthereum', () => {
   beforeEach(async () => {
-    bsEthereum = new BSEthereum('neo3', network)
+    bsEthereum = new BSEthereum('ethereum', network)
     wallet = ethers.Wallet.createRandom()
     account = {
       key: wallet.privateKey,
       type: 'privateKey',
       address: wallet.address,
+      blockchain: 'ethereum',
     }
   })
 
@@ -153,7 +154,6 @@ describe('BSEthereum', () => {
           tokenHash: '-',
         },
       ],
-      isLedger: true,
     })
 
     expect(transactionHash).toEqual(expect.any(String))
@@ -176,7 +176,6 @@ describe('BSEthereum', () => {
           tokenHash: '0xcf185f2F3Fe19D82bFdcee59E3330FD7ba5f27ce',
         },
       ],
-      isLedger: true,
     })
 
     expect(transactionHash).toEqual(expect.any(String))

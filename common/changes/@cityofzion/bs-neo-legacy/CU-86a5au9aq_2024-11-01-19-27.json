@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Adjust interfaces to support account blockchain",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

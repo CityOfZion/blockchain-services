@@ -31,48 +31,41 @@ import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthere
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { RpcBDSEthereum } from './services/blockchain-data/RpcBDSEthereum'
 
-export class BSEthereum<BSCustomName extends string = string>
+export class BSEthereum<BSName extends string = string>
   implements
-    BlockchainService<BSCustomName, BSEthereumNetworkId>,
+    BlockchainService<BSName, BSEthereumNetworkId>,
     BSWithNft,
     BSWithNameService,
-    BSCalculableFee,
-    BSWithLedger,
+    BSCalculableFee<BSName>,
+    BSWithLedger<BSName>,
     BSWithExplorerService
 {
-  readonly #getLedgerTransport?: GetLedgerTransport
-
-  readonly blockchainName: BSCustomName
+  readonly name: BSName
   readonly bip44DerivationPath: string
 
   feeToken!: Token
   blockchainDataService!: BlockchainDataService
   exchangeDataService!: ExchangeDataService
-  ledgerService: EthersLedgerServiceEthereum
+  ledgerService: EthersLedgerServiceEthereum<BSName>
   tokens!: Token[]
   nftDataService!: NftDataService
   network!: Network<BSEthereumNetworkId>
   explorerService!: ExplorerService
 
-  constructor(
-    blockchainName: BSCustomName,
-    network?: Network<BSEthereumNetworkId>,
-    getLedgerTransport?: GetLedgerTransport
-  ) {
+  constructor(name: BSName, network?: Network<BSEthereumNetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
     network = network ?? BSEthereumConstants.DEFAULT_NETWORK
 
-    this.blockchainName = blockchainName
+    this.name = name
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
-    this.#getLedgerTransport = getLedgerTransport
     this.bip44DerivationPath = BSEthereumConstants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.setNetwork(network)
   }
 
-  async #generateSigner(account: Account, isLedger?: boolean): Promise<ethers.Signer> {
+  async #generateSigner(account: Account<BSName>): Promise<ethers.Signer> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
-    if (isLedger) {
+    if (account.isHardware) {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
 
@@ -88,7 +81,16 @@ export class BSEthereum<BSCustomName extends string = string>
   async #buildTransferParams(intent: IntentTransferParam) {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
-    const decimals = intent.tokenDecimals ?? 18
+    let decimals = intent.tokenDecimals
+    if (!decimals) {
+      try {
+        const token = await this.blockchainDataService.getTokenInfo(intent.tokenHash)
+        decimals = token.decimals
+      } catch (error) {
+        decimals = 18
+      }
+    }
+
     const amount = ethersBigNumber.parseFixed(intent.amount, decimals)
 
     const gasPrice = await provider.getGasPrice()
@@ -172,7 +174,7 @@ export class BSEthereum<BSCustomName extends string = string>
     return domainName.endsWith('.eth')
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account {
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account<BSName> {
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
     const wallet = ethers.Wallet.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic, bip44Path)
 
@@ -181,34 +183,38 @@ export class BSEthereum<BSCustomName extends string = string>
       key: wallet.privateKey,
       type: 'privateKey',
       bip44Path,
+      blockchain: this.name,
     }
   }
 
-  generateAccountFromKey(key: string): Account {
+  generateAccountFromKey(key: string): Account<BSName> {
     const wallet = new ethers.Wallet(key)
 
     return {
       address: wallet.address,
       key,
       type: 'privateKey',
+      blockchain: this.name,
     }
   }
 
-  generateAccountFromPublicKey(publicKey: string): Account {
+  generateAccountFromPublicKey(publicKey: string): Account<BSName> {
     const address = ethers.utils.computeAddress(publicKey)
     return {
       address,
       key: publicKey,
       type: 'publicKey',
+      blockchain: this.name,
     }
   }
 
-  async decrypt(json: string, password: string): Promise<Account> {
+  async decrypt(json: string, password: string): Promise<Account<BSName>> {
     const wallet = await ethers.Wallet.fromEncryptedJson(json, password)
     return {
       address: wallet.address,
       key: wallet.privateKey,
       type: 'privateKey',
+      blockchain: this.name,
     }
   }
 
@@ -217,8 +223,8 @@ export class BSEthereum<BSCustomName extends string = string>
     return wallet.encrypt(password)
   }
 
-  async transfer(param: TransferParam): Promise<string[]> {
-    const signer = await this.#generateSigner(param.senderAccount, param.isLedger)
+  async transfer(param: TransferParam<BSName>): Promise<string[]> {
+    const signer = await this.#generateSigner(param.senderAccount)
 
     const sentTransactionHashes: string[] = []
 
@@ -252,8 +258,8 @@ export class BSEthereum<BSCustomName extends string = string>
     return sentTransactionHashes
   }
 
-  async calculateTransferFee(param: TransferParam): Promise<string> {
-    const signer = await this.#generateSigner(param.senderAccount, param.isLedger)
+  async calculateTransferFee(param: TransferParam<BSName>): Promise<string> {
+    const signer = await this.#generateSigner(param.senderAccount)
 
     let fee = ethers.utils.parseEther('0')
 
