@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.8.0",
+      "tag": "@cityofzion/bs-neo3_v1.8.0",
+      "date": "Mon, 04 Nov 2024 22:49:56 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adjust interfaces to support account blockchain and Remove Flamingo swap implementation"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.8.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.1",
       "tag": "@cityofzion/bs-neo3_v1.7.1",
       "date": "Fri, 11 Oct 2024 20:36:36 GMT",

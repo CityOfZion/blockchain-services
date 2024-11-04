@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 11 Oct 2024 20:36:36 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Nov 2024 22:49:56 GMT and should not be manually modified.
+
+## 1.8.0
+Mon, 04 Nov 2024 22:49:56 GMT
+
+### Minor changes
+
+- Adjust interfaces to support account blockchain and Remove Flamingo swap implementation
 
 ## 1.7.1
 Fri, 11 Oct 2024 20:36:36 GMT

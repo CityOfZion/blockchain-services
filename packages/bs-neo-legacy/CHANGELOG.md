@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Fri, 11 Oct 2024 19:26:03 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Nov 2024 22:49:56 GMT and should not be manually modified.
+
+## 1.6.0
+Mon, 04 Nov 2024 22:49:56 GMT
+
+### Minor changes
+
+- Adjust interfaces to support account blockchain
 
 ## 1.5.1
 Fri, 11 Oct 2024 19:26:03 GMT

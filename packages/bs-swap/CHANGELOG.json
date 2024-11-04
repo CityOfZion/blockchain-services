@@ -1,0 +1,25 @@
+{
+  "name": "@cityofzion/bs-swap",
+  "entries": [
+    {
+      "version": "0.1.0",
+      "tag": "@cityofzion/bs-swap_v0.1.0",
+      "date": "Mon, 04 Nov 2024 22:49:56 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add support to SimpleSwap"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.8.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.8.0`"
+          }
+        ]
+      }
+    }
+  ]
+}

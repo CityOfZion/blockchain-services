@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.6.0",
+      "tag": "@cityofzion/bs-neo-legacy_v1.6.0",
+      "date": "Mon, 04 Nov 2024 22:49:56 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adjust interfaces to support account blockchain"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.8.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.5.1",
       "tag": "@cityofzion/bs-neo-legacy_v1.5.1",
       "date": "Fri, 11 Oct 2024 19:26:03 GMT",

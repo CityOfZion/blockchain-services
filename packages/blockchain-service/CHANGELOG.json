@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.8.0",
+      "tag": "@cityofzion/blockchain-service_v1.8.0",
+      "date": "Mon, 04 Nov 2024 22:49:56 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adjust swap interfaces"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.0",
       "tag": "@cityofzion/blockchain-service_v1.7.0",
       "date": "Fri, 11 Oct 2024 19:26:03 GMT",
