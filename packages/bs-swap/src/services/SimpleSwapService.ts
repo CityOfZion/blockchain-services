@@ -204,7 +204,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
     let simpleSwapCurrency: SimpleSwapApiCurrency<BSName> | null = null
 
     if (token) {
-      simpleSwapCurrency = this.#availableTokensToUse.value.find(item => item.symbol === token.symbol) ?? null
+      simpleSwapCurrency = this.#availableTokensToUse.value.find(item => item.id === token.id) ?? null
       if (!simpleSwapCurrency) throw new Error('You are trying to use a token that is not available')
     }
 
@@ -234,7 +234,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
     let simpleSwapCurrency: SimpleSwapApiCurrency<BSName> | null = null
 
     if (token) {
-      simpleSwapCurrency = this.#availableTokensToReceive.value.find(item => item.symbol === token.symbol) ?? null
+      simpleSwapCurrency = this.#availableTokensToReceive.value.find(item => item.id === token.id) ?? null
       if (!simpleSwapCurrency) throw new Error('You are trying to use a token that is not available')
     }
 
