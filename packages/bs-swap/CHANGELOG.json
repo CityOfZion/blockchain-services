@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.1.1",
+      "tag": "@cityofzion/bs-swap_v0.1.1",
+      "date": "Tue, 05 Nov 2024 17:53:51 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix find in available token"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.1.0",
       "tag": "@cityofzion/bs-swap_v0.1.0",
       "date": "Mon, 04 Nov 2024 22:49:56 GMT",
