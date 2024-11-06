@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Add generic BSName in GetLedgerTransport",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}
