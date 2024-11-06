@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 04 Nov 2024 22:49:56 GMT and should not be manually modified.
+This log was last generated on Wed, 06 Nov 2024 17:50:37 GMT and should not be manually modified.
+
+## 1.8.1
+Wed, 06 Nov 2024 17:50:37 GMT
+
+### Patches
+
+- Add generic BSName in GetLedgerTransport
 
 ## 1.8.0
 Mon, 04 Nov 2024 22:49:56 GMT
