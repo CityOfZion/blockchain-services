@@ -57,7 +57,7 @@ export class BSNeo3<BSName extends string = string>
 
   network!: Network<BSNeo3NetworkId>
 
-  constructor(name: BSName, network?: Network<BSNeo3NetworkId>, getLedgerTransport?: GetLedgerTransport) {
+  constructor(name: BSName, network?: Network<BSNeo3NetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
     network = network ?? BSNeo3Constants.DEFAULT_NETWORK
 
     this.name = name
