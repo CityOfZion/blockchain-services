@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.9.0",
+      "tag": "@cityofzion/blockchain-service_v1.9.0",
+      "date": "Thu, 07 Nov 2024 20:52:20 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add a new function to wait for a specific transaction by an account"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.8.0",
       "tag": "@cityofzion/blockchain-service_v1.8.0",
       "date": "Mon, 04 Nov 2024 22:49:56 GMT",

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.8.2",
+      "tag": "@cityofzion/bs-neo3_v1.8.2",
+      "date": "Thu, 07 Nov 2024 20:52:20 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.9.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.8.1",
       "tag": "@cityofzion/bs-neo3_v1.8.1",
       "date": "Wed, 06 Nov 2024 17:50:37 GMT",
