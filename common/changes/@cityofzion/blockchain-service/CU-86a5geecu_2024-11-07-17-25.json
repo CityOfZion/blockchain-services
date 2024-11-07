@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Add a new function to wait for a specific transaction by an account",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

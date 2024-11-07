@@ -72,6 +72,33 @@ export async function waitForTransaction<BSName extends string = string>(
   return false
 }
 
+export async function waitForAccountTransaction<BSName extends string = string>(
+  service: BlockchainService<BSName>,
+  txId: string,
+  account: Account<BSName>
+): Promise<boolean> {
+  const maxAttempts = 10
+
+  let attempts = 1
+
+  do {
+    await wait(60000)
+
+    try {
+      const response = await service.blockchainDataService.getTransactionsByAddress({ address: account.address })
+      const isTransactionConfirmed = response.transactions.some(transaction => transaction.hash === txId)
+
+      if (isTransactionConfirmed) return true
+    } catch {
+      // Empty block
+    }
+
+    attempts++
+  } while (attempts < maxAttempts)
+
+  return false
+}
+
 export async function fetchAccountsForBlockchainServices<BSName extends string = string>(
   blockchainServices: BlockchainService<BSName>[],
   getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>
