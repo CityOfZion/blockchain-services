@@ -286,8 +286,13 @@ export type SwapServiceSwapResult = {
 }
 
 export type SwapServiceStatusResponse = {
-  status: 'finished' | 'confirming' | 'exchanging' | 'failed'
-  transactionHashes: string[]
+  status: 'finished' | 'confirming' | 'exchanging' | 'failed' | 'refunded'
+  txFrom?: string
+  txTo?: string
+}
+
+export interface SwapServiceHelper {
+  getStatus(id: string): Promise<SwapServiceStatusResponse>
 }
 
 export interface SwapService<BSName extends string = string> {
@@ -300,5 +305,4 @@ export interface SwapService<BSName extends string = string> {
   setAddressToReceive(address: string | null): Promise<void>
   swap(): Promise<SwapServiceSwapResult>
   calculateFee(): Promise<string>
-  getStatus(): Promise<SwapServiceStatusResponse>
 }
