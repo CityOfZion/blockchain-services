@@ -52,7 +52,7 @@ export type SimpleSwapApiCreateExchangeResponse = {
 export type SimpleSwapApiGetExchangeResponse = {
   result: {
     status: string
-    txFrom: string
-    txTo: string
+    txFrom?: string
+    txTo?: string
   }
 }

@@ -6,7 +6,6 @@ import {
   SwapServiceEvents,
   SwapServiceLoadableValue,
   SwapServiceMinMaxAmount,
-  SwapServiceStatusResponse,
   SwapServiceSwapResult,
   SwapServiceToken,
   SwapServiceValidateValue,
@@ -24,9 +23,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
   #api: SimpleSwapApi<BSName>
   #blockchainServicesByName: Record<BSName, BlockchainService<BSName>>
-
-  #internalExchangeId: string | undefined = undefined
-  #internalTransactionHash: string | undefined = undefined
+  #chainsByServiceName: Partial<Record<BSName, string[]>>
 
   #internalAvailableTokensToUse: SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>[]> = {
     loading: true,
@@ -46,8 +43,9 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
   constructor(params: SimpleSwapServiceInitParams<BSName>) {
     this.eventEmitter = new EventEmitter() as TypedEmitter<SwapServiceEvents>
-    this.#api = new SimpleSwapApi(params)
+    this.#api = new SimpleSwapApi(params.apiKey)
     this.#blockchainServicesByName = params.blockchainServicesByName
+    this.#chainsByServiceName = params.chainsByServiceName
   }
 
   get #availableTokensToUse(): SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>[]> {
@@ -176,12 +174,14 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         }
 
         if (shouldRecalculateAmountToReceive) {
+          const estimate = await this.#api.getEstimate(
+            this.#tokenToUse.value,
+            this.#tokenToReceive.value!,
+            this.#amountToUse.value!
+          )
+
           this.#amountToReceive = {
-            value: await this.#api.getEstimate(
-              this.#tokenToUse.value,
-              this.#tokenToReceive.value!,
-              this.#amountToUse.value!
-            ),
+            value: estimate,
           }
         }
       }
@@ -194,7 +194,10 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
 
   async init() {
-    const tokens = await this.#api.getCurrencies()
+    const tokens = await this.#api.getCurrencies({
+      blockchainServicesByName: this.#blockchainServicesByName,
+      chainsByServiceName: this.#chainsByServiceName,
+    })
     this.#availableTokensToUse = { loading: false, value: tokens }
   }
 
@@ -289,9 +292,6 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       ],
     })
 
-    this.#internalExchangeId = id
-    this.#internalTransactionHash = transactionHash
-
     return {
       id,
       // SimpleSwap always make 2 transactions
@@ -330,34 +330,5 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         },
       ],
     })
-  }
-
-  async getStatus(): Promise<SwapServiceStatusResponse> {
-    if (!this.#internalExchangeId || !this.#internalTransactionHash) throw new Error('You need to execute a swap first')
-
-    const response = await this.#api.getExchange(this.#internalExchangeId)
-
-    const transactionHashes: string[] = [this.#internalTransactionHash]
-
-    if (response.txTo) transactionHashes.push(response.txTo)
-
-    const statusBySimpleSwapStatus: Record<string, SwapServiceStatusResponse['status']> = {
-      waiting: 'confirming',
-      confirming: 'confirming',
-      exchanging: 'exchanging',
-      sending: 'exchanging',
-      verifying: 'exchanging',
-      finished: 'finished',
-      expired: 'failed',
-      failed: 'failed',
-      refunded: 'failed',
-    }
-
-    const status = statusBySimpleSwapStatus[response.status]
-
-    return {
-      status,
-      transactionHashes: transactionHashes,
-    }
   }
 }

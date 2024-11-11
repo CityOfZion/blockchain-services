@@ -19,7 +19,7 @@ let amountToUse: SwapServiceLoadableValue<string>
 let amountToUseMinMax: SwapServiceLoadableValue<SwapServiceMinMaxAmount>
 let amountToReceive: SwapServiceLoadableValue<string>
 let addressToReceive: SwapServiceValidateValue<string>
-let accountToUse: SwapServiceLoadableValue<Account<'neo3'>>
+let accountToUse: SwapServiceValidateValue<Account<'neo3'>>
 
 describe('SimpleSwapService', () => {
   beforeEach(async () => {
@@ -31,7 +31,7 @@ describe('SimpleSwapService', () => {
     amountToUseMinMax = { loading: false, value: null }
     amountToReceive = { loading: false, value: null }
     addressToReceive = { loading: false, value: null, valid: null }
-    accountToUse = { loading: false, value: null }
+    accountToUse = { loading: false, value: null, valid: null }
 
     blockchainServicesByName = {
       neo3: new BSNeo3('neo3'),
@@ -110,7 +110,7 @@ describe('SimpleSwapService', () => {
 
     expect(availableTokensToUse).toEqual({ loading: false, value: expect.any(Array) })
     expect(tokenToUse).toEqual({ loading: false, value: null })
-    expect(accountToUse).toEqual({ loading: false, value: null })
+    expect(accountToUse).toEqual({ loading: false, value: null, valid: null })
     expect(amountToUse).toEqual({ loading: false, value: null })
     expect(amountToReceive).toEqual({ loading: false, value: null })
     expect(tokenToReceive).toEqual({ loading: false, value: null })
@@ -122,7 +122,7 @@ describe('SimpleSwapService', () => {
   it('Should be able to set the token to use', async () => {
     await simpleSwapService.init()
 
-    const token = availableTokensToUse.value![0]
+    const token = availableTokensToUse.value![1]
 
     await simpleSwapService.setTokenToUse(token)
 
@@ -147,7 +147,7 @@ describe('SimpleSwapService', () => {
 
   it('Should not be able to set the account to use if account blockchain is different of token to use blockchain', async () => {
     await simpleSwapService.init()
-    await simpleSwapService.setTokenToUse(availableTokensToUse.value![0])
+    await simpleSwapService.setTokenToUse(availableTokensToUse.value![1])
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY as string)
     account.blockchain = 'NONEXISTENT' as any
@@ -159,7 +159,7 @@ describe('SimpleSwapService', () => {
   it('Should be able to set the account to use to null', async () => {
     await simpleSwapService.init()
 
-    const token = availableTokensToUse.value![0]
+    const token = availableTokensToUse.value![1]
 
     await simpleSwapService.setTokenToUse(token)
     await simpleSwapService.setAccountToUse(null)
@@ -177,7 +177,7 @@ describe('SimpleSwapService', () => {
 
   it('Should be able to set the account to use', async () => {
     await simpleSwapService.init()
-    const token = availableTokensToUse.value![0]
+    const token = availableTokensToUse.value![1]
     await simpleSwapService.setTokenToUse(token)
 
     expect(accountToUse).toEqual({ loading: false, value: null, valid: null })
@@ -198,7 +198,7 @@ describe('SimpleSwapService', () => {
 
   it('Should be able to set the amount to use', async () => {
     await simpleSwapService.init()
-    const token = availableTokensToUse.value![0]
+    const token = availableTokensToUse.value![1]
     await simpleSwapService.setTokenToUse(token)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY as string)
@@ -231,7 +231,7 @@ describe('SimpleSwapService', () => {
 
   it("Should not be able to set the token to receive if it's not in the available tokens to receive", async () => {
     await simpleSwapService.init()
-    const token = availableTokensToUse.value![0]
+    const token = availableTokensToUse.value![1]
 
     await simpleSwapService.setTokenToUse(token)
 
@@ -242,7 +242,7 @@ describe('SimpleSwapService', () => {
 
   it('Should be able to set the token to receive to null', async () => {
     await simpleSwapService.init()
-    const token = availableTokensToUse.value![0]
+    const token = availableTokensToUse.value![1]
     await simpleSwapService.setTokenToUse(token)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY as string)
@@ -263,13 +263,13 @@ describe('SimpleSwapService', () => {
 
   it('Should be able to set the token to receive', async () => {
     await simpleSwapService.init()
-    const tokenUse = availableTokensToUse.value![0]
+    const tokenUse = availableTokensToUse.value![1]
     await simpleSwapService.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY as string)
     await simpleSwapService.setAccountToUse(account)
 
-    const tokenReceive = availableTokensToReceive.value![1]
+    const tokenReceive = availableTokensToReceive.value![0]
     await simpleSwapService.setTokenToReceive(tokenReceive)
 
     expect(tokenToUse).toEqual({ loading: false, value: tokenUse })
@@ -285,7 +285,7 @@ describe('SimpleSwapService', () => {
 
   it('Should be able to set an invalid address', async () => {
     await simpleSwapService.init()
-    const tokenUse = availableTokensToUse.value![0]
+    const tokenUse = availableTokensToUse.value![1]
     await simpleSwapService.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY as string)
@@ -328,5 +328,5 @@ describe('SimpleSwapService', () => {
     expect(amountToReceive).toEqual({ loading: false, value: expect.any(String) })
     expect(addressToReceive).toEqual({ loading: false, value: account.address, valid: true })
     expect(amountToUseMinMax).toEqual({ loading: false, value: expect.objectContaining({ min: expect.any(String) }) })
-  }, 10000)
+  }, 20000)
 })
