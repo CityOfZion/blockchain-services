@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.7.2",
+      "tag": "@cityofzion/bs-ethereum_v2.7.2",
+      "date": "Mon, 11 Nov 2024 22:23:41 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.10.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.7.1",
       "tag": "@cityofzion/bs-ethereum_v2.7.1",
       "date": "Thu, 07 Nov 2024 20:52:20 GMT",

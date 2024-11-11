@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.10.0",
+      "tag": "@cityofzion/blockchain-service_v1.10.0",
+      "date": "Mon, 11 Nov 2024 22:23:41 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add refund in SwapStatus type and separate getStatus method"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.9.0",
       "tag": "@cityofzion/blockchain-service_v1.9.0",
       "date": "Thu, 07 Nov 2024 20:52:20 GMT",

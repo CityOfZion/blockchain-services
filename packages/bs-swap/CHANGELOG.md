@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Thu, 07 Nov 2024 20:52:20 GMT and should not be manually modified.
+This log was last generated on Mon, 11 Nov 2024 22:23:41 GMT and should not be manually modified.
+
+## 0.2.0
+Mon, 11 Nov 2024 22:23:41 GMT
+
+### Minor changes
+
+- Add refund in SwapStatus type and separate getStatus method
 
 ## 0.1.3
 Thu, 07 Nov 2024 20:52:20 GMT

@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Thu, 07 Nov 2024 20:52:20 GMT and should not be manually modified.
+This log was last generated on Mon, 11 Nov 2024 22:23:41 GMT and should not be manually modified.
+
+## 1.10.0
+Mon, 11 Nov 2024 22:23:41 GMT
+
+### Minor changes
+
+- Add refund in SwapStatus type and separate getStatus method
 
 ## 1.9.0
 Thu, 07 Nov 2024 20:52:20 GMT
