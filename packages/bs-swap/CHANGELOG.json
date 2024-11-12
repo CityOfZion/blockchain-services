@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.2.1",
+      "tag": "@cityofzion/bs-swap_v0.2.1",
+      "date": "Tue, 12 Nov 2024 21:14:34 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Export the SimpleSwapServiceHelper"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.2.0",
       "tag": "@cityofzion/bs-swap_v0.2.0",
       "date": "Mon, 11 Nov 2024 22:23:41 GMT",

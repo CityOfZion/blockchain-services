@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Mon, 11 Nov 2024 22:23:41 GMT and should not be manually modified.
+This log was last generated on Tue, 12 Nov 2024 21:14:34 GMT and should not be manually modified.
+
+## 0.2.1
+Tue, 12 Nov 2024 21:14:34 GMT
+
+### Patches
+
+- Export the SimpleSwapServiceHelper
 
 ## 0.2.0
 Mon, 11 Nov 2024 22:23:41 GMT
