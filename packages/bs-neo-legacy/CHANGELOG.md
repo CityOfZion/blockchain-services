@@ -1,6 +1,11 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Mon, 11 Nov 2024 22:23:41 GMT and should not be manually modified.
+This log was last generated on Tue, 19 Nov 2024 20:13:09 GMT and should not be manually modified.
+
+## 1.6.3
+Tue, 19 Nov 2024 20:13:09 GMT
+
+_Version update only_
 
 ## 1.6.2
 Mon, 11 Nov 2024 22:23:41 GMT
