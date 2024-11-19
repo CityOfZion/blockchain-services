@@ -75,10 +75,9 @@ export async function waitForTransaction<BSName extends string = string>(
 export async function waitForAccountTransaction<BSName extends string = string>(
   service: BlockchainService<BSName>,
   txId: string,
-  account: Account<BSName>
+  account: Account<BSName>,
+  maxAttempts = 10
 ): Promise<boolean> {
-  const maxAttempts = 10
-
   let attempts = 1
 
   do {
