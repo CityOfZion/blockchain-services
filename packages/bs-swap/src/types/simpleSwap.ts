@@ -1,7 +1,6 @@
 import { BlockchainService, SwapServiceToken } from '@cityofzion/blockchain-service'
 
 export type SimpleSwapServiceInitParams<BSName extends string = string> = {
-  apiKey: string
   blockchainServicesByName: Record<BSName, BlockchainService<BSName>>
   chainsByServiceName: Partial<Record<BSName, string[]>>
 }
