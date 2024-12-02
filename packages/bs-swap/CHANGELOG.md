@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Tue, 19 Nov 2024 20:13:09 GMT and should not be manually modified.
+This log was last generated on Mon, 02 Dec 2024 19:13:39 GMT and should not be manually modified.
+
+## 0.2.3
+Mon, 02 Dec 2024 19:13:39 GMT
+
+### Patches
+
+- Remove the API key param
 
 ## 0.2.2
 Tue, 19 Nov 2024 20:13:09 GMT

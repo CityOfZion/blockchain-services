@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.2.3",
+      "tag": "@cityofzion/bs-swap_v0.2.3",
+      "date": "Mon, 02 Dec 2024 19:13:39 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove the API key param"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.2.2",
       "tag": "@cityofzion/bs-swap_v0.2.2",
       "date": "Tue, 19 Nov 2024 20:13:09 GMT",
