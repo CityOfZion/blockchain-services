@@ -15,13 +15,13 @@ export class SimpleSwapApi<BSName extends string = string> {
   #axios: AxiosInstance
   #allCurrenciesMap: Map<string, SimpleSwapApiCurrency<BSName>> = new Map()
 
-  constructor(apiKey: string) {
-    this.#axios = axios.create({ baseURL: 'https://api.simpleswap.io/v3', headers: { 'X-API-KEY': apiKey } })
+  constructor() {
+    this.#axios = axios.create({ baseURL: 'https://4b6s1fv9b6.execute-api.us-east-1.amazonaws.com/Prod' })
   }
 
   #getTokenFromCurrency(
     currency: SimpleSwapApiCurrencyResponse,
-    options: Omit<SimpleSwapServiceInitParams<BSName>, 'apiKey'>
+    options: SimpleSwapServiceInitParams<BSName>
   ): SimpleSwapApiCurrency<BSName> | undefined {
     if (!currency.ticker || !currency.network || !currency.image || !currency.name || !currency.validationAddress) {
       return
@@ -70,9 +70,7 @@ export class SimpleSwapApi<BSName extends string = string> {
     }
   }
 
-  async getCurrencies(
-    options: Omit<SimpleSwapServiceInitParams<BSName>, 'apiKey'>
-  ): Promise<SimpleSwapApiCurrency<BSName>[]> {
+  async getCurrencies(options: SimpleSwapServiceInitParams<BSName>): Promise<SimpleSwapApiCurrency<BSName>[]> {
     if (this.#allCurrenciesMap.size) {
       return Array.from(this.#allCurrenciesMap.values())
     }

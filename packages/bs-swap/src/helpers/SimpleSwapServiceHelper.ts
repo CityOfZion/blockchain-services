@@ -4,8 +4,8 @@ import { SimpleSwapApi } from '../apis/SimpleSwapApi'
 export class SimpleSwapServiceHelper<BSName extends string = string> implements SwapServiceHelper {
   #api: SimpleSwapApi<BSName>
 
-  constructor(apiKey: string) {
-    this.#api = new SimpleSwapApi(apiKey)
+  constructor() {
+    this.#api = new SimpleSwapApi()
   }
 
   async getStatus(id: string): Promise<SwapServiceStatusResponse> {

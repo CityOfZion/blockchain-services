@@ -43,7 +43,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
   constructor(params: SimpleSwapServiceInitParams<BSName>) {
     this.eventEmitter = new EventEmitter() as TypedEmitter<SwapServiceEvents>
-    this.#api = new SimpleSwapApi(params.apiKey)
+    this.#api = new SimpleSwapApi()
     this.#blockchainServicesByName = params.blockchainServicesByName
     this.#chainsByServiceName = params.chainsByServiceName
   }

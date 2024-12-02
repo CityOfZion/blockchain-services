@@ -38,7 +38,6 @@ describe('SimpleSwapService', () => {
     }
 
     simpleSwapService = new SimpleSwapService({
-      apiKey: process.env.TEST_SIMPLE_SWAP_API_KEY!,
       blockchainServicesByName,
       chainsByServiceName: {
         neo3: ['neo3'],
@@ -309,8 +308,8 @@ describe('SimpleSwapService', () => {
 
   it('Should be able to set a valid address', async () => {
     await simpleSwapService.init()
-    const tokenUse = availableTokensToUse.value![0]
-    const tokenReceive = availableTokensToUse.value![1]
+    const tokenUse = availableTokensToUse.value![1]
+    const tokenReceive = availableTokensToUse.value![0]
     await simpleSwapService.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY as string)
