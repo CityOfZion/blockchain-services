@@ -111,7 +111,12 @@ export class BSEthereumConstants {
       'https://avalanche.drpc.org',
       'https://endpoints.omniatech.io/v1/avax/mainnet/public',
     ],
-    '59144': ['https://linea.decubate.com', 'https://linea.blockpi.network/v1/rpc/public'],
+    '59144': [
+      'https://linea.drpc.org',
+      'https://linea.blockpi.network/v1/rpc/public',
+      'https://rpc.linea.build',
+      'https://1rpc.io/linea',
+    ],
     '11155111': [
       'https://ethereum-sepolia-rpc.publicnode.com',
       'https://ethereum-sepolia.rpc.subquery.network/public',
