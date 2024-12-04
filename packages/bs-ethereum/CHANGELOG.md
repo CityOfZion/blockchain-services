@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 03 Dec 2024 17:21:13 GMT and should not be manually modified.
+This log was last generated on Wed, 04 Dec 2024 13:53:09 GMT and should not be manually modified.
+
+## 2.7.5
+Wed, 04 Dec 2024 13:53:09 GMT
+
+### Patches
+
+- Update Linea RPC URL
 
 ## 2.7.4
 Tue, 03 Dec 2024 17:21:13 GMT
