@@ -328,4 +328,33 @@ describe('SimpleSwapService', () => {
     expect(addressToReceive).toEqual({ loading: false, value: account.address, valid: true })
     expect(amountToUseMinMax).toEqual({ loading: false, value: expect.objectContaining({ min: expect.any(String) }) })
   }, 20000)
+
+  it.skip('Should create a swap when all fields are filled', async () => {
+    await simpleSwapService.init()
+
+    const tokenUse = availableTokensToUse.value![1]
+    const tokenReceive = availableTokensToUse.value![0]
+
+    await simpleSwapService.setTokenToUse(tokenUse)
+
+    const account = blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN as string
+    )
+
+    await simpleSwapService.setAccountToUse(account)
+    await simpleSwapService.setAmountToUse('1000')
+
+    await simpleSwapService.setTokenToReceive(tokenReceive)
+    await simpleSwapService.setAddressToReceive(account.address)
+
+    const result = await simpleSwapService.swap()
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        txFrom: undefined,
+        log: expect.any(String),
+      })
+    )
+  }, 20000)
 })

@@ -280,15 +280,16 @@ export type SwapServiceEvents<BSName extends string = string> = {
 }
 
 export type SwapServiceSwapResult = {
-  transactionHash: string
-  numberOfTransactions: number
   id: string
+  txFrom?: string
+  log?: string
 }
 
 export type SwapServiceStatusResponse = {
   status: 'finished' | 'confirming' | 'exchanging' | 'failed' | 'refunded'
   txFrom?: string
   txTo?: string
+  log?: string
 }
 
 export interface SwapServiceHelper {

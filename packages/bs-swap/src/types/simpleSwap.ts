@@ -45,6 +45,7 @@ export type SimpleSwapApiCreateExchangeResponse = {
   result: {
     id: string
     addressFrom: string
+    log?: string
   }
 }
 
@@ -53,5 +54,6 @@ export type SimpleSwapApiGetExchangeResponse = {
     status: string
     txFrom?: string
     txTo?: string
+    log?: string
   }
 }
