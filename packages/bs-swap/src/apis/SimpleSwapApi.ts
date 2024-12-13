@@ -140,7 +140,9 @@ export class SimpleSwapApi<BSName extends string = string> {
     address: string,
     refundAddress: string
   ) {
-    const response = await this.#axios.post<SimpleSwapApiCreateExchangeResponse>('/exchanges', {
+    const {
+      data: { result },
+    } = await this.#axios.post<SimpleSwapApiCreateExchangeResponse>('/exchanges', {
       tickerFrom: currencyFrom.ticker,
       tickerTo: currencyTo.ticker,
       networkFrom: currencyFrom.network,
@@ -151,18 +153,22 @@ export class SimpleSwapApi<BSName extends string = string> {
     })
 
     return {
-      id: response.data.result.id,
-      depositAddress: response.data.result.addressFrom,
+      id: result.id,
+      depositAddress: result.addressFrom,
+      log: JSON.stringify(result),
     }
   }
 
   async getExchange(id: string) {
-    const response = await this.#axios.get<SimpleSwapApiGetExchangeResponse>(`/exchanges/${id}`)
+    const {
+      data: { result },
+    } = await this.#axios.get<SimpleSwapApiGetExchangeResponse>(`/exchanges/${id}`)
 
     return {
-      status: response.data.result.status,
-      txFrom: response.data.result.txFrom,
-      txTo: response.data.result.txTo,
+      status: result.status,
+      txFrom: result.txFrom,
+      txTo: result.txTo,
+      log: JSON.stringify(result),
     }
   }
 }

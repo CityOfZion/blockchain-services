@@ -270,34 +270,44 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       throw new Error('Not all required fields are set')
     }
 
-    const { depositAddress, id } = await this.#api.createExchange(
-      this.#tokenToReceive.value,
-      this.#tokenToUse.value,
-      this.#amountToUse.value,
-      this.#addressToReceive.value,
-      this.#accountToUse.value.address
-    )
-
-    const service = this.#blockchainServicesByName[this.#accountToUse.value.blockchain]
-
-    const [transactionHash] = await service.transfer({
-      senderAccount: this.#accountToUse.value,
-      intents: [
-        {
-          amount: this.#amountToUse.value,
-          receiverAddress: depositAddress,
-          tokenHash: this.#tokenToUse.value.hash,
-          tokenDecimals: this.#tokenToUse.value.decimals,
-        },
-      ],
-    })
-
-    return {
-      id,
-      // SimpleSwap always make 2 transactions
-      numberOfTransactions: 2,
-      transactionHash: transactionHash,
+    const result: SwapServiceSwapResult = {
+      id: '',
+      txFrom: undefined,
+      log: undefined,
     }
+
+    try {
+      const { depositAddress, id, log } = await this.#api.createExchange(
+        this.#tokenToReceive.value,
+        this.#tokenToUse.value,
+        this.#amountToUse.value,
+        this.#addressToReceive.value,
+        this.#accountToUse.value.address
+      )
+
+      result.id = id
+      result.log = log
+
+      const service = this.#blockchainServicesByName[this.#accountToUse.value.blockchain]
+
+      const [transactionHash] = await service.transfer({
+        senderAccount: this.#accountToUse.value,
+        intents: [
+          {
+            amount: this.#amountToUse.value,
+            receiverAddress: depositAddress,
+            tokenHash: this.#tokenToUse.value.hash,
+            tokenDecimals: this.#tokenToUse.value.decimals,
+          },
+        ],
+      })
+
+      result.txFrom = transactionHash
+    } catch {
+      // empty
+    }
+
+    return result
   }
 
   async calculateFee(): Promise<string> {

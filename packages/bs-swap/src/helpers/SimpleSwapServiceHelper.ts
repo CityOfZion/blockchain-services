@@ -29,6 +29,7 @@ export class SimpleSwapServiceHelper<BSName extends string = string> implements 
       status,
       txFrom: response.txFrom,
       txTo: response.txTo,
+      log: response.log,
     }
   }
 }
