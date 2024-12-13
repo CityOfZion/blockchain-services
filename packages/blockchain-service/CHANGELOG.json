@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.10.2",
+      "tag": "@cityofzion/blockchain-service_v1.10.2",
+      "date": "Fri, 13 Dec 2024 17:18:58 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add log in swap response"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.1",
       "tag": "@cityofzion/blockchain-service_v1.10.1",
       "date": "Tue, 19 Nov 2024 20:13:09 GMT",

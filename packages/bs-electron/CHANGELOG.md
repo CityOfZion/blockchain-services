@@ -1,6 +1,11 @@
 # Change Log - @cityofzion/bs-electron
 
-This log was last generated on Tue, 19 Nov 2024 20:13:09 GMT and should not be manually modified.
+This log was last generated on Fri, 13 Dec 2024 17:18:59 GMT and should not be manually modified.
+
+## 0.1.23
+Fri, 13 Dec 2024 17:18:59 GMT
+
+_Version update only_
 
 ## 0.1.22
 Tue, 19 Nov 2024 20:13:09 GMT
