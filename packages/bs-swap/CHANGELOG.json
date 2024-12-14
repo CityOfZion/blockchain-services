@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.2.7",
+      "tag": "@cityofzion/bs-swap_v0.2.7",
+      "date": "Sat, 14 Dec 2024 03:19:25 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix problem where the amountToUseMinMax is not being fixed"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.2.6",
       "tag": "@cityofzion/bs-swap_v0.2.6",
       "date": "Sat, 14 Dec 2024 02:56:00 GMT",

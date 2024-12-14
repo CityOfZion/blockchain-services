@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Sat, 14 Dec 2024 02:56:00 GMT and should not be manually modified.
+This log was last generated on Sat, 14 Dec 2024 03:19:25 GMT and should not be manually modified.
+
+## 0.2.7
+Sat, 14 Dec 2024 03:19:25 GMT
+
+### Patches
+
+- Fix problem where the amountToUseMinMax is not being fixed
 
 ## 0.2.6
 Sat, 14 Dec 2024 02:56:00 GMT
