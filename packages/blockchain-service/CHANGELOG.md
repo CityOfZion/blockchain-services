@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Fri, 13 Dec 2024 17:18:58 GMT and should not be manually modified.
+This log was last generated on Sat, 14 Dec 2024 02:14:48 GMT and should not be manually modified.
+
+## 1.11.0
+Sat, 14 Dec 2024 02:14:48 GMT
+
+### Minor changes
+
+- Add normalizeHash function
 
 ## 1.10.2
 Fri, 13 Dec 2024 17:18:58 GMT

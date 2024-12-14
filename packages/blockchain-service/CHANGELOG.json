@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.11.0",
+      "tag": "@cityofzion/blockchain-service_v1.11.0",
+      "date": "Sat, 14 Dec 2024 02:14:48 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add normalizeHash function"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.2",
       "tag": "@cityofzion/blockchain-service_v1.10.2",
       "date": "Fri, 13 Dec 2024 17:18:58 GMT",

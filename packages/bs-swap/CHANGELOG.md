@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Fri, 13 Dec 2024 17:18:58 GMT and should not be manually modified.
+This log was last generated on Sat, 14 Dec 2024 02:14:48 GMT and should not be manually modified.
+
+## 0.2.5
+Sat, 14 Dec 2024 02:14:48 GMT
+
+### Patches
+
+- Fix bug where availableTokensToUse has tokens that do not have decimals
 
 ## 0.2.4
 Fri, 13 Dec 2024 17:18:58 GMT

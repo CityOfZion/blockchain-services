@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.2.5",
+      "tag": "@cityofzion/bs-swap_v0.2.5",
+      "date": "Sat, 14 Dec 2024 02:14:48 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix bug where availableTokensToUse has tokens that do not have decimals"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.11.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.8.6`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.2.4",
       "tag": "@cityofzion/bs-swap_v0.2.4",
       "date": "Fri, 13 Dec 2024 17:18:58 GMT",
