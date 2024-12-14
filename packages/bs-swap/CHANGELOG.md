@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Sat, 14 Dec 2024 02:14:48 GMT and should not be manually modified.
+This log was last generated on Sat, 14 Dec 2024 02:56:00 GMT and should not be manually modified.
+
+## 0.2.6
+Sat, 14 Dec 2024 02:56:00 GMT
+
+### Patches
+
+- Fix error when trying to send a value with more decimal places than the token supports
 
 ## 0.2.5
 Sat, 14 Dec 2024 02:14:48 GMT
