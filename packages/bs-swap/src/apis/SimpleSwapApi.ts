@@ -10,6 +10,7 @@ import {
   SimpleSwapApiGetRangeResponse,
   SimpleSwapServiceInitParams,
 } from '../types/simpleSwap'
+import { normalizeHash } from '@cityofzion/blockchain-service'
 
 export class SimpleSwapApi<BSName extends string = string> {
   #axios: AxiosInstance
@@ -42,17 +43,17 @@ export class SimpleSwapApi<BSName extends string = string> {
     if (chainsByServiceNameEntry) {
       blockchain = chainsByServiceNameEntry[0]
 
-      if (!hash) {
-        const token = options.blockchainServicesByName[blockchain].tokens.find(
-          token => currency.ticker?.toLowerCase().startsWith(token.symbol.toLowerCase())
-        )
+      const token = options.blockchainServicesByName[blockchain].tokens.find(
+        item =>
+          (hash && normalizeHash(hash) === normalizeHash(item.hash)) ||
+          (currency.ticker && currency.ticker.toLowerCase().startsWith(item.symbol.toLowerCase()))
+      )
 
-        if (token) {
-          hash = token.hash
-          decimals = token.decimals
-          name = token.name
-          symbol = token.symbol
-        }
+      if (token) {
+        hash = token.hash
+        decimals = token.decimals
+        name = token.name
+        symbol = token.symbol
       }
     }
 

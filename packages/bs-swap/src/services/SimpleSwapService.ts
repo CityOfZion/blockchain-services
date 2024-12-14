@@ -198,7 +198,10 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       blockchainServicesByName: this.#blockchainServicesByName,
       chainsByServiceName: this.#chainsByServiceName,
     })
-    this.#availableTokensToUse = { loading: false, value: tokens }
+
+    const filteredTokens = tokens.filter(token => token.blockchain && token.decimals !== undefined && token.hash)
+
+    this.#availableTokensToUse = { loading: false, value: filteredTokens }
   }
 
   async setTokenToUse(token: SwapServiceToken<BSName> | null): Promise<void> {

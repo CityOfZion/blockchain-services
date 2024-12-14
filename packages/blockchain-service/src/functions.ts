@@ -135,3 +135,7 @@ export async function fetchAccountsForBlockchainServices<BSName extends string =
 
   return accountsByBlockchainService
 }
+
+export function normalizeHash(hash: string): string {
+  return hash.replace('0x', '').toLowerCase()
+}
