@@ -127,7 +127,10 @@ export class BSNeo3<BSName extends string = string>
           {
             type: 'Integer',
             value: intent.tokenDecimals
-              ? u.BigInteger.fromDecimal(intent.amount, intent.tokenDecimals).toString()
+              ? u.BigInteger.fromDecimal(
+                  Number(intent.amount).toFixed(intent.tokenDecimals),
+                  intent.tokenDecimals
+                ).toString()
               : intent.amount,
           },
           { type: 'Any', value: null },
