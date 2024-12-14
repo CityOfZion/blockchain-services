@@ -164,7 +164,16 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         let range: SwapServiceMinMaxAmount | null = this.#amountToUseMinMax.value
 
         if (shouldRecalculateAmountToUseMinMax || range === null) {
-          range = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value!)
+          const apiRange = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value!)
+          range = {
+            min: this.#tokenToUse.value.decimals
+              ? Number(apiRange.min).toFixed(this.#tokenToUse.value.decimals)
+              : apiRange.min,
+            max:
+              this.#tokenToUse.value.decimals && apiRange.max
+                ? Number(apiRange.max).toFixed(this.#tokenToUse.value.decimals)
+                : apiRange.max,
+          }
         }
 
         this.#amountToUseMinMax = { value: range }
