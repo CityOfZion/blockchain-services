@@ -170,7 +170,11 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         this.#amountToUseMinMax = { value: range }
 
         if (shouldRecalculateAmountToUse) {
-          this.#amountToUse = { value: range.min }
+          this.#amountToUse = {
+            value: this.#tokenToUse.value.decimals
+              ? Number(range.min).toFixed(this.#tokenToUse.value.decimals)
+              : range.min,
+          }
         }
 
         if (shouldRecalculateAmountToReceive) {
@@ -229,7 +233,9 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
 
   async setAmountToUse(amount: string | null): Promise<void> {
-    this.#amountToUse = { value: amount }
+    this.#amountToUse = {
+      value: this.#tokenToUse.value?.decimals ? Number(amount).toFixed(this.#tokenToUse.value.decimals) : amount,
+    }
 
     debounce(this.#recalculateValues.bind(this), 500)(['amountToReceive'])
   }
