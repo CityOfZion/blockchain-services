@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.2.9",
+      "tag": "@cityofzion/bs-swap_v0.2.9",
+      "date": "Mon, 16 Dec 2024 22:07:45 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Throw error message returned by SimpleSwap instead of default Axios error"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.2.8",
       "tag": "@cityofzion/bs-swap_v0.2.8",
       "date": "Mon, 16 Dec 2024 19:45:17 GMT",

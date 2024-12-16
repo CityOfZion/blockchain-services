@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Mon, 16 Dec 2024 19:45:17 GMT and should not be manually modified.
+This log was last generated on Mon, 16 Dec 2024 22:07:45 GMT and should not be manually modified.
+
+## 0.2.9
+Mon, 16 Dec 2024 22:07:45 GMT
+
+### Patches
+
+- Throw error message returned by SimpleSwap instead of default Axios error
 
 ## 0.2.8
 Mon, 16 Dec 2024 19:45:17 GMT
