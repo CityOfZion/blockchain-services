@@ -1,6 +1,7 @@
 import {
   Account,
   BlockchainService,
+  formatNumber,
   isCalculableFee,
   SwapService,
   SwapServiceEvents,
@@ -167,11 +168,11 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
           const apiRange = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value!)
           range = {
             min: this.#tokenToUse.value.decimals
-              ? Number(apiRange.min).toFixed(this.#tokenToUse.value.decimals)
+              ? formatNumber(apiRange.min, this.#tokenToUse.value.decimals)
               : apiRange.min,
             max:
               this.#tokenToUse.value.decimals && apiRange.max
-                ? Number(apiRange.max).toFixed(this.#tokenToUse.value.decimals)
+                ? formatNumber(apiRange.max, this.#tokenToUse.value.decimals)
                 : apiRange.max,
           }
         }
@@ -181,7 +182,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         if (shouldRecalculateAmountToUse) {
           this.#amountToUse = {
             value: this.#tokenToUse.value.decimals
-              ? Number(range.min).toFixed(this.#tokenToUse.value.decimals)
+              ? formatNumber(range.min, this.#tokenToUse.value.decimals)
               : range.min,
           }
         }
@@ -243,7 +244,8 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
   async setAmountToUse(amount: string | null): Promise<void> {
     this.#amountToUse = {
-      value: this.#tokenToUse.value?.decimals ? Number(amount).toFixed(this.#tokenToUse.value.decimals) : amount,
+      value:
+        this.#tokenToUse.value?.decimals && amount ? formatNumber(amount, this.#tokenToUse.value.decimals) : amount,
     }
 
     debounce(this.#recalculateValues.bind(this), 500)(['amountToReceive'])
