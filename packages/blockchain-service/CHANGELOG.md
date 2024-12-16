@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Sat, 14 Dec 2024 02:14:48 GMT and should not be manually modified.
+This log was last generated on Mon, 16 Dec 2024 19:45:17 GMT and should not be manually modified.
+
+## 1.12.0
+Mon, 16 Dec 2024 19:45:17 GMT
+
+### Minor changes
+
+- Add new function to format number
 
 ## 1.11.0
 Sat, 14 Dec 2024 02:14:48 GMT
