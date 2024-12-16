@@ -72,66 +72,98 @@ export class SimpleSwapApi<BSName extends string = string> {
   }
 
   async getCurrencies(options: SimpleSwapServiceInitParams<BSName>): Promise<SimpleSwapApiCurrency<BSName>[]> {
-    if (this.#allCurrenciesMap.size) {
-      return Array.from(this.#allCurrenciesMap.values())
+    try {
+      if (this.#allCurrenciesMap.size) {
+        return Array.from(this.#allCurrenciesMap.values())
+      }
+
+      const response = await this.#axios.get<SimpleSwapApiGetCurrenciesResponse>('/currencies')
+
+      const tokens: SimpleSwapApiCurrency<BSName>[] = []
+
+      response.data.result.forEach(currency => {
+        const token = this.#getTokenFromCurrency(currency, options)
+        if (!token) return
+
+        this.#allCurrenciesMap.set(`${token.ticker}:${token.network}`, token)
+
+        if (!token.blockchain) return
+
+        tokens.push(token)
+      })
+
+      return tokens
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data.message) {
+        throw new Error(error.response.data.message)
+      }
+
+      throw error
     }
-
-    const response = await this.#axios.get<SimpleSwapApiGetCurrenciesResponse>('/currencies')
-
-    const tokens: SimpleSwapApiCurrency<BSName>[] = []
-
-    response.data.result.forEach(currency => {
-      const token = this.#getTokenFromCurrency(currency, options)
-      if (!token) return
-
-      this.#allCurrenciesMap.set(`${token.ticker}:${token.network}`, token)
-
-      if (!token.blockchain) return
-
-      tokens.push(token)
-    })
-
-    return tokens
   }
 
   async getPairs(ticker: string, network: string) {
-    const response = await this.#axios.get<SimpleSwapApiGetPairsResponse>(`/pairs/${ticker}/${network}`)
-    const pairs = response.data.result[`${ticker}:${network}`] ?? []
+    try {
+      const response = await this.#axios.get<SimpleSwapApiGetPairsResponse>(`/pairs/${ticker}/${network}`)
+      const pairs = response.data.result[`${ticker}:${network}`] ?? []
 
-    const tokens: SimpleSwapApiCurrency<BSName>[] = []
+      const tokens: SimpleSwapApiCurrency<BSName>[] = []
 
-    pairs.forEach(pair => {
-      const token = this.#allCurrenciesMap.get(pair)
-      if (token) tokens.push(token)
-    })
+      pairs.forEach(pair => {
+        const token = this.#allCurrenciesMap.get(pair)
+        if (token) tokens.push(token)
+      })
 
-    return tokens
+      return tokens
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data.message) {
+        throw new Error(error.response.data.message)
+      }
+
+      throw error
+    }
   }
 
   async getRange(currencyFrom: SimpleSwapApiCurrency, currencyTo: SimpleSwapApiCurrency) {
-    const response = await this.#axios.get<SimpleSwapApiGetRangeResponse>('/ranges', {
-      params: {
-        tickerFrom: currencyFrom.ticker,
-        tickerTo: currencyTo.ticker,
-        networkFrom: currencyFrom.network,
-        networkTo: currencyTo.network,
-      },
-    })
-    return response.data.result
+    try {
+      const response = await this.#axios.get<SimpleSwapApiGetRangeResponse>('/ranges', {
+        params: {
+          tickerFrom: currencyFrom.ticker,
+          tickerTo: currencyTo.ticker,
+          networkFrom: currencyFrom.network,
+          networkTo: currencyTo.network,
+        },
+      })
+      return response.data.result
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data.message) {
+        throw new Error(error.response.data.message)
+      }
+
+      throw error
+    }
   }
 
   async getEstimate(currencyFrom: SimpleSwapApiCurrency, currencyTo: SimpleSwapApiCurrency, amount: string) {
-    const response = await this.#axios.get<SimpleSwapApiGetEstimateResponse>('/estimates', {
-      params: {
-        tickerFrom: currencyFrom.ticker,
-        tickerTo: currencyTo.ticker,
-        networkFrom: currencyFrom.network,
-        networkTo: currencyTo.network,
-        amount,
-      },
-    })
+    try {
+      const response = await this.#axios.get<SimpleSwapApiGetEstimateResponse>('/estimates', {
+        params: {
+          tickerFrom: currencyFrom.ticker,
+          tickerTo: currencyTo.ticker,
+          networkFrom: currencyFrom.network,
+          networkTo: currencyTo.network,
+          amount,
+        },
+      })
 
-    return response.data.result.estimatedAmount
+      return response.data.result.estimatedAmount
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data.message) {
+        throw new Error(error.response.data.message)
+      }
+
+      throw error
+    }
   }
 
   async createExchange(
@@ -141,35 +173,51 @@ export class SimpleSwapApi<BSName extends string = string> {
     address: string,
     refundAddress: string
   ) {
-    const {
-      data: { result },
-    } = await this.#axios.post<SimpleSwapApiCreateExchangeResponse>('/exchanges', {
-      tickerFrom: currencyFrom.ticker,
-      tickerTo: currencyTo.ticker,
-      networkFrom: currencyFrom.network,
-      networkTo: currencyTo.network,
-      amount,
-      addressTo: address,
-      userRefundAddress: refundAddress,
-    })
+    try {
+      const {
+        data: { result },
+      } = await this.#axios.post<SimpleSwapApiCreateExchangeResponse>('/exchanges', {
+        tickerFrom: currencyFrom.ticker,
+        tickerTo: currencyTo.ticker,
+        networkFrom: currencyFrom.network,
+        networkTo: currencyTo.network,
+        amount,
+        addressTo: address,
+        userRefundAddress: refundAddress,
+      })
 
-    return {
-      id: result.id,
-      depositAddress: result.addressFrom,
-      log: JSON.stringify(result),
+      return {
+        id: result.id,
+        depositAddress: result.addressFrom,
+        log: JSON.stringify(result),
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data.message) {
+        throw new Error(error.response.data.message)
+      }
+
+      throw error
     }
   }
 
   async getExchange(id: string) {
-    const {
-      data: { result },
-    } = await this.#axios.get<SimpleSwapApiGetExchangeResponse>(`/exchanges/${id}`)
+    try {
+      const {
+        data: { result },
+      } = await this.#axios.get<SimpleSwapApiGetExchangeResponse>(`/exchanges/${id}`)
 
-    return {
-      status: result.status,
-      txFrom: result.txFrom,
-      txTo: result.txTo,
-      log: JSON.stringify(result),
+      return {
+        status: result.status,
+        txFrom: result.txFrom,
+        txTo: result.txTo,
+        log: JSON.stringify(result),
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data.message) {
+        throw new Error(error.response.data.message)
+      }
+
+      throw error
     }
   }
 }
