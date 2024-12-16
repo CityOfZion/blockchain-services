@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "comment": "Throw error message returned by SimpleSwap instead of default Axios error",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-swap"
+}
