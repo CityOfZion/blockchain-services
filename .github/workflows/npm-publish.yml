@@ -1,4 +1,4 @@
-name: Publish all Blockchain Services Libs (Blockchain-Service, BS-Asteroid-sdk, BS-Ethereum, BS-Neo-Legacy, BS-Neo3, BS-React-Native-Decrypt)
+name: Publish all Blockchain Services Libs (Blockchain-Service, BS-Asteroid-sdk, BS-Ethereum, BS-Neo-Legacy, BS-Neo3)
 
 on: workflow_dispatch
 

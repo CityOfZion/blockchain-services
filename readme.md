@@ -13,7 +13,6 @@ complexity of each one with a single interface.
 | @cityofzion/bs-ethereum             | Implementation of interfaces and methods for the Ethereum blockchain                                                                                           |
 | @cityofzion/bs-neo3                 | Implementation of interfaces and methods for the NEO 3 blockchain                                                                                              |
 | @cityofzion/bs-neo-legacy           | Implementation of interfaces and methods for the NEO Legacy (NEO 2) blockchain                                                                                 |
-| @cityofzion/bs-react-native-decrypt | Auxiliary methods for decrypting NEO 3 and NEO Legacy keys for React Native, using native code for Android and iOS                                             |
 
 
 ## Technologies Used

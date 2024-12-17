@@ -18,11 +18,6 @@
       "shouldPublish": true
     },
     {
-      "packageName": "@cityofzion/bs-react-native-decrypt",
-      "projectFolder": "packages/bs-react-native-decrypt",
-      "shouldPublish": true
-    },
-    {
       "packageName": "@cityofzion/bs-ethereum",
       "projectFolder": "packages/bs-ethereum",
       "shouldPublish": true
