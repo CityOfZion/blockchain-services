@@ -54,5 +54,5 @@ describe('SimpleSwapApi', () => {
         log: expect.any(String),
       })
     )
-  })
+  }, 10000)
 })

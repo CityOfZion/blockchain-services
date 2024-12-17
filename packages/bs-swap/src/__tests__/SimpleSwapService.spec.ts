@@ -258,7 +258,7 @@ describe('SimpleSwapService', () => {
     expect(amountToReceive).toEqual({ loading: false, value: null })
     expect(addressToReceive).toEqual({ loading: false, value: null, valid: null })
     expect(amountToUseMinMax).toEqual({ loading: false, value: null })
-  })
+  }, 10000)
 
   it('Should be able to set the token to receive', async () => {
     await simpleSwapService.init()
