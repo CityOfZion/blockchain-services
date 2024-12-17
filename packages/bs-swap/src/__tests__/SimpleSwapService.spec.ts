@@ -329,6 +329,62 @@ describe('SimpleSwapService', () => {
     expect(amountToUseMinMax).toEqual({ loading: false, value: expect.objectContaining({ min: expect.any(String) }) })
   }, 20000)
 
+  it('Should clear amountToReceive and amountToUseMinMax when setTokenToUse is called', async () => {
+    await simpleSwapService.init()
+
+    const tokenUse = availableTokensToUse.value![1]
+    const tokenReceive = availableTokensToUse.value![0]
+
+    await simpleSwapService.setTokenToUse(tokenUse)
+
+    const account = blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN as string
+    )
+
+    await simpleSwapService.setAccountToUse(account)
+    await simpleSwapService.setAmountToUse('50')
+
+    await simpleSwapService.setTokenToReceive(tokenReceive)
+    await simpleSwapService.setAddressToReceive(account.address)
+
+    expect(amountToReceive).toEqual({ loading: false, value: expect.any(String) })
+    expect(amountToUseMinMax).toEqual({ loading: false, value: expect.objectContaining({ min: expect.any(String) }) })
+
+    // Not use await to avoid finishing recalculateValues
+    simpleSwapService.setTokenToUse(tokenUse)
+
+    expect(amountToReceive).toEqual({ loading: true, value: null })
+    expect(amountToUseMinMax).toEqual({ loading: true, value: null })
+  }, 10000)
+
+  it('Should clear amountToReceive and amountToUseMinMax when setTokenToReceive is called', async () => {
+    await simpleSwapService.init()
+
+    const tokenUse = availableTokensToUse.value![1]
+    const tokenReceive = availableTokensToUse.value![0]
+
+    await simpleSwapService.setTokenToUse(tokenUse)
+
+    const account = blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN as string
+    )
+
+    await simpleSwapService.setAccountToUse(account)
+    await simpleSwapService.setAmountToUse('50')
+
+    await simpleSwapService.setTokenToReceive(tokenReceive)
+    await simpleSwapService.setAddressToReceive(account.address)
+
+    expect(amountToReceive).toEqual({ loading: false, value: expect.any(String) })
+    expect(amountToUseMinMax).toEqual({ loading: false, value: expect.objectContaining({ min: expect.any(String) }) })
+
+    // Not use await to avoid finishing recalculateValues
+    simpleSwapService.setTokenToReceive(tokenReceive)
+
+    expect(amountToReceive).toEqual({ loading: true, value: null })
+    expect(amountToUseMinMax).toEqual({ loading: true, value: null })
+  }, 10000)
+
   it.skip('Should create a swap when all fields are filled', async () => {
     await simpleSwapService.init()
 

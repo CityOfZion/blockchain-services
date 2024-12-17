@@ -164,8 +164,8 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       if (shouldRecalculateAmountToUseMinMax || shouldRecalculateAmountToUse || shouldRecalculateAmountToReceive) {
         let range: SwapServiceMinMaxAmount | null = this.#amountToUseMinMax.value
 
-        if (shouldRecalculateAmountToUseMinMax || range === null) {
-          const apiRange = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value!)
+        if ((shouldRecalculateAmountToUseMinMax || range === null) && this.#tokenToReceive.value) {
+          const apiRange = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value)
           range = {
             min: this.#tokenToUse.value.decimals
               ? formatNumber(apiRange.min, this.#tokenToUse.value.decimals)
@@ -179,7 +179,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
         this.#amountToUseMinMax = { value: range }
 
-        if (shouldRecalculateAmountToUse) {
+        if (shouldRecalculateAmountToUse && range) {
           this.#amountToUse = {
             value: this.#tokenToUse.value.decimals
               ? formatNumber(range.min, this.#tokenToUse.value.decimals)
@@ -187,11 +187,11 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
           }
         }
 
-        if (shouldRecalculateAmountToReceive) {
+        if (shouldRecalculateAmountToReceive && this.#tokenToReceive.value && this.#amountToUse.value) {
           const estimate = await this.#api.getEstimate(
             this.#tokenToUse.value,
-            this.#tokenToReceive.value!,
-            this.#amountToUse.value!
+            this.#tokenToReceive.value,
+            this.#amountToUse.value
           )
 
           this.#amountToReceive = {
@@ -219,6 +219,9 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
 
   async setTokenToUse(token: SwapServiceToken<BSName> | null): Promise<void> {
+    this.#amountToReceive = { loading: false, value: null }
+    this.#amountToUseMinMax = { loading: false, value: null }
+
     if (!this.#availableTokensToUse.value) throw new Error('Available tokens to use is not set')
 
     let simpleSwapCurrency: SimpleSwapApiCurrency<BSName> | null = null
@@ -252,6 +255,9 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
 
   async setTokenToReceive(token: SwapServiceToken<BSName> | null): Promise<void> {
+    this.#amountToReceive = { loading: false, value: null }
+    this.#amountToUseMinMax = { loading: false, value: null }
+
     if (!this.#availableTokensToReceive.value) throw new Error('Available tokens to receive is not set')
 
     let simpleSwapCurrency: SimpleSwapApiCurrency<BSName> | null = null
