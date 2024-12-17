@@ -287,42 +287,6 @@ importers:
         specifier: 4.9.5
         version: 4.9.5
 
-  ../../packages/bs-react-native-decrypt:
-    devDependencies:
-      '@types/react':
-        specifier: 17.0.21
-        version: 17.0.21
-      '@types/react-native':
-        specifier: 0.70.0
-        version: 0.70.0
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.5.0
-        version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.0)(typescript@5.5.4)
-      '@typescript-eslint/parser':
-        specifier: ^6.5.0
-        version: 6.21.0(eslint@8.57.0)(typescript@5.5.4)
-      eslint:
-        specifier: ^8.48.0
-        version: 8.57.0
-      pod-install:
-        specifier: ^0.1.0
-        version: 0.1.39
-      react:
-        specifier: 18.2.0
-        version: 18.2.0
-      react-native:
-        specifier: 0.72.4
-        version: 0.72.4(@babel/core@7.24.7)(@babel/preset-env@7.24.8)(react@18.2.0)
-      react-native-builder-bob:
-        specifier: ^0.21.3
-        version: 0.21.3
-      turbo:
-        specifier: ^1.10.7
-        version: 1.13.4
-      typescript:
-        specifier: ^5.0.2
-        version: 5.5.4
-
   ../../packages/bs-swap:
     dependencies:
       '@cityofzion/blockchain-service':
