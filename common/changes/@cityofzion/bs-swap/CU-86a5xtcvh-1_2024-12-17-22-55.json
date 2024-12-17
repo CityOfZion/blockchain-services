@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "comment": "Add new error event for SimpleSwapService",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-swap"
+}
