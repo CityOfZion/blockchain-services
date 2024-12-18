@@ -137,6 +137,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         this.#accountToUse = { valid: this.#tokenToUse.value.blockchain === this.#accountToUse.value.blockchain }
       }
 
+      const shouldRecalculateAvailableTokensToReceive = fieldsToRecalculate.includes('availableTokensToReceive')
       const shouldRecalculateAmountToUse =
         fieldsToRecalculate.includes('amountToUse') &&
         this.#amountToUse.value === null &&
@@ -145,7 +146,6 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         fieldsToRecalculate.includes('amountToReceive') && this.#tokenToReceive.value !== null
       const shouldRecalculateAmountToUseMinMax =
         fieldsToRecalculate.includes('amountToUseMinMax') && this.#tokenToReceive.value !== null
-      const shouldRecalculateAvailableTokensToReceive = fieldsToRecalculate.includes('availableTokensToReceive')
 
       this.#availableTokensToReceive = { loading: shouldRecalculateAvailableTokensToReceive }
       this.#amountToUseMinMax = { loading: shouldRecalculateAmountToUseMinMax }
@@ -153,51 +153,72 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       this.#amountToReceive = { loading: shouldRecalculateAmountToReceive }
 
       if (shouldRecalculateAvailableTokensToReceive) {
-        const pairs = await this.#api.getPairs(this.#tokenToUse.value.ticker, this.#tokenToUse.value.network)
-        this.#availableTokensToReceive = { value: pairs }
+        try {
+          const pairs = await this.#api.getPairs(this.#tokenToUse.value.ticker, this.#tokenToUse.value.network)
+          this.#availableTokensToReceive = { value: pairs }
 
-        if (this.#tokenToUse.value && !pairs.some(pair => pair.ticker === this.#tokenToUse.value!.ticker)) {
+          if (this.#tokenToUse.value && !pairs.some(pair => pair.ticker === this.#tokenToUse.value!.ticker)) {
+            this.#tokenToReceive = { value: null }
+          }
+        } catch (error: any) {
+          this.eventEmitter.emit('error', error.message)
+          this.#availableTokensToReceive = { value: null }
           this.#tokenToReceive = { value: null }
+          this.#amountToUseMinMax = { value: null }
+          this.#amountToReceive = { value: null }
+          throw error
         }
       }
 
       if (shouldRecalculateAmountToUseMinMax || shouldRecalculateAmountToUse || shouldRecalculateAmountToReceive) {
         let range: SwapServiceMinMaxAmount | null = this.#amountToUseMinMax.value
+        try {
+          if ((shouldRecalculateAmountToUseMinMax || range === null) && this.#tokenToReceive.value) {
+            const apiRange = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value)
 
-        if ((shouldRecalculateAmountToUseMinMax || range === null) && this.#tokenToReceive.value) {
-          const apiRange = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value)
+            // Add 1% because the SimpleSwap sends us a smaller minimum
+            const rangeMin = (+apiRange.min * 1.01).toString()
 
-          // Add 1% because the SimpleSwap sends us a smaller minimum
-          const rangeMin = (+apiRange.min * 1.01).toString()
-
-          range = {
-            min: this.#tokenToUse.value.decimals ? formatNumber(rangeMin, this.#tokenToUse.value.decimals) : rangeMin,
-            max:
-              this.#tokenToUse.value.decimals && apiRange.max
-                ? formatNumber(apiRange.max, this.#tokenToUse.value.decimals)
-                : apiRange.max,
+            range = {
+              min: this.#tokenToUse.value.decimals ? formatNumber(rangeMin, this.#tokenToUse.value.decimals) : rangeMin,
+              max:
+                this.#tokenToUse.value.decimals && apiRange.max
+                  ? formatNumber(apiRange.max, this.#tokenToUse.value.decimals)
+                  : apiRange.max,
+            }
           }
-        }
 
-        this.#amountToUseMinMax = { value: range }
+          this.#amountToUseMinMax = { value: range }
 
-        if (shouldRecalculateAmountToUse && range) {
-          this.#amountToUse = {
-            value: this.#tokenToUse.value.decimals
-              ? formatNumber(range.min, this.#tokenToUse.value.decimals)
-              : range.min,
+          if (shouldRecalculateAmountToUse && range) {
+            this.#amountToUse = {
+              value: this.#tokenToUse.value.decimals
+                ? formatNumber(range.min, this.#tokenToUse.value.decimals)
+                : range.min,
+            }
           }
+        } catch (error: any) {
+          this.eventEmitter.emit('error', error.message)
+          this.#amountToUseMinMax = { value: null }
+          this.#amountToReceive = { value: null }
+          throw error
         }
 
         if (shouldRecalculateAmountToReceive && this.#tokenToReceive.value && this.#amountToUse.value) {
-          const estimate = await this.#api.getEstimate(
-            this.#tokenToUse.value,
-            this.#tokenToReceive.value,
-            this.#amountToUse.value
-          )
+          try {
+            const estimate = await this.#api.getEstimate(
+              this.#tokenToUse.value,
+              this.#tokenToReceive.value,
+              this.#amountToUse.value
+            )
 
-          this.#amountToReceive = {
-            value: estimate,
+            this.#amountToReceive = {
+              value: estimate,
+            }
+          } catch (error: any) {
+            this.eventEmitter.emit('error', error.message)
+            this.#amountToReceive = { value: null }
+            throw error
           }
         }
       }
@@ -210,14 +231,19 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
 
   async init() {
-    const tokens = await this.#api.getCurrencies({
-      blockchainServicesByName: this.#blockchainServicesByName,
-      chainsByServiceName: this.#chainsByServiceName,
-    })
+    try {
+      const tokens = await this.#api.getCurrencies({
+        blockchainServicesByName: this.#blockchainServicesByName,
+        chainsByServiceName: this.#chainsByServiceName,
+      })
 
-    const filteredTokens = tokens.filter(token => token.blockchain && token.decimals !== undefined && token.hash)
+      const filteredTokens = tokens.filter(token => token.blockchain && token.decimals !== undefined && token.hash)
 
-    this.#availableTokensToUse = { loading: false, value: filteredTokens }
+      this.#availableTokensToUse = { loading: false, value: filteredTokens }
+    } catch (error: any) {
+      this.eventEmitter.emit('error', error.message)
+      throw error
+    }
   }
 
   async setTokenToUse(token: SwapServiceToken<BSName> | null): Promise<void> {
@@ -253,7 +279,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         this.#tokenToUse.value?.decimals && amount ? formatNumber(amount, this.#tokenToUse.value.decimals) : amount,
     }
 
-    debounce(this.#recalculateValues.bind(this), 500)(['amountToReceive'])
+    debounce(this.#recalculateValues.bind(this), 1000)(['amountToReceive'])
   }
 
   async setTokenToReceive(token: SwapServiceToken<BSName> | null): Promise<void> {

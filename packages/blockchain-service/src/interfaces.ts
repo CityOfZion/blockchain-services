@@ -277,6 +277,7 @@ export type SwapServiceEvents<BSName extends string = string> = {
   amountToReceive: (amount: SwapServiceLoadableValue<string>) => void | Promise<void>
   tokenToReceive: (token: SwapServiceLoadableValue<SwapServiceToken<BSName>>) => void | Promise<void>
   availableTokensToReceive: (tokens: SwapServiceLoadableValue<SwapServiceToken<BSName>[]>) => void | Promise<void>
+  error: (error: string) => void | Promise<void>
 }
 
 export type SwapServiceSwapResult = {
