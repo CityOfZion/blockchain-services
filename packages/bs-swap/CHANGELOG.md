@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Wed, 18 Dec 2024 11:11:37 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Dec 2024 22:05:35 GMT and should not be manually modified.
+
+## 0.3.1
+Wed, 18 Dec 2024 22:05:35 GMT
+
+### Patches
+
+- Remove mandatory decimals and fetch it in setTokenToUse function if it doesn't exist
 
 ## 0.3.0
 Wed, 18 Dec 2024 11:11:37 GMT
