@@ -1,6 +1,18 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Mon, 16 Dec 2024 22:07:45 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Dec 2024 11:11:37 GMT and should not be manually modified.
+
+## 0.3.0
+Wed, 18 Dec 2024 11:11:37 GMT
+
+### Minor changes
+
+- Add new error event for SimpleSwapService
+
+### Patches
+
+- Add 1% in SimpleSwap minimum
+- Clear amountToReceive and amountToUseMinMax when setTokenToReceive is called
 
 ## 0.2.9
 Mon, 16 Dec 2024 22:07:45 GMT

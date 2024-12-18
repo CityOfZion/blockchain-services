@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 16 Dec 2024 19:45:17 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Dec 2024 11:11:37 GMT and should not be manually modified.
+
+## 1.13.0
+Wed, 18 Dec 2024 11:11:37 GMT
+
+### Minor changes
+
+- Add new error event for SwapService interface
 
 ## 1.12.0
 Mon, 16 Dec 2024 19:45:17 GMT

@@ -2,6 +2,34 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.3.0",
+      "tag": "@cityofzion/bs-swap_v0.3.0",
+      "date": "Wed, 18 Dec 2024 11:11:37 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add new error event for SimpleSwapService"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Add 1% in SimpleSwap minimum"
+          },
+          {
+            "comment": "Clear amountToReceive and amountToUseMinMax when setTokenToReceive is called"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.13.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.8.9`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.2.9",
       "tag": "@cityofzion/bs-swap_v0.2.9",
       "date": "Mon, 16 Dec 2024 22:07:45 GMT",
