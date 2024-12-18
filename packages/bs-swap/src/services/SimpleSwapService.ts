@@ -27,7 +27,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   #chainsByServiceName: Partial<Record<BSName, string[]>>
 
   #internalAvailableTokensToUse: SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>[]> = {
-    loading: true,
+    loading: false,
     value: null,
   }
   #internalTokenToUse: SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>> = { loading: false, value: null }
@@ -232,15 +232,18 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
   async init() {
     try {
+      this.#availableTokensToUse = { loading: true }
+
       const tokens = await this.#api.getCurrencies({
         blockchainServicesByName: this.#blockchainServicesByName,
         chainsByServiceName: this.#chainsByServiceName,
       })
 
-      const filteredTokens = tokens.filter(token => token.blockchain && token.decimals !== undefined && token.hash)
+      const filteredTokens = tokens.filter(token => token.blockchain && token.hash)
 
       this.#availableTokensToUse = { loading: false, value: filteredTokens }
     } catch (error: any) {
+      this.#availableTokensToUse = { loading: false, value: [] }
       this.eventEmitter.emit('error', error.message)
       throw error
     }
@@ -249,6 +252,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   async setTokenToUse(token: SwapServiceToken<BSName> | null): Promise<void> {
     this.#amountToReceive = { loading: false, value: null }
     this.#amountToUseMinMax = { loading: false, value: null }
+    this.#tokenToUse = { loading: true }
 
     if (!this.#availableTokensToUse.value) throw new Error('Available tokens to use is not set')
 
@@ -257,6 +261,22 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
     if (token) {
       simpleSwapCurrency = this.#availableTokensToUse.value.find(item => item.id === token.id) ?? null
       if (!simpleSwapCurrency) throw new Error('You are trying to use a token that is not available')
+    }
+
+    if (simpleSwapCurrency && simpleSwapCurrency.decimals === undefined) {
+      if (!simpleSwapCurrency?.blockchain || !simpleSwapCurrency.hash) throw new Error('Token is not valid')
+
+      let decimals = 6
+
+      try {
+        const service = this.#blockchainServicesByName[simpleSwapCurrency.blockchain]
+        const tokenInfo = await service.blockchainDataService.getTokenInfo(simpleSwapCurrency.hash)
+        decimals = tokenInfo.decimals
+      } catch {
+        /* empty */
+      }
+
+      simpleSwapCurrency.decimals = decimals
     }
 
     this.#tokenToUse = { loading: false, value: simpleSwapCurrency }
