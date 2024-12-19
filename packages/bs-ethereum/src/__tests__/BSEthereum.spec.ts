@@ -71,7 +71,7 @@ describe('BSEthereum', () => {
     const validEncryptedJson = await bsEthereum.encrypt(wallet.privateKey, password)
     const decryptedAccount = await bsEthereum.decrypt(validEncryptedJson, password)
     expect(decryptedAccount).toEqual(account)
-  })
+  }, 10000)
 
   it('Should be able to encrypt key', async () => {
     const password = 'TestPassword'

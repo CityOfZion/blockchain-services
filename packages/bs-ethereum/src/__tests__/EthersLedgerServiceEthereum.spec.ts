@@ -5,9 +5,9 @@ import Transport from '@ledgerhq/hw-transport'
 import { BSEthereum } from '../BSEthereum'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 
-let ledgerService: EthersLedgerServiceEthereum
+let ledgerService: EthersLedgerServiceEthereum<'ethereum'>
 let transport: Transport
-let bsEthereum: BSEthereum
+let bsEthereum: BSEthereum<'ethereum'>
 
 describe.skip('EthersLedgerServiceEthereum', () => {
   beforeAll(async () => {
