@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 18 Dec 2024 11:11:37 GMT and should not be manually modified.
+This log was last generated on Thu, 19 Dec 2024 22:15:45 GMT and should not be manually modified.
+
+## 2.7.10
+Thu, 19 Dec 2024 22:15:45 GMT
+
+### Patches
+
+- Update Moralis URL
+- Enhance failure handling for native token hash fetching
 
 ## 2.7.9
 Wed, 18 Dec 2024 11:11:37 GMT

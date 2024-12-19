@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Wed, 18 Dec 2024 22:05:35 GMT and should not be manually modified.
+This log was last generated on Thu, 19 Dec 2024 22:15:45 GMT and should not be manually modified.
+
+## 0.3.2
+Thu, 19 Dec 2024 22:15:45 GMT
+
+### Patches
+
+- Update Swap Dora URL
 
 ## 0.3.1
 Wed, 18 Dec 2024 22:05:35 GMT

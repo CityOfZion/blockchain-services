@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.3.2",
+      "tag": "@cityofzion/bs-swap_v0.3.2",
+      "date": "Thu, 19 Dec 2024 22:15:45 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Swap Dora URL"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.3.1",
       "tag": "@cityofzion/bs-swap_v0.3.1",
       "date": "Wed, 18 Dec 2024 22:05:35 GMT",

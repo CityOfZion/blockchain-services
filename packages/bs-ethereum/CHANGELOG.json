@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.7.10",
+      "tag": "@cityofzion/bs-ethereum_v2.7.10",
+      "date": "Thu, 19 Dec 2024 22:15:45 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Moralis URL"
+          },
+          {
+            "comment": "Enhance failure handling for native token hash fetching"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.7.9",
       "tag": "@cityofzion/bs-ethereum_v2.7.9",
       "date": "Wed, 18 Dec 2024 11:11:37 GMT",
