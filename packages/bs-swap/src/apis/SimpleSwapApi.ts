@@ -17,7 +17,7 @@ export class SimpleSwapApi<BSName extends string = string> {
   #allCurrenciesMap: Map<string, SimpleSwapApiCurrency<BSName>> = new Map()
 
   constructor() {
-    this.#axios = axios.create({ baseURL: 'https://4b6s1fv9b6.execute-api.us-east-1.amazonaws.com/Prod' })
+    this.#axios = axios.create({ baseURL: 'https://dora.coz.io/api/v2/swap' })
   }
 
   #getTokenFromCurrency(

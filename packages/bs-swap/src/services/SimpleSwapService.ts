@@ -166,6 +166,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
           this.#tokenToReceive = { value: null }
           this.#amountToUseMinMax = { value: null }
           this.#amountToReceive = { value: null }
+          this.#addressToReceive = { value: null, valid: null }
           throw error
         }
       }

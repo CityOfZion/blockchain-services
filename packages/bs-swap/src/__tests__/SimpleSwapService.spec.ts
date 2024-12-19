@@ -24,7 +24,7 @@ let accountToUse: SwapServiceValidateValue<Account<'neo3'>>
 let error: string | undefined
 
 describe('SimpleSwapService', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     jest.clearAllMocks()
 
     error = undefined
@@ -110,7 +110,7 @@ describe('SimpleSwapService', () => {
         }),
       ]),
     })
-  })
+  }, 10000)
 
   it('Should be able to set the token to use to null', async () => {
     await simpleSwapService.init()
