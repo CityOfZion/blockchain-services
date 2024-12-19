@@ -94,7 +94,7 @@ interface MoralisTokenMetadataResponse {
 }
 
 export class MoralisBDSEthereum extends RpcBDSEthereum {
-  static BASE_URL = 'https://nxlrja2d1a.execute-api.us-east-1.amazonaws.com/production'
+  static BASE_URL = 'https://dora.coz.io/api/v2/meta'
 
   static SUPPORTED_CHAINS = [
     '1',
