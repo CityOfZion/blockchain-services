@@ -1,4 +1,4 @@
-import { Network } from '@cityofzion/blockchain-service'
+import { Network, normalizeHash } from '@cityofzion/blockchain-service'
 import { BSEthereumConstants, BSEthereumNetworkId } from '../constants/BSEthereumConstants'
 
 export class BSEthereumHelper {
@@ -21,7 +21,7 @@ export class BSEthereumHelper {
   }
 
   static normalizeHash(hash: string): string {
-    return hash.startsWith('0x') ? hash.slice(2) : hash
+    return normalizeHash(hash)
   }
 
   static wait(duration: number): Promise<void> {

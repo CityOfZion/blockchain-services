@@ -43,6 +43,10 @@ export class BSEthereumConstants {
     '12227332': 'GAS',
   }
 
+  static NATIVE_WRAPPED_HASH_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
+    '1': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+  }
+
   static RPC_LIST_BY_NETWORK_ID: Record<BSEthereumNetworkId, string[]> = {
     '1': [
       'https://eth.llamarpc.com',
