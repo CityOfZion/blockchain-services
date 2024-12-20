@@ -2,8 +2,9 @@ import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import { BSNeoLegacy } from '../services/BSNeoLegacy'
 import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
 import { Network } from '@cityofzion/blockchain-service'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
-let bsNeoLegacy: BSNeoLegacy
+let bsNeoLegacy: BSNeoLegacy<'neoLegacy'>
 
 const network: Network<BSNeoLegacyNetworkId> = {
   id: 'testnet',
@@ -187,4 +188,33 @@ describe('BSNeoLegacy', () => {
 
     expect(transactionHash).toEqual(expect.any(String))
   })
+
+  it.skip('Should be able to transfer with ledger', async () => {
+    const transport = await TransportNodeHid.create()
+
+    const service = new BSNeoLegacy('neoLegacy', undefined, async () => transport)
+
+    const account = await service.ledgerService.getAccount(transport, 0)
+
+    const balance = await service.blockchainDataService.getBalance(account.address)
+
+    const gasBalance = balance.find(b => b.token.symbol === service.feeToken.symbol)
+
+    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
+
+    const [transactionHash] = await service.transfer({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'Ac9hjKxteW3BvDyrhTxizkUxEShT8B4DaU',
+          tokenHash: service.feeToken.hash,
+          tokenDecimals: service.feeToken.decimals,
+        },
+      ],
+    })
+    transport.close()
+
+    expect(transactionHash).toEqual(expect.any(String))
+  }, 60000)
 })

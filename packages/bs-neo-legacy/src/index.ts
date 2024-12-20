@@ -9,3 +9,5 @@ export * from './services/blockchain-data/DoraBDSNeoLegacy'
 export * from './services/exchange-data/CryptoCompareEDSNeoLegacy'
 
 export * from './services/explorer/NeoTubeESNeoLegacy'
+
+export * from './services/ledger/NeonJsLedgerServiceNeoLegacy'
