@@ -10,6 +10,8 @@ import {
   TransferParam,
   BSWithExplorerService,
   ExplorerService,
+  BSWithLedger,
+  GetLedgerTransport,
 } from '@cityofzion/blockchain-service'
 import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
@@ -18,9 +20,14 @@ import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
 import { CryptoCompareEDSNeoLegacy } from './exchange-data/CryptoCompareEDSNeoLegacy'
 import { DoraBDSNeoLegacy } from './blockchain-data/DoraBDSNeoLegacy'
 import { NeoTubeESNeoLegacy } from './explorer/NeoTubeESNeoLegacy'
+import { NeonJsLedgerServiceNeoLegacy } from './ledger/NeonJsLedgerServiceNeoLegacy'
 
 export class BSNeoLegacy<BSName extends string = string>
-  implements BlockchainService<BSName, BSNeoLegacyNetworkId>, BSClaimable<BSName>, BSWithExplorerService
+  implements
+    BlockchainService<BSName, BSNeoLegacyNetworkId>,
+    BSClaimable<BSName>,
+    BSWithExplorerService,
+    BSWithLedger<BSName>
 {
   readonly name: BSName
   readonly bip44DerivationPath: string
@@ -31,19 +38,43 @@ export class BSNeoLegacy<BSName extends string = string>
 
   blockchainDataService!: BlockchainDataService & BDSClaimable
   exchangeDataService!: ExchangeDataService
+  ledgerService: NeonJsLedgerServiceNeoLegacy<BSName>
   explorerService!: ExplorerService
   tokens!: Token[]
   network!: Network<BSNeoLegacyNetworkId>
   legacyNetwork: string
 
-  constructor(name: BSName, network?: Network<BSNeoLegacyNetworkId>) {
+  constructor(name: BSName, network?: Network<BSNeoLegacyNetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
     network = network ?? BSNeoLegacyConstants.DEFAULT_NETWORK
 
     this.name = name
     this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
+    this.ledgerService = new NeonJsLedgerServiceNeoLegacy(this, getLedgerTransport)
     this.bip44DerivationPath = BSNeoLegacyConstants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.setNetwork(network)
+  }
+
+  async #generateSigningCallback(account: Account<BSName>) {
+    const neonJsAccount = new wallet.Account(account.key)
+
+    if (account.isHardware) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+
+      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+
+      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+
+      return {
+        neonJsAccount,
+        signingCallback: this.ledgerService.getSigningCallback(ledgerTransport, account),
+      }
+    }
+
+    return {
+      neonJsAccount,
+    }
   }
 
   #setTokens(network: Network<BSNeoLegacyNetworkId>) {
@@ -101,6 +132,19 @@ export class BSNeoLegacy<BSName extends string = string>
     return { address, key, type, blockchain: this.name }
   }
 
+  generateAccountFromPublicKey(publicKey: string): Account<BSName> {
+    if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
+
+    const account = new wallet.Account(publicKey)
+
+    return {
+      address: account.address,
+      key: account.publicKey,
+      type: 'publicKey',
+      blockchain: this.name,
+    }
+  }
+
   async decrypt(encryptedKey: string, password: string): Promise<Account<BSName>> {
     const key = await wallet.decrypt(encryptedKey, password)
     return this.generateAccountFromKey(key)
@@ -110,9 +154,9 @@ export class BSNeoLegacy<BSName extends string = string>
     return wallet.encrypt(key, password)
   }
 
-  async transfer({ intents, senderAccount, tipIntent, ...params }: TransferParam): Promise<string[]> {
+  async transfer({ intents, senderAccount, tipIntent, ...params }: TransferParam<BSName>): Promise<string[]> {
+    const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(senderAccount)
     const apiProvider = new api.neoCli.instance(this.network.url)
-    const account = new wallet.Account(senderAccount.key)
     const priorityFee = Number(params.priorityFee ?? 0)
 
     const nativeIntents: ReturnType<typeof api.makeIntent> = []
@@ -132,7 +176,7 @@ export class BSNeoLegacy<BSName extends string = string>
       }
 
       nep5ScriptBuilder.emitAppCall(tokenHashFixed, 'transfer', [
-        u.reverseHex(wallet.getScriptHashFromAddress(account.address)),
+        u.reverseHex(wallet.getScriptHashFromAddress(neonJsAccount.address)),
         u.reverseHex(wallet.getScriptHashFromAddress(intent.receiverAddress)),
         sc.ContractParam.integer(
           new u.Fixed8(intent.amount)
@@ -147,20 +191,22 @@ export class BSNeoLegacy<BSName extends string = string>
 
     if (nep5ScriptBuilder.isEmpty()) {
       response = await api.sendAsset({
-        account,
+        account: neonJsAccount,
         api: apiProvider,
         url: this.network.url,
         intents: nativeIntents,
         fees: priorityFee,
+        signingFunction: signingCallback,
       })
     } else {
       response = await api.doInvoke({
         intents: nativeIntents.length > 0 ? nativeIntents : undefined,
-        account,
+        account: neonJsAccount,
         api: apiProvider,
         script: nep5ScriptBuilder.str,
         url: this.network.url,
         fees: priorityFee,
+        signingFunction: signingCallback,
       })
     }
 
