@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Wed, 18 Dec 2024 11:11:37 GMT and should not be manually modified.
+This log was last generated on Fri, 20 Dec 2024 23:00:27 GMT and should not be manually modified.
+
+## 1.7.0
+Fri, 20 Dec 2024 23:00:27 GMT
+
+### Minor changes
+
+- Add Ledger support
 
 ## 1.6.7
 Wed, 18 Dec 2024 11:11:37 GMT

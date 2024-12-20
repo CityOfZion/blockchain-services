@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.7.0",
+      "tag": "@cityofzion/bs-neo-legacy_v1.7.0",
+      "date": "Fri, 20 Dec 2024 23:00:27 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add Ledger support"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.6.7",
       "tag": "@cityofzion/bs-neo-legacy_v1.6.7",
       "date": "Wed, 18 Dec 2024 11:11:37 GMT",
