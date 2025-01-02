@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Deprecate waitForTransaction method",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}
