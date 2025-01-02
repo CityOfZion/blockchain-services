@@ -21,14 +21,14 @@ export class BSNeo3Constants {
       'https://neo1-nodes.ghostmarket.io:443',
     ],
     testnet: [
-      'https://testnet1.neo.coz.io:443',
-      'https://testnet2.neo.coz.io:443',
-      'https://rpc.t5.n3.nspcc.ru:20331',
       'http://seed1t5.neo.org:20332',
       'http://seed2t5.neo.org:20332',
       'http://seed3t5.neo.org:20332',
       'http://seed4t5.neo.org:20332',
       'http://seed5t5.neo.org:20332',
+      'https://testnet1.neo.coz.io:443',
+      'https://testnet2.neo.coz.io:443',
+      'https://rpc.t5.n3.nspcc.ru:20331',
     ],
   }
 
