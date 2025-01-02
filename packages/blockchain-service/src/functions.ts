@@ -49,6 +49,9 @@ function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+/**
+ * @deprecated use `waitForAccountTransaction` instead
+ */
 export async function waitForTransaction<BSName extends string = string>(
   service: BlockchainService<BSName>,
   txId: string
