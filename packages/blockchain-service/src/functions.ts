@@ -143,6 +143,10 @@ export function normalizeHash(hash: string): string {
   return hash.replace('0x', '').toLowerCase()
 }
 
+export function denormalizeHash(hash: string): string {
+  return hash.startsWith('0x') ? hash : `0x${hash}`
+}
+
 export function countDecimals(value: string | number) {
   const [, decimals] = value.toString().split('.')
   return decimals?.length ?? 0
