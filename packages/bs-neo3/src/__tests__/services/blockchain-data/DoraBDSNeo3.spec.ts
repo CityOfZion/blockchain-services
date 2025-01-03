@@ -31,7 +31,7 @@ describe('DoraBDSNeo3', () => {
   })
 
   it('Should be able to get transactions of address', async () => {
-    const address = 'NPB3Cze4wki9J36nnrT45qmi6P52Bhfqph'
+    const address = 'NRwXs5yZRMuuXUo7AqvetHQ4GDHe3pV7Mb'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address, nextPageParams: 1 })
 
     response.transactions.forEach(transaction => {
@@ -44,20 +44,33 @@ describe('DoraBDSNeo3', () => {
           notifications: expect.arrayContaining([
             expect.objectContaining({
               eventName: expect.any(String),
-              state: expect.arrayContaining([
-                {
-                  type: expect.any(String),
-                  value: expect.any(String),
-                },
-              ]),
+              state: expect.objectContaining({
+                type: expect.any(String),
+                value: expect.arrayContaining([
+                  expect.objectContaining({
+                    value: expect.any(String),
+                  }),
+                  expect.objectContaining({
+                    type: expect.any(String),
+                    value: expect.any(String),
+                  }),
+                ]),
+              }),
             }),
           ]),
           transfers: expect.arrayContaining([
             expect.objectContaining({
               amount: expect.any(String),
+              contractHash: expect.any(String),
               from: expect.any(String),
               to: expect.any(String),
-              type: 'token',
+              type: expect.any(String),
+              token: expect.objectContaining({
+                decimals: expect.any(Number),
+                hash: expect.any(String),
+                name: expect.any(String),
+                symbol: expect.any(String),
+              }),
             }),
           ]),
         })
