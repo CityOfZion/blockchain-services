@@ -41,7 +41,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
   }
 
   async getAddress(): Promise<string> {
-    const { address } = await this.#ledgerApp.getAddress(this.#bip44Path)
+    const { address } = await BSEthereumHelper.retry(() => this.#ledgerApp.getAddress(this.#bip44Path))
     return address
   }
 
@@ -73,17 +73,10 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
   async signTransaction(transaction: ethers.utils.Deferrable<ethers.providers.TransactionRequest>): Promise<string> {
     try {
       const tx = await ethers.utils.resolveProperties(transaction)
-      const unsignedTransaction: ethers.utils.UnsignedTransaction = {
-        chainId: tx.chainId ?? undefined,
-        data: tx.data ?? undefined,
-        gasLimit: tx.gasLimit ?? undefined,
-        gasPrice: tx.gasPrice ?? undefined,
-        nonce: tx.nonce ? ethers.BigNumber.from(tx.nonce).toNumber() : undefined,
-        to: tx.to ?? undefined,
-        value: tx.value ?? undefined,
-      }
 
-      const serializedUnsignedTransaction = ethers.utils.serializeTransaction(unsignedTransaction).substring(2)
+      const serializedUnsignedTransaction = ethers.utils
+        .serializeTransaction(<ethers.utils.UnsignedTransaction>tx)
+        .substring(2)
 
       const resolution = await LedgerEthereumAppService.resolveTransaction(serializedUnsignedTransaction, {}, {})
 
@@ -95,7 +88,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       this.#emitter?.emit('getSignatureEnd')
 
-      return ethers.utils.serializeTransaction(unsignedTransaction, {
+      return ethers.utils.serializeTransaction(<ethers.utils.UnsignedTransaction>tx, {
         v: ethers.BigNumber.from('0x' + signature.v).toNumber(),
         r: '0x' + signature.r,
         s: '0x' + signature.s,
