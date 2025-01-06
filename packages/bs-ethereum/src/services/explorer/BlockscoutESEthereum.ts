@@ -56,4 +56,20 @@ export class BlockscoutESEthereum implements ExplorerService {
 
     return `${baseURL}/token/${params.contractHash}/instance/${params.tokenId}`
   }
+
+  getAddressTemplateUrl() {
+    if (!BlockscoutESEthereum.isSupported(this.#network)) return undefined
+
+    const baseUrl = BlockscoutESEthereum.BASE_URL_BY_CHAIN_ID[this.#network.id]
+
+    return `${baseUrl}/address/{address}`
+  }
+
+  getTxTemplateUrl() {
+    if (!BlockscoutESEthereum.isSupported(this.#network)) return undefined
+
+    const baseUrl = BlockscoutESEthereum.BASE_URL_BY_CHAIN_ID[this.#network.id]
+
+    return `${baseUrl}/tx/{txId}`
+  }
 }

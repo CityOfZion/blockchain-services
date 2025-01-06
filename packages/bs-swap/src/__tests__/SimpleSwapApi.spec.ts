@@ -14,6 +14,8 @@ describe('SimpleSwapApi', () => {
     hash: '0xd2a4cff31913016155e38e474a2c06d08be276cf',
     decimals: undefined,
     validationAddress: '^(N)[A-Za-z0-9]{33}$',
+    addressTemplateUrl: 'https://dora.coz.io/address/neo3/mainnet/{address}',
+    txTemplateUrl: 'https://dora.coz.io/transaction/neo3/mainnet/{txId}',
     blockchain: 'neo3',
   }
 
@@ -27,6 +29,8 @@ describe('SimpleSwapApi', () => {
     hash: 'ef4073a0f2b305a38ec4050e4d3d28bc40ea63f5',
     decimals: 0,
     validationAddress: '^(N)[A-Za-z0-9]{33}$',
+    addressTemplateUrl: 'https://dora.coz.io/address/neo3/mainnet/{address}',
+    txTemplateUrl: 'https://dora.coz.io/transaction/neo3/mainnet/{txId}',
     blockchain: 'neo3',
   }
 
@@ -41,7 +45,7 @@ describe('SimpleSwapApi', () => {
         log: expect.any(String),
       })
     )
-  })
+  }, 10000)
 
   it('Should get the exchange by swap id', async () => {
     const result = await simpleSwapApi.getExchange(process.env.TEST_SWAP_ID as string)

@@ -10,7 +10,7 @@ import {
   SimpleSwapApiGetRangeResponse,
   SimpleSwapServiceInitParams,
 } from '../types/simpleSwap'
-import { normalizeHash } from '@cityofzion/blockchain-service'
+import { BlockchainService, hasExplorerService, normalizeHash } from '@cityofzion/blockchain-service'
 
 export class SimpleSwapApi<BSName extends string = string> {
   #axios: AxiosInstance
@@ -18,6 +18,30 @@ export class SimpleSwapApi<BSName extends string = string> {
 
   constructor() {
     this.#axios = axios.create({ baseURL: 'https://dora.coz.io/api/v2/swap' })
+  }
+
+  #createAddressTemplateUrl(
+    blockchainService: BlockchainService | undefined,
+    explorer: string | null | undefined
+  ): string | undefined {
+    explorer = !explorer ? undefined : explorer.replace('{}', '{address}')
+
+    if (blockchainService && hasExplorerService(blockchainService))
+      return blockchainService.explorerService.getAddressTemplateUrl() ?? explorer
+
+    return explorer
+  }
+
+  #createTxTemplateUrl(
+    blockchainService: BlockchainService | undefined,
+    explorer: string | null | undefined
+  ): string | undefined {
+    explorer = !explorer ? undefined : explorer.replace('{}', '{txId}')
+
+    if (blockchainService && hasExplorerService(blockchainService))
+      return blockchainService.explorerService.getTxTemplateUrl() ?? explorer
+
+    return explorer
   }
 
   #getTokenFromCurrency(
@@ -39,11 +63,13 @@ export class SimpleSwapApi<BSName extends string = string> {
     let name = currency.name
     let symbol = currency.ticker
     let blockchain: BSName | undefined
+    let blockchainService: BlockchainService | undefined
 
     if (chainsByServiceNameEntry) {
       blockchain = chainsByServiceNameEntry[0]
+      blockchainService = options.blockchainServicesByName[blockchain]
 
-      const token = options.blockchainServicesByName[blockchain].tokens.find(
+      const token = blockchainService.tokens.find(
         item =>
           (hash && normalizeHash(hash) === normalizeHash(item.hash)) ||
           (currency.ticker && currency.ticker.toLowerCase().startsWith(item.symbol.toLowerCase()))
@@ -67,6 +93,8 @@ export class SimpleSwapApi<BSName extends string = string> {
       hash,
       decimals,
       validationAddress: currency.validationAddress,
+      addressTemplateUrl: this.#createAddressTemplateUrl(blockchainService, currency.addressExplorer),
+      txTemplateUrl: this.#createTxTemplateUrl(blockchainService, currency.txExplorer),
       blockchain,
     }
   }

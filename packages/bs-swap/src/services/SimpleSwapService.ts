@@ -49,12 +49,32 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
     this.#chainsByServiceName = params.chainsByServiceName
   }
 
+  #createSwapServiceToken(token: SimpleSwapApiCurrency<BSName>): SwapServiceToken<BSName> {
+    return {
+      id: token.id,
+      blockchain: token.blockchain,
+      imageUrl: token.imageUrl,
+      symbol: token.symbol,
+      name: token.name,
+      hash: token.hash,
+      decimals: token.decimals,
+      addressTemplateUrl: token.addressTemplateUrl,
+      txTemplateUrl: token.txTemplateUrl,
+    }
+  }
+
   get #availableTokensToUse(): SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>[]> {
     return this.#internalAvailableTokensToUse
   }
   set #availableTokensToUse(availableTokens: Partial<SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>[]>>) {
     this.#internalAvailableTokensToUse = { ...this.#internalAvailableTokensToUse, ...availableTokens }
-    this.eventEmitter.emit('availableTokensToUse', this.#internalAvailableTokensToUse)
+
+    this.eventEmitter.emit('availableTokensToUse', {
+      ...this.#internalAvailableTokensToUse,
+      value: !this.#internalAvailableTokensToUse.value
+        ? this.#internalAvailableTokensToUse.value
+        : this.#internalAvailableTokensToUse.value.map(this.#createSwapServiceToken),
+    })
   }
 
   get #tokenToUse(): SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>> {
@@ -62,7 +82,13 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
   set #tokenToUse(tokenToUse: Partial<SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>>>) {
     this.#internalTokenToUse = { ...this.#internalTokenToUse, ...tokenToUse }
-    this.eventEmitter.emit('tokenToUse', this.#internalTokenToUse)
+
+    this.eventEmitter.emit('tokenToUse', {
+      ...this.#internalTokenToUse,
+      value: !this.#internalTokenToUse.value
+        ? this.#internalTokenToUse.value
+        : this.#createSwapServiceToken(this.#internalTokenToUse.value),
+    })
   }
 
   get #accountToUse(): SwapServiceValidateValue<Account<BSName>> {
@@ -94,7 +120,13 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
   set #availableTokensToReceive(availableTokens: Partial<SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>[]>>) {
     this.#internalAvailableTokensToReceive = { ...this.#internalAvailableTokensToReceive, ...availableTokens }
-    this.eventEmitter.emit('availableTokensToReceive', this.#internalAvailableTokensToReceive)
+
+    this.eventEmitter.emit('availableTokensToReceive', {
+      ...this.#internalAvailableTokensToReceive,
+      value: !this.#internalAvailableTokensToReceive.value
+        ? this.#internalAvailableTokensToReceive.value
+        : this.#internalAvailableTokensToReceive.value.map(this.#createSwapServiceToken),
+    })
   }
 
   get #tokenToReceive(): SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>> {
@@ -102,7 +134,13 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
   set #tokenToReceive(tokenToReceive: Partial<SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>>>) {
     this.#internalTokenToReceive = { ...this.#internalTokenToReceive, ...tokenToReceive }
-    this.eventEmitter.emit('tokenToReceive', this.#internalTokenToReceive)
+
+    this.eventEmitter.emit('tokenToReceive', {
+      ...this.#internalTokenToReceive,
+      value: !this.#internalTokenToReceive.value
+        ? this.#internalTokenToReceive.value
+        : this.#createSwapServiceToken(this.#internalTokenToReceive.value),
+    })
   }
 
   get #addressToReceive(): SwapServiceValidateValue<string> {

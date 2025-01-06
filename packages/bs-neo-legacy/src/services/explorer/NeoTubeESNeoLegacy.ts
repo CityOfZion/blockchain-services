@@ -3,6 +3,8 @@ import { BSNeoLegacyNetworkId } from '../../constants/BSNeoLegacyConstants'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
 export class NeoTubeESNeoLegacy implements ExplorerService {
+  readonly #BASE_URL = 'https://neo2.neotube.io'
+
   #network: Network<BSNeoLegacyNetworkId>
 
   constructor(network: Network<BSNeoLegacyNetworkId>) {
@@ -12,15 +14,28 @@ export class NeoTubeESNeoLegacy implements ExplorerService {
   buildTransactionUrl(hash: string): string {
     if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('NeoTube is only available on mainnet')
 
-    return `https://neo2.neotube.io/transaction/${denormalizeHash(hash)}`
+    return `${this.#BASE_URL}/transaction/${denormalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string {
     if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('NeoTube is only available on mainnet')
-    return `https://neo2.neotube.io/asset/${contractHash}/page/1`
+
+    return `${this.#BASE_URL}/asset/${contractHash}/page/1`
   }
 
   buildNftUrl(_params: BuildNftUrlParams): string {
     throw new Error('NeoTube does not support nft')
+  }
+
+  getAddressTemplateUrl() {
+    if (!BSNeoLegacyHelper.isMainnet(this.#network)) return undefined
+
+    return `${this.#BASE_URL}/address/{address}`
+  }
+
+  getTxTemplateUrl() {
+    if (!BSNeoLegacyHelper.isMainnet(this.#network)) return undefined
+
+    return `${this.#BASE_URL}/transaction/{txId}`
   }
 }
