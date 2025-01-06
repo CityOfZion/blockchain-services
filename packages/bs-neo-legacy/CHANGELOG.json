@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.7.1",
+      "tag": "@cityofzion/bs-neo-legacy_v1.7.1",
+      "date": "Mon, 06 Jan 2025 15:08:15 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Use denormalizeHash in buildTransactionUrl method"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.13.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.0",
       "tag": "@cityofzion/bs-neo-legacy_v1.7.0",
       "date": "Fri, 20 Dec 2024 23:00:27 GMT",

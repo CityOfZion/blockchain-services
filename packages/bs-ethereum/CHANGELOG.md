@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 19 Dec 2024 22:15:45 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Jan 2025 15:08:15 GMT and should not be manually modified.
+
+## 2.7.11
+Mon, 06 Jan 2025 15:08:15 GMT
+
+### Patches
+
+- Fix bug where EthersLedgerSigner's signTransaction method did not sign some transaction fields
 
 ## 2.7.10
 Thu, 19 Dec 2024 22:15:45 GMT

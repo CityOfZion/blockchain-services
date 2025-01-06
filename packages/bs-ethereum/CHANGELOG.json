@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.7.11",
+      "tag": "@cityofzion/bs-ethereum_v2.7.11",
+      "date": "Mon, 06 Jan 2025 15:08:15 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix bug where EthersLedgerSigner's signTransaction method did not sign some transaction fields"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.13.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.7.10",
       "tag": "@cityofzion/bs-ethereum_v2.7.10",
       "date": "Thu, 19 Dec 2024 22:15:45 GMT",

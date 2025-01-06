@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Wed, 18 Dec 2024 11:11:37 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Jan 2025 15:08:15 GMT and should not be manually modified.
+
+## 1.13.1
+Mon, 06 Jan 2025 15:08:15 GMT
+
+### Patches
+
+- Deprecate waitForTransaction method
+- Implement denormalizeHash method
 
 ## 1.13.0
 Wed, 18 Dec 2024 11:11:37 GMT

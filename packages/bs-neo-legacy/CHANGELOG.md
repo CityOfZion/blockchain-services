@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Fri, 20 Dec 2024 23:00:27 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Jan 2025 15:08:15 GMT and should not be manually modified.
+
+## 1.7.1
+Mon, 06 Jan 2025 15:08:15 GMT
+
+### Patches
+
+- Use denormalizeHash in buildTransactionUrl method
 
 ## 1.7.0
 Fri, 20 Dec 2024 23:00:27 GMT

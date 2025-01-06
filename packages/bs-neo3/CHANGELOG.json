@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.8.10",
+      "tag": "@cityofzion/bs-neo3_v1.8.10",
+      "date": "Mon, 06 Jan 2025 15:08:15 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix getTransactionsByAddress test expect"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.13.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.8.9",
       "tag": "@cityofzion/bs-neo3_v1.8.9",
       "date": "Wed, 18 Dec 2024 11:11:37 GMT",

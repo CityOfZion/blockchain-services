@@ -2,6 +2,21 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.13.1",
+      "tag": "@cityofzion/blockchain-service_v1.13.1",
+      "date": "Mon, 06 Jan 2025 15:08:15 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Deprecate waitForTransaction method"
+          },
+          {
+            "comment": "Implement denormalizeHash method"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.13.0",
       "tag": "@cityofzion/blockchain-service_v1.13.0",
       "date": "Wed, 18 Dec 2024 11:11:37 GMT",
