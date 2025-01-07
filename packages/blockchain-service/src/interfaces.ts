@@ -232,6 +232,8 @@ export interface ExplorerService {
   buildTransactionUrl(hash: string): string
   buildContractUrl(contractHash: string): string
   buildNftUrl(params: BuildNftUrlParams): string
+  getAddressTemplateUrl(): string | undefined
+  getTxTemplateUrl(): string | undefined
 }
 
 export type LedgerServiceEmitter = TypedEmitter<{
@@ -256,6 +258,8 @@ export type SwapServiceToken<BSName extends string = string> = {
   name: string
   hash?: string
   decimals?: number
+  addressTemplateUrl?: string
+  txTemplateUrl?: string
 }
 
 export type SwapServiceLoadableValue<T> = { loading: boolean; value: T | null }

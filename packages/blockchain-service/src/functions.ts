@@ -45,7 +45,7 @@ export function hasLedger<BSName extends string = string>(
   return 'ledgerService' in service
 }
 
-function wait(ms: number) {
+export function wait(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 

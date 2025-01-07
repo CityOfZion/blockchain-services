@@ -18,6 +18,8 @@ export type SimpleSwapApiCurrencyResponse = {
   validationAddress: string | null
   image: string | null
   contractAddress: string | null
+  addressExplorer: string | null
+  txExplorer: string | null
 }
 
 export type SimpleSwapApiGetCurrenciesResponse = {

@@ -1,10 +1,12 @@
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
+import { Network } from '@cityofzion/blockchain-service'
 
 let neoTubeESNeoLegacy: NeoTubeESNeoLegacy
+const INVALID_NETWORK: Network = { id: '12345678', name: 'INVALID_NAME', url: 'INVALID_URL' }
 
 describe('NeoTubeESNeoLegacy', () => {
-  beforeAll(() => {
+  beforeEach(() => {
     const network = BSNeoLegacyConstants.DEFAULT_NETWORK
 
     neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(network)
@@ -22,5 +24,33 @@ describe('NeoTubeESNeoLegacy', () => {
     const url = neoTubeESNeoLegacy.buildTransactionUrl(hash)
 
     expect(url).toEqual(`https://neo2.neotube.io/transaction/0x${hash}`)
+  })
+
+  it('Should return undefined when call the getAddressTemplateUrl method with an invalid network', () => {
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK)
+
+    const templateUrl = neoTubeESNeoLegacy.getAddressTemplateUrl()
+
+    expect(templateUrl).toBe(undefined)
+  })
+
+  it('Should return undefined when call the getTxTemplateUrl method with an invalid network', () => {
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK)
+
+    const templateUrl = neoTubeESNeoLegacy.getTxTemplateUrl()
+
+    expect(templateUrl).toBe(undefined)
+  })
+
+  it('Should return an address template URL (Mainnet) when call the getAddressTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = neoTubeESNeoLegacy.getAddressTemplateUrl()
+
+    expect(templateUrl).toBe('https://neo2.neotube.io/address/{address}')
+  })
+
+  it('Should return a transaction template URL (Mainnet) when call the getTxTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = neoTubeESNeoLegacy.getTxTemplateUrl()
+
+    expect(templateUrl).toBe('https://neo2.neotube.io/transaction/{txId}')
   })
 })

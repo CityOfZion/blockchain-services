@@ -4,6 +4,7 @@ import {
   SwapServiceMinMaxAmount,
   SwapServiceToken,
   SwapServiceValidateValue,
+  wait,
 } from '@cityofzion/blockchain-service'
 import { SimpleSwapService } from '../services/SimpleSwapService'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
@@ -104,9 +105,14 @@ describe('SimpleSwapService', () => {
       loading: false,
       value: expect.arrayContaining([
         expect.objectContaining({
+          id: expect.any(String),
           symbol: expect.any(String),
           blockchain: 'neo3',
           name: expect.any(String),
+          hash: expect.any(String),
+          imageUrl: expect.any(String),
+          addressTemplateUrl: 'https://dora.coz.io/address/neo3/mainnet/{address}',
+          txTemplateUrl: 'https://dora.coz.io/transaction/neo3/mainnet/{txId}',
         }),
       ]),
     })
@@ -215,11 +221,7 @@ describe('SimpleSwapService', () => {
 
     await simpleSwapService.setAmountToUse('1')
 
-    await new Promise<void>(resolve =>
-      setTimeout(() => {
-        resolve()
-      }, 1000)
-    )
+    await wait(1000)
 
     expect(tokenToUse).toEqual({ loading: false, value: token })
     expect(accountToUse).toEqual({ loading: false, value: account, valid: true })

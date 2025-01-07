@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Add getAddressTemplateUrl and getTxTemplateUrl type methods, addressTemplateUrl and txTemplateUrl properties in SwapServiceToken",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

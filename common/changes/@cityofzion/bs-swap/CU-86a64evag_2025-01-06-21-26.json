@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "comment": "Add addressTemplateUrl and txTemplateUrl properties and methods to create them",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-swap"
+}
