@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.8.0",
+      "tag": "@cityofzion/bs-ethereum_v2.8.0",
+      "date": "Tue, 07 Jan 2025 14:34:40 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add getAddressTemplateUrl and getTxTemplateUrl methods"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.13.2`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.7.11",
       "tag": "@cityofzion/bs-ethereum_v2.7.11",
       "date": "Mon, 06 Jan 2025 15:08:15 GMT",

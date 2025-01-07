@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Mon, 06 Jan 2025 15:08:15 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Jan 2025 14:34:40 GMT and should not be manually modified.
+
+## 0.4.0
+Tue, 07 Jan 2025 14:34:40 GMT
+
+### Minor changes
+
+- Add addressTemplateUrl and txTemplateUrl properties and methods to create them
 
 ## 0.3.3
 Mon, 06 Jan 2025 15:08:15 GMT

@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.4.0",
+      "tag": "@cityofzion/bs-swap_v0.4.0",
+      "date": "Tue, 07 Jan 2025 14:34:40 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add addressTemplateUrl and txTemplateUrl properties and methods to create them"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.13.2`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.9.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.3.3",
       "tag": "@cityofzion/bs-swap_v0.3.3",
       "date": "Mon, 06 Jan 2025 15:08:15 GMT",

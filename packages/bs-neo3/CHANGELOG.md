@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 06 Jan 2025 15:08:15 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Jan 2025 14:34:40 GMT and should not be manually modified.
+
+## 1.9.0
+Tue, 07 Jan 2025 14:34:40 GMT
+
+### Minor changes
+
+- Add getAddressTemplateUrl and getTxTemplateUrl methods
 
 ## 1.8.10
 Mon, 06 Jan 2025 15:08:15 GMT

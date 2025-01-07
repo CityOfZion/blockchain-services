@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.13.2",
+      "tag": "@cityofzion/blockchain-service_v1.13.2",
+      "date": "Tue, 07 Jan 2025 14:34:40 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add getAddressTemplateUrl and getTxTemplateUrl type methods, addressTemplateUrl and txTemplateUrl properties in SwapServiceToken"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.13.1",
       "tag": "@cityofzion/blockchain-service_v1.13.1",
       "date": "Mon, 06 Jan 2025 15:08:15 GMT",
