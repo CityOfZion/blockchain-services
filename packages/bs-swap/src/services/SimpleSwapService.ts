@@ -60,6 +60,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       decimals: token.decimals,
       addressTemplateUrl: token.addressTemplateUrl,
       txTemplateUrl: token.txTemplateUrl,
+      network: token.network,
     }
   }
 

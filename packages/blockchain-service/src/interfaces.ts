@@ -260,6 +260,7 @@ export type SwapServiceToken<BSName extends string = string> = {
   decimals?: number
   addressTemplateUrl?: string
   txTemplateUrl?: string
+  network?: string
 }
 
 export type SwapServiceLoadableValue<T> = { loading: boolean; value: T | null }
