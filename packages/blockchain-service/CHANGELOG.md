@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 07 Jan 2025 14:34:40 GMT and should not be manually modified.
+This log was last generated on Thu, 09 Jan 2025 13:28:41 GMT and should not be manually modified.
+
+## 1.13.3
+Thu, 09 Jan 2025 13:28:41 GMT
+
+### Patches
+
+- Add the network property again
 
 ## 1.13.2
 Tue, 07 Jan 2025 14:34:40 GMT

@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Tue, 07 Jan 2025 14:34:40 GMT and should not be manually modified.
+This log was last generated on Thu, 09 Jan 2025 13:28:41 GMT and should not be manually modified.
+
+## 0.4.1
+Thu, 09 Jan 2025 13:28:41 GMT
+
+### Patches
+
+- Add the network property again
 
 ## 0.4.0
 Tue, 07 Jan 2025 14:34:40 GMT
