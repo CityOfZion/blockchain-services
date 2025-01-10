@@ -4,7 +4,7 @@ describe('SimpleSwapServiceHelper', () => {
   const simpleSwapServiceHelper = new SimpleSwapServiceHelper()
 
   it('Should get the swap status by swap id', async () => {
-    const result = await simpleSwapServiceHelper.getStatus(process.env.TEST_SWAP_ID as string)
+    const result = await simpleSwapServiceHelper.getStatus(process.env.TEST_SWAP_ID)
 
     expect(result).toEqual(
       expect.objectContaining({
