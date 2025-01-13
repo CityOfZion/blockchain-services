@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Thu, 09 Jan 2025 13:28:41 GMT and should not be manually modified.
+This log was last generated on Mon, 13 Jan 2025 20:30:41 GMT and should not be manually modified.
+
+## 0.5.0
+Mon, 13 Jan 2025 20:30:41 GMT
+
+### Minor changes
+
+- Add extraId feature
 
 ## 0.4.1
 Thu, 09 Jan 2025 13:28:41 GMT
