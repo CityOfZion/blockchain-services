@@ -40,6 +40,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
   #internalTokenToReceive: SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>> = { loading: false, value: null }
   #internalAddressToReceive: SwapServiceValidateValue<string> = { loading: false, value: null, valid: null }
+  #internalExtraIdToReceive: SwapServiceValidateValue<string> = { loading: false, value: null, valid: null }
   #internalAmountToReceive: SwapServiceLoadableValue<string> = { loading: false, value: null }
 
   constructor(params: SimpleSwapServiceInitParams<BSName>) {
@@ -61,6 +62,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       addressTemplateUrl: token.addressTemplateUrl,
       txTemplateUrl: token.txTemplateUrl,
       network: token.network,
+      hasExtraId: token.hasExtraId,
     }
   }
 
@@ -152,6 +154,18 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
     this.eventEmitter.emit('addressToReceive', this.#internalAddressToReceive)
   }
 
+  get #extraIdToReceive(): SwapServiceValidateValue<string> {
+    return this.#internalExtraIdToReceive
+  }
+
+  set #extraIdToReceive(extraIdToReceive: Partial<SwapServiceValidateValue<string>>) {
+    if (extraIdToReceive.value === '') extraIdToReceive.value = null
+
+    this.#internalExtraIdToReceive = { ...this.#internalExtraIdToReceive, ...extraIdToReceive }
+
+    this.eventEmitter.emit('extraIdToReceive', this.#internalExtraIdToReceive)
+  }
+
   get #amountToReceive(): SwapServiceLoadableValue<string> {
     return this.#internalAmountToReceive
   }
@@ -169,6 +183,17 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       if (this.#addressToReceive.value && this.#tokenToReceive.value) {
         this.#addressToReceive = {
           valid: RegExp(this.#tokenToReceive.value.validationAddress).test(this.#addressToReceive.value),
+        }
+      }
+
+      if (this.#extraIdToReceive.value && this.#tokenToReceive.value) {
+        const extraIdToReceive = this.#extraIdToReceive.value.trim()
+
+        this.#extraIdToReceive = {
+          valid:
+            !extraIdToReceive || !this.#tokenToReceive.value.validationExtra
+              ? true
+              : RegExp(this.#tokenToReceive.value.validationExtra).test(extraIdToReceive),
         }
       }
 
@@ -206,6 +231,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
           this.#amountToUseMinMax = { value: null }
           this.#amountToReceive = { value: null }
           this.#addressToReceive = { value: null, valid: null }
+          this.#extraIdToReceive = { value: null, valid: null }
           throw error
         }
       }
@@ -343,6 +369,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   }
 
   async setTokenToReceive(token: SwapServiceToken<BSName> | null): Promise<void> {
+    this.#extraIdToReceive = { value: null, valid: null }
     this.#amountToReceive = { loading: false, value: null }
     this.#amountToUseMinMax = { loading: false, value: null }
 
@@ -367,6 +394,15 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       loading: false,
       value: address,
     }
+
+    await this.#recalculateValues([])
+  }
+
+  async setExtraIdToReceive(extraIdToReceive: string | null): Promise<void> {
+    if (!this.#tokenToReceive.value?.hasExtraId) return
+
+    this.#extraIdToReceive = { value: extraIdToReceive, valid: null }
+
     await this.#recalculateValues([])
   }
 
@@ -379,7 +415,9 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       !this.#addressToReceive.valid ||
       !this.#amountToUse.value ||
       !this.#amountToReceive.value ||
-      !this.#tokenToUse.value.hash
+      !this.#tokenToUse.value.hash ||
+      (this.#tokenToReceive.value.hasExtraId &&
+        (!this.#extraIdToReceive.valid || !this.#extraIdToReceive.value?.trim()))
     ) {
       throw new Error('Not all required fields are set')
     }
@@ -391,13 +429,14 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
     }
 
     try {
-      const { depositAddress, id, log } = await this.#api.createExchange(
-        this.#tokenToReceive.value,
-        this.#tokenToUse.value,
-        this.#amountToUse.value,
-        this.#addressToReceive.value,
-        this.#accountToUse.value.address
-      )
+      const { depositAddress, id, log } = await this.#api.createExchange({
+        currencyFrom: this.#tokenToUse.value,
+        currencyTo: this.#tokenToReceive.value,
+        amount: this.#amountToUse.value,
+        refundAddress: this.#accountToUse.value.address,
+        address: this.#addressToReceive.value,
+        extraIdToReceive: this.#extraIdToReceive.value,
+      })
 
       result.id = id
       result.log = log

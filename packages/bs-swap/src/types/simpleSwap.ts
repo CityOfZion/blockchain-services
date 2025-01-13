@@ -8,13 +8,26 @@ export type SimpleSwapServiceInitParams<BSName extends string = string> = {
 export type SimpleSwapApiCurrency<BSName extends string = string> = SwapServiceToken<BSName> & {
   network: string
   ticker: string
+  hasExtraId: boolean
+  validationExtra: string | null
   validationAddress: string
+}
+
+export type SimpleSwapApiCreateExchangeParams = {
+  currencyFrom: SimpleSwapApiCurrency
+  currencyTo: SimpleSwapApiCurrency
+  amount: string
+  refundAddress: string
+  address: string
+  extraIdToReceive: string | null
 }
 
 export type SimpleSwapApiCurrencyResponse = {
   name: string | null
   ticker: string | null
   network: string | null
+  hasExtraId: boolean
+  validationExtra: string | null
   validationAddress: string | null
   image: string | null
   contractAddress: string | null

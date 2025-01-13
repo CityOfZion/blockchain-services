@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 import {
+  SimpleSwapApiCreateExchangeParams,
   SimpleSwapApiCreateExchangeResponse,
   SimpleSwapApiCurrency,
   SimpleSwapApiCurrencyResponse,
@@ -92,6 +93,8 @@ export class SimpleSwapApi<BSName extends string = string> {
       imageUrl: currency.image,
       hash,
       decimals,
+      hasExtraId: currency.hasExtraId,
+      validationExtra: currency.validationExtra,
       validationAddress: currency.validationAddress,
       addressTemplateUrl: this.#createAddressTemplateUrl(blockchainService, currency.addressExplorer),
       txTemplateUrl: this.#createTxTemplateUrl(blockchainService, currency.txExplorer),
@@ -194,24 +197,26 @@ export class SimpleSwapApi<BSName extends string = string> {
     }
   }
 
-  async createExchange(
-    currencyTo: SimpleSwapApiCurrency,
-    currencyFrom: SimpleSwapApiCurrency,
-    amount: string,
-    address: string,
-    refundAddress: string
-  ) {
+  async createExchange({
+    currencyFrom,
+    currencyTo,
+    amount,
+    refundAddress,
+    address,
+    extraIdToReceive,
+  }: SimpleSwapApiCreateExchangeParams) {
     try {
       const {
         data: { result },
       } = await this.#axios.post<SimpleSwapApiCreateExchangeResponse>('/exchanges', {
         tickerFrom: currencyFrom.ticker,
-        tickerTo: currencyTo.ticker,
         networkFrom: currencyFrom.network,
+        tickerTo: currencyTo.ticker,
         networkTo: currencyTo.network,
         amount,
-        addressTo: address,
         userRefundAddress: refundAddress,
+        addressTo: address,
+        extraIdTo: extraIdToReceive?.trim() ?? null,
       })
 
       return {

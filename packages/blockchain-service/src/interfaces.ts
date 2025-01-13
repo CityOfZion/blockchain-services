@@ -261,6 +261,7 @@ export type SwapServiceToken<BSName extends string = string> = {
   addressTemplateUrl?: string
   txTemplateUrl?: string
   network?: string
+  hasExtraId: boolean
 }
 
 export type SwapServiceLoadableValue<T> = { loading: boolean; value: T | null }
@@ -277,8 +278,8 @@ export type SwapServiceEvents<BSName extends string = string> = {
   amountToUseMinMax: (minMax: SwapServiceLoadableValue<SwapServiceMinMaxAmount>) => void | Promise<void>
   tokenToUse: (token: SwapServiceLoadableValue<SwapServiceToken<BSName>>) => void | Promise<void>
   availableTokensToUse: (tokens: SwapServiceLoadableValue<SwapServiceToken<BSName>[]>) => void | Promise<void>
-
   addressToReceive: (account: SwapServiceValidateValue<string>) => void | Promise<void>
+  extraIdToReceive: (extraIdToReceive: SwapServiceValidateValue<string>) => void
   amountToReceive: (amount: SwapServiceLoadableValue<string>) => void | Promise<void>
   tokenToReceive: (token: SwapServiceLoadableValue<SwapServiceToken<BSName>>) => void | Promise<void>
   availableTokensToReceive: (tokens: SwapServiceLoadableValue<SwapServiceToken<BSName>[]>) => void | Promise<void>
@@ -310,6 +311,7 @@ export interface SwapService<BSName extends string = string> {
   setAmountToUse(amount: string | null): Promise<void>
   setTokenToReceive(token: SwapServiceToken<BSName> | null): Promise<void>
   setAddressToReceive(address: string | null): Promise<void>
+  setExtraIdToReceive(extraId: string | null): Promise<void>
   swap(): Promise<SwapServiceSwapResult>
   calculateFee(): Promise<string>
 }
