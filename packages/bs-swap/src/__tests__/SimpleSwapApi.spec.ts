@@ -12,7 +12,7 @@ describe('SimpleSwapApi', () => {
     name: 'Gas',
     imageUrl: 'https://static.simpleswap.io/images/currencies-logo/gasn3.svg',
     hash: '0xd2a4cff31913016155e38e474a2c06d08be276cf',
-    decimals: undefined,
+    decimals: 8,
     hasExtraId: false,
     validationExtra: null,
     validationAddress: '^(N)[A-Za-z0-9]{33}$',

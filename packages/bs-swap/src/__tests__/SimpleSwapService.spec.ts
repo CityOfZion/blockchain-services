@@ -323,6 +323,49 @@ describe('SimpleSwapService', () => {
     expect(amountToUseMinMax).toEqual({ loading: false, value: expect.objectContaining({ min: expect.any(String) }) })
   }, 10000)
 
+  it('Should be able to set the correct min and max amount with Gas (8 decimals)', async () => {
+    await simpleSwapService.init()
+
+    const gasToken = availableTokensToUse.value!.find(({ id }) => id === 'gasn3:neo3')!
+
+    await simpleSwapService.setTokenToUse(gasToken)
+
+    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+
+    await simpleSwapService.setAccountToUse(account)
+
+    await simpleSwapService.setTokenToReceive(availableTokensToReceive.value![0])
+
+    const min = amountToUseMinMax.value!.min
+
+    expect(amountToUseMinMax).toEqual({
+      loading: false,
+      value: expect.objectContaining({ min: expect.any(String), max: null }),
+    })
+    expect(min).toContain('.')
+    expect(min.split('.').at(1)!.length).toBe(8)
+  }, 10000)
+
+  it('Should be able to set the correct min and max amount with Neo (0 decimals)', async () => {
+    await simpleSwapService.init()
+
+    const neoToken = availableTokensToUse.value!.find(({ id }) => id === 'neo3:neo3')!
+
+    await simpleSwapService.setTokenToUse(neoToken)
+
+    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+
+    await simpleSwapService.setAccountToUse(account)
+
+    await simpleSwapService.setTokenToReceive(availableTokensToReceive.value![0])
+
+    expect(amountToUseMinMax).toEqual({
+      loading: false,
+      value: expect.objectContaining({ min: expect.any(String), max: null }),
+    })
+    expect(amountToUseMinMax.value!.min).not.toContain('.')
+  }, 10000)
+
   it('Should be able to set an invalid address', async () => {
     await simpleSwapService.init()
     const tokenUse = availableTokensToUse.value![0]

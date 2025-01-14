@@ -240,17 +240,18 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
         let range: SwapServiceMinMaxAmount | null = this.#amountToUseMinMax.value
         try {
           if ((shouldRecalculateAmountToUseMinMax || range === null) && this.#tokenToReceive.value) {
-            const apiRange = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value)
+            const { decimals } = this.#tokenToUse.value
+            const rangeResponse = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value)
 
-            // Add 1% because the SimpleSwap sends us a smaller minimum
-            const rangeMin = (+apiRange.min * 1.01).toString()
+            // Add 1% because the SimpleSwap sends us a smaller minimum than the required
+            const minWithOnePercent = formatNumber((Number(rangeResponse.min) * 1.01).toString(), decimals)
+
+            // Add the smallest number to round up because the SimpleSwap doesn't have the decimals, and we need to apply the decimals here
+            const smallestNumberToRoundUp = decimals ? `0.${'1'.padStart(decimals, '0')}` : '1'
 
             range = {
-              min: this.#tokenToUse.value.decimals ? formatNumber(rangeMin, this.#tokenToUse.value.decimals) : rangeMin,
-              max:
-                this.#tokenToUse.value.decimals && apiRange.max
-                  ? formatNumber(apiRange.max, this.#tokenToUse.value.decimals)
-                  : apiRange.max,
+              min: (Number(minWithOnePercent) + Number(smallestNumberToRoundUp)).toString(),
+              max: rangeResponse.max ? formatNumber(rangeResponse.max, decimals) : rangeResponse.max,
             }
           }
 
@@ -258,9 +259,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
           if (shouldRecalculateAmountToUse && range) {
             this.#amountToUse = {
-              value: this.#tokenToUse.value.decimals
-                ? formatNumber(range.min, this.#tokenToUse.value.decimals)
-                : range.min,
+              value: range.min ? formatNumber(range.min, this.#tokenToUse.value.decimals) : range.min,
             }
           }
         } catch (error: any) {
@@ -361,8 +360,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
   async setAmountToUse(amount: string | null): Promise<void> {
     this.#amountToUse = {
-      value:
-        this.#tokenToUse.value?.decimals && amount ? formatNumber(amount, this.#tokenToUse.value.decimals) : amount,
+      value: this.#tokenToUse.value && amount ? formatNumber(amount, this.#tokenToUse.value.decimals) : amount,
     }
 
     debounce(this.#recalculateValues.bind(this), 1000)(['amountToReceive'])
