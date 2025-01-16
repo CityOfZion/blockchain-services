@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.1",
+      "tag": "@cityofzion/bs-swap_v0.5.1",
+      "date": "Thu, 16 Jan 2025 18:48:13 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add round up to min and apply decimals correctly"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.0",
       "tag": "@cityofzion/bs-swap_v0.5.0",
       "date": "Mon, 13 Jan 2025 20:30:41 GMT",

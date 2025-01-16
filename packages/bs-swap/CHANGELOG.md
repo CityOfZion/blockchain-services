@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Mon, 13 Jan 2025 20:30:41 GMT and should not be manually modified.
+This log was last generated on Thu, 16 Jan 2025 18:48:13 GMT and should not be manually modified.
+
+## 0.5.1
+Thu, 16 Jan 2025 18:48:13 GMT
+
+### Patches
+
+- Add round up to min and apply decimals correctly
 
 ## 0.5.0
 Mon, 13 Jan 2025 20:30:41 GMT
