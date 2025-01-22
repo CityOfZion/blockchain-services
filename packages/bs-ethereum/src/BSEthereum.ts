@@ -227,6 +227,7 @@ export class BSEthereum<BSName extends string = string>
     const signer = await this.#generateSigner(param.senderAccount)
 
     const sentTransactionHashes: string[] = []
+    let error: Error | undefined
 
     for (const intent of param.intents) {
       let transactionHash = ''
@@ -247,12 +248,17 @@ export class BSEthereum<BSName extends string = string>
           maxPriorityFeePerGas: gasPrice,
           maxFeePerGas: gasPrice,
         })
+
         transactionHash = transaction.hash
-      } catch {
-        /* empty */
+      } catch (err: any) {
+        error = err
       }
 
       sentTransactionHashes.push(transactionHash)
+    }
+
+    if (error && sentTransactionHashes.every(hash => !hash)) {
+      throw error
     }
 
     return sentTransactionHashes
