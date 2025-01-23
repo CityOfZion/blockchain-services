@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 13 Jan 2025 20:30:41 GMT and should not be manually modified.
+This log was last generated on Thu, 23 Jan 2025 18:41:17 GMT and should not be manually modified.
+
+## 2.8.3
+Thu, 23 Jan 2025 18:41:17 GMT
+
+### Patches
+
+- Throw last error if no transfer is successful
+- Add support for the chains that Ghostamarket suports
 
 ## 2.8.2
 Mon, 13 Jan 2025 20:30:41 GMT
