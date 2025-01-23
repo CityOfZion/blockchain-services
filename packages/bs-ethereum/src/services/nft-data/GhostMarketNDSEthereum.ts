@@ -45,6 +45,10 @@ export class GhostMarketNDSEthereum extends RpcNDSEthereum {
   static readonly BASE_URL = 'https://api.ghostmarket.io/api/v2'
   static CONFIG_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
     '1': 'eth',
+    '56': 'bsc',
+    '137': 'polygon',
+    '43114': 'avalanche',
+    '8453': 'base',
     [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: 'neox',
   }
 
