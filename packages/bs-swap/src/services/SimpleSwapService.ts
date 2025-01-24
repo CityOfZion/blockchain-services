@@ -13,7 +13,6 @@ import {
 } from '@cityofzion/blockchain-service'
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
-import { debounce } from 'lodash'
 import { SimpleSwapApi } from '../apis/SimpleSwapApi'
 import { SimpleSwapApiCurrency, SimpleSwapServiceInitParams } from '../types/simpleSwap'
 
@@ -25,6 +24,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
   #api: SimpleSwapApi<BSName>
   #blockchainServicesByName: Record<BSName, BlockchainService<BSName>>
   #chainsByServiceName: Partial<Record<BSName, string[]>>
+  #amountToUseTimeout: NodeJS.Timeout | null = null
 
   #internalAvailableTokensToUse: SwapServiceLoadableValue<SimpleSwapApiCurrency<BSName>[]> = {
     loading: false,
@@ -363,7 +363,11 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       value: this.#tokenToUse.value && amount ? formatNumber(amount, this.#tokenToUse.value.decimals) : amount,
     }
 
-    debounce(this.#recalculateValues.bind(this), 1000)(['amountToReceive'])
+    if (this.#amountToUseTimeout !== null) clearTimeout(this.#amountToUseTimeout)
+
+    this.#amountToUseTimeout = setTimeout(() => {
+      this.#recalculateValues(['amountToReceive'])
+    }, 1500)
   }
 
   async setTokenToReceive(token: SwapServiceToken<BSName> | null): Promise<void> {
