@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Thu, 16 Jan 2025 18:48:13 GMT and should not be manually modified.
+This log was last generated on Tue, 28 Jan 2025 14:15:47 GMT and should not be manually modified.
+
+## 0.5.2
+Tue, 28 Jan 2025 14:15:47 GMT
+
+### Patches
+
+- Fix debounce issue when calling setAmountToUse
 
 ## 0.5.1
 Thu, 16 Jan 2025 18:48:13 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.2",
+      "tag": "@cityofzion/bs-swap_v0.5.2",
+      "date": "Tue, 28 Jan 2025 14:15:47 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix debounce issue when calling setAmountToUse"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.1",
       "tag": "@cityofzion/bs-swap_v0.5.1",
       "date": "Thu, 16 Jan 2025 18:48:13 GMT",
