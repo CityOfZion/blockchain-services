@@ -176,11 +176,13 @@ export class BSEthereum<BSName extends string = string>
 
   generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account<BSName> {
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
-    const wallet = ethers.Wallet.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic, bip44Path)
+    const hd = ethers.utils.HDNode.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic).derivePath(
+      bip44Path
+    )
 
     return {
-      address: wallet.address,
-      key: wallet.privateKey,
+      address: hd.address,
+      key: hd.privateKey,
       type: 'privateKey',
       bip44Path,
       blockchain: this.name,
