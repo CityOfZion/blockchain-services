@@ -45,6 +45,16 @@ export class BSEthereumConstants {
 
   static NATIVE_WRAPPED_HASH_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
     '1': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+    '10': '0x4200000000000000000000000000000000000006',
+    '25': '0x5c7f8a570d578ed84e63fdfa7b1ee72deae1ae23',
+    '56': '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
+    '137': '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+    '250': '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
+    '8453': '0x4200000000000000000000000000000000000006',
+    '42161': '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+    '42220': '0x471EcE3750Da237f93B8E339c536989b8978a438',
+    '43114': '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7',
+    '59144': '0xe5d7c2a44ffddf6b295a15c148167daaaf5cf34f',
   }
 
   static RPC_LIST_BY_NETWORK_ID: Record<BSEthereumNetworkId, string[]> = {
