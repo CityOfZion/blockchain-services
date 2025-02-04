@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.8.4",
+      "tag": "@cityofzion/bs-ethereum_v2.8.4",
+      "date": "Tue, 04 Feb 2025 18:10:03 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change the Wallet to HDNode"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.8.3",
       "tag": "@cityofzion/bs-ethereum_v2.8.3",
       "date": "Thu, 23 Jan 2025 18:41:17 GMT",

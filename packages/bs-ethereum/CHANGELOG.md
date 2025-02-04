@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 23 Jan 2025 18:41:17 GMT and should not be manually modified.
+This log was last generated on Tue, 04 Feb 2025 18:10:03 GMT and should not be manually modified.
+
+## 2.8.4
+Tue, 04 Feb 2025 18:10:03 GMT
+
+### Patches
+
+- Change the Wallet to HDNode
 
 ## 2.8.3
 Thu, 23 Jan 2025 18:41:17 GMT
