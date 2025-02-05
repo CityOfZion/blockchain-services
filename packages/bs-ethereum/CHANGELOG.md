@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 04 Feb 2025 18:10:03 GMT and should not be manually modified.
+This log was last generated on Wed, 05 Feb 2025 14:28:06 GMT and should not be manually modified.
+
+## 2.8.5
+Wed, 05 Feb 2025 14:28:06 GMT
+
+### Patches
+
+- Remove the getWrappedNativeToken request and just query it locally
 
 ## 2.8.4
 Tue, 04 Feb 2025 18:10:03 GMT
