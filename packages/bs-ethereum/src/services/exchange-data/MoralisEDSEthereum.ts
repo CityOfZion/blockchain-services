@@ -13,15 +13,6 @@ import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthe
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from '../blockchain-data/MoralisBDSEthereum'
 
-type MoralisERC20MetadataResponse = {
-  address: string
-  name: string
-  symbol: string
-  decimals: string
-  possible_spam: boolean
-  verified_contract: boolean
-}
-
 type MoralisERC20PriceResponse = {
   tokenName: string
   tokenSymbol: string
@@ -49,29 +40,12 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
     const wrappedSymbol = `W${nativeToken.symbol}`
     const localWrappedHash = BSEthereumConstants.NATIVE_WRAPPED_HASH_BY_NETWORK_ID[this.#network.id]
-    if (localWrappedHash) {
-      return {
-        ...nativeToken,
-        symbol: wrappedSymbol,
-        hash: localWrappedHash,
-      }
-    }
-
-    const client = MoralisBDSEthereum.getClient(this.#network)
-    const { data } = await client.get<MoralisERC20MetadataResponse[]>('/erc20/metadata/symbols', {
-      params: {
-        symbols: [wrappedSymbol],
-      },
-    })
-
-    const wrapperToken = data.find(token => token.verified_contract && !token.possible_spam)
-    if (!wrapperToken) throw new Error('Wrapper token not found')
+    if (!localWrappedHash) throw new Error('Wrapper token not found')
 
     return {
-      decimals: Number(wrapperToken.decimals),
-      hash: wrapperToken.address,
-      name: wrapperToken.name,
-      symbol: wrapperToken.symbol,
+      ...nativeToken,
+      symbol: wrappedSymbol,
+      hash: localWrappedHash,
     }
   }
 
@@ -106,6 +80,8 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
         })
       }
     })
+
+    if (tokensBody.length === 0) return []
 
     const splitTokensBody = []
     for (let i = 0; i < tokensBody.length; i += this.#maxTokenPricesPerCall) {
