@@ -53,16 +53,19 @@ export interface BlockchainService<BSName extends string = string, BSAvailableNe
   setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void
   generateAccountFromMnemonic(mnemonic: string, index: number): Account<BSName>
   generateAccountFromKey(key: string): Account<BSName>
-  decrypt(keyOrJson: string, password: string): Promise<Account<BSName>>
-  encrypt(key: string, password: string): Promise<string>
   validateAddress(address: string): boolean
-  validateEncrypted(keyOrJson: string): boolean
   validateKey(key: string): boolean
   transfer(param: TransferParam<BSName>): Promise<string[]>
 }
 
+export interface BSWithEncryption<BSName extends string = string> {
+  decrypt(keyOrJson: string, password: string): Promise<Account<BSName>>
+  encrypt(key: string, password: string): Promise<string>
+  validateEncrypted(keyOrJson: string): boolean
+}
+
 export interface BSCalculableFee<BSName extends string = string> {
-  calculateTransferFee(param: TransferParam<BSName>, details?: boolean): Promise<string>
+  calculateTransferFee(param: TransferParam<BSName>): Promise<string>
 }
 export interface BSClaimable<BSName extends string = string> {
   readonly claimToken: Token
@@ -128,11 +131,11 @@ export type TransactionTransferAsset = {
   token?: Token
 }
 export type TransactionTransferNft = {
-  tokenId: string
+  tokenHash: string
   to: string
   from: string
   type: 'nft'
-  contractHash: string
+  collectionHash: string
 }
 export type TransactionResponse = {
   hash: string
@@ -211,14 +214,16 @@ export interface ExchangeDataService {
   getCurrencyRatio(currency: string): Promise<number>
 }
 export interface NftResponse {
-  id: string
-  contractHash: string
-  collectionName?: string
+  hash: string
+  collection: {
+    name?: string
+    image?: string
+    hash: string
+  }
   creator: {
     address: string
     name?: string
   }
-  collectionImage?: string
   symbol: string
   image?: string
   name?: string
@@ -237,12 +242,12 @@ export type GetNftsByAddressParams = {
   size?: number
 }
 export type GetNftParam = {
-  tokenId: string
-  contractHash: string
+  tokenHash: string
+  collectionHash: string
 }
 export type HasTokenParam = {
   address: string
-  contractHash: string
+  collectionHash: string
 }
 export interface NftDataService {
   getNftsByAddress(params: GetNftsByAddressParams): Promise<NftsResponse>
@@ -251,8 +256,8 @@ export interface NftDataService {
 }
 
 export type BuildNftUrlParams = {
-  contractHash: string
-  tokenId: string
+  collectionHash: string
+  tokenHash: string
 }
 export interface ExplorerService {
   buildTransactionUrl(hash: string): string

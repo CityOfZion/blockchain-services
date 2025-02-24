@@ -1,4 +1,4 @@
-import { generateAccountForBlockchainService } from './functions'
+import { generateAccountForBlockchainService, hasEncryption } from './functions'
 import { Account, BlockchainService, UntilIndexRecord } from './interfaces'
 
 export class BSAggregator<BSName extends string = string> {
@@ -27,7 +27,9 @@ export class BSAggregator<BSName extends string = string> {
 
   validateTextAllBlockchains(text: string) {
     return this.#blockchainServices.some(bs =>
-      [bs.validateAddress(text), bs.validateEncrypted(text), bs.validateKey(text)].some(it => it === true)
+      [bs.validateAddress(text), hasEncryption(bs) && bs.validateEncrypted(text), bs.validateKey(text)].some(
+        it => it === true
+      )
     )
   }
 
@@ -36,7 +38,7 @@ export class BSAggregator<BSName extends string = string> {
   }
 
   validateEncryptedAllBlockchains(keyOrJson: string) {
-    return this.#blockchainServices.some(bs => bs.validateEncrypted(keyOrJson))
+    return this.#blockchainServices.some(bs => hasEncryption(bs) && bs.validateEncrypted(keyOrJson))
   }
 
   getBlockchainNameByAddress(address: string): BSName[] {
@@ -48,7 +50,9 @@ export class BSAggregator<BSName extends string = string> {
   }
 
   getBlockchainNameByEncrypted(keyOrJson: string): BSName[] {
-    return this.#blockchainServices.filter(bs => bs.validateEncrypted(keyOrJson)).map(bs => bs.name)
+    return this.#blockchainServices
+      .filter(bs => hasEncryption(bs) && bs.validateEncrypted(keyOrJson))
+      .map(bs => bs.name)
   }
 
   async generateAccountsFromMnemonic(

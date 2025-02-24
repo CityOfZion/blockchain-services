@@ -172,11 +172,11 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
 
         if (tokenTransfer.token.type === 'ERC-721') {
           transfers.push({
-            tokenId: tokenTransfer.total.token_id,
+            tokenHash: tokenTransfer.total.token_id,
             from: tokenTransfer.from.hash,
             to: tokenTransfer.to.hash,
             type: 'nft',
-            contractHash: tokenTransfer.token.address,
+            collectionHash: tokenTransfer.token.address,
           })
         }
       }

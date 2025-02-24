@@ -22,10 +22,10 @@ export class DoraESNeo3 implements ExplorerService {
     return `${this.#BASE_URL}/contract/neo3/${this.#network.id}/${contractHash}`
   }
 
-  buildNftUrl({ contractHash, tokenId }: BuildNftUrlParams): string {
+  buildNftUrl({ collectionHash, tokenHash }: BuildNftUrlParams): string {
     if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/${contractHash}/${tokenId}`
+    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/${collectionHash}/${tokenHash}`
   }
 
   getAddressTemplateUrl() {
