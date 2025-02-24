@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Add functionality to generate address until a specific index",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

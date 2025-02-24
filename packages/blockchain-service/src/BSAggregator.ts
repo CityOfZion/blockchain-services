@@ -1,4 +1,4 @@
-import { fetchAccountsForBlockchainServices } from './functions'
+import { fetchAccountsForBlockchainServices, generateAccountUntilIndexForBlockchainService } from './functions'
 import { Account, BlockchainService } from './interfaces'
 
 export class BSAggregator<BSName extends string = string> {
@@ -51,9 +51,19 @@ export class BSAggregator<BSName extends string = string> {
     return this.#blockchainServices.filter(bs => bs.validateEncrypted(keyOrJson)).map(bs => bs.name)
   }
 
-  async generateAccountsFromMnemonic(mnemonic: string): Promise<Map<BSName, Account<BSName>[]>> {
-    return fetchAccountsForBlockchainServices(
+  async generateAccountsFromMnemonic(mnemonic: string, untilIndex?: number): Promise<Map<BSName, Account<BSName>[]>> {
+    if (untilIndex === undefined) {
+      return fetchAccountsForBlockchainServices(
+        this.#blockchainServices,
+        async (service: BlockchainService<BSName>, index: number) => {
+          return service.generateAccountFromMnemonic(mnemonic, index)
+        }
+      )
+    }
+
+    return generateAccountUntilIndexForBlockchainService(
       this.#blockchainServices,
+      untilIndex,
       async (service: BlockchainService<BSName>, index: number) => {
         return service.generateAccountFromMnemonic(mnemonic, index)
       }
