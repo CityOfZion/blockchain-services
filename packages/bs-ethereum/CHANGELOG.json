@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.9.0",
+      "tag": "@cityofzion/bs-ethereum_v2.9.0",
+      "date": "Mon, 24 Feb 2025 21:18:54 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add functionality to generate address until a specific index"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.15.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.8.5",
       "tag": "@cityofzion/bs-ethereum_v2.8.5",
       "date": "Wed, 05 Feb 2025 14:28:06 GMT",

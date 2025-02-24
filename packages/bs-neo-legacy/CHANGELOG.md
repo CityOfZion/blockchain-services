@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Mon, 13 Jan 2025 20:30:41 GMT and should not be manually modified.
+This log was last generated on Mon, 24 Feb 2025 21:18:54 GMT and should not be manually modified.
+
+## 1.9.0
+Mon, 24 Feb 2025 21:18:54 GMT
+
+### Minor changes
+
+- Add functionality to generate address until a specific index
 
 ## 1.8.2
 Mon, 13 Jan 2025 20:30:41 GMT

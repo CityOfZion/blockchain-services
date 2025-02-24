@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 05 Feb 2025 14:28:06 GMT and should not be manually modified.
+This log was last generated on Mon, 24 Feb 2025 21:18:54 GMT and should not be manually modified.
+
+## 2.9.0
+Mon, 24 Feb 2025 21:18:54 GMT
+
+### Minor changes
+
+- Add functionality to generate address until a specific index
 
 ## 2.8.5
 Wed, 05 Feb 2025 14:28:06 GMT

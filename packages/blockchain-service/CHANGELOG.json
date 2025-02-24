@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.15.0",
+      "tag": "@cityofzion/blockchain-service_v1.15.0",
+      "date": "Mon, 24 Feb 2025 21:18:54 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add functionality to generate address until a specific index"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.14.0",
       "tag": "@cityofzion/blockchain-service_v1.14.0",
       "date": "Mon, 13 Jan 2025 20:30:41 GMT",
