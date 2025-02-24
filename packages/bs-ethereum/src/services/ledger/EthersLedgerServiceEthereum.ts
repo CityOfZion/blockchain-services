@@ -4,6 +4,7 @@ import {
   LedgerServiceEmitter,
   fetchAccountsForBlockchainServices,
   GetLedgerTransport,
+  generateAccountUntilIndexForBlockchainService,
 } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
@@ -161,13 +162,25 @@ export class EthersLedgerServiceEthereum<BSName extends string = string> impleme
     this.getLedgerTransport = getLedgerTransport
   }
 
-  async getAccounts(transport: Transport): Promise<Account<BSName>[]> {
-    const accountsByBlockchainService = await fetchAccountsForBlockchainServices(
-      [this.#blockchainService],
-      async (_service, index) => {
-        return this.getAccount(transport, index)
-      }
-    )
+  async getAccounts(transport: Transport, untilIndex?: number): Promise<Account<BSName>[]> {
+    let accountsByBlockchainService: Map<string, Account<BSName>[]>
+
+    if (untilIndex === undefined) {
+      accountsByBlockchainService = await fetchAccountsForBlockchainServices(
+        [this.#blockchainService],
+        async (_service, index) => {
+          return this.getAccount(transport, index)
+        }
+      )
+    } else {
+      accountsByBlockchainService = await generateAccountUntilIndexForBlockchainService(
+        [this.#blockchainService],
+        untilIndex,
+        async (_service, index) => {
+          return this.getAccount(transport, index)
+        }
+      )
+    }
 
     const accounts = accountsByBlockchainService.get(this.#blockchainService.name)
     return accounts ?? []

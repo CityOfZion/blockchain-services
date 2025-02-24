@@ -134,7 +134,36 @@ export async function fetchAccountsForBlockchainServices<BSName extends string =
     accountsByBlockchainService.set(service.name, accounts)
   })
 
-  await Promise.all(promises)
+  await Promise.allSettled(promises)
+
+  return accountsByBlockchainService
+}
+
+export async function generateAccountUntilIndexForBlockchainService<BSName extends string = string>(
+  blockchainServices: BlockchainService<BSName>[],
+  untilIndex: number,
+  getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>
+): Promise<Map<BSName, Account<BSName>[]>> {
+  if (untilIndex < 0) {
+    throw new Error('Invalid index')
+  }
+
+  const accountsByBlockchainService = new Map<BSName, Account<BSName>[]>()
+
+  const promises = blockchainServices.map(async service => {
+    let index = 0
+    const accounts: Account<BSName>[] = []
+
+    while (index <= untilIndex) {
+      const generatedAccount = await getAccountCallback(service, index)
+      accounts.push(generatedAccount)
+      index++
+    }
+
+    accountsByBlockchainService.set(service.name, accounts)
+  })
+
+  await Promise.allSettled(promises)
 
   return accountsByBlockchainService
 }

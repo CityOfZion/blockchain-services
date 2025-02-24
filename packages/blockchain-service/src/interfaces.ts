@@ -246,7 +246,7 @@ export type GetLedgerTransport<BSName extends string = string> = (account: Accou
 export interface LedgerService<BSName extends string = string> {
   emitter: LedgerServiceEmitter
   getLedgerTransport?: GetLedgerTransport<BSName>
-  getAccounts(transport: Transport): Promise<Account<BSName>[]>
+  getAccounts(transport: Transport, untilIndex?: number): Promise<Account<BSName>[]>
   getAccount(transport: Transport, index: number): Promise<Account<BSName>>
 }
 
