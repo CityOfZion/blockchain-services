@@ -5,6 +5,7 @@ import {
   BSCalculableFee,
   BSClaimable,
   BSMigrationNeo3,
+  BSWithEncryption,
   BSWithExplorerService,
   BSWithLedger,
   BSWithNameService,
@@ -12,6 +13,7 @@ import {
   TransactionResponse,
   UntilIndexRecord,
 } from './interfaces'
+import { utils } from 'web3'
 
 export function hasNameService<BSName extends string = string>(
   service: BlockchainService<BSName>
@@ -53,6 +55,12 @@ export function hasLedger<BSName extends string = string>(
   service: BlockchainService<BSName>
 ): service is BlockchainService<BSName> & BSWithLedger<BSName> {
   return 'ledgerService' in service
+}
+
+export function hasEncryption<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSWithEncryption<BSName> {
+  return 'encrypt' in service && 'decrypt' in service
 }
 
 export function wait(ms: number) {
@@ -245,8 +253,14 @@ export async function generateAccountForBlockchainService<BSName extends string 
   return accountsByBlockchainService
 }
 
-export function normalizeHash(hash: string): string {
-  return hash.replace('0x', '').toLowerCase()
+export function normalizeHash(hash: string, lowercase = true): string {
+  let newHash = hash.replace('0x', '')
+
+  if (lowercase) {
+    newHash = newHash.toLowerCase()
+  }
+
+  return newHash
 }
 
 export function denormalizeHash(hash: string): string {
@@ -276,5 +290,33 @@ export function formatNumber(value: string | number, decimals: number = 0) {
 
   return newValue.replace(/\s|-/g, '').replace(/^([^.]*\.)(.*)$/, function (_a, b, c) {
     return b + c.replace(/\./g, '')
+  })
+}
+
+export function formatTokenNumber(value: string | number, decimals: number = 0) {
+  return utils.fromWei(value, decimals)
+}
+
+export function parseTokenNumber(value: string | number, decimals: number = 0) {
+  return utils.toWei(value, decimals)
+}
+
+export function retry<T = any>(callback: () => Promise<T>): Promise<T> {
+  // eslint-disable-next-line no-async-promise-executor
+  return new Promise(async (resolve, reject) => {
+    // Wait up to 5 seconds
+    for (let i = 0; i < 50; i++) {
+      try {
+        const result = await callback()
+        return resolve(result)
+      } catch (error: any) {
+        if (error.id !== 'TransportLocked') {
+          return reject(error)
+        }
+      }
+      await wait(100)
+    }
+
+    return reject(new Error('timeout'))
   })
 }

@@ -89,8 +89,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
           return {
             from: convertedFrom,
             to: convertedTo,
-            tokenId: properties[3].value,
-            contractHash,
+            tokenHash: properties[3].value,
+            collectionHash: contractHash,
             type: 'nft',
           }
         }

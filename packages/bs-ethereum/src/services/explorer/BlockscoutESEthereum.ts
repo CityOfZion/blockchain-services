@@ -54,7 +54,7 @@ export class BlockscoutESEthereum implements ExplorerService {
 
     const baseURL = BlockscoutESEthereum.BASE_URL_BY_CHAIN_ID[this.#network.id]
 
-    return `${baseURL}/token/${params.contractHash}/instance/${params.tokenId}`
+    return `${baseURL}/token/${params.collectionHash}/instance/${params.tokenHash}`
   }
 
   getAddressTemplateUrl() {
