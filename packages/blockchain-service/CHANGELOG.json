@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.15.1",
+      "tag": "@cityofzion/blockchain-service_v1.15.1",
+      "date": "Tue, 25 Feb 2025 17:58:55 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change untilIndex to untilIndexByBlockchainService record"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.15.0",
       "tag": "@cityofzion/blockchain-service_v1.15.0",
       "date": "Mon, 24 Feb 2025 21:18:54 GMT",

@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.10.1",
+      "tag": "@cityofzion/bs-neo3_v1.10.1",
+      "date": "Tue, 25 Feb 2025 17:58:55 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change untilIndex to untilIndexByBlockchainService record"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.15.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.0",
       "tag": "@cityofzion/bs-neo3_v1.10.0",
       "date": "Mon, 24 Feb 2025 21:18:54 GMT",

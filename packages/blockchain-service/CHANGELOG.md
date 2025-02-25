@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 24 Feb 2025 21:18:54 GMT and should not be manually modified.
+This log was last generated on Tue, 25 Feb 2025 17:58:55 GMT and should not be manually modified.
+
+## 1.15.1
+Tue, 25 Feb 2025 17:58:55 GMT
+
+### Patches
+
+- Change untilIndex to untilIndexByBlockchainService record
 
 ## 1.15.0
 Mon, 24 Feb 2025 21:18:54 GMT
