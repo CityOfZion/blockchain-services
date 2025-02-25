@@ -1,10 +1,10 @@
 import {
   Account,
-  fetchAccountsForBlockchainServices,
-  generateAccountUntilIndexForBlockchainService,
+  generateAccountForBlockchainService,
   GetLedgerTransport,
   LedgerService,
   LedgerServiceEmitter,
+  UntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 import { NeonParser } from '@cityofzion/neon-dappkit'
 import { api, u, wallet } from '@cityofzion/neon-js'
@@ -62,25 +62,17 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
     }
   }
 
-  async getAccounts(transport: Transport, untilIndex?: number): Promise<Account<BSName>[]> {
-    let accountsByBlockchainService: Map<string, Account<BSName>[]>
-
-    if (untilIndex === undefined) {
-      accountsByBlockchainService = await fetchAccountsForBlockchainServices(
-        [this.#blockchainService],
-        async (_service, index) => {
-          return this.getAccount(transport, index)
-        }
-      )
-    } else {
-      accountsByBlockchainService = await generateAccountUntilIndexForBlockchainService(
-        [this.#blockchainService],
-        untilIndex,
-        async (_service, index) => {
-          return this.getAccount(transport, index)
-        }
-      )
-    }
+  async getAccounts(
+    transport: Transport,
+    untilIndexByBlockchainService?: UntilIndexRecord<BSName>
+  ): Promise<Account<BSName>[]> {
+    const accountsByBlockchainService = await generateAccountForBlockchainService(
+      [this.#blockchainService],
+      async (_service, index) => {
+        return this.getAccount(transport, index)
+      },
+      untilIndexByBlockchainService
+    )
 
     const accounts = accountsByBlockchainService.get(this.#blockchainService.name)
     return accounts ?? []

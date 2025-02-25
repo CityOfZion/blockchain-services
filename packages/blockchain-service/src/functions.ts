@@ -7,6 +7,7 @@ import {
   BSWithLedger,
   BSWithNameService,
   BSWithNft,
+  UntilIndexRecord,
 } from './interfaces'
 
 export function hasNameService<BSName extends string = string>(
@@ -101,69 +102,76 @@ export async function waitForAccountTransaction<BSName extends string = string>(
   return false
 }
 
-export async function fetchAccountsForBlockchainServices<BSName extends string = string>(
-  blockchainServices: BlockchainService<BSName>[],
+export async function fetchAccounts<BSName extends string = string>(
+  blockchainServices: BlockchainService<BSName>,
+  initialIndex: number,
   getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>
-): Promise<Map<BSName, Account<BSName>[]>> {
-  const accountsByBlockchainService = new Map<BSName, Account<BSName>[]>()
+): Promise<Account<BSName>[]> {
+  const accounts: Account<BSName>[] = []
 
-  const promises = blockchainServices.map(async service => {
-    let index = 0
-    const accounts: Account<BSName>[] = []
-    let shouldBreak = false
+  let index = initialIndex
+  let shouldBreak = false
 
-    while (!shouldBreak) {
-      const generatedAccount = await getAccountCallback(service, index)
+  while (!shouldBreak) {
+    const generatedAccount = await getAccountCallback(blockchainServices, index)
 
-      if (index !== 0) {
-        try {
-          const { transactions } = await service.blockchainDataService.getTransactionsByAddress({
-            address: generatedAccount.address,
-          })
+    try {
+      const { transactions } = await blockchainServices.blockchainDataService.getTransactionsByAddress({
+        address: generatedAccount.address,
+      })
 
-          if (!transactions || transactions.length <= 0) shouldBreak = true
-        } catch {
-          shouldBreak = true
-        }
-      }
-
-      accounts.push(generatedAccount)
-      index++
+      if (!transactions || transactions.length <= 0) shouldBreak = true
+    } catch {
+      shouldBreak = true
     }
 
-    accountsByBlockchainService.set(service.name, accounts)
-  })
-
-  await Promise.allSettled(promises)
-
-  return accountsByBlockchainService
-}
-
-export async function generateAccountUntilIndexForBlockchainService<BSName extends string = string>(
-  blockchainServices: BlockchainService<BSName>[],
-  untilIndex: number,
-  getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>
-): Promise<Map<BSName, Account<BSName>[]>> {
-  if (untilIndex < 0) {
-    throw new Error('Invalid index')
+    accounts.push(generatedAccount)
+    index++
   }
 
+  return accounts
+}
+
+export async function generateAccount<BSName extends string = string>(
+  blockchainServices: BlockchainService<BSName>,
+  initialIndex: number,
+  untilIndex: number,
+  getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>
+): Promise<Account<BSName>[]> {
+  const accounts: Account<BSName>[] = []
+
+  let index = initialIndex
+
+  while (index <= untilIndex) {
+    const generatedAccount = await getAccountCallback(blockchainServices, index)
+    accounts.push(generatedAccount)
+    index++
+  }
+
+  return accounts
+}
+
+export async function generateAccountForBlockchainService<BSName extends string = string>(
+  blockchainServices: BlockchainService<BSName>[],
+  getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>,
+  untilIndexByBlockchainService?: UntilIndexRecord<BSName>
+): Promise<Map<BSName, Account<BSName>[]>> {
   const accountsByBlockchainService = new Map<BSName, Account<BSName>[]>()
 
   const promises = blockchainServices.map(async service => {
-    let index = 0
-    const accounts: Account<BSName>[] = []
+    const firstAccount = await getAccountCallback(service, 0)
+    const untilIndex = untilIndexByBlockchainService?.[service.name]?.[firstAccount.address]
 
-    while (index <= untilIndex) {
-      const generatedAccount = await getAccountCallback(service, index)
-      accounts.push(generatedAccount)
-      index++
+    if (untilIndex === undefined) {
+      const accounts = await fetchAccounts(service, 1, getAccountCallback)
+      accountsByBlockchainService.set(service.name, [firstAccount, ...accounts])
+    } else {
+      const accounts = await generateAccount(service, 1, untilIndex, getAccountCallback)
+      accountsByBlockchainService.set(service.name, [firstAccount, ...accounts])
     }
-
-    accountsByBlockchainService.set(service.name, accounts)
   })
 
-  await Promise.allSettled(promises)
+  await Promise.all(promises)
 
   return accountsByBlockchainService
 }

@@ -1,6 +1,8 @@
 import Transport from '@ledgerhq/hw-transport'
 import TypedEmitter from 'typed-emitter'
 
+export type UntilIndexRecord<BSName extends string = string> = Partial<Record<BSName, Record<string, number>>>
+
 export type Account<BSName extends string = string> = {
   key: string
   type: 'wif' | 'privateKey' | 'publicKey'
@@ -246,7 +248,7 @@ export type GetLedgerTransport<BSName extends string = string> = (account: Accou
 export interface LedgerService<BSName extends string = string> {
   emitter: LedgerServiceEmitter
   getLedgerTransport?: GetLedgerTransport<BSName>
-  getAccounts(transport: Transport, untilIndex?: number): Promise<Account<BSName>[]>
+  getAccounts(transport: Transport, getUntilIndex?: UntilIndexRecord<BSName>): Promise<Account<BSName>[]>
   getAccount(transport: Transport, index: number): Promise<Account<BSName>>
 }
 

@@ -34,7 +34,12 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
   }, 60000)
 
   it('Should be able to get all accounts until index', async () => {
-    const accounts = await ledgerService.getAccounts(transport, 6)
+    const firstAccount = await ledgerService.getAccount(transport, 0)
+    const accounts = await ledgerService.getAccounts(transport, {
+      'neo-legacy': {
+        [firstAccount.address]: 6,
+      },
+    })
 
     expect(accounts.length).toBe(7)
     accounts.forEach((account, index) => {
