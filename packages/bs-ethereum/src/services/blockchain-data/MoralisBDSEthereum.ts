@@ -9,13 +9,19 @@ import {
   TransactionTransferNft,
   TransactionsByAddressParams,
   TransactionsByAddressResponse,
+  BSCommonConstants,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
+  NftDataService,
+  ExplorerService,
 } from '@cityofzion/blockchain-service'
-import { RpcBDSEthereum } from './RpcBDSEthereum'
 import axios from 'axios'
 import { ethers } from 'ethers'
-import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
+import { api } from '@cityofzion/dora-ts'
+import { DoraBDSEthereum } from './DoraBDSEthereum'
 
 type MoralisNativeBalanceResponse = {
   balance: string
@@ -93,20 +99,20 @@ interface MoralisTokenMetadataResponse {
   name: string
 }
 
-export class MoralisBDSEthereum extends RpcBDSEthereum {
-  static BASE_URL = 'https://dora.coz.io/api/v2/meta'
+export class MoralisBDSEthereum extends DoraBDSEthereum {
+  static BASE_URL = `${BSCommonConstants.DORA_URL}/api/v2/meta`
 
   static SUPPORTED_CHAINS = [
-    '1',
+    BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID,
     '11155111',
     '17000',
-    '137',
+    BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
     '80002',
     '56',
     '97',
-    '42161',
+    BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
     '421614',
-    '8453',
+    BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
     '84532',
     '10',
     '11155420',
@@ -151,8 +157,18 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
     return MoralisBDSEthereum.SUPPORTED_CHAINS.includes(network.id)
   }
 
-  constructor(network: Network<BSEthereumNetworkId>) {
-    super(network)
+  constructor(network: Network<BSEthereumNetworkId>, nftDataService: NftDataService, explorerService: ExplorerService) {
+    super(
+      network,
+      [
+        BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID,
+        BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
+        BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
+        BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
+      ],
+      nftDataService,
+      explorerService
+    )
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
@@ -165,6 +181,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
     const {
       data: { balance: nativeBalance },
     } = await client.get<MoralisNativeBalanceResponse>(`${address}/balance`)
+
     const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
 
     const balances: BalanceResponse[] = [
@@ -240,6 +257,7 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
 
     if (data.value && Number(data.value) > 0) {
       const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+
       transfers.push({
         amount: ethers.utils.formatUnits(data.value, nativeToken.decimals),
         from: data.from_address,
@@ -374,6 +392,22 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
       nextPageParams: data.cursor,
       transactions,
     }
+  }
+
+  async getFullTransactionsByAddress(
+    params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
+    this.validateFullTransactionsByAddressParams(params)
+
+    const response = await api.EthereumREST.getFullTransactionsByAddress({
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      network: this._network.id,
+      cursor: params.nextCursor,
+    })
+
+    return await this.transformFullTransactionsByAddressResponse(response)
   }
 
   async getContract(hash: string): Promise<ContractResponse> {

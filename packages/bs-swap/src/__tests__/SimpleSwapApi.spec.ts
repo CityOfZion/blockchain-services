@@ -1,5 +1,6 @@
 import { SimpleSwapApi } from '../apis/SimpleSwapApi'
 import { SimpleSwapApiCurrency } from '../types/simpleSwap'
+import { BSCommonConstants } from '@cityofzion/blockchain-service'
 
 describe('SimpleSwapApi', () => {
   const simpleSwapApi = new SimpleSwapApi()
@@ -16,8 +17,8 @@ describe('SimpleSwapApi', () => {
     hasExtraId: false,
     validationExtra: null,
     validationAddress: '^(N)[A-Za-z0-9]{33}$',
-    addressTemplateUrl: 'https://dora.coz.io/address/neo3/mainnet/{address}',
-    txTemplateUrl: 'https://dora.coz.io/transaction/neo3/mainnet/{txId}',
+    addressTemplateUrl: `${BSCommonConstants.DORA_URL}/address/neo3/mainnet/{address}`,
+    txTemplateUrl: `${BSCommonConstants.DORA_URL}/transaction/neo3/mainnet/{txId}`,
     blockchain: 'neo3',
   }
 
@@ -33,8 +34,8 @@ describe('SimpleSwapApi', () => {
     hasExtraId: false,
     validationExtra: null,
     validationAddress: '^(N)[A-Za-z0-9]{33}$',
-    addressTemplateUrl: 'https://dora.coz.io/address/neo3/mainnet/{address}',
-    txTemplateUrl: 'https://dora.coz.io/transaction/neo3/mainnet/{txId}',
+    addressTemplateUrl: `${BSCommonConstants.DORA_URL}/address/neo3/mainnet/{address}`,
+    txTemplateUrl: `${BSCommonConstants.DORA_URL}/transaction/neo3/mainnet/{txId}`,
     blockchain: 'neo3',
   }
 

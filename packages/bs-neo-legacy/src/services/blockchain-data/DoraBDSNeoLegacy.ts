@@ -1,35 +1,52 @@
 import {
   BalanceResponse,
-  BlockchainDataService,
-  ContractResponse,
-  TransactionsByAddressParams,
-  TransactionsByAddressResponse,
-  TransactionResponse,
   BDSClaimable,
-  TransactionTransferAsset,
-  Token,
+  BlockchainDataService,
+  BSFullTransactionsByAddressHelper,
+  BSPromisesHelper,
+  ContractResponse,
+  ExplorerService,
+  formatNumber,
+  FullTransactionAssetEvent,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
+  FullTransactionsItem,
   Network,
   RpcResponse,
+  Token,
+  TransactionResponse,
+  TransactionsByAddressParams,
+  TransactionsByAddressResponse,
+  TransactionTransferAsset,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { rpc } from '@cityofzion/neon-js'
+import { rpc, wallet } from '@cityofzion/neon-js'
 import { BSNeoLegacyNetworkId } from '../../constants/BSNeoLegacyConstants'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
 export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
+  readonly #supportedNep5Standards = ['nep5', 'nep-5']
   readonly #network: Network<BSNeoLegacyNetworkId>
   readonly #claimToken: Token
   readonly #feeToken: Token
   readonly #tokens: Token[]
   readonly #tokenCache: Map<string, Token> = new Map()
+  readonly #explorerService: ExplorerService
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
 
-  constructor(network: Network<BSNeoLegacyNetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
+  constructor(
+    network: Network<BSNeoLegacyNetworkId>,
+    feeToken: Token,
+    claimToken: Token,
+    tokens: Token[],
+    explorerService: ExplorerService
+  ) {
     this.#network = network
     this.#claimToken = claimToken
     this.#feeToken = feeToken
     this.#tokens = tokens
+    this.#explorerService = explorerService
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -104,6 +121,77 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     }
   }
 
+  async getFullTransactionsByAddress(
+    params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
+    this.#validateFullTransactionsByAddressParams(params)
+
+    const data: FullTransactionsItem[] = []
+
+    const { nextCursor, ...response } = await api.NeoLegacyREST.getFullTransactionsByAddress({
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      network: 'mainnet',
+      cursor: params.nextCursor,
+    })
+
+    const items = response.data ?? []
+
+    const addressTemplateUrl = this.#explorerService.getAddressTemplateUrl()
+    const txTemplateUrl = this.#explorerService.getTxTemplateUrl()
+    const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
+
+    const itemPromises = items.map(async item => {
+      const txId = item.transactionID
+      const newItem: FullTransactionsItem = {
+        txId,
+        txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
+        block: item.block,
+        date: item.date,
+        invocationCount: item.invocationCount,
+        notificationCount: item.notificationCount,
+        networkFeeAmount: formatNumber(item.networkFeeAmount, this.#feeToken.decimals),
+        systemFeeAmount: formatNumber(item.systemFeeAmount, this.#feeToken.decimals),
+        events: [],
+      }
+
+      const eventPromises = item.events.map(async event => {
+        const { contractHash: hash, amount, from, to } = event
+        const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
+        const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
+        const isNep5 = this.#supportedNep5Standards.includes(standard)
+        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
+        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+        const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
+
+        const assetEvent: FullTransactionAssetEvent = {
+          eventType: 'token',
+          amount: formatNumber(amount, token?.decimals ?? event.tokenDecimals),
+          methodName: event.methodName,
+          from: from || 'Burn',
+          fromUrl,
+          to: to || 'Mint',
+          toUrl,
+          hash,
+          hashUrl,
+          token: token ?? undefined,
+          tokenType: isNep5 ? 'nep-5' : 'generic',
+        }
+
+        newItem.events.push(assetEvent)
+      })
+
+      await Promise.allSettled(eventPromises)
+
+      data.push(newItem)
+    })
+
+    await Promise.allSettled(itemPromises)
+
+    return { nextCursor, data }
+  }
+
   async getContract(contractHash: string): Promise<ContractResponse> {
     const response = await api.NeoLegacyREST.contract(contractHash, this.#network.id)
     if (!response || 'error' in response) throw new Error(`Contract ${contractHash} not found`)
@@ -165,9 +253,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
       }
     })
 
-    const result = await Promise.all(promises)
-
-    return result
+    return await Promise.all(promises)
   }
 
   async getUnclaimed(address: string): Promise<string> {
@@ -209,5 +295,13 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     await Promise.allSettled(promises)
 
     return list
+  }
+
+  #validateFullTransactionsByAddressParams(params: FullTransactionsByAddressParams) {
+    if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('Only Mainnet is supported')
+
+    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams(params)
+
+    if (!wallet.isAddress(params.address)) throw new Error('Invalid address param')
   }
 }

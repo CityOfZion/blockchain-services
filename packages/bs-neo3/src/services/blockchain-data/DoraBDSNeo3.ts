@@ -1,7 +1,15 @@
 import {
   BalanceResponse,
   ContractResponse,
+  BSCommonConstants,
+  FullTransactionAssetEvent,
+  FullTransactionNftEvent,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
+  FullTransactionsItem,
   Network,
+  NftDataService,
+  NftResponse,
   Token,
   TransactionNotifications,
   TransactionResponse,
@@ -9,21 +17,40 @@ import {
   TransactionsByAddressResponse,
   TransactionTransferAsset,
   TransactionTransferNft,
+  BSFullTransactionsByAddressHelper,
+  formatNumber,
+  BSPromisesHelper,
+  ExplorerService,
 } from '@cityofzion/blockchain-service'
-import { NeoRESTApi } from '@cityofzion/dora-ts/dist/api'
+import { api } from '@cityofzion/dora-ts'
 import { u, wallet } from '@cityofzion/neon-js'
 import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
+import { TypedResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
 
-const NeoRest = new NeoRESTApi({
-  doraUrl: 'https://dora.coz.io',
+const NeoRest = new api.NeoRESTApi({
+  doraUrl: BSCommonConstants.DORA_URL,
   endpoint: '/api/v2/neo3',
 })
 
 export class DoraBDSNeo3 extends RpcBDSNeo3 {
-  constructor(network: Network<BSNeo3NetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
+  readonly #supportedNep11Standards = ['nep11', 'nep-11']
+  readonly #nftDataService: NftDataService
+  readonly #explorerService: ExplorerService
+
+  constructor(
+    network: Network<BSNeo3NetworkId>,
+    feeToken: Token,
+    claimToken: Token,
+    tokens: Token[],
+    nftDataService: NftDataService,
+    explorerService: ExplorerService
+  ) {
     super(network, feeToken, claimToken, tokens)
+
+    this.#nftDataService = nftDataService
+    this.#explorerService = explorerService
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -62,7 +89,9 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       const transferPromises: Promise<TransactionTransferAsset | TransactionTransferNft>[] = []
 
       item.notifications.forEach(({ contract: contractHash, state, event_name: eventName }) => {
-        const properties = Array.isArray(state) ? state : state.value
+        // TODO: created issue to fix it (https://app.clickup.com/t/86a86n3yw), type from @cityofzion/dora-ts is wrong, it's necessary to do this force casting now
+        const properties = (Array.isArray(state) ? state : ((state as any)?.value as TypedResponse[])) ?? []
+
         if (eventName !== 'Transfer' || (properties.length !== 3 && properties.length !== 4)) return
 
         const promise = async (): Promise<TransactionTransferAsset | TransactionTransferNft> => {
@@ -77,7 +106,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
             const token = await this.getTokenInfo(contractHash)
             const [, , { value: amount }] = properties
             return {
-              amount: u.BigInteger.fromNumber(amount).toDecimal(token.decimals ?? 0),
+              amount: formatNumber(amount, token.decimals),
               from: convertedFrom,
               to: convertedTo,
               contractHash,
@@ -89,7 +118,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
           return {
             from: convertedFrom,
             to: convertedTo,
-            tokenId: properties[3].value,
+            tokenId: properties[3].value ?? '',
             contractHash,
             type: 'nft',
           }
@@ -126,6 +155,116 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       nextPageParams: nextPageParams < totalPages ? nextPageParams + 1 : undefined,
       transactions,
     }
+  }
+
+  async getFullTransactionsByAddress(
+    params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
+    this.#validateFullTransactionsByAddressParams(params)
+
+    const data: FullTransactionsItem[] = []
+
+    const { nextCursor, ...response } = await NeoRest.getFullTransactionsByAddress({
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      network: this._network.id as 'mainnet' | 'testnet',
+      cursor: params.nextCursor,
+    })
+
+    const items = response.data ?? []
+
+    const addressTemplateUrl = this.#explorerService.getAddressTemplateUrl()
+    const txTemplateUrl = this.#explorerService.getTxTemplateUrl()
+    const nftTemplateUrl = this.#explorerService.getNftTemplateUrl()
+    const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
+
+    const itemPromises = items.map(async item => {
+      const txId = item.transactionID
+      const newItem: FullTransactionsItem = {
+        txId,
+        txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
+        block: item.block,
+        date: item.date,
+        invocationCount: item.invocationCount,
+        notificationCount: item.notificationCount,
+        networkFeeAmount: formatNumber(item.networkFeeAmount, this._feeToken.decimals),
+        systemFeeAmount: formatNumber(item.systemFeeAmount, this._feeToken.decimals),
+        events: [],
+      }
+
+      const eventPromises = item.events.map(async event => {
+        let nftEvent: FullTransactionNftEvent
+        let assetEvent: FullTransactionAssetEvent
+        let from = event.from
+        let to = event.to
+
+        const { methodName, tokenID: tokenId, contractHash: hash } = event
+
+        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
+        const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
+
+        if (!from) from = 'Burn'
+        if (!to) to = 'Mint'
+
+        const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
+        const isNft = this.#supportedNep11Standards.includes(standard) && !!tokenId
+
+        if (isNft) {
+          const [nft] = await BSPromisesHelper.tryCatch<NftResponse>(() =>
+            this.#nftDataService.getNft({ contractHash: hash, tokenId })
+          )
+
+          const nftUrl = hash ? nftTemplateUrl?.replace('{hash}', hash).replace('{tokenId}', tokenId) : undefined
+
+          nftEvent = {
+            eventType: 'nft',
+            amount: '0',
+            methodName,
+            from,
+            fromUrl,
+            to,
+            toUrl,
+            hash,
+            hashUrl,
+            tokenId,
+            tokenType: 'nep-11',
+            nftImageUrl: nft?.image,
+            nftUrl,
+            name: nft?.name,
+            collectionName: nft?.collectionName,
+          }
+        } else {
+          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
+          const amount = formatNumber(event.amount, token?.decimals ?? event.tokenDecimals)
+
+          assetEvent = {
+            eventType: 'token',
+            amount,
+            methodName,
+            from,
+            fromUrl,
+            to,
+            toUrl,
+            hash,
+            hashUrl,
+            token: token ?? undefined,
+            tokenType: 'nep-17',
+          }
+        }
+
+        newItem.events.push(isNft ? nftEvent! : assetEvent!)
+      })
+
+      await Promise.allSettled(eventPromises)
+
+      data.push(newItem)
+    })
+
+    await Promise.allSettled(itemPromises)
+
+    return { nextCursor, data }
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
@@ -192,13 +331,21 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       }
     })
     const balances = await Promise.all(promises)
-    const filteredBalances = balances.filter(balance => balance !== undefined) as BalanceResponse[]
-    return filteredBalances
+
+    return balances.filter(balance => balance !== undefined) as BalanceResponse[]
   }
 
   private convertByteStringToAddress(byteString: string): string {
     const account = new wallet.Account(u.reverseHex(u.HexString.fromBase64(byteString).toString()))
 
     return account.address
+  }
+
+  #validateFullTransactionsByAddressParams(params: FullTransactionsByAddressParams) {
+    if (BSNeo3Helper.isCustomNet(this._network)) throw new Error('Only Mainnet and Testnet are supported')
+
+    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams(params)
+
+    if (!wallet.isAddress(params.address)) throw new Error('Invalid address param')
   }
 }

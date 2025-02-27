@@ -3,11 +3,11 @@ import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthe
 
 export class BlockscoutESEthereum implements ExplorerService {
   static BASE_URL_BY_CHAIN_ID: Partial<Record<BSEthereumNetworkId, string>> = {
-    '1': 'https://eth.blockscout.com',
+    [BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID]: 'https://eth.blockscout.com',
     '10': 'https://optimism.blockscout.com',
-    '137': 'https://polygon.blockscout.com',
-    '8453': 'https://base.blockscout.com',
-    '42161': 'https://arbitrum.blockscout.com',
+    [BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID]: 'https://polygon.blockscout.com',
+    [BSEthereumConstants.BASE_MAINNET_NETWORK_ID]: 'https://base.blockscout.com',
+    [BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID]: 'https://arbitrum.blockscout.com',
     '42220': 'https://explorer.celo.org/mainnet',
     [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: 'https://xexplorer.neo.org',
     '59144': 'https://explorer.linea.build',
@@ -71,5 +71,21 @@ export class BlockscoutESEthereum implements ExplorerService {
     const baseUrl = BlockscoutESEthereum.BASE_URL_BY_CHAIN_ID[this.#network.id]
 
     return `${baseUrl}/tx/{txId}`
+  }
+
+  getNftTemplateUrl() {
+    if (!BlockscoutESEthereum.isSupported(this.#network)) return undefined
+
+    const baseUrl = BlockscoutESEthereum.BASE_URL_BY_CHAIN_ID[this.#network.id]
+
+    return `${baseUrl}/token/{hash}/instance/{tokenId}`
+  }
+
+  getContractTemplateUrl() {
+    if (!BlockscoutESEthereum.isSupported(this.#network)) return undefined
+
+    const baseUrl = BlockscoutESEthereum.BASE_URL_BY_CHAIN_ID[this.#network.id]
+
+    return `${baseUrl}/address/{hash}`
   }
 }

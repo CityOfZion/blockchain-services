@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "axios": "1.5.1",
+    "axios": "1.8.2",
     "ethers": "5.7.2",
     "query-string": "7.1.3",
     "@ethersproject/json-wallets": "5.7.0",
@@ -26,7 +26,9 @@
     "@ledgerhq/hw-transport": "~6.30.5",
     "@ledgerhq/hw-app-eth": "~6.35.7",
     "@ethersproject/abstract-signer": "~5.7.0",
-    "@ethersproject/properties": "~5.7.0"
+    "@ethersproject/properties": "~5.7.0",
+    "@cityofzion/dora-ts": "0.4.0",
+    "date-fns": "~4.1.0"
   },
   "devDependencies": {
     "@ledgerhq/hw-transport-node-hid": "~6.28.5",

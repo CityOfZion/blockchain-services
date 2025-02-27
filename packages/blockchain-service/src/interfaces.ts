@@ -131,6 +131,63 @@ export type TransactionsByAddressParams = {
   address: string
   nextPageParams?: any
 }
+
+export type FullTransactionsByAddressParams = {
+  address: string
+  dateFrom: string
+  dateTo: string
+  nextCursor?: string
+}
+
+export type FullTransactionNftEvent = {
+  eventType: 'nft'
+  amount: string
+  methodName: string
+  hash: string
+  hashUrl?: string
+  to?: string
+  toUrl?: string
+  from?: string
+  fromUrl?: string
+  tokenType: 'generic' | (string & NonNullable<unknown>)
+  tokenId?: string
+  nftImageUrl?: string
+  nftUrl?: string
+  name?: string
+  collectionName?: string
+}
+
+export type FullTransactionAssetEvent = {
+  eventType: 'token'
+  amount: string
+  methodName: string
+  hash: string
+  hashUrl?: string
+  to?: string
+  toUrl?: string
+  from?: string
+  fromUrl?: string
+  token?: Token
+  tokenType: 'generic' | (string & NonNullable<unknown>)
+}
+
+export type FullTransactionsItem = {
+  txId: string
+  txIdUrl?: string
+  block: number
+  date: string
+  invocationCount: number
+  notificationCount: number
+  networkFeeAmount: string
+  systemFeeAmount: string
+  events: (FullTransactionAssetEvent | FullTransactionNftEvent)[]
+}
+
+export type FullTransactionsByAddressResponse = {
+  nextCursor?: string
+  data: FullTransactionsItem[]
+}
+
 export type ContractMethod = {
   name: string
   parameters: ContractParameter[]
@@ -153,6 +210,7 @@ export interface BlockchainDataService {
   maxTimeToConfirmTransactionInMs: number
   getTransaction(txid: string): Promise<TransactionResponse>
   getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse>
+  getFullTransactionsByAddress(params: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse>
   getContract(contractHash: string): Promise<ContractResponse>
   getTokenInfo(tokenHash: string): Promise<Token>
   getBalance(address: string): Promise<BalanceResponse[]>
@@ -237,6 +295,8 @@ export interface ExplorerService {
   buildNftUrl(params: BuildNftUrlParams): string
   getAddressTemplateUrl(): string | undefined
   getTxTemplateUrl(): string | undefined
+  getNftTemplateUrl(): string | undefined
+  getContractTemplateUrl(): string | undefined
 }
 
 export type LedgerServiceEmitter = TypedEmitter<{

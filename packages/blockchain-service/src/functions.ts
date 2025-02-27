@@ -200,7 +200,9 @@ export function countDecimals(value: string | number) {
   return decimals?.length ?? 0
 }
 
-export function formatNumber(value: string | number, decimals: number = 0) {
+export function formatNumber(value?: string | number, decimals: number = 0) {
+  if (!value) return '0'
+
   let newValue = typeof value === 'number' ? value.toFixed(decimals) : value
 
   newValue = newValue.replace(/,|\.\.|\.,/g, '.')

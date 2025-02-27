@@ -1,17 +1,18 @@
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
-
-const network = BSNeo3Constants.TESTNET_NETWORKS[0]
-const tokens = BSNeo3Helper.getTokens(network)
-
-const GAS = tokens.find(token => token.symbol === 'GAS')!
-
-let doraBDSNeo3: DoraBDSNeo3
+import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
+import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
 
 describe('DoraBDSNeo3', () => {
+  const network = BSNeo3Constants.TESTNET_NETWORKS[0]
+  const tokens = BSNeo3Helper.getTokens(network)
+  const GAS = tokens.find(token => token.symbol === 'GAS')!
+
+  let doraBDSNeo3: DoraBDSNeo3
+
   beforeEach(() => {
-    doraBDSNeo3 = new DoraBDSNeo3(network, GAS, GAS, tokens)
+    doraBDSNeo3 = new DoraBDSNeo3(network, GAS, GAS, tokens, new GhostMarketNDSNeo3(network), new DoraESNeo3(network))
   })
 
   it('Should be able to get transaction', async () => {
