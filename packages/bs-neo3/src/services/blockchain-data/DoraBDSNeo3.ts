@@ -1,7 +1,20 @@
 import {
   BalanceResponse,
   ContractResponse,
+  DORA_URL,
+  DoraFullTransactionsByAddressResponse,
+  FullTransactionAssetEvent,
+  FullTransactionNftEvent,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
+  FullTransactionsItem,
+  isDateFromStringGreaterThanDateToString,
+  isDateRangeGreaterThanOneYear,
+  isFutureDateString,
+  isValidDateString,
   Network,
+  NftDataService,
+  NftResponse,
   Token,
   TransactionNotifications,
   TransactionResponse,
@@ -9,21 +22,41 @@ import {
   TransactionsByAddressResponse,
   TransactionTransferAsset,
   TransactionTransferNft,
+  tryCatch,
+  TryCatchResult,
 } from '@cityofzion/blockchain-service'
 import { NeoRESTApi } from '@cityofzion/dora-ts/dist/api'
 import { u, wallet } from '@cityofzion/neon-js'
 import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
+import axios, { AxiosResponse } from 'axios'
+
+type DoraNeo3FullTransactionsByAddressParams = {
+  address: string
+  timestampFrom: string
+  timestampTo: string
+  protocol: 'neo3'
+  network: 'mainnet' | 'testnet'
+  cursor?: string
+}
 
 const NeoRest = new NeoRESTApi({
-  doraUrl: 'https://dora.coz.io',
+  doraUrl: DORA_URL,
   endpoint: '/api/v2/neo3',
 })
 
+const doraClient = axios.create({ baseURL: DORA_URL })
+
 export class DoraBDSNeo3 extends RpcBDSNeo3 {
-  constructor(network: Network<BSNeo3NetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
-    super(network, feeToken, claimToken, tokens)
+  constructor(
+    network: Network<BSNeo3NetworkId>,
+    feeToken: Token,
+    claimToken: Token,
+    tokens: Token[],
+    nftDataService: NftDataService
+  ) {
+    super(network, feeToken, claimToken, tokens, nftDataService)
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -128,6 +161,127 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     }
   }
 
+  async getFullTransactionsByAddress(
+    params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
+    if (BSNeo3Helper.isCustomNet(this._network)) throw new Error('Only Mainnet and Testnet are supported')
+    if (!params.dateFrom) throw new Error('Missing dateFrom param')
+    if (!params.dateTo) throw new Error('Missing dateTo param')
+    if (!isValidDateString(params.dateFrom)) throw new Error('Invalid dateFrom param')
+    if (!isValidDateString(params.dateTo)) throw new Error('Invalid dateTo param')
+    if (!wallet.isAddress(params.address)) throw new Error('Invalid address param')
+    if (isFutureDateString(params.dateFrom) || isFutureDateString(params.dateTo))
+      throw new Error('The dateFrom and/or dateTo are in future')
+    if (isDateFromStringGreaterThanDateToString(params.dateFrom, params.dateTo))
+      throw new Error('Invalid date order because dateFrom is greater than dateTo')
+    if (isDateRangeGreaterThanOneYear(params.dateFrom, params.dateTo))
+      throw new Error('Date range greater than one year')
+
+    const data: FullTransactionsItem[] = []
+
+    const {
+      data: { nextCursor = '', data: items },
+    } = await doraClient.post<
+      DoraFullTransactionsByAddressResponse,
+      AxiosResponse<DoraFullTransactionsByAddressResponse>,
+      DoraNeo3FullTransactionsByAddressParams
+    >('/api/v2/unified/activity-history', {
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      protocol: 'neo3',
+      network: this._network.id as 'mainnet' | 'testnet',
+      cursor: params.nextCursor,
+    })
+
+    const itemPromises = items.map(async item => {
+      const newItem: FullTransactionsItem = {
+        txId: item.transactionID,
+        block: item.block,
+        date: item.date,
+        invocationCount: item.invocationCount,
+        notificationCount: item.notificationCount,
+        networkFeeAmount: item.networkFeeAmount
+          ? u.BigInteger.fromDecimal(item.networkFeeAmount, this._feeToken.decimals).toDecimal(this._feeToken.decimals)
+          : '0',
+        systemFeeAmount: item.systemFeeAmount
+          ? u.BigInteger.fromDecimal(item.systemFeeAmount, this._feeToken.decimals).toDecimal(this._feeToken.decimals)
+          : '0',
+        events: [],
+      }
+
+      const eventPromises = item.events.map(async event => {
+        let nftEvent: FullTransactionNftEvent
+        let assetEvent: FullTransactionAssetEvent
+        const { methodName, contractHash: hash } = event
+        const from = event.from ?? ''
+        const to = event.to ?? ''
+        const tokenId = event.tokenID ?? ''
+        const [standard] = event.supportedStandards ?? []
+        const isNep11 = standard === 'NEP-11'
+        const isNep17 = standard === 'NEP-17'
+        const isNft = isNep11 && !!tokenId && !!to && !!from
+        const [token]: TryCatchResult<Token> = await tryCatch<Token>(() => this.getTokenInfo(hash))
+        const amount = event.amount
+          ? u.BigInteger.fromNumber(event.amount).toDecimal(token?.decimals ?? event.tokenDecimals)
+          : '0'
+
+        if (isNft) {
+          const [nft]: TryCatchResult<NftResponse> = await tryCatch<NftResponse>(() =>
+            this._nftDataService.getNft({ contractHash: hash, tokenId })
+          )
+
+          nftEvent = {
+            eventType: 'nft',
+            amount,
+            methodName,
+            from,
+            to,
+            hash,
+            tokenId,
+            tokenType: isNep11 ? 'nep11' : 'generic',
+            nftImageUrl: nft?.image ?? '',
+            name: nft?.name ?? '',
+            collectionName: nft?.collectionName ?? '',
+          }
+        } else
+          assetEvent = {
+            eventType: 'token',
+            amount,
+            methodName,
+            from: from || 'Burn',
+            to: to || 'Mint',
+            hash,
+            token,
+            tokenType: isNep17 ? 'nep17' : 'generic',
+          }
+
+        return isNft ? nftEvent! : assetEvent!
+      })
+
+      const events = await Promise.allSettled(eventPromises)
+
+      newItem.events = events
+        .filter(({ status }) => status === 'fulfilled')
+        .map(event => (event as PromiseFulfilledResult<FullTransactionAssetEvent | FullTransactionNftEvent>).value)
+
+      return newItem
+    })
+
+    const newItems = await Promise.allSettled(itemPromises)
+
+    data.push(
+      ...newItems
+        .filter(({ status }) => status === 'fulfilled')
+        .map(item => (item as PromiseFulfilledResult<FullTransactionsItem>).value)
+    )
+
+    return {
+      nextCursor,
+      data,
+    }
+  }
+
   async getContract(contractHash: string): Promise<ContractResponse> {
     if (BSNeo3Helper.isCustomNet(this._network)) {
       return await super.getContract(contractHash)
@@ -192,8 +346,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       }
     })
     const balances = await Promise.all(promises)
-    const filteredBalances = balances.filter(balance => balance !== undefined) as BalanceResponse[]
-    return filteredBalances
+
+    return balances.filter(balance => balance !== undefined) as BalanceResponse[]
   }
 
   private convertByteStringToAddress(byteString: string): string {

@@ -2,6 +2,7 @@ import {
   BalanceResponse,
   ContractMethod,
   ContractResponse,
+  DORA_URL,
   Network,
   Token,
   TransactionResponse,
@@ -96,7 +97,7 @@ interface BlockscoutSmartContractResponse {
 export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   static BASE_URL_BY_CHAIN_ID: Partial<Record<BSEthereumNetworkId, string>> = {
     '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
-    '47763': 'https://dora.coz.io/api/neox/mainnet',
+    '47763': `${DORA_URL}/api/neox/mainnet`,
   }
 
   static isSupported(network: Network<BSEthereumNetworkId>) {

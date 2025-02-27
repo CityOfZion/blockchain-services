@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "axios": "1.5.1",
+    "axios": "1.7.8",
     "ethers": "5.7.2",
     "query-string": "7.1.3",
     "@ethersproject/json-wallets": "5.7.0",

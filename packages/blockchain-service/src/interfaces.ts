@@ -130,6 +130,87 @@ export type TransactionsByAddressParams = {
   address: string
   nextPageParams?: any
 }
+
+export type FullTransactionsByAddressParams = {
+  address: string
+  dateFrom: string
+  dateTo: string
+  nextCursor?: string
+}
+
+export type FullTransactionNftEvent = {
+  eventType: 'nft'
+  amount: string
+  methodName: string
+  hash: string
+  to: string
+  from: string
+  tokenId: string
+  tokenType: 'nep11' | 'generic'
+  nftImageUrl: string
+  name: string
+  collectionName: string
+}
+
+export type FullTransactionAssetEvent = {
+  eventType: 'token'
+  amount: string
+  methodName: string
+  hash: string
+  to: string
+  from: string
+  token: Token | null
+  tokenType: 'nep17' | 'generic'
+}
+
+export type FullTransactionsItem = {
+  txId: string
+  block: number
+  date: string
+  invocationCount: number
+  notificationCount: number
+  networkFeeAmount: string
+  systemFeeAmount: string
+  events: (FullTransactionAssetEvent | FullTransactionNftEvent)[]
+}
+
+export type FullTransactionsByAddressResponse = {
+  nextCursor: string
+  data: FullTransactionsItem[]
+}
+
+type DoraFullTransactionsEvent = {
+  amount: string
+  from: string | null
+  to: string | null
+  methodName: string
+  contractName: string
+  contractHash: string
+  supportedStandards: string[] | null
+  tokenID: string | null
+  tokenDecimals: number
+  tokenType: string
+}
+
+type DoraFullTransactionsItem = {
+  transactionID: string
+  block: number
+  date: string
+  invocationCount: number
+  notificationCount: number
+  networkFeeAmount: string
+  systemFeeAmount: string
+  events: DoraFullTransactionsEvent[]
+}
+
+export type DoraFullTransactionsByAddressResponse = {
+  address: string
+  protocol: string
+  network: string
+  nextCursor: string
+  data: DoraFullTransactionsItem[]
+}
+
 export type ContractMethod = {
   name: string
   parameters: ContractParameter[]
@@ -152,6 +233,7 @@ export interface BlockchainDataService {
   maxTimeToConfirmTransactionInMs: number
   getTransaction(txid: string): Promise<TransactionResponse>
   getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse>
+  getFullTransactionsByAddress(params: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse>
   getContract(contractHash: string): Promise<ContractResponse>
   getTokenInfo(tokenHash: string): Promise<Token>
   getBalance(address: string): Promise<BalanceResponse[]>
@@ -317,3 +399,5 @@ export interface SwapService<BSName extends string = string> {
   swap(): Promise<SwapServiceSwapResult>
   calculateFee(): Promise<string>
 }
+
+export type TryCatchResult<T = any> = [T | null, any]

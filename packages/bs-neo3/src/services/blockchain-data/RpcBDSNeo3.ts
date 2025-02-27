@@ -1,11 +1,14 @@
 import {
-  BDSClaimable,
   BalanceResponse,
+  BDSClaimable,
   BlockchainDataService,
   ContractMethod,
   ContractParameter,
   ContractResponse,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
   Network,
+  NftDataService,
   RpcResponse,
   Token,
   TransactionResponse,
@@ -23,14 +26,22 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
   readonly _claimToken: Token
   readonly _network: Network<BSNeo3NetworkId>
   readonly _tokens: Token[] = []
+  readonly _nftDataService: NftDataService
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
 
-  constructor(network: Network<BSNeo3NetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
+  constructor(
+    network: Network<BSNeo3NetworkId>,
+    feeToken: Token,
+    claimToken: Token,
+    tokens: Token[],
+    nftDataService: NftDataService
+  ) {
     this._network = network
     this._feeToken = feeToken
     this._claimToken = claimToken
     this._tokens = tokens
+    this._nftDataService = nftDataService
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -55,6 +66,12 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
 
   async getTransactionsByAddress(_params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
     throw new Error('Method not supported.')
+  }
+
+  async getFullTransactionsByAddress(
+    _params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
+    throw new Error('Method not supported. Please implement this method in the child class.')
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
@@ -149,9 +166,8 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
         token,
       }
     })
-    const balances = await Promise.all(promises)
 
-    return balances
+    return await Promise.all(promises)
   }
 
   async getBlockHeight(): Promise<number> {

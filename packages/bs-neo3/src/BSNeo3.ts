@@ -142,7 +142,13 @@ export class BSNeo3<BSName extends string = string>
   }
 
   async testNetwork(network: Network<BSNeo3NetworkId>) {
-    const blockchainDataServiceClone = new RpcBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
+    const blockchainDataServiceClone = new RpcBDSNeo3(
+      network,
+      this.feeToken,
+      this.claimToken,
+      this.tokens,
+      this.nftDataService
+    )
 
     await blockchainDataServiceClone.getBlockHeight()
   }
@@ -151,9 +157,15 @@ export class BSNeo3<BSName extends string = string>
     this.#setTokens(network)
     this.network = network
 
-    this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
-    this.exchangeDataService = new FlamingoEDSNeo3(network)
     this.nftDataService = new GhostMarketNDSNeo3(network)
+    this.blockchainDataService = new DoraBDSNeo3(
+      network,
+      this.feeToken,
+      this.claimToken,
+      this.tokens,
+      this.nftDataService
+    )
+    this.exchangeDataService = new FlamingoEDSNeo3(network)
     this.explorerService = new DoraESNeo3(network)
   }
 

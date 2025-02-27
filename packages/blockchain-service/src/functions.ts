@@ -8,6 +8,7 @@ import {
   BSWithNameService,
   BSWithNft,
   UntilIndexRecord,
+  TryCatchResult,
 } from './interfaces'
 
 export function hasNameService<BSName extends string = string>(
@@ -208,4 +209,45 @@ export function formatNumber(value: string | number, decimals: number = 0) {
   return newValue.replace(/\s|-/g, '').replace(/^([^.]*\.)(.*)$/, function (_a, b, c) {
     return b + c.replace(/\./g, '')
   })
+}
+
+export const isValidDateString = (dateString: string) => {
+  const date = new Date(dateString)
+
+  return !isNaN(date.getTime()) && date.toISOString().startsWith(dateString)
+}
+
+export const isLeapDateYear = (date: Date) => {
+  const year = date.getFullYear()
+
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+}
+
+export const isDateRangeGreaterThanOneYear = (dateFromString: string, dateToString: string) => {
+  const dateFrom = new Date(dateFromString)
+  const dateTo = new Date(dateToString)
+  const oneDayInMs = 1000 * 60 * 60 * 24
+  const differenceInMs = dateTo.getTime() - dateFrom.getTime()
+  const differenceInDays = differenceInMs / oneDayInMs
+
+  return differenceInDays > 365
+}
+
+export const isDateFromStringGreaterThanDateToString = (dateFromString: string, dateToString: string) => {
+  const dateFrom = new Date(dateFromString)
+  const dateTo = new Date(dateToString)
+
+  return dateFrom > dateTo
+}
+
+export const isFutureDateString = (dateString: string) => new Date(dateString) > new Date()
+
+export const tryCatch = async <T = any>(callback: () => T | Promise<T>): Promise<TryCatchResult<T>> => {
+  try {
+    const result = await callback()
+
+    return [result, null]
+  } catch (error) {
+    return [null, error]
+  }
 }
