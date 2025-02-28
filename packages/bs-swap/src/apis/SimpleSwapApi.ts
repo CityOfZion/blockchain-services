@@ -11,14 +11,14 @@ import {
   SimpleSwapApiGetRangeResponse,
   SimpleSwapServiceInitParams,
 } from '../types/simpleSwap'
-import { BlockchainService, hasExplorerService, normalizeHash } from '@cityofzion/blockchain-service'
+import { BlockchainService, DORA_URL, hasExplorerService, normalizeHash } from '@cityofzion/blockchain-service'
 
 export class SimpleSwapApi<BSName extends string = string> {
   #axios: AxiosInstance
   #allCurrenciesMap: Map<string, SimpleSwapApiCurrency<BSName>> = new Map()
 
   constructor() {
-    this.#axios = axios.create({ baseURL: 'https://dora.coz.io/api/v2/swap' })
+    this.#axios = axios.create({ baseURL: `${DORA_URL}/api/v2/swap` })
   }
 
   #createAddressTemplateUrl(

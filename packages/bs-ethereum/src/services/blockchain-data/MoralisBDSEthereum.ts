@@ -9,6 +9,7 @@ import {
   TransactionTransferNft,
   TransactionsByAddressParams,
   TransactionsByAddressResponse,
+  DORA_URL,
 } from '@cityofzion/blockchain-service'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import axios from 'axios'
@@ -94,7 +95,7 @@ interface MoralisTokenMetadataResponse {
 }
 
 export class MoralisBDSEthereum extends RpcBDSEthereum {
-  static BASE_URL = 'https://dora.coz.io/api/v2/meta'
+  static BASE_URL = `${DORA_URL}/api/v2/meta`
 
   static SUPPORTED_CHAINS = [
     '1',

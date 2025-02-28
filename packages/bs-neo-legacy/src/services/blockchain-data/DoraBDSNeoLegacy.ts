@@ -1,20 +1,45 @@
 import {
   BalanceResponse,
+  BDSClaimable,
   BlockchainDataService,
   ContractResponse,
-  TransactionsByAddressParams,
-  TransactionsByAddressResponse,
-  TransactionResponse,
-  BDSClaimable,
-  TransactionTransferAsset,
-  Token,
+  DORA_URL,
+  DoraFullTransactionsByAddressResponse,
+  formatNumber,
+  FullTransactionAssetEvent,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
+  FullTransactionsItem,
+  isDateFromStringGreaterThanDateToString,
+  isDateRangeGreaterThanOneYear,
+  isFutureDateString,
+  isValidDateString,
   Network,
   RpcResponse,
+  Token,
+  TransactionResponse,
+  TransactionsByAddressParams,
+  TransactionsByAddressResponse,
+  TransactionTransferAsset,
+  tryCatch,
+  TryCatchResult,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { rpc } from '@cityofzion/neon-js'
+import { rpc, wallet } from '@cityofzion/neon-js'
 import { BSNeoLegacyNetworkId } from '../../constants/BSNeoLegacyConstants'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
+import axios, { AxiosResponse } from 'axios'
+
+type DoraNeoLegacyFullTransactionsByAddressParams = {
+  address: string
+  timestampFrom: string
+  timestampTo: string
+  protocol: 'neolegacy'
+  network: 'mainnet'
+  cursor?: string
+}
+
+const doraClient = axios.create({ baseURL: DORA_URL })
 
 export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   readonly #network: Network<BSNeoLegacyNetworkId>
@@ -104,6 +129,92 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     }
   }
 
+  async getFullTransactionsByAddress(
+    params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
+    if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('Only Mainnet is supported')
+    if (!params.dateFrom) throw new Error('Missing dateFrom param')
+    if (!params.dateTo) throw new Error('Missing dateTo param')
+    if (!isValidDateString(params.dateFrom)) throw new Error('Invalid dateFrom param')
+    if (!isValidDateString(params.dateTo)) throw new Error('Invalid dateTo param')
+    if (!wallet.isAddress(params.address)) throw new Error('Invalid address param')
+    if (isFutureDateString(params.dateFrom) || isFutureDateString(params.dateTo))
+      throw new Error('The dateFrom and/or dateTo are in future')
+    if (isDateFromStringGreaterThanDateToString(params.dateFrom, params.dateTo))
+      throw new Error('Invalid date order because dateFrom is greater than dateTo')
+    if (isDateRangeGreaterThanOneYear(params.dateFrom, params.dateTo))
+      throw new Error('Date range greater than one year')
+
+    const data: FullTransactionsItem[] = []
+
+    const {
+      data: { nextCursor = '', data: items },
+    } = await doraClient.post<
+      DoraFullTransactionsByAddressResponse,
+      AxiosResponse<DoraFullTransactionsByAddressResponse>,
+      DoraNeoLegacyFullTransactionsByAddressParams
+    >('/api/v2/unified/activity-history', {
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      protocol: 'neolegacy',
+      network: this.#network.id as 'mainnet',
+      cursor: params.nextCursor,
+    })
+
+    const itemPromises = items.map(async item => {
+      const newItem: FullTransactionsItem = {
+        txId: item.transactionID,
+        block: item.block,
+        date: item.date,
+        invocationCount: item.invocationCount,
+        notificationCount: item.notificationCount,
+        networkFeeAmount: item.networkFeeAmount ? formatNumber(item.networkFeeAmount, this.#feeToken.decimals) : '0',
+        systemFeeAmount: item.systemFeeAmount ? formatNumber(item.systemFeeAmount, this.#feeToken.decimals) : '0',
+        events: [],
+      }
+
+      const eventPromises = item.events.map(async event => {
+        const { contractHash: hash, amount } = event
+        const [token]: TryCatchResult<Token> = await tryCatch<Token>(() => this.getTokenInfo(hash))
+
+        const assetEvent: FullTransactionAssetEvent = {
+          eventType: 'token',
+          amount: amount ? formatNumber(amount, token?.decimals ?? event.tokenDecimals) : '0',
+          methodName: event.methodName,
+          from: event.from || 'Burn',
+          to: event.to || 'Mint',
+          hash,
+          token,
+          tokenType: 'generic',
+        }
+
+        return assetEvent
+      })
+
+      const events = await Promise.allSettled(eventPromises)
+
+      newItem.events = events
+        .filter(({ status }) => status === 'fulfilled')
+        .map(event => (event as PromiseFulfilledResult<FullTransactionAssetEvent>).value)
+
+      return newItem
+    })
+
+    const newItems = await Promise.allSettled(itemPromises)
+
+    data.push(
+      ...newItems
+        .filter(({ status }) => status === 'fulfilled')
+        .map(item => (item as PromiseFulfilledResult<FullTransactionsItem>).value)
+    )
+
+    return {
+      nextCursor,
+      data,
+    }
+  }
+
   async getContract(contractHash: string): Promise<ContractResponse> {
     const response = await api.NeoLegacyREST.contract(contractHash, this.#network.id)
     if (!response || 'error' in response) throw new Error(`Contract ${contractHash} not found`)
@@ -165,9 +276,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
       }
     })
 
-    const result = await Promise.all(promises)
-
-    return result
+    return await Promise.all(promises)
   }
 
   async getUnclaimed(address: string): Promise<string> {

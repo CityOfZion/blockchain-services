@@ -18,7 +18,7 @@
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
     "@cityofzion/bs-neo3": "workspace:*",
-    "axios": "1.5.1",
+    "axios": "1.7.8",
     "lodash": "~4.17.21"
   },
   "devDependencies": {
