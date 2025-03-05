@@ -12,8 +12,14 @@ import {
   ExplorerService,
   BSWithLedger,
   GetLedgerTransport,
+  BSMigrationNeo3,
+  MigrateToNeo3Params,
+  normalizeHash,
+  CalculateToMigrateToNeo3ValuesResponse,
+  CalculateToMigrateToNeo3ValuesParams,
+  formatNumber,
 } from '@cityofzion/blockchain-service'
-import { api, sc, u, wallet } from '@cityofzion/neon-js'
+import { api, sc, tx, u, wallet } from '@cityofzion/neon-js'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
@@ -22,13 +28,26 @@ import { DoraBDSNeoLegacy } from './blockchain-data/DoraBDSNeoLegacy'
 import { NeoTubeESNeoLegacy } from './explorer/NeoTubeESNeoLegacy'
 import { NeonJsLedgerServiceNeoLegacy } from './ledger/NeonJsLedgerServiceNeoLegacy'
 
+type GetMigrationNeo3ValidatedDataParams<BSName extends string = string> = {
+  account: Account<BSName>
+}
+
 export class BSNeoLegacy<BSName extends string = string>
   implements
     BlockchainService<BSName, BSNeoLegacyNetworkId>,
     BSClaimable<BSName>,
     BSWithExplorerService,
-    BSWithLedger<BSName>
+    BSWithLedger<BSName>,
+    BSMigrationNeo3<BSName>
 {
+  private readonly NATIVE_ASSETS = BSNeoLegacyConstants.NATIVE_ASSETS.map(asset => ({
+    ...asset,
+    hash: normalizeHash(asset.hash),
+  }))!
+
+  private readonly GAS_ASSET = this.NATIVE_ASSETS.find(({ symbol }) => symbol === 'GAS')!
+  private readonly NEO_ASSET = this.NATIVE_ASSETS.find(({ symbol }) => symbol === 'NEO')!
+
   readonly name: BSName
   readonly bip44DerivationPath: string
 
@@ -166,10 +185,8 @@ export class BSNeoLegacy<BSName extends string = string>
 
     for (const intent of concatIntents) {
       const tokenHashFixed = BSNeoLegacyHelper.normalizeHash(intent.tokenHash)
+      const nativeAsset = this.NATIVE_ASSETS.find(({ hash }) => hash === tokenHashFixed)
 
-      const nativeAsset = BSNeoLegacyConstants.NATIVE_ASSETS.find(
-        asset => BSNeoLegacyHelper.normalizeHash(asset.hash) === tokenHashFixed
-      )
       if (nativeAsset) {
         nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
         continue
@@ -237,5 +254,109 @@ export class BSNeoLegacy<BSName extends string = string>
 
     if (!response.tx) throw new Error('Failed to claim')
     return response.tx.hash
+  }
+
+  /**
+   * Reference: https://github.com/CityOfZion/legacy-n3-swap-service/blob/master/policy/policy.go
+   */
+  async calculateToMigrateToNeo3Values(
+    params: CalculateToMigrateToNeo3ValuesParams<BSName>
+  ): Promise<CalculateToMigrateToNeo3ValuesResponse> {
+    const { gasAmountNumber, neoAmountNumber } = await this.getMigrationNeo3ValidatedData(params)
+    const response: CalculateToMigrateToNeo3ValuesResponse = {}
+
+    if (gasAmountNumber) {
+      // Two transfers fee and one transfer fee left over
+      const allNep17TransfersFee = BSNeoLegacyConstants.MIGRATION_NEO3_NEP_17_TRANSFER_FEE * 3
+
+      // Necessary to calculate the COZ fee
+      const gasAmountNumberLessAllNep17TransfersFee = gasAmountNumber - allNep17TransfersFee
+
+      // Example: ~0.06635710 * 0.01 = ~0.00066357
+      const cozFee = gasAmountNumberLessAllNep17TransfersFee * BSNeoLegacyConstants.MIGRATION_NEO3_COZ_FEE
+
+      // Example: ~0.06635710 - ~0.00066357 = ~0.06569352
+      const gasAmountNumberLessCozFee = gasAmountNumberLessAllNep17TransfersFee - cozFee
+
+      const allGasFeeNumberThatUserWillPay = cozFee + BSNeoLegacyConstants.MIGRATION_NEO3_NEP_17_TRANSFER_FEE * 2
+      const allGasAmountNumberThatUserWillReceive =
+        gasAmountNumberLessCozFee + BSNeoLegacyConstants.MIGRATION_NEO3_NEP_17_TRANSFER_FEE
+
+      response.gasMigrationTotalFees = formatNumber(allGasFeeNumberThatUserWillPay, this.GAS_ASSET.decimals)
+      response.gasMigrationAmount = formatNumber(allGasAmountNumberThatUserWillReceive, this.GAS_ASSET.decimals)
+    }
+
+    if (neoAmountNumber) {
+      response.neoMigrationTotalFees = formatNumber(
+        Math.ceil(neoAmountNumber * BSNeoLegacyConstants.MIGRATION_NEO3_COZ_FEE),
+        this.NEO_ASSET.decimals
+      )
+      response.neoMigrationAmount = formatNumber(
+        neoAmountNumber - Number(response.neoMigrationTotalFees),
+        this.NEO_ASSET.decimals
+      )
+    }
+
+    return response
+  }
+
+  async migrateToNeo3({ account, address }: MigrateToNeo3Params<BSName>): Promise<string[]> {
+    if (!address) throw new Error('Must have address')
+
+    const { gasAmountNumber, neoAmountNumber } = await this.getMigrationNeo3ValidatedData({ account })
+    const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(account)
+    const provider = new api.neoCli.instance(this.network.url)
+    const intents: ReturnType<typeof api.makeIntent> = []
+
+    if (gasAmountNumber)
+      intents.push(
+        ...api.makeIntent({ [this.GAS_ASSET.symbol]: gasAmountNumber }, BSNeoLegacyConstants.MIGRATION_NEO3_COZ_ADDRESS)
+      )
+
+    if (neoAmountNumber)
+      intents.push(
+        ...api.makeIntent({ [this.NEO_ASSET.symbol]: neoAmountNumber }, BSNeoLegacyConstants.MIGRATION_NEO3_COZ_ADDRESS)
+      )
+
+    const response = await api.sendAsset({
+      url: this.network.url,
+      api: provider,
+      account: neonJsAccount,
+      intents,
+      fees: 0,
+      signingFunction: signingCallback,
+      override: {
+        attributes: [
+          new tx.TransactionAttribute({
+            usage: tx.TxAttrUsage.Remark14,
+            data: u.str2hexstring(address),
+          }),
+          new tx.TransactionAttribute({
+            usage: tx.TxAttrUsage.Remark15,
+            data: u.str2hexstring('Neon Desktop Migration'),
+          }),
+        ],
+      },
+    })
+
+    if (!response.tx) throw new Error('Migration failed on send')
+
+    return intents.map(() => response.tx!.hash)
+  }
+
+  private async getMigrationNeo3ValidatedData({ account }: GetMigrationNeo3ValidatedDataParams<BSName>) {
+    if (!BSNeoLegacyHelper.isMainnet(this.network)) throw new Error('Must use Mainnet network')
+
+    const balances = await this.blockchainDataService.getBalance(account.address)
+
+    const gasAmount = balances.find(({ token }) => normalizeHash(token.hash) === this.GAS_ASSET.hash)?.amount
+    const neoAmount = balances.find(({ token }) => normalizeHash(token.hash) === this.NEO_ASSET.hash)?.amount
+
+    const gasAmountNumber = Number(gasAmount) || 0
+    const neoAmountNumber = Number(neoAmount) || 0
+
+    if (gasAmountNumber < 0.1 && neoAmountNumber < 2) throw new Error('Must have at least 0.1 GAS or 2 NEO')
+
+    return { gasAmountNumber, neoAmountNumber }
   }
 }

@@ -70,6 +70,30 @@ export interface BSClaimable<BSName extends string = string> {
   blockchainDataService: BlockchainDataService & BDSClaimable
   claim(account: Account<BSName>): Promise<string>
 }
+
+export type MigrateToNeo3Params<BSName extends string = string> = {
+  account: Account<BSName>
+  address: string
+}
+
+export type CalculateToMigrateToNeo3ValuesParams<BSName extends string = string> = {
+  account: Account<BSName>
+}
+
+export type CalculateToMigrateToNeo3ValuesResponse = {
+  gasMigrationTotalFees?: string
+  neoMigrationTotalFees?: string
+  gasMigrationAmount?: string
+  neoMigrationAmount?: string
+}
+
+export interface BSMigrationNeo3<BSName extends string = string> {
+  migrateToNeo3(params: MigrateToNeo3Params<BSName>): Promise<string[]>
+  calculateToMigrateToNeo3Values(
+    params: CalculateToMigrateToNeo3ValuesParams<BSName>
+  ): Promise<CalculateToMigrateToNeo3ValuesResponse>
+}
+
 export interface BSWithNameService {
   resolveNameServiceDomain(domainName: string): Promise<string>
   validateNameServiceDomainFormat(domainName: string): boolean
