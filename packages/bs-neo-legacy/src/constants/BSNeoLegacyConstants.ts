@@ -60,4 +60,8 @@ export class BSNeoLegacyConstants {
   static DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
 
   static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
+
+  static readonly MIGRATION_NEO3_COZ_ADDRESS = 'AaT27thuyPaqERPwERhk7QhfKrbj4xoyAV'
+  static readonly MIGRATION_NEO3_COZ_FEE = 0.01 // 1%
+  static readonly MIGRATION_NEO3_NEP_17_TRANSFER_FEE = 0.0112143
 }

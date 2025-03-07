@@ -3,6 +3,7 @@ import {
   BlockchainService,
   BSCalculableFee,
   BSClaimable,
+  BSMigrationNeo3,
   BSWithExplorerService,
   BSWithLedger,
   BSWithNameService,
@@ -20,6 +21,12 @@ export function isClaimable<BSName extends string = string>(
   service: BlockchainService<BSName>
 ): service is BlockchainService<BSName> & BSClaimable<BSName> {
   return 'claim' in service && 'claimToken' in service && 'getUnclaimed' in service.blockchainDataService
+}
+
+export function hasMigrationNeo3<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSMigrationNeo3<BSName> {
+  return 'migrateToNeo3' in service && 'calculateToMigrateToNeo3Values' in service
 }
 
 export function isCalculableFee<BSName extends string = string>(
