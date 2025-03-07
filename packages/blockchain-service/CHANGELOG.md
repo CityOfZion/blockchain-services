@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 25 Feb 2025 17:58:55 GMT and should not be manually modified.
+This log was last generated on Fri, 07 Mar 2025 18:13:11 GMT and should not be manually modified.
+
+## 1.15.2
+Fri, 07 Mar 2025 18:13:11 GMT
+
+### Patches
+
+- Create hasMigrationNeo3 method and its types
 
 ## 1.15.1
 Tue, 25 Feb 2025 17:58:55 GMT

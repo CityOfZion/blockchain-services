@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.15.2",
+      "tag": "@cityofzion/blockchain-service_v1.15.2",
+      "date": "Fri, 07 Mar 2025 18:13:11 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Create hasMigrationNeo3 method and its types"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.15.1",
       "tag": "@cityofzion/blockchain-service_v1.15.1",
       "date": "Tue, 25 Feb 2025 17:58:55 GMT",
