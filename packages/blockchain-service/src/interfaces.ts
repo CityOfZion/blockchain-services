@@ -88,7 +88,7 @@ export type CalculateToMigrateToNeo3ValuesResponse = {
 }
 
 export interface BSMigrationNeo3<BSName extends string = string> {
-  migrateToNeo3(params: MigrateToNeo3Params<BSName>): Promise<string[]>
+  migrateToNeo3(params: MigrateToNeo3Params<BSName>): Promise<string>
   calculateToMigrateToNeo3Values(
     params: CalculateToMigrateToNeo3ValuesParams<BSName>
   ): Promise<CalculateToMigrateToNeo3ValuesResponse>

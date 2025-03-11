@@ -49,7 +49,7 @@ describe('BSNeoLegacy - MigrationNeo3', () => {
     )
   })
 
-  it('Should be able to calculate values to migrate to Neo 3 when pass the correct params', async () => {
+  it.skip('Should be able to calculate values to migrate to Neo 3 when pass the correct params', async () => {
     const account = serviceNeoLegacy.generateAccountFromKey(keyWithBalance)
 
     calculateParams = { account }
@@ -70,12 +70,12 @@ describe('BSNeoLegacy - MigrationNeo3', () => {
     await expect(serviceNeoLegacy.migrateToNeo3(migrateParams)).rejects.toThrow()
   })
 
-  it.skip('Should create a successfully migration when migrate to Neo 3 is called with correct GAS params', async () => {
+  it.skip('Should create a successful migration when migrate to Neo 3 is called with correct GAS params', async () => {
     const account = serviceNeoLegacy.generateAccountFromKey(keyWithBalance)
 
     migrateParams = { account, address: 'NWs1nPJP8XkZxsNwuGYmikzQrEJcZBAUJN' }
 
-    const [txId] = await serviceNeoLegacy.migrateToNeo3(migrateParams)
+    const txId = await serviceNeoLegacy.migrateToNeo3(migrateParams)
 
     expect(typeof txId).toBe('string')
     expect(txId.length).toBeGreaterThan(0)

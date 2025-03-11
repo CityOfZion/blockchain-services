@@ -300,7 +300,7 @@ export class BSNeoLegacy<BSName extends string = string>
     return response
   }
 
-  async migrateToNeo3({ account, address }: MigrateToNeo3Params<BSName>): Promise<string[]> {
+  async migrateToNeo3({ account, address }: MigrateToNeo3Params<BSName>): Promise<string> {
     if (!address) throw new Error('Must have address')
 
     const { gasAmountNumber, neoAmountNumber } = await this.getMigrationNeo3ValidatedData({ account })
@@ -341,7 +341,7 @@ export class BSNeoLegacy<BSName extends string = string>
 
     if (!response.tx) throw new Error('Migration failed on send')
 
-    return intents.map(() => response.tx!.hash)
+    return response.tx!.hash
   }
 
   private async getMigrationNeo3ValidatedData({ account }: GetMigrationNeo3ValidatedDataParams<BSName>) {
