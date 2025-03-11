@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.15.3",
+      "tag": "@cityofzion/blockchain-service_v1.15.3",
+      "date": "Tue, 11 Mar 2025 18:24:06 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change string[] to string return on BSMigrationNeo3 interface"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.15.2",
       "tag": "@cityofzion/blockchain-service_v1.15.2",
       "date": "Fri, 07 Mar 2025 18:13:11 GMT",

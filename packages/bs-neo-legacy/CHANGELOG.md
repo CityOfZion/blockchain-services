@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Fri, 07 Mar 2025 18:13:11 GMT and should not be manually modified.
+This log was last generated on Tue, 11 Mar 2025 18:24:06 GMT and should not be manually modified.
+
+## 1.10.1
+Tue, 11 Mar 2025 18:24:06 GMT
+
+### Patches
+
+- Change string[] to string return on migrateToNeo3 method
 
 ## 1.10.0
 Fri, 07 Mar 2025 18:13:11 GMT
