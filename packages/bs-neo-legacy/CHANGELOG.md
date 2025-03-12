@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Tue, 11 Mar 2025 18:24:06 GMT and should not be manually modified.
+This log was last generated on Wed, 12 Mar 2025 18:20:20 GMT and should not be manually modified.
+
+## 1.10.2
+Wed, 12 Mar 2025 18:20:20 GMT
+
+### Patches
+
+- Fix migration amount validation
 
 ## 1.10.1
 Tue, 11 Mar 2025 18:24:06 GMT
