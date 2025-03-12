@@ -352,10 +352,15 @@ export class BSNeoLegacy<BSName extends string = string>
     const gasAmount = balances.find(({ token }) => normalizeHash(token.hash) === this.GAS_ASSET.hash)?.amount
     const neoAmount = balances.find(({ token }) => normalizeHash(token.hash) === this.NEO_ASSET.hash)?.amount
 
-    const gasAmountNumber = Number(gasAmount) || 0
-    const neoAmountNumber = Number(neoAmount) || 0
+    let gasAmountNumber = Number(gasAmount) || 0
+    let neoAmountNumber = Number(neoAmount) || 0
 
-    if (gasAmountNumber < 0.1 && neoAmountNumber < 2) throw new Error('Must have at least 0.1 GAS or 2 NEO')
+    const hasNotGasAmountEnough = gasAmountNumber < 0.1
+    const hasNotNeoAmountEnough = neoAmountNumber < 2
+
+    if (hasNotGasAmountEnough && hasNotNeoAmountEnough) throw new Error('Must have at least 0.1 GAS or 2 NEO')
+    if (hasNotGasAmountEnough) gasAmountNumber = 0
+    if (hasNotNeoAmountEnough) neoAmountNumber = 0
 
     return { gasAmountNumber, neoAmountNumber }
   }
