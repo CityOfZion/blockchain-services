@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.7",
+      "tag": "@cityofzion/bs-swap_v0.5.7",
+      "date": "Thu, 13 Mar 2025 19:46:06 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Use addressToReceive as receiverAddress in calculateFee"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.6",
       "tag": "@cityofzion/bs-swap_v0.5.6",
       "date": "Tue, 11 Mar 2025 18:24:06 GMT",

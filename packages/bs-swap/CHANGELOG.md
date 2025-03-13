@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Tue, 11 Mar 2025 18:24:06 GMT and should not be manually modified.
+This log was last generated on Thu, 13 Mar 2025 19:46:06 GMT and should not be manually modified.
+
+## 0.5.7
+Thu, 13 Mar 2025 19:46:06 GMT
+
+### Patches
+
+- Use addressToReceive as receiverAddress in calculateFee
 
 ## 0.5.6
 Tue, 11 Mar 2025 18:24:06 GMT
