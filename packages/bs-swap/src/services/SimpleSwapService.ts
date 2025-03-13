@@ -487,9 +487,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       intents: [
         {
           amount: this.#amountToUse.value,
-          // In this point, we don't have the deposit address, so we use the sender address
-          // It can cause a mistake in the fee calculation
-          receiverAddress: this.#accountToUse.value.address,
+          receiverAddress: this.#addressToReceive.value,
           tokenHash: this.#tokenToUse.value.hash,
           tokenDecimals: this.#tokenToUse.value.decimals,
         },
