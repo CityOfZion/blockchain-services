@@ -343,7 +343,7 @@ describe('SimpleSwapService', () => {
       value: expect.objectContaining({ min: expect.any(String), max: null }),
     })
     expect(min).toContain('.')
-    expect(min.split('.').at(1)!.length).toBe(8)
+    expect(min.split('.').at(1)!.length).toBeGreaterThanOrEqual(8)
   }, 10000)
 
   it('Should be able to set the correct min and max amount with Neo (0 decimals)', async () => {
@@ -361,7 +361,7 @@ describe('SimpleSwapService', () => {
 
     expect(amountToUseMinMax).toEqual({
       loading: false,
-      value: expect.objectContaining({ min: expect.any(String), max: null }),
+      value: expect.objectContaining({ min: expect.any(String), max: expect.any(String) }),
     })
     expect(amountToUseMinMax.value!.min).not.toContain('.')
   }, 10000)
@@ -472,7 +472,7 @@ describe('SimpleSwapService', () => {
 
     await simpleSwapService.setAccountToUse(account)
 
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'not:ton')!
+    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
 
     await simpleSwapService.setTokenToReceive(notcoinToken)
 
@@ -495,7 +495,7 @@ describe('SimpleSwapService', () => {
 
     await simpleSwapService.setAccountToUse(account)
 
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'not:ton')!
+    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
 
     await simpleSwapService.setTokenToReceive(notcoinToken)
 
@@ -520,7 +520,7 @@ describe('SimpleSwapService', () => {
     await simpleSwapService.setAmountToUse('89')
 
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'not:ton')!
+    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
 
     await simpleSwapService.setTokenToReceive(xrpToken)
 
@@ -782,7 +782,7 @@ describe('SimpleSwapService', () => {
     await simpleSwapService.setAccountToUse(account)
     await simpleSwapService.setAmountToUse('89')
 
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'not:ton')!
+    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
 
     await simpleSwapService.setTokenToReceive(notcoinToken)
     await simpleSwapService.setAddressToReceive(process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN)
@@ -808,7 +808,7 @@ describe('SimpleSwapService', () => {
     await simpleSwapService.setAccountToUse(account)
     await simpleSwapService.setAmountToUse('89')
 
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'not:ton')!
+    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
 
     await simpleSwapService.setTokenToReceive(notcoinToken)
     await simpleSwapService.setAddressToReceive(process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN)

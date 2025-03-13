@@ -53,8 +53,8 @@ describe('SimpleSwapApi', () => {
   }
 
   const notcoinCurrency: SimpleSwapApiCurrency = {
-    id: 'not:ton',
-    ticker: 'not',
+    id: 'ton:ton',
+    ticker: 'ton',
     symbol: 'NOT',
     network: 'ton',
     name: 'Notcoin',
