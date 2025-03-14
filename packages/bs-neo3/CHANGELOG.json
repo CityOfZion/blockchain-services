@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.10.5",
+      "tag": "@cityofzion/bs-neo3_v1.10.5",
+      "date": "Fri, 14 Mar 2025 21:40:49 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add Forthewin API to get prices in Neo 3"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.4",
       "tag": "@cityofzion/bs-neo3_v1.10.4",
       "date": "Fri, 14 Mar 2025 20:31:57 GMT",

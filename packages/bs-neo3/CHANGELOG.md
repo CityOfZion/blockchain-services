@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 14 Mar 2025 20:31:57 GMT and should not be manually modified.
+This log was last generated on Fri, 14 Mar 2025 21:40:49 GMT and should not be manually modified.
+
+## 1.10.5
+Fri, 14 Mar 2025 21:40:49 GMT
+
+### Patches
+
+- Add Forthewin API to get prices in Neo 3
 
 ## 1.10.4
 Fri, 14 Mar 2025 20:31:57 GMT
