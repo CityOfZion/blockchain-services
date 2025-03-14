@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 11 Mar 2025 18:24:06 GMT and should not be manually modified.
+This log was last generated on Fri, 14 Mar 2025 20:31:57 GMT and should not be manually modified.
+
+## 1.16.0
+Fri, 14 Mar 2025 20:31:57 GMT
+
+### Minor changes
+
+- Add waitMigration function
 
 ## 1.15.3
 Tue, 11 Mar 2025 18:24:06 GMT
