@@ -24,7 +24,7 @@ import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
-import { FlamingoEDSNeo3 } from './services/exchange-data/FlamingoEDSNeo3'
+import { FlamingoForthewinEDSNeo3 } from './services/exchange-data/FlamingoForthewinEDSNeo3'
 import { DoraESNeo3 } from './services/explorer/DoraESNeo3'
 import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedgerServiceNeo3'
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
@@ -152,7 +152,7 @@ export class BSNeo3<BSName extends string = string>
     this.network = network
 
     this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
-    this.exchangeDataService = new FlamingoEDSNeo3(network)
+    this.exchangeDataService = new FlamingoForthewinEDSNeo3(network)
     this.nftDataService = new GhostMarketNDSNeo3(network)
     this.explorerService = new DoraESNeo3(network)
   }
