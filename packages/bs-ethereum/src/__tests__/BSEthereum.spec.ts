@@ -207,7 +207,7 @@ describe('BSEthereum', () => {
     expect(transactionHash).toEqual(expect.any(String))
   })
 
-  it.skip('Should be able to transfer a native token using a EVM', async () => {
+  it.skip('Should be able to transfer a native token using a NEOX', async () => {
     const service = new BSEthereum('neo3', BSEthereumConstants.NEOX_TESTNET_NETWORK)
     const account = service.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 

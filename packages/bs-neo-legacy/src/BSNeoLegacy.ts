@@ -18,15 +18,16 @@ import {
   CalculateToMigrateToNeo3ValuesResponse,
   CalculateToMigrateToNeo3ValuesParams,
   formatNumber,
+  BSWithEncryption,
 } from '@cityofzion/blockchain-service'
 import { api, sc, tx, u, wallet } from '@cityofzion/neon-js'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
-import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
-import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
-import { CryptoCompareEDSNeoLegacy } from './exchange-data/CryptoCompareEDSNeoLegacy'
-import { DoraBDSNeoLegacy } from './blockchain-data/DoraBDSNeoLegacy'
-import { NeoTubeESNeoLegacy } from './explorer/NeoTubeESNeoLegacy'
-import { NeonJsLedgerServiceNeoLegacy } from './ledger/NeonJsLedgerServiceNeoLegacy'
+import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from './constants/BSNeoLegacyConstants'
+import { BSNeoLegacyHelper } from './helpers/BSNeoLegacyHelper'
+import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
+import { DoraBDSNeoLegacy } from './services/blockchain-data/DoraBDSNeoLegacy'
+import { NeoTubeESNeoLegacy } from './services/explorer/NeoTubeESNeoLegacy'
+import { NeonJsLedgerServiceNeoLegacy } from './services/ledger/NeonJsLedgerServiceNeoLegacy'
 
 type GetMigrationNeo3ValidatedDataParams<BSName extends string = string> = {
   account: Account<BSName>
@@ -38,7 +39,8 @@ export class BSNeoLegacy<BSName extends string = string>
     BSClaimable<BSName>,
     BSWithExplorerService,
     BSWithLedger<BSName>,
-    BSMigrationNeo3<BSName>
+    BSMigrationNeo3<BSName>,
+    BSWithEncryption<BSName>
 {
   private readonly NATIVE_ASSETS = BSNeoLegacyConstants.NATIVE_ASSETS.map(asset => ({
     ...asset,

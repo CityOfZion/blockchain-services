@@ -5,6 +5,7 @@ import {
   BlockchainService,
   BSCalculableFee,
   BSClaimable,
+  BSWithEncryption,
   BSWithExplorerService,
   BSWithLedger,
   BSWithNameService,
@@ -39,7 +40,8 @@ export class BSNeo3<BSName extends string = string>
     BSCalculableFee<BSName>,
     BSWithNft,
     BSWithExplorerService,
-    BSWithLedger<BSName>
+    BSWithLedger<BSName>,
+    BSWithEncryption<BSName>
 {
   name: BSName
   bip44DerivationPath: string
@@ -74,29 +76,6 @@ export class BSNeo3<BSName extends string = string>
     this.feeToken = tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = tokens.find(token => token.symbol === 'NEO')!
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
-  }
-
-  async generateSigningCallback(account: Account<BSName>) {
-    const neonJsAccount = new wallet.Account(account.key)
-
-    if (account.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide a getLedgerTransport function to use Ledger')
-
-      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
-
-      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
-
-      return {
-        neonJsAccount,
-        signingCallback: this.ledgerService.getSigningCallback(ledgerTransport, account),
-      }
-    }
-
-    return {
-      neonJsAccount,
-      signingCallback: api.signWithAccount(neonJsAccount),
-    }
   }
 
   async #buildTransferInvocation(
@@ -157,6 +136,29 @@ export class BSNeo3<BSName extends string = string>
     this.explorerService = new DoraESNeo3(network)
   }
 
+  async #generateSigningCallback(account: Account<BSName>) {
+    const neonJsAccount = new wallet.Account(account.key)
+
+    if (account.isHardware) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+
+      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+
+      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+
+      return {
+        neonJsAccount,
+        signingCallback: this.ledgerService.getSigningCallback(ledgerTransport, account),
+      }
+    }
+
+    return {
+      neonJsAccount,
+      signingCallback: api.signWithAccount(neonJsAccount),
+    }
+  }
+
   validateAddress(address: string): boolean {
     return wallet.isAddress(address, 53)
   }
@@ -213,7 +215,7 @@ export class BSNeo3<BSName extends string = string>
   }
 
   async calculateTransferFee(param: TransferParam<BSName>): Promise<string> {
-    const { neonJsAccount } = await this.generateSigningCallback(param.senderAccount)
+    const { neonJsAccount } = await this.#generateSigningCallback(param.senderAccount)
 
     const invoker = await NeonInvoker.init({
       rpcAddress: this.network.url,
@@ -231,7 +233,7 @@ export class BSNeo3<BSName extends string = string>
   }
 
   async transfer(param: TransferParam<BSName>): Promise<string[]> {
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(param.senderAccount)
+    const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(param.senderAccount)
 
     const invoker = await NeonInvoker.init({
       rpcAddress: this.network.url,
@@ -250,7 +252,7 @@ export class BSNeo3<BSName extends string = string>
   }
 
   async claim(account: Account<BSName>): Promise<string> {
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account)
+    const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(account)
 
     const facade = await api.NetworkFacade.fromConfig({ node: this.network.url })
 
