@@ -1,3 +1,4 @@
+import { BlockchainServiceConstants } from './constants'
 import {
   Account,
   BlockchainService,
@@ -8,6 +9,7 @@ import {
   BSWithLedger,
   BSWithNameService,
   BSWithNft,
+  TransactionResponse,
   UntilIndexRecord,
 } from './interfaces'
 
@@ -83,19 +85,20 @@ export async function waitForTransaction<BSName extends string = string>(
   return false
 }
 
-export async function waitForAccountTransaction<BSName extends string = string>(
-  service: BlockchainService<BSName>,
-  txId: string,
-  account: Account<BSName>,
-  maxAttempts = 10
-): Promise<boolean> {
+export async function waitForAccountTransaction<BSName extends string = string>(params: {
+  service: BlockchainService<BSName>
+  txId: string
+  address: string
+  maxAttempts?: number
+}): Promise<boolean> {
+  const { address, maxAttempts = 10, service, txId } = params
   let attempts = 1
 
   do {
     await wait(60000)
 
     try {
-      const response = await service.blockchainDataService.getTransactionsByAddress({ address: account.address })
+      const response = await service.blockchainDataService.getTransactionsByAddress({ address })
       const isTransactionConfirmed = response.transactions.some(transaction => transaction.hash === txId)
 
       if (isTransactionConfirmed) return true
@@ -107,6 +110,65 @@ export async function waitForAccountTransaction<BSName extends string = string>(
   } while (attempts < maxAttempts)
 
   return false
+}
+
+export async function waitForMigration(params: {
+  service: BlockchainService & BSMigrationNeo3
+  neo3Service: BlockchainService
+  neo3Address: string
+  txId: string
+}) {
+  const { neo3Address, neo3Service, service, txId } = params
+  const MAX_ATTEMPTS = 10
+  const NEO3_MAX_ATTEMPTS = 20
+
+  const response = {
+    isTransactionConfirmed: false,
+    isNeo3TransactionConfirmed: false,
+  }
+
+  let transactionResponse: TransactionResponse
+
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
+    await wait(30000)
+
+    try {
+      transactionResponse = await service.blockchainDataService.getTransaction(txId)
+      response.isTransactionConfirmed = true
+      break
+    } catch {
+      // Empty block
+    }
+  }
+
+  if (!response.isTransactionConfirmed) return response
+
+  for (let i = 0; i < NEO3_MAX_ATTEMPTS; i++) {
+    await wait(60000)
+
+    try {
+      const neo3Response = await neo3Service.blockchainDataService.getTransactionsByAddress({
+        address: neo3Address,
+      })
+
+      const isTransactionConfirmed = neo3Response.transactions.some(
+        transaction =>
+          transaction.time > transactionResponse.time &&
+          transaction.transfers.some(
+            transfer => transfer.from === BlockchainServiceConstants.COZ_NEO3_MIGRATION_ADDRESS
+          )
+      )
+
+      if (isTransactionConfirmed) {
+        response.isNeo3TransactionConfirmed = true
+        break
+      }
+    } catch {
+      // Empty block
+    }
+  }
+
+  return response
 }
 
 export async function fetchAccounts<BSName extends string = string>(
