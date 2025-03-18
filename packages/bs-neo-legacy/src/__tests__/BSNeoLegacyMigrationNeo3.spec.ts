@@ -1,6 +1,7 @@
 import { BSNeoLegacy } from '../services/BSNeoLegacy'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { CalculateToMigrateToNeo3ValuesParams, MigrateToNeo3Params } from '@cityofzion/blockchain-service'
+import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 describe('BSNeoLegacy - MigrationNeo3', () => {
   const keyEmptyBalance = process.env.NEO_LEGACY_EMPTY_BALANCE_PRIVATE_KEY!
@@ -80,4 +81,21 @@ describe('BSNeoLegacy - MigrationNeo3', () => {
     expect(typeof txId).toBe('string')
     expect(txId.length).toBeGreaterThan(0)
   })
+
+  it.skip('Should create a successful migration when migrate to Neo 3 is called with correct GAS params and using a Ledger', async () => {
+    const transport = await TransportNodeHid.create()
+
+    serviceNeoLegacy = new BSNeoLegacy('neoLegacy', BSNeoLegacyConstants.DEFAULT_NETWORK, async () => transport)
+
+    const account = await serviceNeoLegacy.ledgerService.getAccount(transport, 0)
+
+    migrateParams = { account, address: process.env.NEO3_MIGRATION_LEDGER_ADDRESS! }
+
+    const txId = await serviceNeoLegacy.migrateToNeo3(migrateParams)
+
+    expect(typeof txId).toBe('string')
+    expect(txId.length).toBeGreaterThan(0)
+
+    transport.close()
+  }, 60_000)
 })
