@@ -1,8 +1,8 @@
 import Transport from '@ledgerhq/hw-transport'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { NeonJsLedgerServiceNeoLegacy } from '../services/ledger/NeonJsLedgerServiceNeoLegacy'
-import { BSNeoLegacy } from '../services/BSNeoLegacy'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
+import { BSNeoLegacy } from '../BSNeoLegacy'
 
 let ledgerService: NeonJsLedgerServiceNeoLegacy<'neo-legacy'>
 let transport: Transport

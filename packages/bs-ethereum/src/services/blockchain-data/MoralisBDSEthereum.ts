@@ -273,12 +273,12 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
           })
         }
 
-        const tokenId = log.decoded_event.params.find((param: any) => param.name === 'tokenId')?.value
-        if (!tokenId) return
+        const tokenHash = log.decoded_event.params.find((param: any) => param.name === 'tokenId')?.value
+        if (!tokenHash) return
 
         transfers.push({
-          contractHash,
-          tokenId,
+          collectionHash: contractHash,
+          tokenHash,
           from,
           to,
           type: 'nft',
@@ -350,8 +350,8 @@ export class MoralisBDSEthereum extends RpcBDSEthereum {
 
       item.nft_transfers.forEach(transfer => {
         transfers.push({
-          contractHash: transfer.token_address,
-          tokenId: transfer.token_id,
+          collectionHash: transfer.token_address,
+          tokenHash: transfer.token_id,
           from: transfer.from_address,
           to: transfer.to_address,
           type: 'nft',

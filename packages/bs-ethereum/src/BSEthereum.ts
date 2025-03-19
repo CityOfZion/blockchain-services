@@ -15,6 +15,7 @@ import {
   Token,
   TransferParam,
   GetLedgerTransport,
+  BSWithEncryption,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
@@ -38,7 +39,8 @@ export class BSEthereum<BSName extends string = string>
     BSWithNameService,
     BSCalculableFee<BSName>,
     BSWithLedger<BSName>,
-    BSWithExplorerService
+    BSWithExplorerService,
+    BSWithEncryption<BSName>
 {
   readonly name: BSName
   readonly bip44DerivationPath: string

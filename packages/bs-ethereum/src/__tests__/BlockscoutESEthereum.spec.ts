@@ -2,10 +2,10 @@ import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
 import { Network } from '@cityofzion/blockchain-service'
 
-describe('BlockscoutESEthereum', () => {
-  const INVALID_NETWORK: Network = { id: '99999999', name: '', url: '' }
-  let blockscoutESEthereum: BlockscoutESEthereum
+const INVALID_NETWORK: Network = { id: '99999999', name: '', url: '' }
+let blockscoutESEthereum: BlockscoutESEthereum
 
+describe('BlockscoutESEthereum', () => {
   beforeEach(() => {
     blockscoutESEthereum = new BlockscoutESEthereum(BSEthereumConstants.DEFAULT_NETWORK)
   })

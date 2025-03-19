@@ -1,4 +1,4 @@
-export * from './services/BSNeoLegacy'
+export * from './BSNeoLegacy'
 
 export * from './constants/BSNeoLegacyConstants'
 
