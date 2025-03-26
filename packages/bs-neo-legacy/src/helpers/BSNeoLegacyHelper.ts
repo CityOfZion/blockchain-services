@@ -1,5 +1,5 @@
 import { Network } from '@cityofzion/blockchain-service'
-import commonTokens from '../assets/tokens/common.json'
+import nativeTokens from '../assets/tokens/native.json'
 import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
 
 export class BSNeoLegacyHelper {
@@ -11,7 +11,7 @@ export class BSNeoLegacyHelper {
 
   static getTokens(network: Network<BSNeoLegacyNetworkId>) {
     const extraTokens = BSNeoLegacyConstants.EXTRA_TOKENS_BY_NETWORK_ID[network.id] ?? []
-    return [...extraTokens, ...commonTokens]
+    return [...extraTokens, ...nativeTokens]
   }
 
   static getRpcList(network: Network<BSNeoLegacyNetworkId>) {

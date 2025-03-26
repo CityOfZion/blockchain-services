@@ -44,6 +44,7 @@ export class BSNeo3<BSName extends string = string>
   name: BSName
   bip44DerivationPath: string
 
+  nativeTokens!: Token[]
   tokens!: Token[]
   feeToken!: Token
   claimToken!: Token
@@ -70,6 +71,7 @@ export class BSNeo3<BSName extends string = string>
   #setTokens(network: Network<BSNeo3NetworkId>) {
     const tokens = BSNeo3Helper.getTokens(network)
 
+    this.nativeTokens = BSNeo3Constants.NATIVE_ASSETS
     this.tokens = tokens
     this.feeToken = tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = tokens.find(token => token.symbol === 'NEO')!

@@ -43,6 +43,7 @@ export class BSEthereum<BSName extends string = string>
   readonly name: BSName
   readonly bip44DerivationPath: string
 
+  nativeTokens!: Token[]
   feeToken!: Token
   blockchainDataService!: BlockchainDataService
   exchangeDataService!: ExchangeDataService
@@ -124,6 +125,7 @@ export class BSEthereum<BSName extends string = string>
   #setTokens(network: Network<BSEthereumNetworkId>) {
     const nativeAsset = BSEthereumHelper.getNativeAsset(network)
     this.tokens = [nativeAsset]
+    this.nativeTokens = [nativeAsset]
     this.feeToken = nativeAsset
   }
 

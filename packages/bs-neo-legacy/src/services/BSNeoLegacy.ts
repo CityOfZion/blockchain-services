@@ -51,6 +51,8 @@ export class BSNeoLegacy<BSName extends string = string>
   readonly name: BSName
   readonly bip44DerivationPath: string
 
+  nativeTokens!: Token[]
+
   feeToken!: Token
   claimToken!: Token
   burnToken!: Token
@@ -99,6 +101,7 @@ export class BSNeoLegacy<BSName extends string = string>
   #setTokens(network: Network<BSNeoLegacyNetworkId>) {
     const tokens = BSNeoLegacyHelper.getTokens(network)
 
+    this.nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
     this.tokens = tokens
     this.feeToken = tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = tokens.find(token => token.symbol === 'NEO')!

@@ -1,5 +1,5 @@
 import mainnetTokens from '../assets/tokens/mainnet.json'
-import commonTokens from '../assets/tokens/common.json'
+import nativeTokens from '../assets/tokens/native.json'
 
 import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
 
@@ -10,7 +10,7 @@ export class BSNeoLegacyConstants {
     mainnet: mainnetTokens,
   }
 
-  static NATIVE_ASSETS = commonTokens
+  static NATIVE_ASSETS = nativeTokens
 
   static RPC_LIST_BY_NETWORK_ID: Record<BSNeoLegacyNetworkId, string[]> = {
     mainnet: [
