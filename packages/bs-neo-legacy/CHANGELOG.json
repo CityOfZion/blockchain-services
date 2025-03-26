@@ -2,6 +2,28 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.10.4",
+      "tag": "@cityofzion/bs-neo-legacy_v1.10.4",
+      "date": "Wed, 26 Mar 2025 18:20:32 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add test with Ledger when migrate to Neo 3"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Export native tokens"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.16.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.3",
       "tag": "@cityofzion/bs-neo-legacy_v1.10.3",
       "date": "Fri, 14 Mar 2025 20:31:57 GMT",

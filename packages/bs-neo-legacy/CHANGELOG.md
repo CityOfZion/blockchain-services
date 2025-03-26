@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Fri, 14 Mar 2025 20:31:57 GMT and should not be manually modified.
+This log was last generated on Wed, 26 Mar 2025 18:20:32 GMT and should not be manually modified.
+
+## 1.10.4
+Wed, 26 Mar 2025 18:20:32 GMT
+
+### Patches
+
+- Export native tokens
 
 ## 1.10.3
 Fri, 14 Mar 2025 20:31:57 GMT

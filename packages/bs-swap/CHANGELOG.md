@@ -1,6 +1,11 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Fri, 14 Mar 2025 21:40:49 GMT and should not be manually modified.
+This log was last generated on Wed, 26 Mar 2025 18:20:32 GMT and should not be manually modified.
+
+## 0.5.10
+Wed, 26 Mar 2025 18:20:32 GMT
+
+_Version update only_
 
 ## 0.5.9
 Fri, 14 Mar 2025 21:40:49 GMT

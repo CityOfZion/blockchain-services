@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.16.1",
+      "tag": "@cityofzion/blockchain-service_v1.16.1",
+      "date": "Wed, 26 Mar 2025 18:20:32 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Export native tokens"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.16.0",
       "tag": "@cityofzion/blockchain-service_v1.16.0",
       "date": "Fri, 14 Mar 2025 20:31:57 GMT",
