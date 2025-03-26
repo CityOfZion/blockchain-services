@@ -48,6 +48,7 @@ export interface BlockchainService<BSName extends string = string, BSAvailableNe
   exchangeDataService: ExchangeDataService
   blockchainDataService: BlockchainDataService
   tokens: Token[]
+  nativeTokens: Token[]
   network: Network<BSAvailableNetworks>
   testNetwork: (network: Network<BSAvailableNetworks>) => Promise<void>
   setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void

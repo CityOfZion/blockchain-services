@@ -1,11 +1,11 @@
 import { Network } from '@cityofzion/blockchain-service'
-import commonTokens from '../assets/tokens/common.json'
+import nativeTokens from '../assets/tokens/native.json'
 import { BSNeo3Constants, BSNeo3NetworkId } from '../constants/BSNeo3Constants'
 
 export class BSNeo3Helper {
   static getTokens(network: Network<BSNeo3NetworkId>) {
     const extraTokens = BSNeo3Constants.EXTRA_TOKENS_BY_NETWORK_ID[network.id] ?? []
-    return [...extraTokens, ...commonTokens]
+    return [...extraTokens, ...nativeTokens]
   }
 
   static getRpcList(network: Network<BSNeo3NetworkId>) {

@@ -1,5 +1,6 @@
 import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
 import mainnetTokens from '../assets/tokens/mainnet.json'
+import nativeTokens from '../assets/tokens/native.json'
 
 export type BSNeo3NetworkId = NetworkId<'mainnet' | 'testnet'>
 
@@ -57,4 +58,6 @@ export class BSNeo3Constants {
   static NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
 
   static DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
+
+  static NATIVE_ASSETS: Token[] = nativeTokens
 }
