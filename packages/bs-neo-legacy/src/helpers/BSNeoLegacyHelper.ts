@@ -1,6 +1,13 @@
-import { Network } from '@cityofzion/blockchain-service'
+import { BlockchainService, Network, TransactionResponse, wait } from '@cityofzion/blockchain-service'
 import nativeTokens from '../assets/tokens/native.json'
 import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
+
+export type WaitForMigrationParams = {
+  transactionHash: string
+  neo3Address: string
+  neo3Service: BlockchainService
+  neoLegacyService: BlockchainService
+}
 
 export class BSNeoLegacyHelper {
   static getLegacyNetwork(network: Network<BSNeoLegacyNetworkId>) {
@@ -24,5 +31,58 @@ export class BSNeoLegacyHelper {
 
   static normalizeHash(hash: string): string {
     return hash.startsWith('0x') ? hash.slice(2) : hash
+  }
+
+  static async waitForMigration(params: WaitForMigrationParams) {
+    const { neo3Address, neo3Service, transactionHash, neoLegacyService } = params
+
+    const MAX_ATTEMPTS = 10
+    const NEO3_MAX_ATTEMPTS = 20
+
+    const response = {
+      isTransactionConfirmed: false,
+      isNeo3TransactionConfirmed: false,
+    }
+
+    let transactionResponse: TransactionResponse
+
+    for (let i = 0; i < MAX_ATTEMPTS; i++) {
+      await wait(30000)
+
+      try {
+        transactionResponse = await neoLegacyService.blockchainDataService.getTransaction(transactionHash)
+        response.isTransactionConfirmed = true
+        break
+      } catch {
+        // Empty block
+      }
+    }
+
+    if (!response.isTransactionConfirmed) return response
+
+    for (let i = 0; i < NEO3_MAX_ATTEMPTS; i++) {
+      await wait(60000)
+
+      try {
+        const neo3Response = await neo3Service.blockchainDataService.getTransactionsByAddress({
+          address: neo3Address,
+        })
+
+        const isTransactionConfirmed = neo3Response.transactions.some(
+          transaction =>
+            transaction.time > transactionResponse.time &&
+            transaction.transfers.some(transfer => transfer.from === BSNeoLegacyConstants.MIGRATION_COZ_NEO3_ADDRESS)
+        )
+
+        if (isTransactionConfirmed) {
+          response.isNeo3TransactionConfirmed = true
+          break
+        }
+      } catch {
+        // Empty block
+      }
+    }
+
+    return response
   }
 }
