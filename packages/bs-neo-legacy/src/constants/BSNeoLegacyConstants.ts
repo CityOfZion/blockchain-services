@@ -61,7 +61,10 @@ export class BSNeoLegacyConstants {
 
   static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
 
-  static readonly MIGRATION_NEO3_COZ_ADDRESS = 'AaT27thuyPaqERPwERhk7QhfKrbj4xoyAV'
-  static readonly MIGRATION_NEO3_COZ_FEE = 0.01 // 1%
-  static readonly MIGRATION_NEO3_NEP_17_TRANSFER_FEE = 0.0112143
+  static readonly MIGRATION_COZ_LEGACY_ADDRESS = 'AaT27thuyPaqERPwERhk7QhfKrbj4xoyAV'
+  static readonly MIGRATION_COZ_FEE = 0.01 // 1%
+  static readonly MIGRATION_NEP_17_TRANSFER_FEE = 0.0112143
+  static readonly MIGRATION_MIN_GAS = 0.1
+  static readonly MIGRATION_MIN_NEO = 2
+  static readonly MIGRATION_COZ_NEO3_ADDRESS = 'NLMsicDapULKFDmAzTsbhwrZjYZ83j53Ty'
 }

@@ -1,15 +1,12 @@
-import { BlockchainServiceConstants } from './constants'
 import {
   Account,
   BlockchainService,
   BSCalculableFee,
   BSClaimable,
-  BSMigrationNeo3,
   BSWithExplorerService,
   BSWithLedger,
   BSWithNameService,
   BSWithNft,
-  TransactionResponse,
   UntilIndexRecord,
 } from './interfaces'
 
@@ -23,12 +20,6 @@ export function isClaimable<BSName extends string = string>(
   service: BlockchainService<BSName>
 ): service is BlockchainService<BSName> & BSClaimable<BSName> {
   return 'claim' in service && 'claimToken' in service && 'getUnclaimed' in service.blockchainDataService
-}
-
-export function hasMigrationNeo3<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & BSMigrationNeo3<BSName> {
-  return 'migrateToNeo3' in service && 'calculateToMigrateToNeo3Values' in service
 }
 
 export function isCalculableFee<BSName extends string = string>(
@@ -110,65 +101,6 @@ export async function waitForAccountTransaction<BSName extends string = string>(
   } while (attempts < maxAttempts)
 
   return false
-}
-
-export async function waitForMigration(params: {
-  service: BlockchainService & BSMigrationNeo3
-  neo3Service: BlockchainService
-  neo3Address: string
-  txId: string
-}) {
-  const { neo3Address, neo3Service, service, txId } = params
-  const MAX_ATTEMPTS = 10
-  const NEO3_MAX_ATTEMPTS = 20
-
-  const response = {
-    isTransactionConfirmed: false,
-    isNeo3TransactionConfirmed: false,
-  }
-
-  let transactionResponse: TransactionResponse
-
-  for (let i = 0; i < MAX_ATTEMPTS; i++) {
-    await wait(30000)
-
-    try {
-      transactionResponse = await service.blockchainDataService.getTransaction(txId)
-      response.isTransactionConfirmed = true
-      break
-    } catch {
-      // Empty block
-    }
-  }
-
-  if (!response.isTransactionConfirmed) return response
-
-  for (let i = 0; i < NEO3_MAX_ATTEMPTS; i++) {
-    await wait(60000)
-
-    try {
-      const neo3Response = await neo3Service.blockchainDataService.getTransactionsByAddress({
-        address: neo3Address,
-      })
-
-      const isTransactionConfirmed = neo3Response.transactions.some(
-        transaction =>
-          transaction.time > transactionResponse.time &&
-          transaction.transfers.some(
-            transfer => transfer.from === BlockchainServiceConstants.COZ_NEO3_MIGRATION_ADDRESS
-          )
-      )
-
-      if (isTransactionConfirmed) {
-        response.isNeo3TransactionConfirmed = true
-        break
-      }
-    } catch {
-      // Empty block
-    }
-  }
-
-  return response
 }
 
 export async function fetchAccounts<BSName extends string = string>(
