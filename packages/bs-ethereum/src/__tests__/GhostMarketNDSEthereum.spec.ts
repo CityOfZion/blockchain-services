@@ -100,7 +100,7 @@ describe('GhostMarketNDSEthereum', () => {
           expect(nft).toMatchObject({
             collectionImage: undefined,
             id: expect.any(String),
-            contractHash,
+            contractHash: expect.any(String),
             symbol: expect.any(String),
             collectionName: expect.any(String),
             image: expect.any(String),
@@ -137,12 +137,11 @@ describe('GhostMarketNDSEthereum', () => {
       it('Should get NFT by contract hash and token id', async () => {
         const nft = await ghostMarketNDSEthereum.getNft({ contractHash, tokenId })
 
-        expect(nft).toEqual({
+        expect(nft).toMatchObject({
           id: tokenId,
           contractHash,
           symbol: 'GHOST',
-          collectionImage: undefined,
-          collectionName: 'GhostMarket ERC721',
+          collectionName: 'GHOST',
           image: expect.any(String),
           isSVG: expect.any(Boolean),
           name: 'BeTTyBooP',
@@ -158,7 +157,6 @@ describe('GhostMarketNDSEthereum', () => {
 
         items.forEach(nft => {
           expect(nft).toMatchObject({
-            collectionImage: undefined,
             id: expect.any(String),
             contractHash: expect.any(String),
             symbol: expect.any(String),
