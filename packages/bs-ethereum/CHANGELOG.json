@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.9.7",
+      "tag": "@cityofzion/bs-ethereum_v2.9.7",
+      "date": "Wed, 09 Apr 2025 20:52:04 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add ownersChains parameter in NFT requests"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.9.6",
       "tag": "@cityofzion/bs-ethereum_v2.9.6",
       "date": "Fri, 28 Mar 2025 21:07:26 GMT",

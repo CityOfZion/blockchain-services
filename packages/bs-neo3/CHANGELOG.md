@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 28 Mar 2025 21:07:26 GMT and should not be manually modified.
+This log was last generated on Wed, 09 Apr 2025 20:52:04 GMT and should not be manually modified.
+
+## 1.10.8
+Wed, 09 Apr 2025 20:52:04 GMT
+
+### Patches
+
+- Add ownersChains parameter in NFT requests
 
 ## 1.10.7
 Fri, 28 Mar 2025 21:07:26 GMT

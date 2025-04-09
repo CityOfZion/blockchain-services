@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.10.8",
+      "tag": "@cityofzion/bs-neo3_v1.10.8",
+      "date": "Wed, 09 Apr 2025 20:52:04 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add ownersChains parameter in NFT requests"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.7",
       "tag": "@cityofzion/bs-neo3_v1.10.7",
       "date": "Fri, 28 Mar 2025 21:07:26 GMT",
