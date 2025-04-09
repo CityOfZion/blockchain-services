@@ -105,11 +105,14 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
 
   #getUrlWithParams(params: Record<string, any>) {
     const config = GhostMarketNDSNeo3.CONFIG_BY_NETWORK_ID[this.#network.id]
-    if (!config) throw new Error('GhostMarketNDSNeo3 does not support this network')
+    const chain = config?.chain
+
+    if (!chain) throw new Error('GhostMarketNDSNeo3 does not support this network')
 
     const parameters = qs.stringify(
       {
-        chain: config.chain,
+        chain,
+        ownersChains: [chain],
         ...params,
       },
       { arrayFormat: 'bracket' }

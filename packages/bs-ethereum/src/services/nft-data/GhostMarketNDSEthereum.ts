@@ -105,6 +105,7 @@ export class GhostMarketNDSEthereum extends RpcNDSEthereum {
     const parameters = qs.stringify(
       {
         chain,
+        ownersChains: [chain],
         ...params,
       },
       { arrayFormat: 'bracket' }
