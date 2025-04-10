@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.10.7",
+      "tag": "@cityofzion/bs-neo-legacy_v1.10.7",
+      "date": "Thu, 10 Apr 2025 21:27:21 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix COZ address used in migration intent"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.6",
       "tag": "@cityofzion/bs-neo-legacy_v1.10.6",
       "date": "Thu, 10 Apr 2025 20:33:39 GMT",
