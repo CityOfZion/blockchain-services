@@ -288,7 +288,7 @@ export class BSNeoLegacy<BSName extends string = string>
       intents.push(
         ...api.makeIntent(
           { [this.GAS_ASSET.symbol]: Number(neoLegacyMigrationAmounts.gasBalance.amount) },
-          BSNeoLegacyConstants.MIGRATION_COZ_NEO3_ADDRESS
+          BSNeoLegacyConstants.MIGRATION_COZ_LEGACY_ADDRESS
         )
       )
 
@@ -296,7 +296,7 @@ export class BSNeoLegacy<BSName extends string = string>
       intents.push(
         ...api.makeIntent(
           { [this.NEO_ASSET.symbol]: Number(neoLegacyMigrationAmounts.neoBalance.amount) },
-          BSNeoLegacyConstants.MIGRATION_COZ_NEO3_ADDRESS
+          BSNeoLegacyConstants.MIGRATION_COZ_LEGACY_ADDRESS
         )
       )
 

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Fix COZ address used in migration intent",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}
