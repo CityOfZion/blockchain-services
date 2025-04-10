@@ -276,12 +276,8 @@ export class BSNeoLegacy<BSName extends string = string>
       throw new Error('Must use Mainnet network')
     }
 
-    if (!neoLegacyMigrationAmounts.hasEnoughGasBalance || !neoLegacyMigrationAmounts.gasBalance) {
-      throw new Error('Must have at least 0.1 GAS')
-    }
-
-    if (!neoLegacyMigrationAmounts.hasEnoughNeoBalance || !neoLegacyMigrationAmounts.neoBalance) {
-      throw new Error('Must have at least 2 NEO')
+    if (!neoLegacyMigrationAmounts.hasEnoughGasBalance && !neoLegacyMigrationAmounts.hasEnoughNeoBalance) {
+      throw new Error('Must have at least 0.1 GAS or 2 NEO')
     }
 
     const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(account)
