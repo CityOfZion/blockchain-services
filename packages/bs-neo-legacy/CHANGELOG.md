@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Fri, 28 Mar 2025 21:07:26 GMT and should not be manually modified.
+This log was last generated on Thu, 10 Apr 2025 20:33:39 GMT and should not be manually modified.
+
+## 1.10.6
+Thu, 10 Apr 2025 20:33:39 GMT
+
+### Patches
+
+- Fix migrate enough balance conditional
 
 ## 1.10.5
 Fri, 28 Mar 2025 21:07:26 GMT
