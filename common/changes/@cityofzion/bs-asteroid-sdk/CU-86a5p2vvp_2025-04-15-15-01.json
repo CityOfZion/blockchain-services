@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-asteroid-sdk",
+      "comment": "Update license",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-asteroid-sdk"
+}

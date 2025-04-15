@@ -3,7 +3,7 @@
   "version": "0.1.37",
   "repository": "https://github.com/CityOfZion/blockchain-services",
   "author": "Coz",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "files": [
     "/dist"
   ],

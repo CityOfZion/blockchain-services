@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Coz",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "files": [
     "/dist"
   ],
