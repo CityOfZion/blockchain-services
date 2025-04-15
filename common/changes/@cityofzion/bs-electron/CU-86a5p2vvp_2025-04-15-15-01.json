@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-electron",
+      "comment": "Update license",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-electron"
+}
