@@ -81,9 +81,10 @@ export class BSEthereumConstants {
       'https://endpoints.omniatech.io/v1/bsc/mainnet/public',
     ],
     '137': [
+      'https://polygon.meowrpc.com',
+      'https://polygon-rpc.com',
       'https://polygon.llamarpc.com',
       'https://polygon.drpc.org',
-      'https://polygon.meowrpc.com',
       'https://endpoints.omniatech.io/v1/matic/mainnet/public',
     ],
     '250': [
