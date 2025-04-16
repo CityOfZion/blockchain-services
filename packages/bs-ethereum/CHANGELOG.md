@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 09 Apr 2025 20:52:04 GMT and should not be manually modified.
+This log was last generated on Wed, 16 Apr 2025 20:44:43 GMT and should not be manually modified.
+
+## 2.9.8
+Wed, 16 Apr 2025 20:44:43 GMT
+
+### Patches
+
+- Update license
+- Change default node for Polygon
 
 ## 2.9.7
 Wed, 09 Apr 2025 20:52:04 GMT

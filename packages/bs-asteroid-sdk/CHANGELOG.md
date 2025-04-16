@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-asteroid-sdk
 
-This log was last generated on Thu, 27 Jun 2024 21:15:08 GMT and should not be manually modified.
+This log was last generated on Wed, 16 Apr 2025 20:44:43 GMT and should not be manually modified.
+
+## 0.9.1
+Wed, 16 Apr 2025 20:44:43 GMT
+
+### Patches
+
+- Update license
 
 ## 0.9.0
 Thu, 27 Jun 2024 21:15:08 GMT

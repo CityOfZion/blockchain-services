@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.10.9",
+      "tag": "@cityofzion/bs-neo3_v1.10.9",
+      "date": "Wed, 16 Apr 2025 20:44:43 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update license"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.16.3`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-asteroid-sdk\" to `0.9.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.8",
       "tag": "@cityofzion/bs-neo3_v1.10.8",
       "date": "Wed, 09 Apr 2025 20:52:04 GMT",

@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.16.3",
+      "tag": "@cityofzion/blockchain-service_v1.16.3",
+      "date": "Wed, 16 Apr 2025 20:44:43 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update license"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.16.2",
       "tag": "@cityofzion/blockchain-service_v1.16.2",
       "date": "Fri, 28 Mar 2025 21:07:26 GMT",

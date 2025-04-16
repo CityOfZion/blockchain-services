@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-asteroid-sdk",
   "entries": [
     {
+      "version": "0.9.1",
+      "tag": "@cityofzion/bs-asteroid-sdk_v0.9.1",
+      "date": "Wed, 16 Apr 2025 20:44:43 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update license"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.9.0",
       "tag": "@cityofzion/bs-asteroid-sdk_v0.9.0",
       "date": "Thu, 27 Jun 2024 21:15:08 GMT",
