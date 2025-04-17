@@ -17,6 +17,7 @@ enum LedgerStatus {
 }
 
 enum LedgerCommand {
+  GET_APP_NAME = 0x00,
   GET_PUBLIC_KEY = 0x04,
   SIGN = 0x02,
 }
@@ -37,9 +38,33 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
     this.getLedgerTransport = getLedgerTransport
   }
 
+  // This verification is necessary because the NEO2 Ledger App also detects NEO3
+  async verifyAppName(transport: Transport): Promise<boolean> {
+    try {
+      const response = await this.#sendChunk(
+        transport,
+        LedgerCommand.GET_APP_NAME,
+        0x00,
+        LedgerSecondParameter.LAST_DATA,
+        undefined
+      )
+      const version = response.toString('ascii')
+      const appName = version.substring(0, version.length - 2)
+
+      if (appName !== 'NEO N3') return false
+
+      return true
+    } catch {
+      return false
+    }
+  }
+
   async getAccount(transport: Transport, index: number): Promise<Account<BSName>> {
     const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
     const bip44PathHex = this.#bip44PathToHex(bip44Path)
+
+    const isNeoN3App = await this.verifyAppName(transport)
+    if (!isNeoN3App) throw new Error('App is not NEO N3')
 
     const result = await this.#sendChunk(
       transport,
@@ -80,6 +105,9 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
 
   getSigningCallback(transport: Transport, account: Account): api.SigningFunction {
     return async (transaction, { witnessIndex, network }) => {
+      const isNeoN3App = await this.verifyAppName(transport)
+      if (!isNeoN3App) throw new Error('App is not NEO N3')
+
       try {
         this.emitter.emit('getSignatureStart')
 
@@ -151,9 +179,11 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
     command: LedgerCommand,
     commandIndex: number,
     secondParameter: LedgerSecondParameter,
-    chunk: string
+    chunk?: string
   ) {
-    return transport.send(0x80, command, commandIndex, secondParameter, Buffer.from(chunk, 'hex'), [LedgerStatus.OK])
+    return transport.send(0x80, command, commandIndex, secondParameter, chunk ? Buffer.from(chunk, 'hex') : undefined, [
+      LedgerStatus.OK,
+    ])
   }
 
   #bip44PathToHex(path: string): string {

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Verify if the user is connected into the NEO N3 app before any interaction",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}
