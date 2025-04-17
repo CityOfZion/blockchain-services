@@ -8,7 +8,7 @@ let ledgerService: NeonDappKitLedgerServiceNeo3<'neo3'>
 let transport: Transport
 let bsNeo3: BSNeo3<'neo3'>
 
-describe.skip('NeonDappKitLedgerServiceNeo3.spec', () => {
+describe.skip('NeonDappKitLedgerServiceNeo3', () => {
   beforeAll(async () => {
     const network = BSNeo3Constants.TESTNET_NETWORKS[0]!
     bsNeo3 = new BSNeo3('neo3', network)
