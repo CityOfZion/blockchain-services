@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.10.10",
+      "tag": "@cityofzion/bs-neo3_v1.10.10",
+      "date": "Thu, 17 Apr 2025 20:49:07 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Verify if the user is connected into the NEO N3 app before any interaction"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.9",
       "tag": "@cityofzion/bs-neo3_v1.10.9",
       "date": "Wed, 16 Apr 2025 20:44:43 GMT",

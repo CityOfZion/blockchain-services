@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Wed, 16 Apr 2025 20:44:43 GMT and should not be manually modified.
+This log was last generated on Thu, 17 Apr 2025 20:49:07 GMT and should not be manually modified.
+
+## 1.10.10
+Thu, 17 Apr 2025 20:49:07 GMT
+
+### Patches
+
+- Verify if the user is connected into the NEO N3 app before any interaction
 
 ## 1.10.9
 Wed, 16 Apr 2025 20:44:43 GMT
