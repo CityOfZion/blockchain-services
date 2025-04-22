@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Tue, 22 Apr 2025 13:45:42 GMT and should not be manually modified.
+This log was last generated on Tue, 22 Apr 2025 15:15:25 GMT and should not be manually modified.
+
+## 0.5.16
+Tue, 22 Apr 2025 15:15:25 GMT
+
+### Patches
+
+- Update Axios and add @cityofzion/bs-ethereum
 
 ## 0.5.15
 Tue, 22 Apr 2025 13:45:42 GMT

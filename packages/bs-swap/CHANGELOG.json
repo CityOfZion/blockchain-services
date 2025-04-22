@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.16",
+      "tag": "@cityofzion/bs-swap_v0.5.16",
+      "date": "Tue, 22 Apr 2025 15:15:25 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Axios and add @cityofzion/bs-ethereum"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.9.9`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.15",
       "tag": "@cityofzion/bs-swap_v0.5.15",
       "date": "Tue, 22 Apr 2025 13:45:42 GMT",

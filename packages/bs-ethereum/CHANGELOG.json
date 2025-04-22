@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.9.9",
+      "tag": "@cityofzion/bs-ethereum_v2.9.9",
+      "date": "Tue, 22 Apr 2025 15:15:25 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change MATIC to POL native token"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.9.8",
       "tag": "@cityofzion/bs-ethereum_v2.9.8",
       "date": "Wed, 16 Apr 2025 20:44:43 GMT",

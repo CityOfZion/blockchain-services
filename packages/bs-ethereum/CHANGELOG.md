@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 16 Apr 2025 20:44:43 GMT and should not be manually modified.
+This log was last generated on Tue, 22 Apr 2025 15:15:25 GMT and should not be manually modified.
+
+## 2.9.9
+Tue, 22 Apr 2025 15:15:25 GMT
+
+### Patches
+
+- Change MATIC to POL native token
 
 ## 2.9.8
 Wed, 16 Apr 2025 20:44:43 GMT
