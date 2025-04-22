@@ -298,12 +298,15 @@ importers:
       '@cityofzion/blockchain-service':
         specifier: workspace:*
         version: link:../blockchain-service
+      '@cityofzion/bs-ethereum':
+        specifier: workspace:*
+        version: link:../bs-ethereum
       '@cityofzion/bs-neo3':
         specifier: workspace:*
         version: link:../bs-neo3
       axios:
-        specifier: 1.5.1
-        version: 1.5.1
+        specifier: 1.8.2
+        version: 1.8.2
       lodash:
         specifier: ~4.17.21
         version: 4.17.21
@@ -1487,7 +1490,7 @@ packages:
   /@ledgerhq/cryptoassets@12.1.0:
     resolution: {integrity: sha512-KF9J0X5qmEpHyAy9FphAmDsuodQN/UA3xmjqBhmBSELt/8tAUHHWNOeEV4TfuJLmk2HzXF730aH+61lvVvIUVw==}
     dependencies:
-      axios: 1.7.2
+      axios: 1.8.2
       bs58check: 2.1.2
       invariant: 2.2.4
     transitivePeerDependencies:
@@ -1497,7 +1500,7 @@ packages:
   /@ledgerhq/cryptoassets@13.2.0:
     resolution: {integrity: sha512-/u2T2IY7bDoN+DHAdXRa1PtzIMbIYwSV9Zw3w9kJKXu3gt5lx+oGCXwsj5rzYq3MxnfxQ+GSh4UEslLXQgYcRg==}
     dependencies:
-      axios: 1.7.2
+      axios: 1.8.2
       bs58check: 2.1.2
       invariant: 2.2.4
     transitivePeerDependencies:
@@ -1526,7 +1529,7 @@ packages:
       '@ledgerhq/errors': 6.18.0
       '@ledgerhq/logs': 6.12.0
       '@ledgerhq/types-live': 6.49.0
-      axios: 1.5.1
+      axios: 1.8.2
       eip55: 2.1.1
       react: 18.2.0
       react-dom: 18.3.1(react@18.2.0)
@@ -1545,7 +1548,7 @@ packages:
     dependencies:
       '@ledgerhq/cryptoassets': 13.2.0
       '@ledgerhq/live-env': 2.1.0
-      axios: 1.7.2
+      axios: 1.8.2
       crypto-js: 4.2.0
       ethers: 5.7.2
     transitivePeerDependencies:
@@ -2318,8 +2321,8 @@ packages:
       - debug
     dev: false
 
-  /axios@1.7.2:
-    resolution: {integrity: sha512-2A8QhOMrbomlDuiLeK9XibIBzuHeRcqqNOHp0Cyp5EoJ1IFDh+XZH3A6BkXtv0K4gFGCI0Y4BM7B1wOEi0Rmgw==}
+  /axios@1.8.2:
+    resolution: {integrity: sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==}
     dependencies:
       follow-redirects: 1.15.6
       form-data: 4.0.0
