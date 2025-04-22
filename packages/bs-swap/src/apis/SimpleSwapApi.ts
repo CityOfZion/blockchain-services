@@ -14,6 +14,13 @@ import {
 import { BlockchainService, hasExplorerService, normalizeHash } from '@cityofzion/blockchain-service'
 
 export class SimpleSwapApi<BSName extends string = string> {
+  readonly #tickersBySimpleSwapBlockchain: Partial<Record<string, Record<string, string>>> = {
+    neo3: {
+      neo3: 'neo',
+      gasn3: 'gas',
+    },
+  }
+
   #axios: AxiosInstance
   #allCurrenciesMap: Map<string, SimpleSwapApiCurrency<BSName>> = new Map()
 
@@ -49,32 +56,43 @@ export class SimpleSwapApi<BSName extends string = string> {
     currency: SimpleSwapApiCurrencyResponse,
     options: SimpleSwapServiceInitParams<BSName>
   ): SimpleSwapApiCurrency<BSName> | undefined {
-    if (!currency.ticker || !currency.network || !currency.image || !currency.name || !currency.validationAddress) {
-      return
-    }
+    const { network: simpleSwapBlockchain, ticker } = currency
+    let { name } = currency
+    let symbol = ticker
+
+    if (!ticker || !simpleSwapBlockchain || !currency.image || !name || !currency.validationAddress) return
 
     const chainsByServiceNameEntries = Object.entries(options.chainsByServiceName) as [BSName, string[]][]
 
     const chainsByServiceNameEntry = chainsByServiceNameEntries.find(([_serviceName, chains]) =>
-      chains.includes(currency.network!)
+      chains.includes(simpleSwapBlockchain)
     )
 
-    let hash = currency.contractAddress ?? undefined
-    let decimals: number | undefined
-    let name = currency.name
-    let symbol = currency.ticker
     let blockchain: BSName | undefined
     let blockchainService: BlockchainService | undefined
+    let decimals: number | undefined
+    let hash = currency.contractAddress ?? undefined
+    const normalizedHash = hash ? normalizeHash(hash) : ''
+    const lowerCaseSymbol = symbol!.toLowerCase()
+    const tickers = this.#tickersBySimpleSwapBlockchain[simpleSwapBlockchain]
 
     if (chainsByServiceNameEntry) {
       blockchain = chainsByServiceNameEntry[0]
       blockchainService = options.blockchainServicesByName[blockchain]
 
-      const token = blockchainService.tokens.find(
-        item =>
-          (hash && normalizeHash(hash) === normalizeHash(item.hash)) ||
-          (currency.ticker && currency.ticker.toLowerCase().startsWith(item.symbol.toLowerCase()))
-      )
+      const token = blockchainService.tokens.find(item => {
+        if (normalizedHash && normalizedHash === normalizeHash(item.hash)) return true
+
+        const currentLowerCaseSymbol = item.symbol.toLowerCase()
+
+        if (!normalizedHash)
+          return (
+            lowerCaseSymbol === currentLowerCaseSymbol ||
+            (!!tickers && currentLowerCaseSymbol === tickers[lowerCaseSymbol])
+          )
+
+        return false
+      })
 
       if (token) {
         hash = token.hash
@@ -85,10 +103,10 @@ export class SimpleSwapApi<BSName extends string = string> {
     }
 
     return {
-      id: `${currency.ticker}:${currency.network}`,
-      ticker: currency.ticker,
-      symbol,
-      network: currency.network,
+      id: `${ticker}:${simpleSwapBlockchain}`,
+      ticker,
+      symbol: symbol!,
+      network: simpleSwapBlockchain,
       name,
       imageUrl: currency.image,
       hash,
