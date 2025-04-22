@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Thu, 17 Apr 2025 20:49:07 GMT and should not be manually modified.
+This log was last generated on Tue, 22 Apr 2025 13:45:42 GMT and should not be manually modified.
+
+## 0.5.15
+Tue, 22 Apr 2025 13:45:42 GMT
+
+### Patches
+
+- Add parser for SimpleSwap tickers
 
 ## 0.5.14
 Thu, 17 Apr 2025 20:49:07 GMT

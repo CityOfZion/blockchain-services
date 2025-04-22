@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.15",
+      "tag": "@cityofzion/bs-swap_v0.5.15",
+      "date": "Tue, 22 Apr 2025 13:45:42 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add parser for SimpleSwap tickers"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.14",
       "tag": "@cityofzion/bs-swap_v0.5.14",
       "date": "Thu, 17 Apr 2025 20:49:07 GMT",
