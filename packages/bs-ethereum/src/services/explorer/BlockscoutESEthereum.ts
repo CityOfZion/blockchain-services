@@ -1,5 +1,5 @@
 import { BuildNftUrlParams, ExplorerService, Network } from '@cityofzion/blockchain-service'
-import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 
 export class BlockscoutESEthereum implements ExplorerService {
   static BASE_URL_BY_CHAIN_ID: Partial<Record<BSEthereumNetworkId, string>> = {
@@ -9,12 +9,12 @@ export class BlockscoutESEthereum implements ExplorerService {
     '8453': 'https://base.blockscout.com',
     '42161': 'https://arbitrum.blockscout.com',
     '42220': 'https://explorer.celo.org/mainnet',
-    '47763': 'https://xexplorer.neo.org',
+    [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: 'https://xexplorer.neo.org',
     '59144': 'https://explorer.linea.build',
 
     '1101': 'https://zkevm.blockscout.com',
     '11155111': 'https://eth-sepolia.blockscout.com',
-    '12227332': 'https://xt4scan.ngd.network',
+    [BSEthereumConstants.NEOX_TESTNET_NETWORK_ID]: 'https://xt4scan.ngd.network',
   }
 
   static isSupported(network: Network<BSEthereumNetworkId>) {

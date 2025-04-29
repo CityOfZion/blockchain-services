@@ -95,12 +95,12 @@ interface BlockscoutSmartContractResponse {
 
 export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   static BASE_URL_BY_CHAIN_ID: Partial<Record<BSEthereumNetworkId, string>> = {
-    '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
-    '47763': 'https://dora.coz.io/api/neox/mainnet',
+    [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: 'https://dora.coz.io/api/neox/mainnet',
+    [BSEthereumConstants.NEOX_TESTNET_NETWORK_ID]: 'https://dora-stage.coz.io/api/neox/testnet',
   }
 
-  static isSupported(network: Network<BSEthereumNetworkId>) {
-    return !!BlockscoutBDSEthereum.BASE_URL_BY_CHAIN_ID[network.id]
+  static isNeoX(network: Network<BSEthereumNetworkId>) {
+    return BSEthereumConstants.NEOX_NETWORK_IDS.includes(network.id)
   }
 
   static getClient(network: Network<BSEthereumNetworkId>) {
@@ -122,7 +122,7 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
   async getTransaction(txid: string): Promise<TransactionResponse> {
-    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
       return super.getTransaction(txid)
     }
 
@@ -193,7 +193,7 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   }
 
   async getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
       return super.getTransactionsByAddress(params)
     }
 
@@ -276,7 +276,7 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
-    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
       return super.getContract(contractHash)
     }
 
@@ -316,7 +316,7 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
       return super.getTokenInfo(tokenHash)
     }
 
@@ -350,7 +350,7 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
       return super.getBalance(address)
     }
 
@@ -402,7 +402,7 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
   }
 
   async getBlockHeight(): Promise<number> {
-    if (!BlockscoutBDSEthereum.isSupported(this._network)) {
+    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
       return super.getBlockHeight()
     }
 

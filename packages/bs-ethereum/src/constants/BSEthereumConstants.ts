@@ -147,8 +147,8 @@ export class BSEthereumConstants {
 
   static DEFAULT_BIP44_DERIVATION_PATH = "m/44'/60'/0'/0/?"
 
-  static NEOX_TESTNET_NETWORK_ID: BSEthereumNetworkId = '12227332'
   static NEOX_MAINNET_NETWORK_ID: BSEthereumNetworkId = '47763'
+  static NEOX_TESTNET_NETWORK_ID: BSEthereumNetworkId = '12227332'
   static NEOX_NETWORK_IDS: BSEthereumNetworkId[] = [this.NEOX_TESTNET_NETWORK_ID, this.NEOX_MAINNET_NETWORK_ID]
 
   static NEOX_TESTNET_NETWORK: Network<BSEthereumNetworkId> = {

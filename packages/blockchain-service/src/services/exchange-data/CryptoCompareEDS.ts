@@ -4,7 +4,7 @@ import {
   GetTokenPricesParams,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
-} from './interfaces'
+} from '../../interfaces'
 import axios, { AxiosInstance } from 'axios'
 
 type CryptoCompareDataResponse = {
@@ -43,10 +43,7 @@ export class CryptoCompareEDS implements ExchangeDataService {
       const usdPrice = priceObject.USD.PRICE
       const token = params.tokens.find(token => token.symbol === symbol)!
 
-      return {
-        usdPrice,
-        token,
-      }
+      return { usdPrice, token }
     })
   }
 
