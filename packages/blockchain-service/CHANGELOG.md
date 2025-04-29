@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Wed, 16 Apr 2025 20:44:43 GMT and should not be manually modified.
+This log was last generated on Tue, 29 Apr 2025 20:48:08 GMT and should not be manually modified.
+
+## 1.17.0
+Tue, 29 Apr 2025 20:48:08 GMT
+
+### Minor changes
+
+- Create FlamingoForthewinEDS to get token prices and add FlamingoTokenInfoPricesResponse type
 
 ## 1.16.3
 Wed, 16 Apr 2025 20:44:43 GMT

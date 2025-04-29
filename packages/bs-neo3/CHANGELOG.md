@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Thu, 17 Apr 2025 20:49:07 GMT and should not be manually modified.
+This log was last generated on Tue, 29 Apr 2025 20:48:08 GMT and should not be manually modified.
+
+## 1.11.0
+Tue, 29 Apr 2025 20:48:08 GMT
+
+### Minor changes
+
+- Remove FlamingoTokenInfoPricesResponse type and extend FlamingoForthewinEDS to FlamingoForthewinEDSNeo3
 
 ## 1.10.10
 Thu, 17 Apr 2025 20:49:07 GMT

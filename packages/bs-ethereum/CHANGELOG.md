@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 22 Apr 2025 15:15:25 GMT and should not be manually modified.
+This log was last generated on Tue, 29 Apr 2025 20:48:08 GMT and should not be manually modified.
+
+## 2.10.0
+Tue, 29 Apr 2025 20:48:08 GMT
+
+### Minor changes
+
+- Add pricing for GAS and NEO in Neo X chain, and extend FlamingoForthewinEDS to FlamingoForthewinEDSNeox
 
 ## 2.9.9
 Tue, 22 Apr 2025 15:15:25 GMT
