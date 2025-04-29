@@ -24,7 +24,7 @@ import { BSEthereumConstants, BSEthereumNetworkId } from './constants/BSEthereum
 import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServiceEthereum'
 import { BSEthereumHelper } from './helpers/BSEthereumHelper'
 import { BlockscoutBDSEthereum } from './services/blockchain-data/BlockscoutBDSEthereum'
-import { BlockscoutEDSEthereum } from './services/exchange-data/BlockscoutEDSEthereum'
+import { FlamingoForthewinEDSNeox } from './services/exchange-data/FlamingoForthewinEDSNeox'
 import { MoralisBDSEthereum } from './services/blockchain-data/MoralisBDSEthereum'
 import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
 import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
@@ -140,8 +140,8 @@ export class BSEthereum<BSName extends string = string>
 
     this.network = network
 
-    if (BlockscoutBDSEthereum.isSupported(network)) {
-      this.exchangeDataService = new BlockscoutEDSEthereum(network)
+    if (BlockscoutBDSEthereum.isNeoX(network)) {
+      this.exchangeDataService = new FlamingoForthewinEDSNeox(network)
       this.blockchainDataService = new BlockscoutBDSEthereum(network)
     } else {
       this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)

@@ -1,4 +1,4 @@
-import { Network } from '@cityofzion/blockchain-service'
+import { Network, normalizeHash } from '@cityofzion/blockchain-service'
 import nativeTokens from '../assets/tokens/native.json'
 import { BSNeo3Constants, BSNeo3NetworkId } from '../constants/BSNeo3Constants'
 
@@ -21,6 +21,6 @@ export class BSNeo3Helper {
   }
 
   static normalizeHash(hash: string): string {
-    return hash.startsWith('0x') ? hash.slice(2) : hash
+    return normalizeHash(hash, { lowercase: false })
   }
 }

@@ -177,8 +177,18 @@ export async function generateAccountForBlockchainService<BSName extends string 
   return accountsByBlockchainService
 }
 
-export function normalizeHash(hash: string): string {
-  return hash.replace('0x', '').toLowerCase()
+type NormalizedHashOptions = {
+  lowercase?: boolean
+}
+
+export function normalizeHash(hash: string, options?: NormalizedHashOptions): string {
+  const { lowercase = true } = options ?? {}
+
+  hash = hash.replace('0x', '')
+
+  if (lowercase) hash = hash.toLowerCase()
+
+  return hash
 }
 
 export function denormalizeHash(hash: string): string {

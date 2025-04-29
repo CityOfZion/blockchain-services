@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Remove FlamingoTokenInfoPricesResponse type and extend FlamingoForthewinEDS to FlamingoForthewinEDSNeo3",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

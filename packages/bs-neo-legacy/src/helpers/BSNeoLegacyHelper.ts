@@ -1,4 +1,4 @@
-import { BlockchainService, Network, TransactionResponse, wait } from '@cityofzion/blockchain-service'
+import { BlockchainService, Network, normalizeHash, TransactionResponse, wait } from '@cityofzion/blockchain-service'
 import nativeTokens from '../assets/tokens/native.json'
 import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
 
@@ -30,7 +30,7 @@ export class BSNeoLegacyHelper {
   }
 
   static normalizeHash(hash: string): string {
-    return hash.startsWith('0x') ? hash.slice(2) : hash
+    return normalizeHash(hash, { lowercase: false })
   }
 
   static async waitForMigration(params: WaitForMigrationParams) {
