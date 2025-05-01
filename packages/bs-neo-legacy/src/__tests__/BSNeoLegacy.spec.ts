@@ -6,12 +6,7 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 let bsNeoLegacy: BSNeoLegacy<'neoLegacy'>
 
-const network: Network<BSNeoLegacyNetworkId> = {
-  id: 'testnet',
-  url: 'http://seed5.ngd.network:20332',
-  name: 'testnet',
-}
-
+const network: Network<BSNeoLegacyNetworkId> = BSNeoLegacyConstants.DEFAULT_NETWORK
 describe('BSNeoLegacy', () => {
   beforeEach(() => {
     bsNeoLegacy = new BSNeoLegacy('neoLegacy', network)
@@ -41,7 +36,7 @@ describe('BSNeoLegacy', () => {
     expect(bsNeoLegacy.validateKey(invalidWif)).toBeFalsy()
   })
 
-  it('Should be able to gererate a account from mnemonic', () => {
+  it('Should be able to generate a account from mnemonic', () => {
     const mnemonic = generateMnemonic()
     const account = bsNeoLegacy.generateAccountFromMnemonic(mnemonic, 0)
 
@@ -89,7 +84,7 @@ describe('BSNeoLegacy', () => {
       intents: [
         {
           amount: '0.00000001',
-          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
+          receiverAddress: account.address,
           tokenHash: gasBalance.token.hash,
           tokenDecimals: gasBalance.token.decimals,
         },
@@ -100,7 +95,6 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a nep5 asset', async () => {
-    bsNeoLegacy.setNetwork(BSNeoLegacyConstants.DEFAULT_NETWORK)
     const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
@@ -111,7 +105,7 @@ describe('BSNeoLegacy', () => {
       intents: [
         {
           amount: '0.00000001',
-          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
+          receiverAddress: account.address,
           tokenHash: LXBalance.token.hash,
           tokenDecimals: LXBalance.token.decimals,
         },
@@ -179,7 +173,7 @@ describe('BSNeoLegacy', () => {
         },
         {
           amount: '0.00000001',
-          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
+          receiverAddress: account.address,
           tokenHash: gasBalance.token.hash,
           tokenDecimals: gasBalance.token.decimals,
         },
