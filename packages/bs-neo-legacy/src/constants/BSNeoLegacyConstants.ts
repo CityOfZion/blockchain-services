@@ -67,4 +67,7 @@ export class BSNeoLegacyConstants {
   static readonly MIGRATION_MIN_GAS = 0.1
   static readonly MIGRATION_MIN_NEO = 2
   static readonly MIGRATION_COZ_NEO3_ADDRESS = 'NLMsicDapULKFDmAzTsbhwrZjYZ83j53Ty'
+
+  static MAX_TRANSACTION_SIZE_WITHOUT_FEE = 1024
+  static FEE_APPLIED_TO_PLAYABLE_TRANSACTION = 0.001
 }

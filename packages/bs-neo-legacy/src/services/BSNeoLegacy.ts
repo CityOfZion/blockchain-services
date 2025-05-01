@@ -107,6 +107,7 @@ export class BSNeoLegacy<BSName extends string = string>
 
     return {
       neonJsAccount,
+      signingCallback: api.signWithPrivateKey(neonJsAccount.privateKey),
     }
   }
 
@@ -118,6 +119,77 @@ export class BSNeoLegacy<BSName extends string = string>
     this.feeToken = tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = tokens.find(token => token.symbol === 'NEO')!
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
+  }
+
+  #hasTransactionMoreThanMaxSize(config: any) {
+    if (!config.fees || config.fees < BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION) {
+      const serializedTransaction = config.tx.serialize(true)
+      const transactionSize = serializedTransaction.length / 2
+
+      if (transactionSize > BSNeoLegacyConstants.MAX_TRANSACTION_SIZE_WITHOUT_FEE) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  async #signTransfer(config: any, nep5ScriptBuilder?: any) {
+    if (!nep5ScriptBuilder || nep5ScriptBuilder.isEmpty()) {
+      config = await api.createContractTx(config)
+    } else {
+      config.script = nep5ScriptBuilder.str
+      config = await api.createInvocationTx(config)
+    }
+    config = await api.modifyTransactionForEmptyTransaction(config)
+    config = await api.addAttributeIfExecutingAsSmartContract(config)
+    config = await api.signTx(config)
+    config = await api.addSignatureIfExecutingAsSmartContract(config)
+
+    return config
+  }
+
+  async #sendTransfer(config: any, nep5ScriptBuilder?: any) {
+    const sharedConfig = await api.fillBalance(config)
+
+    let signedConfig = await this.#signTransfer({ ...sharedConfig }, nep5ScriptBuilder)
+
+    if (this.#hasTransactionMoreThanMaxSize(signedConfig)) {
+      signedConfig = await this.#signTransfer(
+        { ...sharedConfig, fees: BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION },
+        nep5ScriptBuilder
+      )
+    }
+
+    signedConfig = await api.sendTx(signedConfig)
+
+    return signedConfig.response.txid
+  }
+
+  async #signClaim(config: any) {
+    config = await api.createClaimTx(config)
+    config = await api.addAttributeIfExecutingAsSmartContract(config)
+    config = await api.signTx(config)
+    config = await api.addSignatureIfExecutingAsSmartContract(config)
+
+    return config
+  }
+
+  async #sendClaim(config: any) {
+    const sharedConfig = await api.fillClaims(config)
+
+    let signedConfig = await this.#signClaim({ ...sharedConfig })
+
+    if (this.#hasTransactionMoreThanMaxSize(signedConfig)) {
+      signedConfig = await this.#signClaim({
+        ...sharedConfig,
+        fees: BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION,
+      })
+    }
+
+    signedConfig = await api.sendTx(signedConfig)
+
+    return signedConfig.response.txid
   }
 
   async testNetwork(network: Network<BSNeoLegacyNetworkId>) {
@@ -219,56 +291,32 @@ export class BSNeoLegacy<BSName extends string = string>
       ])
     }
 
-    let response: any
-
-    if (nep5ScriptBuilder.isEmpty()) {
-      response = await api.sendAsset({
+    const hash = await this.#sendTransfer(
+      {
         account: neonJsAccount,
         api: apiProvider,
         url: this.network.url,
-        intents: nativeIntents,
-        fees: priorityFee,
-        signingFunction: signingCallback,
-      })
-    } else {
-      response = await api.doInvoke({
         intents: nativeIntents.length > 0 ? nativeIntents : undefined,
-        account: neonJsAccount,
-        api: apiProvider,
-        script: nep5ScriptBuilder.str,
-        url: this.network.url,
-        fees: priorityFee,
         signingFunction: signingCallback,
-      })
-    }
+        fees: priorityFee,
+      },
+      nep5ScriptBuilder
+    )
 
-    if (!response.tx) throw new Error('Failed to send transaction')
-
-    return intents.map(() => response.tx!.hash)
+    return intents.map(() => hash)
   }
 
-  async claim(account: Account): Promise<string> {
-    const neoAccount = new wallet.Account(account.key)
-
-    const balances = await this.blockchainDataService.getBalance(account.address)
-    const neoBalance = balances.find(balance => balance.token.symbol === 'NEO')
-    if (!neoBalance) throw new Error('It is necessary to have NEO to claim')
-
-    const unclaimed = await this.blockchainDataService.getUnclaimed(account.address)
-    if (Number(unclaimed) <= 0) throw new Error(`Doesn't have gas to claim`)
+  async claim(account: Account<BSName>): Promise<string> {
+    const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(account)
 
     const apiProvider = new api.neoCli.instance(this.legacyNetwork)
-    const claims = await apiProvider.getClaims(account.address)
 
-    const response = await api.claimGas({
-      claims,
+    return await this.#sendClaim({
       api: apiProvider,
-      account: neoAccount,
+      account: neonJsAccount,
       url: this.network.url,
+      signingFunction: signingCallback,
     })
-
-    if (!response.tx) throw new Error('Failed to claim')
-    return response.tx.hash
   }
 
   async migrate({ account, neo3Address, neoLegacyMigrationAmounts }: MigrateParams<BSName>): Promise<string> {
@@ -300,12 +348,11 @@ export class BSNeoLegacy<BSName extends string = string>
         )
       )
 
-    const response = await api.sendAsset({
+    return await this.#sendTransfer({
       url: this.network.url,
       api: provider,
       account: neonJsAccount,
       intents,
-      fees: 0,
       signingFunction: signingCallback,
       override: {
         attributes: [
@@ -320,10 +367,6 @@ export class BSNeoLegacy<BSName extends string = string>
         ],
       },
     })
-
-    if (!response.tx) throw new Error('Migration failed on send')
-
-    return response.tx!.hash
   }
 
   /**
