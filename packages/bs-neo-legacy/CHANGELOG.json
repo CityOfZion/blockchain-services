@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.10.10",
+      "tag": "@cityofzion/bs-neo-legacy_v1.10.10",
+      "date": "Thu, 01 May 2025 16:41:46 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Adjust transfers to handle scenarios that have a transaction size beyond 1024 bytes"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.10.9",
       "tag": "@cityofzion/bs-neo-legacy_v1.10.9",
       "date": "Tue, 29 Apr 2025 20:48:08 GMT",

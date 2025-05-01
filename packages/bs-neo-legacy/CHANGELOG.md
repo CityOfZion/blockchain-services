@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Tue, 29 Apr 2025 20:48:08 GMT and should not be manually modified.
+This log was last generated on Thu, 01 May 2025 16:41:46 GMT and should not be manually modified.
+
+## 1.10.10
+Thu, 01 May 2025 16:41:46 GMT
+
+### Patches
+
+- Adjust transfers to handle scenarios that have a transaction size beyond 1024 bytes
 
 ## 1.10.9
 Tue, 29 Apr 2025 20:48:08 GMT
