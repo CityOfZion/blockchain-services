@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 29 Apr 2025 20:48:08 GMT and should not be manually modified.
+This log was last generated on Tue, 06 May 2025 15:11:09 GMT and should not be manually modified.
+
+## 2.11.0
+Tue, 06 May 2025 15:11:09 GMT
+
+### Minor changes
+
+- Create the getFullTransactionsByAddress method, use constants file and update Axios
 
 ## 2.10.0
 Tue, 29 Apr 2025 20:48:08 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.17.1",
+      "tag": "@cityofzion/blockchain-service_v1.17.1",
+      "date": "Tue, 06 May 2025 15:11:09 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Create constants file and remove unused types"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.17.0",
       "tag": "@cityofzion/blockchain-service_v1.17.0",
       "date": "Tue, 29 Apr 2025 20:48:08 GMT",

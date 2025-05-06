@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.12.0",
+      "tag": "@cityofzion/bs-neo3_v1.12.0",
+      "date": "Tue, 06 May 2025 15:11:09 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Create the getFullTransactionsByAddress method, update Axios library and use constants file"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.17.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.11.0",
       "tag": "@cityofzion/bs-neo3_v1.11.0",
       "date": "Tue, 29 Apr 2025 20:48:08 GMT",

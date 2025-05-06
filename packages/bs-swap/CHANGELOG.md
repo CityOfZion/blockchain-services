@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Tue, 29 Apr 2025 20:48:08 GMT and should not be manually modified.
+This log was last generated on Tue, 06 May 2025 15:11:09 GMT and should not be manually modified.
+
+## 0.5.18
+Tue, 06 May 2025 15:11:09 GMT
+
+### Patches
+
+- Update Axios and use constants file
 
 ## 0.5.17
 Tue, 29 Apr 2025 20:48:08 GMT

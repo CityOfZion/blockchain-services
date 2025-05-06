@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Thu, 01 May 2025 16:41:46 GMT and should not be manually modified.
+This log was last generated on Tue, 06 May 2025 15:11:09 GMT and should not be manually modified.
+
+## 1.11.0
+Tue, 06 May 2025 15:11:09 GMT
+
+### Minor changes
+
+- Create the getFullTransactionsByAddress method and add Axios library
 
 ## 1.10.10
 Thu, 01 May 2025 16:41:46 GMT

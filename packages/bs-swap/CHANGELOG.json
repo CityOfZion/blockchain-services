@@ -2,6 +2,29 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.18",
+      "tag": "@cityofzion/bs-swap_v0.5.18",
+      "date": "Tue, 06 May 2025 15:11:09 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Axios and use constants file"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.17.1`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.12.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.11.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.17",
       "tag": "@cityofzion/bs-swap_v0.5.17",
       "date": "Tue, 29 Apr 2025 20:48:08 GMT",

@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 29 Apr 2025 20:48:08 GMT and should not be manually modified.
+This log was last generated on Tue, 06 May 2025 15:11:09 GMT and should not be manually modified.
+
+## 1.17.1
+Tue, 06 May 2025 15:11:09 GMT
+
+### Patches
+
+- Create constants file and remove unused types
 
 ## 1.17.0
 Tue, 29 Apr 2025 20:48:08 GMT
