@@ -24,6 +24,11 @@ export class BSEthereumConstants {
 
   static DEFAULT_GAS_LIMIT = 0x5208
 
+  static readonly ETHEREUM_MAINNET_NETWORK_ID: BSEthereumNetworkId = '1'
+  static readonly POLYGON_MAINNET_NETWORK_ID: BSEthereumNetworkId = '137'
+  static readonly BASE_MAINNET_NETWORK_ID: BSEthereumNetworkId = '8453'
+  static readonly ARBITRUM_MAINNET_NETWORK_ID: BSEthereumNetworkId = '42161'
+
   static NATIVE_SYMBOL_BY_NETWORK_ID: Record<BSEthereumNetworkId, string> = {
     '1': 'ETH',
     '10': 'ETH',
@@ -44,14 +49,14 @@ export class BSEthereumConstants {
   }
 
   static NATIVE_WRAPPED_HASH_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
-    '1': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+    [this.ETHEREUM_MAINNET_NETWORK_ID]: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
     '10': '0x4200000000000000000000000000000000000006',
     '25': '0x5c7f8a570d578ed84e63fdfa7b1ee72deae1ae23',
     '56': '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
-    '137': '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
+    [this.POLYGON_MAINNET_NETWORK_ID]: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
     '250': '0x21be370d5312f44cb42ce377bc9b8a0cef1a4c83',
-    '8453': '0x4200000000000000000000000000000000000006',
-    '42161': '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
+    [this.BASE_MAINNET_NETWORK_ID]: '0x4200000000000000000000000000000000000006',
+    [this.ARBITRUM_MAINNET_NETWORK_ID]: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
     '42220': '0x471EcE3750Da237f93B8E339c536989b8978a438',
     '43114': '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7',
     '59144': '0xe5d7c2a44ffddf6b295a15c148167daaaf5cf34f',
@@ -164,14 +169,14 @@ export class BSEthereumConstants {
   static NEOX_NETWORKS: Network<BSEthereumNetworkId>[] = [this.NEOX_TESTNET_NETWORK, this.NEOX_MAINNET_NETWORK]
 
   static MAINNET_NETWORK_IDS: BSEthereumNetworkId[] = [
-    '1',
+    this.ETHEREUM_MAINNET_NETWORK_ID,
     '10',
     '25',
     '56',
-    '137',
+    this.POLYGON_MAINNET_NETWORK_ID,
     '250',
-    '8453',
-    '42161',
+    this.BASE_MAINNET_NETWORK_ID,
+    this.ARBITRUM_MAINNET_NETWORK_ID,
     '42220',
     '43114',
     '59144',
@@ -182,9 +187,9 @@ export class BSEthereumConstants {
 
   static MAINNET_NETWORKS: Network<BSEthereumNetworkId>[] = [
     {
-      id: '1',
+      id: this.ETHEREUM_MAINNET_NETWORK_ID,
       name: 'Ethereum Mainnet',
-      url: this.RPC_LIST_BY_NETWORK_ID['1'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID[this.ETHEREUM_MAINNET_NETWORK_ID][0],
     },
     {
       id: '10',
@@ -202,9 +207,9 @@ export class BSEthereumConstants {
       url: this.RPC_LIST_BY_NETWORK_ID['56'][0],
     },
     {
-      id: '137',
+      id: this.POLYGON_MAINNET_NETWORK_ID,
       name: 'Polygon Mainnet',
-      url: this.RPC_LIST_BY_NETWORK_ID['137'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID[this.POLYGON_MAINNET_NETWORK_ID][0],
     },
     {
       id: '250',
@@ -212,14 +217,14 @@ export class BSEthereumConstants {
       url: this.RPC_LIST_BY_NETWORK_ID['250'][0],
     },
     {
-      id: '8453',
+      id: this.BASE_MAINNET_NETWORK_ID,
       name: 'Base Protocol Mainnet',
-      url: this.RPC_LIST_BY_NETWORK_ID['8453'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID[this.BASE_MAINNET_NETWORK_ID][0],
     },
     {
-      id: '42161',
+      id: this.ARBITRUM_MAINNET_NETWORK_ID,
       name: 'Arbitrum Mainnet',
-      url: this.RPC_LIST_BY_NETWORK_ID['42161'][0],
+      url: this.RPC_LIST_BY_NETWORK_ID[this.ARBITRUM_MAINNET_NETWORK_ID][0],
     },
     {
       id: '42220',

@@ -193,7 +193,13 @@ export class BSNeoLegacy<BSName extends string = string>
   }
 
   async testNetwork(network: Network<BSNeoLegacyNetworkId>) {
-    const blockchainDataServiceClone = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken, this.tokens)
+    const blockchainDataServiceClone = new DoraBDSNeoLegacy(
+      network,
+      this.feeToken,
+      this.claimToken,
+      this.tokens,
+      this.explorerService
+    )
 
     await blockchainDataServiceClone.getBlockHeight()
   }
@@ -204,9 +210,15 @@ export class BSNeoLegacy<BSName extends string = string>
     this.#setTokens(network)
 
     this.network = network
-    this.blockchainDataService = new DoraBDSNeoLegacy(network, this.feeToken, this.claimToken, this.tokens)
-    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network)
     this.explorerService = new NeoTubeESNeoLegacy(network)
+    this.blockchainDataService = new DoraBDSNeoLegacy(
+      network,
+      this.feeToken,
+      this.claimToken,
+      this.tokens,
+      this.explorerService
+    )
+    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network)
   }
 
   validateAddress(address: string): boolean {

@@ -1,5 +1,6 @@
 import {
   Account,
+  BSCommonConstants,
   SwapServiceLoadableValue,
   SwapServiceMinMaxAmount,
   SwapServiceToken,
@@ -124,8 +125,8 @@ describe('SimpleSwapService', () => {
           hash: expect.any(String),
           imageUrl: expect.any(String),
           hasExtraId: expect.any(Boolean),
-          addressTemplateUrl: 'https://dora.coz.io/address/neo3/mainnet/{address}',
-          txTemplateUrl: 'https://dora.coz.io/transaction/neo3/mainnet/{txId}',
+          addressTemplateUrl: `${BSCommonConstants.DORA_URL}/address/neo3/mainnet/{address}`,
+          txTemplateUrl: `${BSCommonConstants.DORA_URL}/transaction/neo3/mainnet/{txId}`,
         }),
       ]),
     })

@@ -1,10 +1,12 @@
 import {
-  BDSClaimable,
   BalanceResponse,
+  BDSClaimable,
   BlockchainDataService,
   ContractMethod,
   ContractParameter,
   ContractResponse,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
   Network,
   RpcResponse,
   Token,
@@ -54,6 +56,12 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
   }
 
   async getTransactionsByAddress(_params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
+    throw new Error('Method not supported.')
+  }
+
+  async getFullTransactionsByAddress(
+    _params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
     throw new Error('Method not supported.')
   }
 
@@ -149,9 +157,8 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
         token,
       }
     })
-    const balances = await Promise.all(promises)
 
-    return balances
+    return await Promise.all(promises)
   }
 
   async getBlockHeight(): Promise<number> {

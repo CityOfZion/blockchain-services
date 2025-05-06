@@ -2,11 +2,12 @@ import { BDSClaimable, BlockchainDataService } from '@cityofzion/blockchain-serv
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
 import { DoraBDSNeoLegacy } from '../services/blockchain-data/DoraBDSNeoLegacy'
+import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
 
 const network = BSNeoLegacyConstants.TESTNET_NETWORKS[0]
 const tokens = BSNeoLegacyHelper.getTokens(network)
 const gasToken = tokens.find(t => t.symbol === 'GAS')!
-const doraBDSNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens)
+const doraBDSNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens, new NeoTubeESNeoLegacy(network))
 
 describe('BDSNeoLegacy', () => {
   it.each([doraBDSNeoLegacy])('Should be able to get transaction - %s', async (bdsNeoLegacy: BlockchainDataService) => {
@@ -120,15 +121,18 @@ describe('BDSNeoLegacy', () => {
     }
   )
 
-  it.each([doraBDSNeoLegacy])('Should be able to get a list of rpc - %s', async (bdsNeo3: BlockchainDataService) => {
-    const list = await bdsNeo3.getRpcList()
-    expect(list.length).toBeGreaterThan(0)
-    list.forEach(rpc => {
-      expect(rpc).toEqual({
-        height: expect.any(Number),
-        latency: expect.any(Number),
-        url: expect.any(String),
+  it.each([doraBDSNeoLegacy])(
+    'Should be able to get a list of rpc - %s',
+    async (bdsNeoLegacy: BlockchainDataService) => {
+      const list = await bdsNeoLegacy.getRpcList()
+      expect(list.length).toBeGreaterThan(0)
+      list.forEach(rpc => {
+        expect(rpc).toEqual({
+          height: expect.any(Number),
+          latency: expect.any(Number),
+          url: expect.any(String),
+        })
       })
-    })
-  })
+    }
+  )
 })

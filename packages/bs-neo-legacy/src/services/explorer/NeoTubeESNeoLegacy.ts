@@ -38,4 +38,14 @@ export class NeoTubeESNeoLegacy implements ExplorerService {
 
     return `${this.#BASE_URL}/transaction/{txId}`
   }
+
+  getNftTemplateUrl() {
+    return undefined
+  }
+
+  getContractTemplateUrl() {
+    if (!BSNeoLegacyHelper.isMainnet(this.#network)) return undefined
+
+    return `${this.#BASE_URL}/asset/{hash}/page/1`
+  }
 }

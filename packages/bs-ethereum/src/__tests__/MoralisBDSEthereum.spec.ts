@@ -1,7 +1,15 @@
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
+import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
+import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
 
-const moralisBDSEthereum = new MoralisBDSEthereum(BSEthereumConstants.DEFAULT_NETWORK)
+const network = BSEthereumConstants.DEFAULT_NETWORK
+
+const moralisBDSEthereum = new MoralisBDSEthereum(
+  network,
+  new GhostMarketNDSEthereum(network),
+  new BlockscoutESEthereum(network)
+)
 
 describe('MoralisBDSEthereum', () => {
   it('Should be able to get transaction - %s', async () => {

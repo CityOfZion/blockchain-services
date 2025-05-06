@@ -139,17 +139,16 @@ export class BSEthereum<BSName extends string = string>
     this.#setTokens(network)
 
     this.network = network
+    this.nftDataService = new GhostMarketNDSEthereum(network)
+    this.explorerService = new BlockscoutESEthereum(network)
 
     if (BlockscoutBDSEthereum.isNeoX(network)) {
       this.exchangeDataService = new FlamingoForthewinEDSNeox(network)
-      this.blockchainDataService = new BlockscoutBDSEthereum(network)
+      this.blockchainDataService = new BlockscoutBDSEthereum(network, this.nftDataService, this.explorerService)
     } else {
       this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)
-      this.blockchainDataService = new MoralisBDSEthereum(network)
+      this.blockchainDataService = new MoralisBDSEthereum(network, this.nftDataService, this.explorerService)
     }
-
-    this.nftDataService = new GhostMarketNDSEthereum(network)
-    this.explorerService = new BlockscoutESEthereum(network)
   }
 
   validateAddress(address: string): boolean {

@@ -2,6 +2,8 @@ import {
   BalanceResponse,
   BlockchainDataService,
   ContractResponse,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
   Network,
   RpcResponse,
   Token,
@@ -55,6 +57,12 @@ export class RpcBDSEthereum implements BlockchainDataService {
 
   async getTransactionsByAddress(_params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
     throw new Error("RPC doesn't support get transactions history of address")
+  }
+
+  async getFullTransactionsByAddress(
+    _params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
+    throw new Error('Method not supported.')
   }
 
   async getContract(_hash: string): Promise<ContractResponse> {

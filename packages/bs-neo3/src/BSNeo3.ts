@@ -151,12 +151,21 @@ export class BSNeo3<BSName extends string = string>
 
   setNetwork(network: Network<BSNeo3NetworkId>) {
     this.#setTokens(network)
-    this.network = network
 
-    this.blockchainDataService = new DoraBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
-    this.exchangeDataService = new FlamingoForthewinEDSNeo3(network)
+    this.network = network
     this.nftDataService = new GhostMarketNDSNeo3(network)
     this.explorerService = new DoraESNeo3(network)
+
+    this.blockchainDataService = new DoraBDSNeo3(
+      network,
+      this.feeToken,
+      this.claimToken,
+      this.tokens,
+      this.nftDataService,
+      this.explorerService
+    )
+
+    this.exchangeDataService = new FlamingoForthewinEDSNeo3(network)
   }
 
   validateAddress(address: string): boolean {

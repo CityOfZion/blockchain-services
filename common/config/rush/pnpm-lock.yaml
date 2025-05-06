@@ -14,8 +14,11 @@ importers:
         specifier: ~6.30.5
         version: 6.30.6
       axios:
-        specifier: 1.5.1
-        version: 1.5.1
+        specifier: 1.8.2
+        version: 1.8.2
+      date-fns:
+        specifier: ~4.1.0
+        version: 4.1.0
     devDependencies:
       '@types/node':
         specifier: ~20.2.5
@@ -103,6 +106,9 @@ importers:
       '@cityofzion/blockchain-service':
         specifier: workspace:*
         version: link:../blockchain-service
+      '@cityofzion/dora-ts':
+        specifier: 0.4.0
+        version: 0.4.0
       '@ethersproject/abstract-signer':
         specifier: ~5.7.0
         version: 5.7.0
@@ -125,8 +131,11 @@ importers:
         specifier: ~6.30.5
         version: 6.30.6
       axios:
-        specifier: 1.5.1
-        version: 1.5.1
+        specifier: 1.8.2
+        version: 1.8.2
+      date-fns:
+        specifier: ~4.1.0
+        version: 4.1.0
       ethers:
         specifier: 5.7.2
         version: 5.7.2
@@ -174,14 +183,20 @@ importers:
         specifier: workspace:*
         version: link:../bs-asteroid-sdk
       '@cityofzion/dora-ts':
-        specifier: 0.0.11
-        version: 0.0.11
+        specifier: 0.4.0
+        version: 0.4.0
       '@cityofzion/neon-js':
         specifier: 4.8.3
         version: 4.8.3
       '@ledgerhq/hw-transport':
         specifier: ~6.30.5
         version: 6.30.6
+      axios:
+        specifier: 1.8.2
+        version: 1.8.2
+      date-fns:
+        specifier: ~4.1.0
+        version: 4.1.0
     devDependencies:
       '@ledgerhq/hw-transport-node-hid':
         specifier: ~6.28.5
@@ -223,8 +238,8 @@ importers:
         specifier: workspace:*
         version: link:../bs-asteroid-sdk
       '@cityofzion/dora-ts':
-        specifier: 0.0.11
-        version: 0.0.11
+        specifier: 0.4.0
+        version: 0.4.0
       '@cityofzion/neon-core':
         specifier: 5.5.1
         version: 5.5.1
@@ -238,11 +253,14 @@ importers:
         specifier: ~6.30.5
         version: 6.30.6
       axios:
-        specifier: 1.5.1
-        version: 1.5.1
+        specifier: 1.8.2
+        version: 1.8.2
       bignumber.js:
         specifier: ^9.1.2
         version: 9.1.2
+      date-fns:
+        specifier: ~4.1.0
+        version: 4.1.0
       isomorphic-ws:
         specifier: ^5.0.0
         version: 5.0.0(ws@7.5.10)
@@ -693,10 +711,10 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@cityofzion/dora-ts@0.0.11:
-    resolution: {integrity: sha512-LJWGU29BHPTHkt0i/OwhNdMfUGM/rgAa4rqlDwBy95spxSoUHGSoAtOD5k4aSVKmLFwq77ghNna0Lpc7lEuHBA==}
+  /@cityofzion/dora-ts@0.4.0:
+    resolution: {integrity: sha512-94MtzdI3bawK5zHqV6W+QgntoDQVzsrOeHnJROodoWOaq6Fhf3Ol/aV0QTOpr5zgVZBSRrJqg1/4UV8xvngp+Q==}
     dependencies:
-      axios: 0.21.4
+      axios: 1.8.2
     transitivePeerDependencies:
       - debug
     dev: false
@@ -1570,7 +1588,7 @@ packages:
       '@ledgerhq/hw-transport-mocker': 6.29.1
       '@ledgerhq/logs': 6.12.0
       '@ledgerhq/types-live': 6.49.0
-      axios: 1.5.1
+      axios: 1.8.2
       bignumber.js: 9.1.2
     transitivePeerDependencies:
       - bufferutil
@@ -1857,7 +1875,7 @@ packages:
     resolution: {integrity: sha512-v2YWQQgqtNXAzybOT9qV3CIJqSeoaMUwmBfIMTQdvhsWUybYic/zNGccKH494naWKJ7zUm+VTgFepJfTrbCCJQ==}
     deprecated: This is a stub types definition. loglevel provides its own type definitions, so you do not need this installed.
     dependencies:
-      loglevel: 1.9.1
+      loglevel: 1.9.2
     dev: false
 
   /@types/node@15.0.3:
@@ -2303,24 +2321,6 @@ packages:
       - debug
     dev: false
 
-  /axios@0.21.4:
-    resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
-    dependencies:
-      follow-redirects: 1.15.6
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /axios@1.5.1:
-    resolution: {integrity: sha512-Q28iYCWzNHjAm+yEAot5QaAMxhMghWLFVf7rRdwhUI+c2jix2DUXjAHXVi+s1ibs3mjPO/cCgbA++3BjD0vP/A==}
-    dependencies:
-      follow-redirects: 1.15.6
-      form-data: 4.0.0
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /axios@1.8.2:
     resolution: {integrity: sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==}
     dependencies:
@@ -2537,7 +2537,7 @@ packages:
       browserify-rsa: 4.1.0
       create-hash: 1.2.0
       create-hmac: 1.1.7
-      elliptic: 6.5.5
+      elliptic: 6.6.1
       hash-base: 3.0.4
       inherits: 2.0.4
       parse-asn1: 5.1.7
@@ -2767,7 +2767,7 @@ packages:
     resolution: {integrity: sha512-mf+TCx8wWc9VpuxfP2ht0iSISLZnt0JgWlrOKZiNqyUZWnjIaCIVNQArMHnCZKfEYRg6IM7A+NeJoN8gf/Ws0A==}
     dependencies:
       bn.js: 4.12.0
-      elliptic: 6.5.5
+      elliptic: 6.6.1
     dev: false
 
   /create-hash@1.2.0:
@@ -2862,6 +2862,10 @@ packages:
   /crypto@1.0.1:
     resolution: {integrity: sha512-VxBKmeNcqQdiUQUW2Tzq0t377b54N2bMtXO/qiLa+6eRRmmC4qT3D4OnTGoT/U6O9aklQ/jTwbOtRMTTY8G0Ig==}
     deprecated: This package is no longer supported. It's now a built-in Node module. If you've depended on crypto, you should switch to the one that's built-in.
+    dev: false
+
+  /date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
     dev: false
 
   /debug@3.1.0:
@@ -3044,6 +3048,18 @@ packages:
 
   /elliptic@6.5.5:
     resolution: {integrity: sha512-7EjbcmUm17NQFu4Pmgmq2olYMj8nwMnpcddByChSUjArp8F5DQWcIcpriwO4ZToLNAJig0yiyjswfyGNje/ixw==}
+    dependencies:
+      bn.js: 4.12.0
+      brorand: 1.1.0
+      hash.js: 1.1.7
+      hmac-drbg: 1.0.1
+      inherits: 2.0.4
+      minimalistic-assert: 1.0.1
+      minimalistic-crypto-utils: 1.0.1
+    dev: false
+
+  /elliptic@6.6.1:
+    resolution: {integrity: sha512-RaddvvMatK2LJHqFJ+YA4WysVN5Ita9E35botqIYspQ4TkRAlCicdzKOjlyv/1Za5RyTNn7di//eEV0uTAfe3g==}
     dependencies:
       bn.js: 4.12.0
       brorand: 1.1.0
@@ -4506,8 +4522,8 @@ packages:
     engines: {node: '>= 0.6.0'}
     dev: false
 
-  /loglevel@1.9.1:
-    resolution: {integrity: sha512-hP3I3kCrDIMuRwAwHltphhDM1r8i55H33GgqjXbrisuJhF4kRhW1dNuxsRklp4bXl8DSdLaNLuiL4A/LWRfxvg==}
+  /loglevel@1.9.2:
+    resolution: {integrity: sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==}
     engines: {node: '>= 0.6.0'}
     dev: false
 
@@ -4725,7 +4741,7 @@ packages:
       '@types/lodash': 4.17.12
       '@types/loglevel': 1.6.3
       lodash: 4.17.21
-      loglevel: 1.9.1
+      loglevel: 1.9.2
       moment: 2.30.1
     dev: false
 

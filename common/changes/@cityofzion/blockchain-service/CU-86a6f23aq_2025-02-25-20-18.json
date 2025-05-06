@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Create constants file and remove unused types",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

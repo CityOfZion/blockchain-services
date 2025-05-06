@@ -53,4 +53,32 @@ describe('NeoTubeESNeoLegacy', () => {
 
     expect(templateUrl).toBe('https://neo2.neotube.io/transaction/{txId}')
   })
+
+  it('Should return undefined when call the getNftTemplateUrl method with an invalid network', () => {
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK)
+
+    const templateUrl = neoTubeESNeoLegacy.getNftTemplateUrl()
+
+    expect(templateUrl).toBe(undefined)
+  })
+
+  it('Should return undefined when call the getContractTemplateUrl method with an invalid network', () => {
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK)
+
+    const templateUrl = neoTubeESNeoLegacy.getContractTemplateUrl()
+
+    expect(templateUrl).toBe(undefined)
+  })
+
+  it('Should return undefined when call the getContractTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = neoTubeESNeoLegacy.getNftTemplateUrl()
+
+    expect(templateUrl).toBe(undefined)
+  })
+
+  it('Should return a transaction template URL (Mainnet) when call the getContractTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = neoTubeESNeoLegacy.getContractTemplateUrl()
+
+    expect(templateUrl).toBe('https://neo2.neotube.io/asset/{hash}/page/1')
+  })
 })

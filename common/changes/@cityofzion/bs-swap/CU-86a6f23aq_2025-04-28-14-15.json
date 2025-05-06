@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "comment": "Update Axios and use constants file",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-swap"
+}

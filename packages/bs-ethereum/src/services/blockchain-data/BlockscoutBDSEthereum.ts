@@ -1,8 +1,13 @@
 import {
   BalanceResponse,
+  BSCommonConstants,
   ContractMethod,
   ContractResponse,
+  ExplorerService,
+  FullTransactionsByAddressParams,
+  FullTransactionsByAddressResponse,
   Network,
+  NftDataService,
   Token,
   TransactionResponse,
   TransactionsByAddressParams,
@@ -11,11 +16,12 @@ import {
   TransactionTransferNft,
 } from '@cityofzion/blockchain-service'
 import axios from 'axios'
-import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { ethers } from 'ethers'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
+import { api } from '@cityofzion/dora-ts'
+import { DoraBDSEthereum } from './DoraBDSEthereum'
 
 interface BlockscoutTransactionResponse {
   fee: {
@@ -93,9 +99,9 @@ interface BlockscoutSmartContractResponse {
   abi: typeof ERC20_ABI
 }
 
-export class BlockscoutBDSEthereum extends RpcBDSEthereum {
+export class BlockscoutBDSEthereum extends DoraBDSEthereum {
   static BASE_URL_BY_CHAIN_ID: Partial<Record<BSEthereumNetworkId, string>> = {
-    [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: 'https://dora.coz.io/api/neox/mainnet',
+    [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: `${BSCommonConstants.DORA_URL}/api/neox/mainnet`,
     [BSEthereumConstants.NEOX_TESTNET_NETWORK_ID]: 'https://dora-stage.coz.io/api/neox/testnet',
   }
 
@@ -115,8 +121,13 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
     })
   }
 
-  constructor(network: Network<BSEthereumNetworkId>) {
-    super(network)
+  constructor(network: Network<BSEthereumNetworkId>, nftDataService: NftDataService, explorerService: ExplorerService) {
+    super(
+      network,
+      [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID, BSEthereumConstants.NEOX_TESTNET_NETWORK_ID],
+      nftDataService,
+      explorerService
+    )
   }
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
@@ -275,6 +286,22 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
     }
   }
 
+  async getFullTransactionsByAddress(
+    params: FullTransactionsByAddressParams
+  ): Promise<FullTransactionsByAddressResponse> {
+    this.validateFullTransactionsByAddressParams(params)
+
+    const response = await api.NeoXREST.getFullTransactionsByAddress({
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      network: this._network.id === BSEthereumConstants.NEOX_TESTNET_NETWORK_ID ? 'testnet' : 'mainnet',
+      cursor: params.nextCursor,
+    })
+
+    return await this.transformFullTransactionsByAddressResponse(response)
+  }
+
   async getContract(contractHash: string): Promise<ContractResponse> {
     if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
       return super.getContract(contractHash)
@@ -362,6 +389,7 @@ export class BlockscoutBDSEthereum extends RpcBDSEthereum {
     }
 
     const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+
     const balances: BalanceResponse[] = [
       {
         amount: ethers.utils.formatUnits(nativeBalance.coin_balance, nativeToken.decimals),

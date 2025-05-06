@@ -6,6 +6,7 @@ export * from './constants/BSEthereumConstants'
 
 export * from './services/blockchain-data/BlockscoutBDSEthereum'
 export * from './services/blockchain-data/MoralisBDSEthereum'
+export * from './services/blockchain-data/DoraBDSEthereum'
 export * from './services/blockchain-data/RpcBDSEthereum'
 
 export * from './services/exchange-data/FlamingoForthewinEDSNeox'

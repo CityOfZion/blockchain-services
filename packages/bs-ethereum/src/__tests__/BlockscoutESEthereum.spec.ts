@@ -37,4 +37,32 @@ describe('BlockscoutESEthereum', () => {
 
     expect(templateUrl).toBe('https://eth.blockscout.com/tx/{txId}')
   })
+
+  it('Should return undefined when call the getNftTemplateUrl method with an invalid network', () => {
+    blockscoutESEthereum = new BlockscoutESEthereum(INVALID_NETWORK)
+
+    const templateUrl = blockscoutESEthereum.getNftTemplateUrl()
+
+    expect(templateUrl).toBe(undefined)
+  })
+
+  it('Should return undefined when call the getContractTemplateUrl method with an invalid network', () => {
+    blockscoutESEthereum = new BlockscoutESEthereum(INVALID_NETWORK)
+
+    const templateUrl = blockscoutESEthereum.getContractTemplateUrl()
+
+    expect(templateUrl).toBe(undefined)
+  })
+
+  it('Should return an address template URL (Mainnet) when call the getNftTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = blockscoutESEthereum.getNftTemplateUrl()
+
+    expect(templateUrl).toBe('https://eth.blockscout.com/token/{hash}/instance/{tokenId}')
+  })
+
+  it('Should return a transaction template URL (Mainnet) when call the getContractTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = blockscoutESEthereum.getContractTemplateUrl()
+
+    expect(templateUrl).toBe('https://eth.blockscout.com/address/{hash}')
+  })
 })

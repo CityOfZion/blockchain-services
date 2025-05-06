@@ -3,6 +3,8 @@ import { MoralisEDSEthereum } from '../services/exchange-data/MoralisEDSEthereum
 import { BSEthereumConstants, BSEthereumNetworkId } from '../constants/BSEthereumConstants'
 import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
+import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
+import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
 
 let moralisEDSEthereum: MoralisEDSEthereum
 let network: Network<BSEthereumNetworkId>
@@ -10,7 +12,11 @@ let network: Network<BSEthereumNetworkId>
 describe('MoralisEDSEthereum', () => {
   beforeAll(() => {
     network = BSEthereumConstants.DEFAULT_NETWORK
-    const moralisBDSEthereum = new MoralisBDSEthereum(network)
+
+    const nftDataService = new GhostMarketNDSEthereum(network)
+    const explorerService = new BlockscoutESEthereum(network)
+    const moralisBDSEthereum = new MoralisBDSEthereum(network, nftDataService, explorerService)
+
     moralisEDSEthereum = new MoralisEDSEthereum(network, moralisBDSEthereum)
   })
 
