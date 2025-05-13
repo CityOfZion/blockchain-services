@@ -205,8 +205,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
         const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
 
-        if (!from) from = 'Burn'
-        if (!to) to = 'Mint'
+        if (!from) from = 'Mint'
+        if (!to) to = 'Burn'
 
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isNft = this.#supportedNep11Standards.includes(standard) && !!tokenId

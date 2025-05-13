@@ -178,7 +178,7 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
     it('Should be able to get transactions when send the nextCursor param', async () => {
       const newParams = {
         ...params,
-        dateFrom: new Date('2025-04-23T12:00:00').toJSON(),
+        dateFrom: new Date('2025-04-24T08:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       }
 
