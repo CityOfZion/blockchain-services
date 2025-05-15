@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Tue, 06 May 2025 15:11:09 GMT and should not be manually modified.
+This log was last generated on Thu, 15 May 2025 12:48:12 GMT and should not be manually modified.
+
+## 1.12.1
+Thu, 15 May 2025 12:48:12 GMT
+
+### Patches
+
+- Revert position between Mint and Burn
 
 ## 1.12.0
 Tue, 06 May 2025 15:11:09 GMT

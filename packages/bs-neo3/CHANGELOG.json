@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.12.1",
+      "tag": "@cityofzion/bs-neo3_v1.12.1",
+      "date": "Thu, 15 May 2025 12:48:12 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Revert position between Mint and Burn"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.12.0",
       "tag": "@cityofzion/bs-neo3_v1.12.0",
       "date": "Tue, 06 May 2025 15:11:09 GMT",

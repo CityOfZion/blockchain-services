@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.11.1",
+      "tag": "@cityofzion/bs-neo-legacy_v1.11.1",
+      "date": "Thu, 15 May 2025 12:48:12 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Revert position between Mint and Burn"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.11.0",
       "tag": "@cityofzion/bs-neo-legacy_v1.11.0",
       "date": "Tue, 06 May 2025 15:11:09 GMT",
