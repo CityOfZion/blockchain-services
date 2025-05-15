@@ -106,7 +106,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
             const token = await this.getTokenInfo(contractHash)
             const [, , { value: amount }] = properties
             return {
-              amount: formatNumber(amount, token.decimals),
+              amount: amount ? u.BigInteger.fromNumber(amount).toDecimal(token.decimals ?? 0) : '0',
               from: convertedFrom,
               to: convertedTo,
               contractHash,
