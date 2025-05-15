@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Thu, 15 May 2025 12:48:12 GMT and should not be manually modified.
+This log was last generated on Thu, 15 May 2025 16:10:56 GMT and should not be manually modified.
+
+## 1.12.2
+Thu, 15 May 2025 16:10:56 GMT
+
+### Patches
+
+- Use toDecimal in amount of getTransactionsByAddress
 
 ## 1.12.1
 Thu, 15 May 2025 12:48:12 GMT

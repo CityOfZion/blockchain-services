@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.12.2",
+      "tag": "@cityofzion/bs-neo3_v1.12.2",
+      "date": "Thu, 15 May 2025 16:10:56 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Use toDecimal in amount of getTransactionsByAddress"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.12.1",
       "tag": "@cityofzion/bs-neo3_v1.12.1",
       "date": "Thu, 15 May 2025 12:48:12 GMT",
