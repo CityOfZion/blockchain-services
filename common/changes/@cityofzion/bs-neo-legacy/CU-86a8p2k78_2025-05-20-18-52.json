@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Create the exportFullTransactionsByAddress method",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

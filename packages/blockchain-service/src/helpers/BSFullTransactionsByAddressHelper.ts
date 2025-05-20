@@ -2,7 +2,7 @@ import { FullTransactionsByAddressParams } from '../interfaces'
 import { differenceInYears, isAfter, isFuture, isValid, parseISO } from 'date-fns'
 
 export class BSFullTransactionsByAddressHelper {
-  static validateFullTransactionsByAddressParams(params: FullTransactionsByAddressParams) {
+  static validateFullTransactionsByAddressParams(params: Omit<FullTransactionsByAddressParams, 'nextCursor'>) {
     if (!params.dateFrom) throw new Error('Missing dateFrom param')
     if (!params.dateTo) throw new Error('Missing dateTo param')
 

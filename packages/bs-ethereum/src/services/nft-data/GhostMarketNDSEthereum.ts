@@ -1,4 +1,11 @@
-import { NftResponse, NftsResponse, GetNftParam, GetNftsByAddressParams, Network } from '@cityofzion/blockchain-service'
+import {
+  NftResponse,
+  NftsResponse,
+  GetNftParam,
+  GetNftsByAddressParams,
+  Network,
+  NetworkId,
+} from '@cityofzion/blockchain-service'
 import qs from 'query-string'
 import axios from 'axios'
 
@@ -41,22 +48,24 @@ type GhostMarketAssets = {
   next: string
 }
 
-export class GhostMarketNDSEthereum extends RpcNDSEthereum {
-  static readonly BASE_URL = 'https://api.ghostmarket.io/api/v2'
-  static CONFIG_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
-    [BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID]: 'eth',
-    '56': 'bsc',
-    [BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID]: 'polygon',
-    '43114': 'avalanche',
-    [BSEthereumConstants.BASE_MAINNET_NETWORK_ID]: 'base',
-    [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: 'neox',
-  }
+const BASE_URL = 'https://api.ghostmarket.io/api/v2'
 
-  #network: Network<BSEthereumNetworkId>
+const GHOSTMARKET_CHAIN_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
+  [BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID]: 'eth',
+  '56': 'bsc',
+  [BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID]: 'polygon',
+  '43114': 'avalanche',
+  [BSEthereumConstants.BASE_MAINNET_NETWORK_ID]: 'base',
+}
+export class GhostMarketNDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId> extends RpcNDSEthereum {
+  #network: Network<BSNetworkId>
+  #ghostMarketChainByNetworkId: Partial<Record<BSNetworkId, string>>
 
-  constructor(network: Network<BSEthereumNetworkId>) {
+  constructor(network: Network<BSNetworkId>, ghostMarketChainByNetworkId?: Partial<Record<BSNetworkId, string>>) {
     super(network)
+
     this.#network = network
+    this.#ghostMarketChainByNetworkId = ghostMarketChainByNetworkId ?? GHOSTMARKET_CHAIN_BY_NETWORK_ID
   }
 
   async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
@@ -98,8 +107,7 @@ export class GhostMarketNDSEthereum extends RpcNDSEthereum {
   }
 
   private getUrlWithParams(params: any) {
-    const chain = GhostMarketNDSEthereum.CONFIG_BY_NETWORK_ID[this.#network.id]
-
+    const chain = this.#ghostMarketChainByNetworkId[this.#network.id as BSNetworkId]
     if (!chain) throw new Error('Unsupported network')
 
     const parameters = qs.stringify(
@@ -111,7 +119,7 @@ export class GhostMarketNDSEthereum extends RpcNDSEthereum {
       { arrayFormat: 'bracket' }
     )
 
-    return `${GhostMarketNDSEthereum.BASE_URL}/assets?${parameters}`
+    return `${BASE_URL}/assets?${parameters}`
   }
 
   private parse(data: GhostMarketNFT) {

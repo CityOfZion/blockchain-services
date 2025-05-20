@@ -6,39 +6,39 @@ import { isLeapYear } from 'date-fns'
 import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
 
 describe('BDSNeoLegacyFullTransactionsByAddress', () => {
+  const address = 'AFnH8Cv7qzuxWZdeLqK9QqTrfPWCq5f8A3'
+  let dateFrom: Date
+  let dateTo: Date
+  let params: FullTransactionsByAddressParams
+  let bdsNeoLegacy: DoraBDSNeoLegacy
+
+  const initBDSNeoLegacy = (network: Network) => {
+    const tokens = BSNeoLegacyHelper.getTokens(network)
+    const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')!
+    const explorerService = new NeoTubeESNeoLegacy(network) as jest.Mocked<NeoTubeESNeoLegacy>
+
+    explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
+    explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
+    explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
+    explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
+
+    bdsNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens, explorerService)
+  }
+
+  beforeEach(() => {
+    dateFrom = new Date()
+    dateTo = new Date()
+
+    dateFrom.setFullYear(dateFrom.getFullYear() - 1)
+
+    if (isLeapYear(dateFrom)) dateFrom.setDate(dateFrom.getDate() + 1)
+
+    params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
+
+    initBDSNeoLegacy(BSNeoLegacyConstants.MAINNET_NETWORKS[0])
+  })
+
   describe('getFullTransactionsByAddress', () => {
-    const address = 'AFnH8Cv7qzuxWZdeLqK9QqTrfPWCq5f8A3'
-    let dateFrom: Date
-    let dateTo: Date
-    let params: FullTransactionsByAddressParams
-    let bdsNeoLegacy: DoraBDSNeoLegacy
-
-    const initBDSNeoLegacy = (network: Network) => {
-      const tokens = BSNeoLegacyHelper.getTokens(network)
-      const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')!
-      const explorerService = new NeoTubeESNeoLegacy(network) as jest.Mocked<NeoTubeESNeoLegacy>
-
-      explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
-      explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
-      explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
-      explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
-
-      bdsNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens, explorerService)
-    }
-
-    beforeEach(() => {
-      dateFrom = new Date()
-      dateTo = new Date()
-
-      dateFrom.setFullYear(dateFrom.getFullYear() - 1)
-
-      if (isLeapYear(dateFrom)) dateFrom.setDate(dateFrom.getDate() + 1)
-
-      params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
-
-      initBDSNeoLegacy(BSNeoLegacyConstants.MAINNET_NETWORKS[0])
-    })
-
     it("Shouldn't be able to get transactions when is using a different network (Testnet or Custom) from Mainnet", async () => {
       initBDSNeoLegacy(BSNeoLegacyConstants.TESTNET_NETWORKS[0])
 
@@ -179,10 +179,11 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
       const newParams = {
         ...params,
         dateFrom: new Date('2025-04-24T08:00:00').toJSON(),
-        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        dateTo: new Date('2025-04-30T12:00:00').toJSON(),
       }
 
       const response = await bdsNeoLegacy.getFullTransactionsByAddress(newParams)
+
       const nextResponse = await bdsNeoLegacy.getFullTransactionsByAddress({
         ...newParams,
         nextCursor: response.nextCursor,
@@ -190,8 +191,20 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
-      expect(nextResponse.nextCursor).toBeFalsy()
+      expect(nextResponse.nextCursor).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     }, 60000)
+  })
+
+  describe('exportFullTransactionsByAddress', () => {
+    it('Should be able to export transactions when is using a Mainnet network', async () => {
+      const response = await bdsNeoLegacy.exportFullTransactionsByAddress({
+        ...params,
+        dateFrom: new Date('2025-04-24T12:00:00').toJSON(),
+        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+      })
+
+      expect(response.length).toBeGreaterThan(0)
+    }, 30000)
   })
 })

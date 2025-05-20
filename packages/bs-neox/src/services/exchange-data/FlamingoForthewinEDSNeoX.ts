@@ -6,21 +6,19 @@ import {
   Network,
   TokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
-import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
-import { BlockscoutBDSEthereum } from '../blockchain-data/BlockscoutBDSEthereum'
+import { BSNeoXConstants, BSNeoXNetworkId } from '../../constants/BSNeoXConstants'
 
-export class FlamingoForthewinEDSNeox extends FlamingoForthewinEDS implements ExchangeDataService {
-  readonly #network: Network<BSEthereumNetworkId>
+export class FlamingoForthewinEDSNeoX extends FlamingoForthewinEDS implements ExchangeDataService {
+  readonly #network: Network<BSNeoXNetworkId>
 
-  constructor(network: Network) {
+  constructor(network: Network<BSNeoXNetworkId>) {
     super()
 
     this.#network = network
   }
 
   async getTokenPrices({ tokens }: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
-    this.#validateNeoXMainnetNetwork()
+    this.#validate()
 
     const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')
     const neoToken = tokens.find(({ symbol }) => symbol === 'NEO')
@@ -33,7 +31,7 @@ export class FlamingoForthewinEDSNeox extends FlamingoForthewinEDS implements Ex
   }
 
   async getTokenPriceHistory(params: GetTokenPriceHistoryParams) {
-    this.#validateNeoXMainnetNetwork()
+    this.#validate()
 
     const { symbol } = params.token
 
@@ -42,8 +40,8 @@ export class FlamingoForthewinEDSNeox extends FlamingoForthewinEDS implements Ex
     return await super.getTokenPriceHistory(params)
   }
 
-  #validateNeoXMainnetNetwork() {
-    if (!BlockscoutBDSEthereum.isNeoX(this.#network) || !BSEthereumHelper.isMainnet(this.#network))
+  async #validate() {
+    if (!BSNeoXConstants.MAINNET_NETWORK_IDS.includes(this.#network.id))
       throw new Error('Exchange is only available on Neo X Mainnet')
   }
 }

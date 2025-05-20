@@ -14,6 +14,7 @@ import {
   FullTransactionsByAddressResponse,
   NftDataService,
   ExplorerService,
+  ExportTransactionsByAddressParams,
 } from '@cityofzion/blockchain-service'
 import axios from 'axios'
 import { ethers } from 'ethers'
@@ -397,7 +398,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
   async getFullTransactionsByAddress(
     params: FullTransactionsByAddressParams
   ): Promise<FullTransactionsByAddressResponse> {
-    this.validateFullTransactionsByAddressParams(params)
+    this._validateFullTransactionsByAddressParams(params)
 
     const response = await api.EthereumREST.getFullTransactionsByAddress({
       address: params.address,
@@ -407,7 +408,18 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
       cursor: params.nextCursor,
     })
 
-    return await this.transformFullTransactionsByAddressResponse(response)
+    return await this._transformFullTransactionsByAddressResponse(response)
+  }
+
+  async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
+    this._validateFullTransactionsByAddressParams(params)
+
+    return await api.EthereumREST.exportFullTransactionsByAddress({
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      network: this._network.id,
+    })
   }
 
   async getContract(hash: string): Promise<ContractResponse> {

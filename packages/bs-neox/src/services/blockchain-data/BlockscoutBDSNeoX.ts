@@ -4,10 +4,12 @@ import {
   ContractMethod,
   ContractResponse,
   ExplorerService,
+  ExportTransactionsByAddressParams,
   FullTransactionsByAddressParams,
   FullTransactionsByAddressResponse,
   Network,
   NftDataService,
+  normalizeHash,
   Token,
   TransactionResponse,
   TransactionsByAddressParams,
@@ -17,11 +19,9 @@ import {
 } from '@cityofzion/blockchain-service'
 import axios from 'axios'
 import { ethers } from 'ethers'
-import { ERC20_ABI } from '../../assets/abis/ERC20'
-import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
-import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { api } from '@cityofzion/dora-ts'
-import { DoraBDSEthereum } from './DoraBDSEthereum'
+import { BSEthereumConstants, DoraBDSEthereum, ERC20_ABI } from '@cityofzion/bs-ethereum'
+import { BSNeoXConstants, BSNeoXNetworkId } from '../../constants/BSNeoXConstants'
 
 interface BlockscoutTransactionResponse {
   fee: {
@@ -99,18 +99,14 @@ interface BlockscoutSmartContractResponse {
   abi: typeof ERC20_ABI
 }
 
-export class BlockscoutBDSEthereum extends DoraBDSEthereum {
-  static BASE_URL_BY_CHAIN_ID: Partial<Record<BSEthereumNetworkId, string>> = {
-    [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID]: `${BSCommonConstants.DORA_URL}/api/neox/mainnet`,
-    [BSEthereumConstants.NEOX_TESTNET_NETWORK_ID]: 'https://dora-stage.coz.io/api/neox/testnet',
+export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
+  static BASE_URL_BY_CHAIN_ID: Partial<Record<BSNeoXNetworkId, string>> = {
+    '47763': `${BSCommonConstants.DORA_URL}/api/neox/mainnet`,
+    '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
   }
 
-  static isNeoX(network: Network<BSEthereumNetworkId>) {
-    return BSEthereumConstants.NEOX_NETWORK_IDS.includes(network.id)
-  }
-
-  static getClient(network: Network<BSEthereumNetworkId>) {
-    const baseURL = BlockscoutBDSEthereum.BASE_URL_BY_CHAIN_ID[network.id]
+  static getClient(network: Network<BSNeoXNetworkId>) {
+    const baseURL = BlockscoutBDSNeoX.BASE_URL_BY_CHAIN_ID[network.id]
 
     if (!baseURL) {
       throw new Error('Unsupported network')
@@ -121,30 +117,21 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
     })
   }
 
-  constructor(network: Network<BSEthereumNetworkId>, nftDataService: NftDataService, explorerService: ExplorerService) {
-    super(
-      network,
-      [BSEthereumConstants.NEOX_MAINNET_NETWORK_ID, BSEthereumConstants.NEOX_TESTNET_NETWORK_ID],
-      nftDataService,
-      explorerService
-    )
+  constructor(network: Network<BSNeoXNetworkId>, nftDataService: NftDataService, explorerService: ExplorerService) {
+    super(network, BSNeoXConstants.ALL_NETWORK_IDS, nftDataService, explorerService)
   }
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
   async getTransaction(txid: string): Promise<TransactionResponse> {
-    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
-      return super.getTransaction(txid)
-    }
-
-    const client = BlockscoutBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSNeoX.getClient(this._network)
     const { data } = await client.get<BlockscoutTransactionResponse>(`/transactions/${txid}`)
 
     if (!data || 'message' in data) {
       throw new Error('Transaction not found')
     }
 
-    const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+    const nativeToken = BSNeoXConstants.NATIVE_ASSET
 
     const transfers: (TransactionTransferAsset | TransactionTransferNft)[] = []
 
@@ -204,11 +191,7 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
   }
 
   async getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
-      return super.getTransactionsByAddress(params)
-    }
-
-    const client = BlockscoutBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSNeoX.getClient(this._network)
     const { data } = await client.get<BlockscoutTransactionByAddressResponse>(
       `/addresses/${params.address}/transactions`,
       {
@@ -222,7 +205,7 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
       throw new Error('Transactions not found')
     }
 
-    const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+    const nativeToken = BSNeoXConstants.NATIVE_ASSET
 
     const transactions: TransactionResponse[] = []
 
@@ -289,26 +272,33 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
   async getFullTransactionsByAddress(
     params: FullTransactionsByAddressParams
   ): Promise<FullTransactionsByAddressResponse> {
-    this.validateFullTransactionsByAddressParams(params)
+    this._validateFullTransactionsByAddressParams(params)
 
     const response = await api.NeoXREST.getFullTransactionsByAddress({
       address: params.address,
       timestampFrom: params.dateFrom,
       timestampTo: params.dateTo,
-      network: this._network.id === BSEthereumConstants.NEOX_TESTNET_NETWORK_ID ? 'testnet' : 'mainnet',
+      network: BSNeoXConstants.TESTNET_NETWORK_IDS.includes(this._network.id) ? 'testnet' : 'mainnet',
       cursor: params.nextCursor,
     })
 
-    return await this.transformFullTransactionsByAddressResponse(response)
+    return await this._transformFullTransactionsByAddressResponse(response)
+  }
+
+  async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
+    this._validateFullTransactionsByAddressParams(params)
+
+    return await api.NeoXREST.exportFullTransactionsByAddress({
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      network: BSNeoXConstants.TESTNET_NETWORK_IDS.includes(this._network.id) ? 'testnet' : 'mainnet',
+    })
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
-    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
-      return super.getContract(contractHash)
-    }
-
     try {
-      const client = BlockscoutBDSEthereum.getClient(this._network)
+      const client = BlockscoutBDSNeoX.getClient(this._network)
 
       const { data } = await client.get<BlockscoutSmartContractResponse>(`/smart-contracts/${contractHash}`)
 
@@ -343,13 +333,10 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
-      return super.getTokenInfo(tokenHash)
-    }
+    const normalizedHash = normalizeHash(tokenHash)
+    const nativeAsset = BSNeoXConstants.NATIVE_ASSET
 
-    const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
-
-    if (BSEthereumHelper.normalizeHash(nativeAsset.hash) === BSEthereumHelper.normalizeHash(tokenHash)) {
+    if (nativeAsset.hash === normalizedHash) {
       return nativeAsset
     }
 
@@ -357,7 +344,7 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
       return this._tokenCache.get(tokenHash)!
     }
 
-    const client = BlockscoutBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSNeoX.getClient(this._network)
 
     const { data } = await client.get<BlockscoutTokensResponse>(`/tokens/${tokenHash}`)
     if (!data || 'message' in data) {
@@ -377,18 +364,14 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
-      return super.getBalance(address)
-    }
-
-    const client = BlockscoutBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSNeoX.getClient(this._network)
 
     const { data: nativeBalance } = await client.get<{ coin_balance: string }>(`/addresses/${address}`)
     if (!nativeBalance || 'message' in nativeBalance) {
       throw new Error('Native balance not found')
     }
 
-    const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+    const nativeToken = BSNeoXConstants.NATIVE_ASSET
 
     const balances: BalanceResponse[] = [
       {
@@ -412,7 +395,7 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
 
         const token: Token = {
           decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
-          hash: balance.token.address,
+          hash: normalizeHash(balance.token.address),
           name: balance.token.symbol,
           symbol: balance.token.symbol,
         }
@@ -430,11 +413,7 @@ export class BlockscoutBDSEthereum extends DoraBDSEthereum {
   }
 
   async getBlockHeight(): Promise<number> {
-    if (!BlockscoutBDSEthereum.isNeoX(this._network)) {
-      return super.getBlockHeight()
-    }
-
-    const client = BlockscoutBDSEthereum.getClient(this._network)
+    const client = BlockscoutBDSNeoX.getClient(this._network)
 
     const { data } = await client.get<BlockscoutBlocksResponse>('/blocks')
     if (!data || 'message' in data) {

@@ -192,6 +192,7 @@ export class EthersLedgerServiceEthereum<BSName extends string = string> impleme
       type: 'publicKey',
       bip44Path,
       blockchain: this.#blockchainService.name,
+      isHardware: true,
     }
   }
 

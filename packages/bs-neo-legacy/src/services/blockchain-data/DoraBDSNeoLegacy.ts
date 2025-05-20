@@ -6,6 +6,7 @@ import {
   BSPromisesHelper,
   ContractResponse,
   ExplorerService,
+  ExportTransactionsByAddressParams,
   formatNumber,
   FullTransactionAssetEvent,
   FullTransactionsByAddressParams,
@@ -190,6 +191,17 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     await Promise.allSettled(itemPromises)
 
     return { nextCursor, data }
+  }
+
+  async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
+    this.#validateFullTransactionsByAddressParams(params)
+
+    return await api.NeoLegacyREST.exportFullTransactionsByAddress({
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      network: 'mainnet',
+    })
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {

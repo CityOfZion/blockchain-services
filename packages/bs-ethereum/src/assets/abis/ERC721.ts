@@ -1,4 +1,4 @@
-export const ERC271_ABI = [
+export const ERC721_ABI = [
   {
     anonymous: false,
     inputs: [

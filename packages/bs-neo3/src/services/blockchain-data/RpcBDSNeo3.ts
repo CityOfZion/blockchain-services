@@ -5,6 +5,7 @@ import {
   ContractMethod,
   ContractParameter,
   ContractResponse,
+  ExportTransactionsByAddressParams,
   FullTransactionsByAddressParams,
   FullTransactionsByAddressResponse,
   Network,
@@ -63,6 +64,10 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
     _params: FullTransactionsByAddressParams
   ): Promise<FullTransactionsByAddressResponse> {
     throw new Error('Method not supported.')
+  }
+
+  async exportFullTransactionsByAddress(_params: ExportTransactionsByAddressParams): Promise<string> {
+    throw new Error('Method not implemented.')
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {

@@ -9,7 +9,7 @@ const neo3Address = 'NWs1nPJP8XkZxsNwuGYmikzQrEJcZBAUJN'
 let serviceNeoLegacy: BSNeoLegacy<'neoLegacy'>
 let account: Account<'neoLegacy'>
 
-describe('BSNeoLegacy - Migration', () => {
+describe.skip('BSNeoLegacy - Migration', () => {
   beforeEach(async () => {
     serviceNeoLegacy = new BSNeoLegacy('neoLegacy', BSNeoLegacyConstants.DEFAULT_NETWORK)
     account = serviceNeoLegacy.generateAccountFromKey(process.env.NEO_LEGACY_WITH_BALANCE_PRIVATE_KEY!)

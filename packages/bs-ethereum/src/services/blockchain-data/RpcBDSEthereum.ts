@@ -2,9 +2,11 @@ import {
   BalanceResponse,
   BlockchainDataService,
   ContractResponse,
+  ExportTransactionsByAddressParams,
   FullTransactionsByAddressParams,
   FullTransactionsByAddressResponse,
   Network,
+  NetworkId,
   RpcResponse,
   Token,
   TransactionResponse,
@@ -16,13 +18,13 @@ import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 
-export class RpcBDSEthereum implements BlockchainDataService {
-  _network: Network<BSEthereumNetworkId>
+export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId> implements BlockchainDataService {
+  _network: Network<BSNetworkId>
   _tokenCache: Map<string, Token> = new Map()
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
-  constructor(network: Network<BSEthereumNetworkId>) {
+  constructor(network: Network<BSNetworkId>) {
     this._network = network
   }
 
@@ -62,6 +64,10 @@ export class RpcBDSEthereum implements BlockchainDataService {
   async getFullTransactionsByAddress(
     _params: FullTransactionsByAddressParams
   ): Promise<FullTransactionsByAddressResponse> {
+    throw new Error('Method not supported.')
+  }
+
+  async exportFullTransactionsByAddress(_params: ExportTransactionsByAddressParams): Promise<string> {
     throw new Error('Method not supported.')
   }
 

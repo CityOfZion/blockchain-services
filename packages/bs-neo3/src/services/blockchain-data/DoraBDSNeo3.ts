@@ -21,6 +21,7 @@ import {
   formatNumber,
   BSPromisesHelper,
   ExplorerService,
+  ExportTransactionsByAddressParams,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { u, wallet } from '@cityofzion/neon-js'
@@ -265,6 +266,17 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     await Promise.allSettled(itemPromises)
 
     return { nextCursor, data }
+  }
+
+  async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
+    this.#validateFullTransactionsByAddressParams(params)
+
+    return await NeoRest.exportFullTransactionsByAddress({
+      address: params.address,
+      timestampFrom: params.dateFrom,
+      timestampTo: params.dateTo,
+      network: this._network.id as 'mainnet' | 'testnet',
+    })
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {

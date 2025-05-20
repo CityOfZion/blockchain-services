@@ -41,6 +41,11 @@
       "packageName": "@cityofzion/bs-swap",
       "projectFolder": "packages/bs-swap",
       "shouldPublish": true
+    },
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "projectFolder": "packages/bs-neox",
+      "shouldPublish": true
     }
   ]
 }
