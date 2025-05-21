@@ -141,12 +141,24 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
     return { nextCursor, data }
   }
 
-  _validateFullTransactionsByAddressParams(params: FullTransactionsByAddressParams) {
+  _validateFullTransactionsByAddressParams(
+    params: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo'>
+  ) {
     if (!this.#supportedFullTransactionsByAddressNetworks.includes(this._network.id as BSNetworkId))
       throw new Error('This network is not supported')
 
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams(params)
 
     if (!ethers.utils.isAddress(params.address)) throw new Error('Invalid address param')
+  }
+
+  _validateGetFullTransactionsByAddressParams({
+    pageSize,
+    ...params
+  }: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo' | 'pageSize'>) {
+    if (typeof pageSize === 'number' && (isNaN(pageSize) || pageSize < 1 || pageSize > 500))
+      throw new Error('Page size should be between 1 and 500')
+
+    this._validateFullTransactionsByAddressParams(params)
   }
 }

@@ -158,19 +158,21 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     }
   }
 
-  async getFullTransactionsByAddress(
-    params: FullTransactionsByAddressParams
-  ): Promise<FullTransactionsByAddressResponse> {
-    this.#validateFullTransactionsByAddressParams(params)
+  async getFullTransactionsByAddress({
+    nextCursor,
+    ...params
+  }: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse> {
+    this.#validateGetFullTransactionsByAddressParams(params)
 
     const data: FullTransactionsItem[] = []
 
-    const { nextCursor, ...response } = await NeoRest.getFullTransactionsByAddress({
+    const response = await NeoRest.getFullTransactionsByAddress({
       address: params.address,
       timestampFrom: params.dateFrom,
       timestampTo: params.dateTo,
       network: this._network.id as 'mainnet' | 'testnet',
-      cursor: params.nextCursor,
+      cursor: nextCursor,
+      pageLimit: params.pageSize ?? 50,
     })
 
     const items = response.data ?? []
@@ -265,7 +267,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
     await Promise.allSettled(itemPromises)
 
-    return { nextCursor, data }
+    return { nextCursor: response.nextCursor, data }
   }
 
   async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
@@ -353,11 +355,23 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     return account.address
   }
 
-  #validateFullTransactionsByAddressParams(params: FullTransactionsByAddressParams) {
+  #validateFullTransactionsByAddressParams(
+    params: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo'>
+  ) {
     if (BSNeo3Helper.isCustomNet(this._network)) throw new Error('Only Mainnet and Testnet are supported')
 
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams(params)
 
     if (!wallet.isAddress(params.address)) throw new Error('Invalid address param')
+  }
+
+  #validateGetFullTransactionsByAddressParams({
+    pageSize,
+    ...params
+  }: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo' | 'pageSize'>) {
+    if (typeof pageSize === 'number' && (isNaN(pageSize) || pageSize < 1 || pageSize > 500))
+      throw new Error('Page size should be between 1 and 500')
+
+    this.#validateFullTransactionsByAddressParams(params)
   }
 }

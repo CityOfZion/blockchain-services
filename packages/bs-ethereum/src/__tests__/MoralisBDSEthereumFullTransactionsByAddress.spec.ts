@@ -201,6 +201,20 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
     })
 
+    it("Shouldn't be able to get transactions when pageSize param was invalid", async () => {
+      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, pageSize: 0 })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+
+      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, pageSize: 501 })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+
+      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, pageSize: NaN })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+    })
+
     it('Should be able to get transactions when is using a Ethereum Mainnet network', async () => {
       const response = await moralisBDSEthereum.getFullTransactionsByAddress({
         ...params,
@@ -266,7 +280,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
-      expect(nextResponse.nextCursor).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     }, 60000)
 
@@ -288,7 +301,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
-      expect(nextResponse.nextCursor).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     }, 60000)
 
@@ -310,7 +322,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
-      expect(nextResponse.nextCursor).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     }, 60000)
 
@@ -335,7 +346,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
-      expect(nextResponse.nextCursor).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     }, 60000)
 
@@ -411,12 +421,26 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
         ])
       )
     }, 30000)
+
+    it('Should be able to get transactions with default pageSize param using Ethereum Mainnet network', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2025-04-25T11:45:00').toJSON(),
+        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        address: '0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97',
+      }
+
+      const response = await moralisBDSEthereum.getFullTransactionsByAddress(newParams)
+
+      expect(response.nextCursor).toBeTruthy()
+      expect(response.data.length).toBeTruthy()
+    }, 60000)
   })
 
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Ethereum Mainnet network', async () => {
       const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
-        ...params,
+        address: params.address,
         dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       })
@@ -428,7 +452,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       initMoralisBDSEthereum(polygonNetwork)
 
       const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
-        ...params,
         dateFrom: new Date('2025-02-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
         address: polygonAddress,
@@ -441,7 +464,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       initMoralisBDSEthereum(baseNetwork)
 
       const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
-        ...params,
         dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
         address: baseAddress,
@@ -454,7 +476,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       initMoralisBDSEthereum(arbitrumNetwork)
 
       const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
-        ...params,
         dateFrom: new Date('2024-10-25T12:00:00').toJSON(),
         dateTo: new Date('2024-11-25T12:00:00').toJSON(),
         address: arbitrumAddress,

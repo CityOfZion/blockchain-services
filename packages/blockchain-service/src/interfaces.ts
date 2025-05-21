@@ -136,6 +136,7 @@ export type FullTransactionsByAddressParams = {
   address: string
   dateFrom: string
   dateTo: string
+  pageSize?: number
   nextCursor?: string
 }
 
