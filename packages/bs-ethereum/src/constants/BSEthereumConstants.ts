@@ -15,8 +15,6 @@ export type BSEthereumNetworkId = NetworkId<
   | '43114'
   | '59144'
   | '11155111'
-  | '47763'
-  | '12227332'
 >
 
 export class BSEthereumConstants {
@@ -44,8 +42,6 @@ export class BSEthereumConstants {
     '43114': 'AVAX',
     '59144': 'ETH',
     '11155111': 'ETH',
-    '47763': 'GAS',
-    '12227332': 'GAS',
   }
 
   static NATIVE_WRAPPED_HASH_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
@@ -146,27 +142,9 @@ export class BSEthereumConstants {
       'https://eth-sepolia-public.unifra.io',
       'https://endpoints.omniatech.io/v1/eth/sepolia/public',
     ],
-    '47763': ['https://mainnet-1.rpc.banelabs.org'],
-    '12227332': ['https://neoxt4seed1.ngd.network'],
   }
 
   static DEFAULT_BIP44_DERIVATION_PATH = "m/44'/60'/0'/0/?"
-
-  static NEOX_MAINNET_NETWORK_ID: BSEthereumNetworkId = '47763'
-  static NEOX_TESTNET_NETWORK_ID: BSEthereumNetworkId = '12227332'
-  static NEOX_NETWORK_IDS: BSEthereumNetworkId[] = [this.NEOX_TESTNET_NETWORK_ID, this.NEOX_MAINNET_NETWORK_ID]
-
-  static NEOX_TESTNET_NETWORK: Network<BSEthereumNetworkId> = {
-    id: this.NEOX_TESTNET_NETWORK_ID,
-    name: 'NeoX Testnet',
-    url: this.RPC_LIST_BY_NETWORK_ID[this.NEOX_TESTNET_NETWORK_ID][0],
-  }
-  static NEOX_MAINNET_NETWORK: Network<BSEthereumNetworkId> = {
-    id: this.NEOX_MAINNET_NETWORK_ID,
-    name: 'NeoX Mainnet',
-    url: this.RPC_LIST_BY_NETWORK_ID[this.NEOX_MAINNET_NETWORK_ID][0],
-  }
-  static NEOX_NETWORKS: Network<BSEthereumNetworkId>[] = [this.NEOX_TESTNET_NETWORK, this.NEOX_MAINNET_NETWORK]
 
   static MAINNET_NETWORK_IDS: BSEthereumNetworkId[] = [
     this.ETHEREUM_MAINNET_NETWORK_ID,
@@ -180,9 +158,8 @@ export class BSEthereumConstants {
     '42220',
     '43114',
     '59144',
-    this.NEOX_MAINNET_NETWORK_ID,
   ]
-  static TESTNET_NETWORK_IDS: BSEthereumNetworkId[] = ['1101', '80002', '11155111', this.NEOX_TESTNET_NETWORK_ID]
+  static TESTNET_NETWORK_IDS: BSEthereumNetworkId[] = ['1101', '80002', '11155111']
   static ALL_NETWORK_IDS: BSEthereumNetworkId[] = [...this.MAINNET_NETWORK_IDS, ...this.TESTNET_NETWORK_IDS]
 
   static MAINNET_NETWORKS: Network<BSEthereumNetworkId>[] = [
@@ -241,7 +218,6 @@ export class BSEthereumConstants {
       name: 'Linea Mainnet',
       url: this.RPC_LIST_BY_NETWORK_ID['59144'][0],
     },
-    this.NEOX_MAINNET_NETWORK,
   ]
   static TESTNET_NETWORKS: Network<BSEthereumNetworkId>[] = [
     {
@@ -259,7 +235,6 @@ export class BSEthereumConstants {
       name: 'Sepolia Testnet',
       url: this.RPC_LIST_BY_NETWORK_ID['11155111'][0],
     },
-    this.NEOX_TESTNET_NETWORK,
   ]
   static ALL_NETWORKS: Network<BSEthereumNetworkId>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
 

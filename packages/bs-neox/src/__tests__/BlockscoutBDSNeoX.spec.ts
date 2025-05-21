@@ -6,19 +6,21 @@ import {
   TransactionsByAddressResponse,
   TransactionTransferAsset,
 } from '@cityofzion/blockchain-service'
-import { BSEthereumConstants } from '../constants/BSEthereumConstants'
-import { BlockscoutBDSEthereum } from '../services/blockchain-data/BlockscoutBDSEthereum'
-import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
-import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
+import { BSNeoXConstants } from '../constants/BSNeoXConstants'
+import { GhostMarketNDSNeoX } from '../services/nft-data/GhostMarketNDSNeoX'
+import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
+import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
 
-const neoxTestnetNetwork = BSEthereumConstants.NEOX_TESTNET_NETWORK
+const neoxTestnetNetwork = BSNeoXConstants.TESTNET_NETWORK
 let nftDataService: NftDataService
 let explorerService: ExplorerService
+let blockscoutBDSNeoX: BlockscoutBDSNeoX
 
-describe('BlockscoutBDSEthereum', () => {
+describe('BlockscoutBDSNeoX', () => {
   beforeEach(() => {
-    nftDataService = new GhostMarketNDSEthereum(neoxTestnetNetwork)
-    explorerService = new BlockscoutESEthereum(neoxTestnetNetwork)
+    nftDataService = new GhostMarketNDSNeoX(neoxTestnetNetwork)
+    explorerService = new BlockscoutESNeoX(neoxTestnetNetwork)
+    blockscoutBDSNeoX = new BlockscoutBDSNeoX(neoxTestnetNetwork, nftDataService, explorerService)
   })
 
   it('Should return transaction details for native assets (GAS)', async () => {
@@ -49,7 +51,6 @@ describe('BlockscoutBDSEthereum', () => {
       fee: '0.00084',
     }
 
-    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(neoxTestnetNetwork, nftDataService, explorerService)
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
@@ -96,13 +97,12 @@ describe('BlockscoutBDSEthereum', () => {
       fee: '0.00748844',
     }
 
-    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(neoxTestnetNetwork, nftDataService, explorerService)
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
   }, 10000)
 
-  it.skip('Should return transactions by address', async () => {
+  it('Should return transactions by address', async () => {
     const address = '0x5E1BE25D4A2De0083012f1B5A8030a7023fFA5bc'
 
     const expectedResponse: TransactionsByAddressResponse = {
@@ -119,7 +119,6 @@ describe('BlockscoutBDSEthereum', () => {
       nextPageParams: expect.any(Object),
     }
 
-    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(neoxTestnetNetwork, nftDataService, explorerService)
     const transactions = await blockscoutBDSNeoX.getTransactionsByAddress({ address })
 
     expect(transactions).toEqual(expectedResponse)
@@ -135,13 +134,12 @@ describe('BlockscoutBDSEthereum', () => {
       symbol: 'USDT',
     }
 
-    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(neoxTestnetNetwork, nftDataService, explorerService)
     const token = await blockscoutBDSNeoX.getTokenInfo(tokenHash)
 
     expect(token).toEqual(expectedToken)
   })
 
-  it.skip('Should return balance', async () => {
+  it('Should return balance', async () => {
     const address = '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5'
 
     const expectedBalance: BalanceResponse[] = [
@@ -156,14 +154,12 @@ describe('BlockscoutBDSEthereum', () => {
       },
     ]
 
-    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(neoxTestnetNetwork, nftDataService, explorerService)
     const balance = await blockscoutBDSNeoX.getBalance(address)
 
     expect(balance).toEqual(expectedBalance)
   })
 
   it('Should return block height', async () => {
-    const blockscoutBDSNeoX = new BlockscoutBDSEthereum(neoxTestnetNetwork, nftDataService, explorerService)
     const blockHeight = await blockscoutBDSNeoX.getBlockHeight()
 
     expect(blockHeight).toBeGreaterThan(0)

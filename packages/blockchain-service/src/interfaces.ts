@@ -139,6 +139,12 @@ export type FullTransactionsByAddressParams = {
   nextCursor?: string
 }
 
+export type ExportTransactionsByAddressParams = {
+  address: string
+  dateFrom: string
+  dateTo: string
+}
+
 export type FullTransactionNftEvent = {
   eventType: 'nft'
   amount: string
@@ -211,6 +217,7 @@ export interface BlockchainDataService {
   getTransaction(txid: string): Promise<TransactionResponse>
   getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse>
   getFullTransactionsByAddress(params: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse>
+  exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string>
   getContract(contractHash: string): Promise<ContractResponse>
   getTokenInfo(tokenHash: string): Promise<Token>
   getBalance(address: string): Promise<BalanceResponse[]>

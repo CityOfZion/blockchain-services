@@ -7,47 +7,47 @@ import { isLeapYear } from 'date-fns'
 import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
 
 describe('DoraBDSNeo3FullTransactionsByAddress', () => {
+  const network = BSNeo3Constants.MAINNET_NETWORKS[0]
+  const tokens = BSNeo3Helper.getTokens(network)
+  const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')!
+  const address = 'NYnfAZTcVfSfNgk4RnP2DBNgosq2tUN3U2'
+
+  let dateFrom: Date
+  let dateTo: Date
+  let params: FullTransactionsByAddressParams
+  let doraBDSNeo3: DoraBDSNeo3
+
+  const initDoraBDSNeo3 = (network: Network) => {
+    const nftDataService = new GhostMarketNDSNeo3(network) as jest.Mocked<GhostMarketNDSNeo3>
+
+    nftDataService.getNft = jest
+      .fn()
+      .mockReturnValue({ image: 'nftImage', name: 'nftName', collectionName: 'nftCollectionName' })
+
+    const explorerService = new DoraESNeo3(network) as jest.Mocked<DoraESNeo3>
+
+    explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
+    explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
+    explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
+    explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
+
+    doraBDSNeo3 = new DoraBDSNeo3(network, gasToken, gasToken, tokens, nftDataService, explorerService)
+  }
+
+  beforeEach(() => {
+    dateFrom = new Date()
+    dateTo = new Date()
+
+    dateFrom.setFullYear(dateFrom.getFullYear() - 1)
+
+    if (isLeapYear(dateFrom)) dateFrom.setDate(dateFrom.getDate() + 1)
+
+    params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
+
+    initDoraBDSNeo3(network)
+  })
+
   describe('getFullTransactionsByAddress', () => {
-    const network = BSNeo3Constants.MAINNET_NETWORKS[0]
-    const tokens = BSNeo3Helper.getTokens(network)
-    const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')!
-    const address = 'NYnfAZTcVfSfNgk4RnP2DBNgosq2tUN3U2'
-
-    let dateFrom: Date
-    let dateTo: Date
-    let params: FullTransactionsByAddressParams
-    let doraBDSNeo3: DoraBDSNeo3
-
-    const initDoraBDSNeo3 = (network: Network) => {
-      const nftDataService = new GhostMarketNDSNeo3(network) as jest.Mocked<GhostMarketNDSNeo3>
-
-      nftDataService.getNft = jest
-        .fn()
-        .mockReturnValue({ image: 'nftImage', name: 'nftName', collectionName: 'nftCollectionName' })
-
-      const explorerService = new DoraESNeo3(network) as jest.Mocked<DoraESNeo3>
-
-      explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
-      explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
-      explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
-      explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
-
-      doraBDSNeo3 = new DoraBDSNeo3(network, gasToken, gasToken, tokens, nftDataService, explorerService)
-    }
-
-    beforeEach(() => {
-      dateFrom = new Date()
-      dateTo = new Date()
-
-      dateFrom.setFullYear(dateFrom.getFullYear() - 1)
-
-      if (isLeapYear(dateFrom)) dateFrom.setDate(dateFrom.getDate() + 1)
-
-      params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
-
-      initDoraBDSNeo3(network)
-    })
-
     it("Shouldn't be able to get transactions when is using a different network (Custom) from Mainnet and Testnet", async () => {
       initDoraBDSNeo3({ id: 'other-network', name: 'Other network', url: 'https://other-network.com' })
 
@@ -208,7 +208,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
           }),
         ]),
       })
-    })
+    }, 120000)
 
     it('Should be able to get transactions when send the nextCursor param', async () => {
       const newParams = {
@@ -264,5 +264,29 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
         ])
       )
     }, 30000)
+  })
+
+  describe('exportFullTransactionsByAddress', () => {
+    it('Should be able to export transactions when is using a Testnet network', async () => {
+      initDoraBDSNeo3(BSNeo3Constants.TESTNET_NETWORKS[0])
+
+      const response = await doraBDSNeo3.exportFullTransactionsByAddress({
+        dateFrom: new Date('2025-02-24T20:00:00').toJSON(),
+        dateTo: new Date('2025-02-25T12:00:00').toJSON(),
+        address: 'NPpopZhoNx5AompcETfMGMtULCPyH6j93H',
+      })
+
+      expect(response.length).toBeGreaterThan(0)
+    })
+
+    it('Should be able to export transactions when is using a Mainnet network', async () => {
+      const response = await doraBDSNeo3.exportFullTransactionsByAddress({
+        ...params,
+        dateFrom: new Date('2024-03-25T12:00:00').toJSON(),
+        dateTo: new Date('2025-02-25T12:00:00').toJSON(),
+      })
+
+      expect(response.length).toBeGreaterThan(0)
+    })
   })
 })

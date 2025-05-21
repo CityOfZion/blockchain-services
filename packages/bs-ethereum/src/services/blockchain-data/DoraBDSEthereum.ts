@@ -10,6 +10,7 @@ import {
   FullTransactionsByAddressResponse,
   FullTransactionsItem,
   Network,
+  NetworkId,
   NftDataService,
   NftResponse,
   Token,
@@ -19,17 +20,17 @@ import { GetFullTransactionsByAddressResponse } from '@cityofzion/dora-ts/dist/i
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 
-export class DoraBDSEthereum extends RpcBDSEthereum {
+export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId> extends RpcBDSEthereum {
   readonly #supportedErc721Standards = ['erc721', 'erc-721']
   readonly #supportedErc1155Standards = ['erc1155', 'erc-1155']
   readonly #supportedErc20Standards = ['erc20', 'erc-20']
-  readonly #supportedFullTransactionsByAddressNetworks: BSEthereumNetworkId[]
+  readonly #supportedFullTransactionsByAddressNetworks: BSNetworkId[]
   readonly #nftDataService: NftDataService
   readonly #explorerService: ExplorerService
 
   constructor(
-    network: Network<BSEthereumNetworkId>,
-    supportedFullTransactionsByAddressNetworks: BSEthereumNetworkId[],
+    network: Network<BSNetworkId>,
+    supportedFullTransactionsByAddressNetworks: BSNetworkId[],
     nftDataService: NftDataService,
     explorerService: ExplorerService
   ) {
@@ -40,7 +41,7 @@ export class DoraBDSEthereum extends RpcBDSEthereum {
     this.#explorerService = explorerService
   }
 
-  protected async transformFullTransactionsByAddressResponse({
+  async _transformFullTransactionsByAddressResponse({
     nextCursor,
     ...response
   }: GetFullTransactionsByAddressResponse): Promise<FullTransactionsByAddressResponse> {
@@ -140,8 +141,8 @@ export class DoraBDSEthereum extends RpcBDSEthereum {
     return { nextCursor, data }
   }
 
-  protected validateFullTransactionsByAddressParams(params: FullTransactionsByAddressParams) {
-    if (!this.#supportedFullTransactionsByAddressNetworks.includes(this._network.id))
+  _validateFullTransactionsByAddressParams(params: FullTransactionsByAddressParams) {
+    if (!this.#supportedFullTransactionsByAddressNetworks.includes(this._network.id as BSNetworkId))
       throw new Error('This network is not supported')
 
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams(params)

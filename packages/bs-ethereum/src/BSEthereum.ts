@@ -23,17 +23,15 @@ import * as ethersBigNumber from '@ethersproject/bignumber'
 import { BSEthereumConstants, BSEthereumNetworkId } from './constants/BSEthereumConstants'
 import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServiceEthereum'
 import { BSEthereumHelper } from './helpers/BSEthereumHelper'
-import { BlockscoutBDSEthereum } from './services/blockchain-data/BlockscoutBDSEthereum'
-import { FlamingoForthewinEDSNeox } from './services/exchange-data/FlamingoForthewinEDSNeox'
 import { MoralisBDSEthereum } from './services/blockchain-data/MoralisBDSEthereum'
 import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
 import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { RpcBDSEthereum } from './services/blockchain-data/RpcBDSEthereum'
 
-export class BSEthereum<BSName extends string = string>
+export class BSEthereum<BSName extends string = string, NetworkId extends string = BSEthereumNetworkId>
   implements
-    BlockchainService<BSName, BSEthereumNetworkId>,
+    BlockchainService<BSName, NetworkId>,
     BSWithNft,
     BSWithNameService,
     BSCalculableFee<BSName>,
@@ -50,11 +48,11 @@ export class BSEthereum<BSName extends string = string>
   ledgerService: EthersLedgerServiceEthereum<BSName>
   tokens!: Token[]
   nftDataService!: NftDataService
-  network!: Network<BSEthereumNetworkId>
+  network!: Network<NetworkId>
   explorerService!: ExplorerService
 
-  constructor(name: BSName, network?: Network<BSEthereumNetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
-    network = network ?? BSEthereumConstants.DEFAULT_NETWORK
+  constructor(name: BSName, network?: Network<NetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
+    network = network ?? (BSEthereumConstants.DEFAULT_NETWORK as Network<NetworkId>)
 
     this.name = name
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
@@ -63,7 +61,7 @@ export class BSEthereum<BSName extends string = string>
     this.setNetwork(network)
   }
 
-  async #generateSigner(account: Account<BSName>): Promise<ethers.Signer> {
+  async generateSigner(account: Account<BSName>): Promise<ethers.Signer> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
     if (account.isHardware) {
@@ -102,6 +100,7 @@ export class BSEthereum<BSName extends string = string>
 
     const isNative =
       BSEthereumHelper.normalizeHash(this.feeToken.hash) === BSEthereumHelper.normalizeHash(intent.tokenHash)
+
     if (isNative) {
       transactionParams.to = intent.receiverAddress
       transactionParams.value = amount
@@ -122,33 +121,27 @@ export class BSEthereum<BSName extends string = string>
     }
   }
 
-  #setTokens(network: Network<BSEthereumNetworkId>) {
+  #setTokens(network: Network<NetworkId>) {
     const nativeAsset = BSEthereumHelper.getNativeAsset(network)
     this.tokens = [nativeAsset]
     this.nativeTokens = [nativeAsset]
     this.feeToken = nativeAsset
   }
 
-  async testNetwork(network: Network<BSEthereumNetworkId>) {
+  async testNetwork(network: Network<NetworkId>) {
     const blockchainDataServiceClone = new RpcBDSEthereum(network)
 
     await blockchainDataServiceClone.getBlockHeight()
   }
 
-  setNetwork(network: Network<BSEthereumNetworkId>) {
+  setNetwork(network: Network<NetworkId>) {
     this.#setTokens(network)
 
     this.network = network
     this.nftDataService = new GhostMarketNDSEthereum(network)
     this.explorerService = new BlockscoutESEthereum(network)
-
-    if (BlockscoutBDSEthereum.isNeoX(network)) {
-      this.exchangeDataService = new FlamingoForthewinEDSNeox(network)
-      this.blockchainDataService = new BlockscoutBDSEthereum(network, this.nftDataService, this.explorerService)
-    } else {
-      this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)
-      this.blockchainDataService = new MoralisBDSEthereum(network, this.nftDataService, this.explorerService)
-    }
+    this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)
+    this.blockchainDataService = new MoralisBDSEthereum(network, this.nftDataService, this.explorerService)
   }
 
   validateAddress(address: string): boolean {
@@ -227,7 +220,7 @@ export class BSEthereum<BSName extends string = string>
   }
 
   async transfer(param: TransferParam<BSName>): Promise<string[]> {
-    const signer = await this.#generateSigner(param.senderAccount)
+    const signer = await this.generateSigner(param.senderAccount)
 
     const sentTransactionHashes: string[] = []
     let error: Error | undefined
@@ -268,7 +261,7 @@ export class BSEthereum<BSName extends string = string>
   }
 
   async calculateTransferFee(param: TransferParam<BSName>): Promise<string> {
-    const signer = await this.#generateSigner(param.senderAccount)
+    const signer = await this.generateSigner(param.senderAccount)
 
     let fee = ethers.utils.parseEther('0')
 

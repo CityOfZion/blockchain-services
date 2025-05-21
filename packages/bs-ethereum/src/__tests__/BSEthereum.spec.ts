@@ -207,25 +207,6 @@ describe('BSEthereum', () => {
     expect(transactionHash).toEqual(expect.any(String))
   })
 
-  it.skip('Should be able to transfer a native token using a EVM', async () => {
-    const service = new BSEthereum('neo3', BSEthereumConstants.NEOX_TESTNET_NETWORK)
-    const account = service.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
-
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.0000000000001',
-          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          tokenDecimals: 18,
-          tokenHash: '-',
-        },
-      ],
-    })
-
-    expect(transactionHash).toEqual(expect.any(String))
-  }, 60000)
-
   it.skip('Should be able to calculate transfer fee for more than one intent', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
 

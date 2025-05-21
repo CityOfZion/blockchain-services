@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Project bootstrap and create the exportFullTransactionsByAddress method",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}
