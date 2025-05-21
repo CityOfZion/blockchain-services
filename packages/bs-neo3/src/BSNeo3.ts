@@ -270,9 +270,10 @@ export class BSNeo3<BSName extends string = string>
     })
   }
 
-  async resolveNameServiceDomain(domainName: string): Promise<any> {
+  async resolveNameServiceDomain(domainName: string): Promise<string> {
     const parser = NeonParser
     const invoker = await NeonInvoker.init({ rpcAddress: this.network.url })
+
     const response = await invoker.testInvoke({
       invocations: [
         {

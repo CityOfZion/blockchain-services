@@ -122,19 +122,21 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     }
   }
 
-  async getFullTransactionsByAddress(
-    params: FullTransactionsByAddressParams
-  ): Promise<FullTransactionsByAddressResponse> {
-    this.#validateFullTransactionsByAddressParams(params)
+  async getFullTransactionsByAddress({
+    nextCursor,
+    ...params
+  }: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse> {
+    this.#validateGetFullTransactionsByAddressParams(params)
 
     const data: FullTransactionsItem[] = []
 
-    const { nextCursor, ...response } = await api.NeoLegacyREST.getFullTransactionsByAddress({
+    const response = await api.NeoLegacyREST.getFullTransactionsByAddress({
       address: params.address,
       timestampFrom: params.dateFrom,
       timestampTo: params.dateTo,
       network: 'mainnet',
-      cursor: params.nextCursor,
+      cursor: nextCursor,
+      pageLimit: params.pageSize ?? 30,
     })
 
     const items = response.data ?? []
@@ -190,7 +192,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
     await Promise.allSettled(itemPromises)
 
-    return { nextCursor, data }
+    return { nextCursor: response.nextCursor, data }
   }
 
   async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
@@ -309,11 +311,23 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     return list
   }
 
-  #validateFullTransactionsByAddressParams(params: FullTransactionsByAddressParams) {
+  #validateFullTransactionsByAddressParams(
+    params: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo'>
+  ) {
     if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('Only Mainnet is supported')
 
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams(params)
 
     if (!wallet.isAddress(params.address)) throw new Error('Invalid address param')
+  }
+
+  #validateGetFullTransactionsByAddressParams({
+    pageSize,
+    ...params
+  }: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo' | 'pageSize'>) {
+    if (typeof pageSize === 'number' && (isNaN(pageSize) || pageSize < 1 || pageSize > 30))
+      throw new Error('Page size should be between 1 and 30')
+
+    this.#validateFullTransactionsByAddressParams(params)
   }
 }

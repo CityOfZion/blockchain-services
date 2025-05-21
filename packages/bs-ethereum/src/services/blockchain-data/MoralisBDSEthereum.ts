@@ -395,17 +395,19 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
     }
   }
 
-  async getFullTransactionsByAddress(
-    params: FullTransactionsByAddressParams
-  ): Promise<FullTransactionsByAddressResponse> {
-    this._validateFullTransactionsByAddressParams(params)
+  async getFullTransactionsByAddress({
+    nextCursor,
+    ...params
+  }: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse> {
+    this._validateGetFullTransactionsByAddressParams(params)
 
     const response = await api.EthereumREST.getFullTransactionsByAddress({
       address: params.address,
       timestampFrom: params.dateFrom,
       timestampTo: params.dateTo,
       network: this._network.id,
-      cursor: params.nextCursor,
+      cursor: nextCursor,
+      pageLimit: params.pageSize ?? 50,
     })
 
     return await this._transformFullTransactionsByAddressResponse(response)

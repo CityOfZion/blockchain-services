@@ -125,6 +125,20 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
     })
 
+    it("Shouldn't be able to get transactions when pageSize param was invalid", async () => {
+      await expect(doraBDSNeo3.getFullTransactionsByAddress({ ...params, pageSize: 0 })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+
+      await expect(doraBDSNeo3.getFullTransactionsByAddress({ ...params, pageSize: 501 })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+
+      await expect(doraBDSNeo3.getFullTransactionsByAddress({ ...params, pageSize: NaN })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+    })
+
     it('Should be able to get transactions when is using a Testnet network', async () => {
       initDoraBDSNeo3(BSNeo3Constants.TESTNET_NETWORKS[0])
 
@@ -226,7 +240,6 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
-      expect(nextResponse.nextCursor).toBeFalsy()
       expect(nextResponse.data.length).toBeTruthy()
     }, 360000)
 
@@ -264,6 +277,20 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
         ])
       )
     }, 30000)
+
+    it('Should be able to get transactions with default pageSize param', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2023-01-25T12:00:00').toJSON(),
+        dateTo: new Date('2023-04-25T12:00:00').toJSON(),
+        address: 'NV96QgerjXNmu4jLdMW4ZWkhySVMYX52Ex',
+      }
+
+      const response = await doraBDSNeo3.getFullTransactionsByAddress(newParams)
+
+      expect(response.nextCursor).toBeTruthy()
+      expect(response.data.length).toBe(50)
+    }, 360000)
   })
 
   describe('exportFullTransactionsByAddress', () => {
@@ -281,7 +308,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
 
     it('Should be able to export transactions when is using a Mainnet network', async () => {
       const response = await doraBDSNeo3.exportFullTransactionsByAddress({
-        ...params,
+        address: params.address,
         dateFrom: new Date('2024-03-25T12:00:00').toJSON(),
         dateTo: new Date('2025-02-25T12:00:00').toJSON(),
       })

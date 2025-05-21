@@ -141,6 +141,20 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
     })
 
+    it("Shouldn't be able to get transactions when pageSize param was invalid", async () => {
+      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, pageSize: 0 })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+
+      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, pageSize: 501 })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+
+      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, pageSize: NaN })).rejects.toThrow(
+        'Page size should be between 1 and 500'
+      )
+    })
+
     it('Should be able to get transactions when is using a Neo X Testnet network', async () => {
       nftDataService = new GhostMarketNDSNeoX(BSNeoXConstants.TESTNET_NETWORK)
       blockscoutBDSNeoX = new BlockscoutBDSNeoX(BSNeoXConstants.TESTNET_NETWORK, nftDataService, explorerService)
@@ -218,8 +232,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       })
     })
 
-    // There isn't any Neo X address with cursor yet (you need to use the pageLimit for test it)
-    it.skip('Should be able to get transactions when send the nextCursor param using Neo X Mainnet network', async () => {
+    it('Should be able to get transactions when send the nextCursor param using Neo X Mainnet network', async () => {
       const newParams = {
         ...params,
         dateFrom: new Date('2024-04-26T12:00:00').toJSON(),
@@ -235,7 +248,6 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
-      expect(nextResponse.nextCursor).toBeFalsy()
       expect(nextResponse.data.length).toBeTruthy()
     }, 60000)
 
@@ -274,6 +286,20 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
         ])
       )
     }, 30000)
+
+    it('Should be able to get transactions with default pageSize param', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2025-01-25T12:00:00').toJSON(),
+        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        address: '0x1212000000000000000000000000000000000004',
+      }
+
+      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress(newParams)
+
+      expect(response.nextCursor).toBeTruthy()
+      expect(response.data.length).toBe(50)
+    }, 60000)
   })
 
   describe('exportFullTransactionsByAddress', () => {
@@ -282,7 +308,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       blockscoutBDSNeoX = new BlockscoutBDSNeoX(BSNeoXConstants.TESTNET_NETWORK, nftDataService, explorerService)
 
       const response = await blockscoutBDSNeoX.exportFullTransactionsByAddress({
-        ...params,
+        address: params.address,
         dateFrom: new Date('2024-03-25T12:00:00').toJSON(),
         dateTo: new Date('2025-02-25T12:00:00').toJSON(),
       })
@@ -292,7 +318,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
     it('Should be able to export transactions when is using a Neo X Mainnet network', async () => {
       const response = await blockscoutBDSNeoX.exportFullTransactionsByAddress({
-        ...params,
+        address: params.address,
         dateFrom: new Date('2024-03-25T12:00:00').toJSON(),
         dateTo: new Date('2025-02-25T12:00:00').toJSON(),
       })

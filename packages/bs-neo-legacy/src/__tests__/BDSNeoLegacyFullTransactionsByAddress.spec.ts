@@ -131,6 +131,20 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
     })
 
+    it("Shouldn't be able to get transactions when pageSize param was invalid", async () => {
+      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 0 })).rejects.toThrow(
+        'Page size should be between 1 and 30'
+      )
+
+      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 31 })).rejects.toThrow(
+        'Page size should be between 1 and 30'
+      )
+
+      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: NaN })).rejects.toThrow(
+        'Page size should be between 1 and 30'
+      )
+    })
+
     it('Should be able to get transactions when is using a Mainnet network', async () => {
       const response = await bdsNeoLegacy.getFullTransactionsByAddress({
         ...params,
@@ -178,8 +192,8 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
     it('Should be able to get transactions when send the nextCursor param', async () => {
       const newParams = {
         ...params,
-        dateFrom: new Date('2025-04-24T08:00:00').toJSON(),
-        dateTo: new Date('2025-04-30T12:00:00').toJSON(),
+        dateFrom: new Date('2025-04-20T12:00:00').toJSON(),
+        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       }
 
       const response = await bdsNeoLegacy.getFullTransactionsByAddress(newParams)
@@ -191,15 +205,27 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
-      expect(nextResponse.nextCursor).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
+    }, 60000)
+
+    it('Should be able to get transactions with default pageSize param', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2025-04-20T12:00:00').toJSON(),
+        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+      }
+
+      const response = await bdsNeoLegacy.getFullTransactionsByAddress(newParams)
+
+      expect(response.nextCursor).toBeTruthy()
+      expect(response.data.length).toBe(30)
     }, 60000)
   })
 
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Mainnet network', async () => {
       const response = await bdsNeoLegacy.exportFullTransactionsByAddress({
-        ...params,
+        address: params.address,
         dateFrom: new Date('2025-04-24T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       })
