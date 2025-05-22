@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Fix CI",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}
