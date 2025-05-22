@@ -17,6 +17,7 @@ import { ethers } from 'ethers'
 import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
+import { BSEthereumTokenHelper } from '../../helpers/BSEthereumTokenHelper'
 
 export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId> implements BlockchainDataService {
   _network: Network<BSNetworkId>
@@ -47,7 +48,7 @@ export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId>
         {
           type: 'token',
           amount: ethers.utils.formatEther(transaction.value),
-          contractHash: '-',
+          contractHash: token.hash,
           from: transaction.from,
           to: transaction.to,
           token,
@@ -78,7 +79,7 @@ export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId>
   async getTokenInfo(hash: string): Promise<Token> {
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
 
-    if (BSEthereumHelper.normalizeHash(nativeAsset.hash) === BSEthereumHelper.normalizeHash(hash)) return nativeAsset
+    if (BSEthereumTokenHelper.predicateByHash(nativeAsset)({ hash })) return nativeAsset
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!
@@ -90,12 +91,12 @@ export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId>
     const decimals = await contract.decimals()
     const symbol = await contract.symbol()
 
-    const token: Token = {
+    const token = BSEthereumTokenHelper.normalizeToken({
       decimals,
       symbol,
       hash,
       name: symbol,
-    }
+    })
 
     this._tokenCache.set(hash, token)
 

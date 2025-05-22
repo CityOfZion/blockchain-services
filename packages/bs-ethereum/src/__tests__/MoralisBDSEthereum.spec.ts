@@ -68,13 +68,13 @@ describe('MoralisBDSEthereum', () => {
   }, 60000)
 
   it('Should be able to get eth info - %s', async () => {
-    const hash = '-'
+    const hash = '0x'
     const token = await moralisBDSEthereum.getTokenInfo(hash)
 
     expect(token).toEqual({
       symbol: 'ETH',
       name: 'ETH',
-      hash: '-',
+      hash: '0x',
       decimals: 18,
     })
   })

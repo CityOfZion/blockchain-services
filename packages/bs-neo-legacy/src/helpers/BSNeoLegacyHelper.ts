@@ -1,4 +1,10 @@
-import { BlockchainService, Network, normalizeHash, TransactionResponse, wait } from '@cityofzion/blockchain-service'
+import {
+  BlockchainService,
+  BSTokenHelper,
+  BSUtilsHelper,
+  Network,
+  TransactionResponse,
+} from '@cityofzion/blockchain-service'
 import nativeTokens from '../assets/tokens/native.json'
 import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
 
@@ -18,7 +24,7 @@ export class BSNeoLegacyHelper {
 
   static getTokens(network: Network<BSNeoLegacyNetworkId>) {
     const extraTokens = BSNeoLegacyConstants.EXTRA_TOKENS_BY_NETWORK_ID[network.id] ?? []
-    return [...extraTokens, ...nativeTokens]
+    return BSTokenHelper.normalizeToken([...extraTokens, ...nativeTokens])
   }
 
   static getRpcList(network: Network<BSNeoLegacyNetworkId>) {
@@ -27,10 +33,6 @@ export class BSNeoLegacyHelper {
 
   static isMainnet(network: Network<BSNeoLegacyNetworkId>) {
     return BSNeoLegacyConstants.MAINNET_NETWORK_IDS.includes(network.id)
-  }
-
-  static normalizeHash(hash: string): string {
-    return normalizeHash(hash, { lowercase: false })
   }
 
   static async waitForMigration(params: WaitForMigrationParams) {
@@ -47,7 +49,7 @@ export class BSNeoLegacyHelper {
     let transactionResponse: TransactionResponse
 
     for (let i = 0; i < MAX_ATTEMPTS; i++) {
-      await wait(30000)
+      await BSUtilsHelper.wait(30000)
 
       try {
         transactionResponse = await neoLegacyService.blockchainDataService.getTransaction(transactionHash)
@@ -61,7 +63,7 @@ export class BSNeoLegacyHelper {
     if (!response.isTransactionConfirmed) return response
 
     for (let i = 0; i < NEO3_MAX_ATTEMPTS; i++) {
-      await wait(60000)
+      await BSUtilsHelper.wait(60000)
 
       try {
         const neo3Response = await neo3Service.blockchainDataService.getTransactionsByAddress({

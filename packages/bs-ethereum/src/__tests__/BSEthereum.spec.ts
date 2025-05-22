@@ -1,14 +1,16 @@
 import { ethers } from 'ethers'
 import { BSEthereum } from '../BSEthereum'
-import { Account } from '@cityofzion/blockchain-service'
+import { Account, Token } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
+import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 
 const network = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '11155111')!
 
 let bsEthereum: BSEthereum<'ethereum'>
 let wallet: ethers.Wallet
 let account: Account
+let nativeToken: Token
 
 describe('BSEthereum', () => {
   beforeEach(async () => {
@@ -20,6 +22,7 @@ describe('BSEthereum', () => {
       address: wallet.address,
       blockchain: 'ethereum',
     }
+    nativeToken = BSEthereumHelper.getNativeAsset(network)
   })
 
   it('Should be able to validate an address', () => {
@@ -113,7 +116,7 @@ describe('BSEthereum', () => {
           amount: '0.00000001',
           receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
           tokenDecimals: 18,
-          tokenHash: '-',
+          tokenHash: nativeToken.hash,
         },
       ],
     })
@@ -151,7 +154,7 @@ describe('BSEthereum', () => {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
           tokenDecimals: 18,
-          tokenHash: '-',
+          tokenHash: nativeToken.hash,
         },
       ],
     })
@@ -199,7 +202,7 @@ describe('BSEthereum', () => {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
           tokenDecimals: 18,
-          tokenHash: '-',
+          tokenHash: nativeToken.hash,
         },
       ],
     })
@@ -217,13 +220,13 @@ describe('BSEthereum', () => {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
           tokenDecimals: 18,
-          tokenHash: '-',
+          tokenHash: nativeToken.hash,
         },
         {
           amount: '0.00000001',
           receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
           tokenDecimals: 18,
-          tokenHash: '-',
+          tokenHash: nativeToken.hash,
         },
       ],
     })
@@ -241,13 +244,13 @@ describe('BSEthereum', () => {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
           tokenDecimals: 18,
-          tokenHash: '-',
+          tokenHash: nativeToken.hash,
         },
         {
           amount: '0.00000001',
           receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
           tokenDecimals: 18,
-          tokenHash: '-',
+          tokenHash: nativeToken.hash,
         },
       ],
     })

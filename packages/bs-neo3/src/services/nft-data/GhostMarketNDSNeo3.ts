@@ -1,4 +1,11 @@
-import { GetNftParam, GetNftsByAddressParams, Network, NftResponse, NftsResponse } from '@cityofzion/blockchain-service'
+import {
+  BSTokenHelper,
+  GetNftParam,
+  GetNftsByAddressParams,
+  Network,
+  NftResponse,
+  NftsResponse,
+} from '@cityofzion/blockchain-service'
 import axios from 'axios'
 import qs from 'query-string'
 import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
@@ -81,7 +88,7 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
 
   async getNft({ contractHash, tokenId }: GetNftParam): Promise<NftResponse> {
     const url = this.#getUrlWithParams({
-      contract: contractHash,
+      contract: BSTokenHelper.normalizeHash(contractHash),
       tokenIds: [tokenId],
     })
     const { data } = await axios.get<GhostMarketAssets>(url)
@@ -124,7 +131,7 @@ export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
     const nftResponse: NftResponse = {
       collectionImage: this.#treatGhostMarketImage(data.collection?.logoUrl),
       id: data.tokenId,
-      contractHash: data.contract.hash,
+      contractHash: BSTokenHelper.normalizeHash(data.contract.hash),
       symbol: data.contract.symbol,
       collectionName: data.collection?.name,
       image: this.#treatGhostMarketImage(data.metadata.mediaUri),

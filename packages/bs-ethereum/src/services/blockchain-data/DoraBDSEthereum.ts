@@ -1,7 +1,7 @@
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import {
+  BSBigNumberHelper,
   BSFullTransactionsByAddressHelper,
-  BSNumberHelper,
   BSPromisesHelper,
   ExplorerService,
   FullTransactionAssetEvent,
@@ -66,10 +66,10 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
         invocationCount: item.invocationCount,
         notificationCount: item.notificationCount,
         networkFeeAmount: networkFeeAmount
-          ? BSNumberHelper.formatNumber(networkFeeAmount, { decimals: nativeToken.decimals })
+          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: nativeToken.decimals })
           : undefined,
         systemFeeAmount: systemFeeAmount
-          ? BSNumberHelper.formatNumber(systemFeeAmount, { decimals: nativeToken.decimals })
+          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: nativeToken.decimals })
           : undefined,
         events: [],
       }
@@ -116,12 +116,11 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
           }
         } else {
           const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
-          const { amount } = event
 
           assetEvent = {
             eventType: 'token',
-            amount: amount
-              ? BSNumberHelper.formatNumber(amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            amount: event.amount
+              ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
               : undefined,
             methodName,
             from,

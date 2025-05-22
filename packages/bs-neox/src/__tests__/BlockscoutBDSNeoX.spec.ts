@@ -29,16 +29,11 @@ describe('BlockscoutBDSNeoX', () => {
     const expectedTransfer: TransactionTransferAsset[] = [
       {
         amount: '0.000001',
-        contractHash: '-',
+        contractHash: BSNeoXConstants.NATIVE_ASSET.hash,
         from: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5',
         to: '0x3A2fF99807d6ae553eBB72456ACE0BcE0eCe7174',
         type: 'token',
-        token: {
-          decimals: 18,
-          hash: '-',
-          name: 'GAS',
-          symbol: 'GAS',
-        },
+        token: BSNeoXConstants.NATIVE_ASSET,
       },
     ]
 
@@ -145,12 +140,7 @@ describe('BlockscoutBDSNeoX', () => {
     const expectedBalance: BalanceResponse[] = [
       {
         amount: expect.any(String),
-        token: {
-          decimals: 18,
-          hash: '-',
-          name: 'GAS',
-          symbol: 'GAS',
-        },
+        token: BSNeoXConstants.NATIVE_ASSET,
       },
     ]
 

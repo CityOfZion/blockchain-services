@@ -1,3 +1,4 @@
+import { BSUtilsHelper } from './helpers/BSUtilsHelper'
 import {
   Account,
   BlockchainService,
@@ -46,10 +47,6 @@ export function hasLedger<BSName extends string = string>(
   return 'ledgerService' in service
 }
 
-export function wait(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
 /**
  * @deprecated use `waitForAccountTransaction` instead
  */
@@ -70,7 +67,7 @@ export async function waitForTransaction<BSName extends string = string>(
     }
 
     attempts++
-    await wait(waitMs)
+    await BSUtilsHelper.wait(waitMs)
   } while (attempts < maxAttempts)
 
   return false
@@ -86,7 +83,7 @@ export async function waitForAccountTransaction<BSName extends string = string>(
   let attempts = 1
 
   do {
-    await wait(60000)
+    await BSUtilsHelper.wait(60000)
 
     try {
       const response = await service.blockchainDataService.getTransactionsByAddress({ address })
@@ -175,22 +172,4 @@ export async function generateAccountForBlockchainService<BSName extends string 
   await Promise.all(promises)
 
   return accountsByBlockchainService
-}
-
-type NormalizedHashOptions = {
-  lowercase?: boolean
-}
-
-export function normalizeHash(hash: string, options?: NormalizedHashOptions): string {
-  const { lowercase = true } = options ?? {}
-
-  hash = hash.replace('0x', '')
-
-  if (lowercase) hash = hash.toLowerCase()
-
-  return hash
-}
-
-export function denormalizeHash(hash: string): string {
-  return hash.startsWith('0x') ? hash : `0x${hash}`
 }

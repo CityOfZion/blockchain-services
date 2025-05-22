@@ -30,6 +30,7 @@ import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedge
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
 import { BSNeo3Constants, BSNeo3NetworkId } from './constants/BSNeo3Constants'
 import { RpcBDSNeo3 } from './services/blockchain-data/RpcBDSNeo3'
+import { BridgeNeo3Service } from './services/extended/BridgeNeo3Service'
 
 export class BSNeo3<BSName extends string = string>
   implements
@@ -55,6 +56,7 @@ export class BSNeo3<BSName extends string = string>
   ledgerService: NeonDappKitLedgerServiceNeo3<BSName>
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
+  bridgeService!: BridgeNeo3Service<BSName>
 
   network!: Network<BSNeo3NetworkId>
 
@@ -166,6 +168,7 @@ export class BSNeo3<BSName extends string = string>
     )
 
     this.exchangeDataService = new FlamingoForthewinEDSNeo3(network)
+    this.bridgeService = new BridgeNeo3Service(this)
   }
 
   validateAddress(address: string): boolean {

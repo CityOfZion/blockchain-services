@@ -45,7 +45,8 @@
     {
       "packageName": "@cityofzion/bs-neox",
       "projectFolder": "packages/bs-neox",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "decoupledLocalDependencies": ["@cityofzion/bs-neo3"]
     }
   ]
 }

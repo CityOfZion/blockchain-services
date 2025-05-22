@@ -23,6 +23,7 @@ import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import { api } from '@cityofzion/dora-ts'
 import { DoraBDSEthereum } from './DoraBDSEthereum'
+import { BSEthereumTokenHelper } from '../../helpers/BSEthereumTokenHelper'
 
 type MoralisNativeBalanceResponse = {
   balance: string
@@ -199,12 +200,12 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
       balances.push({
         amount: ethers.utils.formatUnits(balance.balance, balance.decimals),
-        token: {
+        token: BSEthereumTokenHelper.normalizeToken({
           decimals: balance.decimals,
           hash: balance.token_address,
           name: balance.name ?? '',
           symbol: balance.symbol,
-        },
+        }),
       })
     })
 
@@ -218,7 +219,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
 
-    if (BSEthereumHelper.normalizeHash(nativeAsset.hash) === BSEthereumHelper.normalizeHash(hash)) return nativeAsset
+    if (BSEthereumTokenHelper.predicateByHash(nativeAsset)({ hash })) return nativeAsset
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!
@@ -233,12 +234,12 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
     const data = response.data[0]
 
-    const token: Token = {
+    const token = BSEthereumTokenHelper.normalizeToken({
       decimals: Number(data.decimals),
       symbol: data.symbol,
       hash,
       name: data.name,
-    }
+    })
 
     this._tokenCache.set(hash, token)
 
@@ -357,12 +358,12 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
           from: transfer.from_address,
           to: transfer.to_address,
           type: 'token',
-          token: {
+          token: BSEthereumTokenHelper.normalizeToken({
             decimals: Number(transfer.token_decimals),
             hash: transfer.address,
             name: transfer.token_name,
             symbol: transfer.token_symbol,
-          },
+          }),
           contractHash: transfer.address,
         })
       })

@@ -104,7 +104,7 @@ describe('DoraBDSNeo3', () => {
     expect(token).toEqual({
       decimals: 8,
       hash,
-      name: 'GasToken',
+      name: 'GAS',
       symbol: 'GAS',
     })
   })

@@ -31,6 +31,7 @@
     "date-fns": "~4.1.0"
   },
   "devDependencies": {
+    "@cityofzion/bs-neox": "workspace:*",
     "@cityofzion/neon-dappkit-types": "~0.3.1",
     "@ledgerhq/hw-transport-node-hid": "~6.28.5",
     "@types/lodash.clonedeep": "^4.5.9",

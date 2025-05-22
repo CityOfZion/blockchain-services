@@ -17,8 +17,8 @@ describe('BSNeoX', () => {
         {
           amount: '0.0000000000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          tokenDecimals: 18,
-          tokenHash: '-',
+          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
+          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
         },
       ],
     })

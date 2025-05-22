@@ -1,7 +1,7 @@
 import { ExchangeDataService, GetTokenPricesParams, TokenPricesResponse } from '../../interfaces'
 import axios from 'axios'
 import { CryptoCompareEDS } from './CryptoCompareEDS'
-import { normalizeHash } from '../../functions'
+import { BSTokenHelper } from '../../helpers/BSTokenHelper'
 
 type FlamingoTokenInfoPricesResponse = {
   symbol: string
@@ -11,11 +11,6 @@ type FlamingoTokenInfoPricesResponse = {
 
 type ForthewinTokenInfoPricesResponse = {
   [key: string]: number
-}
-
-type CompareTokenParams = {
-  hash: string
-  symbol?: string
 }
 
 export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDataService {
@@ -33,13 +28,13 @@ export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDa
     const prices: TokenPricesResponse[] = []
     const neoToken = tokens.find(({ symbol }) => symbol === 'NEO')
 
-    if (neoToken && !flamingoData.find(this.predicateToken(neoToken)))
+    if (neoToken && !flamingoData.find(BSTokenHelper.predicate(neoToken)))
       flamingoData.forEach(item => {
         if (item.symbol === 'bNEO') flamingoData.push({ ...item, symbol: neoToken.symbol, hash: neoToken.hash })
       })
 
     flamingoData.forEach(item => {
-      const token = tokens.find(this.predicateToken(item))
+      const token = tokens.find(BSTokenHelper.predicate(item))
 
       if (!token) return
 
@@ -51,11 +46,11 @@ export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDa
         await this.#forthewinAxiosInstance.get<ForthewinTokenInfoPricesResponse>('/mainnet/prices')
 
       Object.entries(forthewinData).forEach(([hash, usdPrice]) => {
-        const hasPrice = !!prices.find(({ token }) => this.predicateToken({ hash })(token))
+        const hasPrice = !!prices.find(({ token }) => BSTokenHelper.predicate({ hash })(token))
 
         if (hasPrice) return
 
-        const foundToken = tokens.find(this.predicateToken({ hash }))
+        const foundToken = tokens.find(BSTokenHelper.predicate({ hash }))
 
         if (!foundToken) return
 
@@ -64,12 +59,5 @@ export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDa
     }
 
     return prices
-  }
-
-  private predicateToken({ hash, symbol }: CompareTokenParams): (params: CompareTokenParams) => boolean {
-    const normalizedHash = normalizeHash(hash)
-
-    return (params: CompareTokenParams) =>
-      normalizedHash === normalizeHash(params.hash) || (!!symbol && !!params.symbol && symbol === params.symbol)
   }
 }

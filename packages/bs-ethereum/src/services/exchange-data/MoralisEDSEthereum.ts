@@ -12,6 +12,7 @@ import {
 import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from '../blockchain-data/MoralisBDSEthereum'
+import { BSEthereumTokenHelper } from '../../helpers/BSEthereumTokenHelper'
 
 type MoralisERC20PriceResponse = {
   tokenName: string
@@ -42,11 +43,11 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     const localWrappedHash = BSEthereumConstants.NATIVE_WRAPPED_HASH_BY_NETWORK_ID[this.#network.id]
     if (!localWrappedHash) throw new Error('Wrapper token not found')
 
-    return {
+    return BSEthereumTokenHelper.normalizeToken({
       ...nativeToken,
       symbol: wrappedSymbol,
       hash: localWrappedHash,
-    }
+    })
   }
 
   async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
@@ -98,12 +99,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
 
         data.forEach(item => {
           let token: Token
-
-          if (
-            wrappedNativeToken &&
-            BSEthereumHelper.normalizeHash(item.tokenAddress) ===
-              BSEthereumHelper.normalizeHash(wrappedNativeToken.hash)
-          ) {
+          if (wrappedNativeToken && BSEthereumTokenHelper.predicateByHash(wrappedNativeToken)(item.tokenAddress)) {
             token = nativeToken
           } else {
             token = {
@@ -132,7 +128,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
 
     let token: Token
-    if (BSEthereumHelper.normalizeHash(params.token.hash) === BSEthereumHelper.normalizeHash(nativeToken.hash)) {
+    if (BSEthereumTokenHelper.predicateByHash(nativeToken)(params.token)) {
       token = await this.#getWrappedNativeToken()
     } else {
       token = params.token

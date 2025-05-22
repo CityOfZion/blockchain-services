@@ -2,6 +2,7 @@ import {
   BalanceResponse,
   BDSClaimable,
   BlockchainDataService,
+  BSTokenHelper,
   ContractMethod,
   ContractParameter,
   ContractResponse,
@@ -94,42 +95,45 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = this._tokens.find(
-      token => BSNeo3Helper.normalizeHash(token.hash) === BSNeo3Helper.normalizeHash(tokenHash)
-    )
-    if (localToken) return localToken
-
-    if (this._tokenCache.has(tokenHash)) {
-      return this._tokenCache.get(tokenHash)!
-    }
     try {
-      const rpcClient = new rpc.RPCClient(this._network.url)
-      const contractState = await rpcClient.getContractState(tokenHash)
+      const cachedToken = this._tokenCache.get(tokenHash)
+      if (cachedToken) {
+        return cachedToken
+      }
 
-      const invoker = await NeonInvoker.init({
-        rpcAddress: this._network.url,
-      })
+      let token: Token | undefined
 
-      const response = await invoker.testInvoke({
-        invocations: [
-          {
-            scriptHash: tokenHash,
-            operation: 'decimals',
-            args: [],
-          },
-          { scriptHash: tokenHash, operation: 'symbol', args: [] },
-        ],
-      })
+      token = this._tokens.find(BSTokenHelper.predicateByHash(tokenHash))
 
-      if (!TypeChecker.isStackTypeInteger(response.stack[0])) throw new Error('Invalid decimals')
-      if (!TypeChecker.isStackTypeByteString(response.stack[1])) throw new Error('Invalid symbol')
-      const decimals = Number(response.stack[0].value)
-      const symbol = u.base642utf8(response.stack[1].value)
-      const token = {
-        name: contractState.manifest.name,
-        symbol,
-        hash: contractState.hash,
-        decimals,
+      if (!token) {
+        const rpcClient = new rpc.RPCClient(this._network.url)
+        const contractState = await rpcClient.getContractState(tokenHash)
+
+        const invoker = await NeonInvoker.init({
+          rpcAddress: this._network.url,
+        })
+
+        const response = await invoker.testInvoke({
+          invocations: [
+            {
+              scriptHash: tokenHash,
+              operation: 'decimals',
+              args: [],
+            },
+            { scriptHash: tokenHash, operation: 'symbol', args: [] },
+          ],
+        })
+
+        if (!TypeChecker.isStackTypeInteger(response.stack[0])) throw new Error('Invalid decimals')
+        if (!TypeChecker.isStackTypeByteString(response.stack[1])) throw new Error('Invalid symbol')
+        const decimals = Number(response.stack[0].value)
+        const symbol = u.base642utf8(response.stack[1].value)
+        token = BSTokenHelper.normalizeToken({
+          name: contractState.manifest.name,
+          symbol,
+          hash: contractState.hash,
+          decimals,
+        })
       }
 
       this._tokenCache.set(tokenHash, token)

@@ -1,12 +1,12 @@
 import { BSEthereumConstants, BSEthereumNetworkId } from '../constants/BSEthereumConstants'
 import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 import {
+  BSUtilsHelper,
   ExplorerService,
   FullTransactionNftEvent,
   FullTransactionsByAddressParams,
   Network,
   NftDataService,
-  wait,
 } from '@cityofzion/blockchain-service'
 import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 import { isLeapYear } from 'date-fns'
@@ -336,7 +336,7 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
 
       const response = await moralisBDSEthereum.getFullTransactionsByAddress(newParams)
 
-      await wait(1000) // It's necessary to have this timeout because of an issue on endpoint
+      await BSUtilsHelper.wait(1000) // It's necessary to have this timeout because of an issue on endpoint
 
       const nextResponse = await moralisBDSEthereum.getFullTransactionsByAddress({
         ...newParams,

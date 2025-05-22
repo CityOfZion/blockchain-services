@@ -26,6 +26,7 @@
     "date-fns": "~4.1.0"
   },
   "devDependencies": {
+    "@cityofzion/bs-neo3": "workspace:*",
     "@ledgerhq/hw-transport-node-hid": "~6.28.5",
     "@types/jest": "29.5.3",
     "@typescript-eslint/eslint-plugin": "^6.5.0",

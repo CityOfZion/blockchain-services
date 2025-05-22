@@ -9,7 +9,6 @@ import {
   FullTransactionsByAddressResponse,
   Network,
   NftDataService,
-  normalizeHash,
   Token,
   TransactionResponse,
   TransactionsByAddressParams,
@@ -20,7 +19,7 @@ import {
 import axios from 'axios'
 import { ethers } from 'ethers'
 import { api } from '@cityofzion/dora-ts'
-import { BSEthereumConstants, DoraBDSEthereum, ERC20_ABI } from '@cityofzion/bs-ethereum'
+import { BSEthereumConstants, BSEthereumTokenHelper, DoraBDSEthereum, ERC20_ABI } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants, BSNeoXNetworkId } from '../../constants/BSNeoXConstants'
 
 interface BlockscoutTransactionResponse {
@@ -157,12 +156,12 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
             to: tokenTransfer.to.hash,
             type: 'token',
             contractHash: tokenTransfer.token.address,
-            token: {
+            token: BSEthereumTokenHelper.normalizeToken({
               symbol: tokenTransfer.token.symbol,
               name: tokenTransfer.token.name,
               hash: tokenTransfer.token.address,
               decimals: Number(tokenTransfer.total.decimals),
-            },
+            }),
           })
 
           continue
@@ -243,7 +242,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
             from: item.from.hash,
             to,
             type: 'token',
-            contractHash: item.to.hash,
+            contractHash: token.hash,
             token,
           })
         } catch (error) {
@@ -335,15 +334,16 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const normalizedHash = normalizeHash(tokenHash)
+    const normalizedHash = BSEthereumTokenHelper.normalizeHash(tokenHash)
     const nativeAsset = BSNeoXConstants.NATIVE_ASSET
 
     if (nativeAsset.hash === normalizedHash) {
       return nativeAsset
     }
 
-    if (this._tokenCache.has(tokenHash)) {
-      return this._tokenCache.get(tokenHash)!
+    const cachedToken = this._tokenCache.get(tokenHash)
+    if (cachedToken) {
+      return cachedToken
     }
 
     const client = BlockscoutBDSNeoX.getClient(this._network)
@@ -357,12 +357,16 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
       throw new Error('Token is not an ERC-20 token')
     }
 
-    return {
+    const token = BSEthereumTokenHelper.normalizeToken({
       decimals: data.decimals ? parseInt(data.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
       hash: tokenHash,
       name: data.name,
       symbol: data.symbol,
-    }
+    })
+
+    this._tokenCache.set(tokenHash, token)
+
+    return token
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
@@ -395,12 +399,12 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
           return
         }
 
-        const token: Token = {
+        const token: Token = BSEthereumTokenHelper.normalizeToken({
           decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
-          hash: normalizeHash(balance.token.address),
+          hash: balance.token.address,
           name: balance.token.symbol,
           symbol: balance.token.symbol,
-        }
+        })
 
         balances.push({
           amount: ethers.utils.formatUnits(balance.value, token.decimals),

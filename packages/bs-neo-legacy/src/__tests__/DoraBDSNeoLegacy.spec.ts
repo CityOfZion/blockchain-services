@@ -66,7 +66,7 @@ describe('DoraBDSNeoLegacy', () => {
   })
 
   it('Should be able to get token info - %s', async () => {
-    const hash = '602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
+    const hash = '0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
     const token = await doraBDSNeoLegacy.getTokenInfo(hash)
     expect(token).toEqual({
       decimals: 8,
@@ -90,7 +90,6 @@ describe('DoraBDSNeoLegacy', () => {
           decimals: expect.any(Number),
         },
       })
-      expect(balance.token.hash.startsWith('0x')).toBeFalsy()
     })
   })
 
