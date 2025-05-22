@@ -2,8 +2,8 @@
   "changes": [
     {
       "packageName": "@cityofzion/bs-neox",
-      "comment": "Project bootstrap and create the exportFullTransactionsByAddress method",
-      "type": "minor"
+      "comment": "Project bootstrap, create the exportFullTransactionsByAddress method and add pageSize param for getFullTransactionsByAddress",
+      "type": "patch"
     }
   ],
   "packageName": "@cityofzion/bs-neox"
