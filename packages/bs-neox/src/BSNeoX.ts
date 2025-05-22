@@ -18,6 +18,7 @@ export class BSNeoX<BSName extends string = string> extends BSEthereum<BSName, B
 
   setNetwork(network: Network<BSNeoXNetworkId>) {
     this.network = network
+
     this.nftDataService = new GhostMarketNDSNeoX(network)
     this.explorerService = new BlockscoutESNeoX(network)
     this.exchangeDataService = new FlamingoForthewinEDSNeoX(network)
