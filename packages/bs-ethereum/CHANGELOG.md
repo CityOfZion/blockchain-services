@@ -1,6 +1,17 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 06 May 2025 15:11:09 GMT and should not be manually modified.
+This log was last generated on Thu, 22 May 2025 23:10:38 GMT and should not be manually modified.
+
+## 2.12.0
+Thu, 22 May 2025 23:10:38 GMT
+
+### Minor changes
+
+- Create the exportFullTransactionsByAddress method
+
+### Patches
+
+- Add pageSize param for getFullTransactionsByAddress
 
 ## 2.11.0
 Tue, 06 May 2025 15:11:09 GMT

@@ -1,6 +1,17 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Thu, 15 May 2025 16:10:56 GMT and should not be manually modified.
+This log was last generated on Thu, 22 May 2025 23:10:38 GMT and should not be manually modified.
+
+## 1.13.0
+Thu, 22 May 2025 23:10:38 GMT
+
+### Minor changes
+
+- Create the exportFullTransactionsByAddress method
+
+### Patches
+
+- Add pageSize param for getFullTransactionsByAddress
 
 ## 1.12.2
 Thu, 15 May 2025 16:10:56 GMT

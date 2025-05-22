@@ -2,6 +2,33 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.13.0",
+      "tag": "@cityofzion/bs-neo3_v1.13.0",
+      "date": "Thu, 22 May 2025 23:10:38 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add pageSize param for getFullTransactionsByAddress"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Create the exportFullTransactionsByAddress method"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update tests with pagination"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.18.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.12.2",
       "tag": "@cityofzion/bs-neo3_v1.12.2",
       "date": "Thu, 15 May 2025 16:10:56 GMT",

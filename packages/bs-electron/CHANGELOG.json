@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-electron",
   "entries": [
     {
+      "version": "0.1.41",
+      "tag": "@cityofzion/bs-electron_v0.1.41",
+      "date": "Thu, 22 May 2025 23:10:38 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.18.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.1.40",
       "tag": "@cityofzion/bs-electron_v0.1.40",
       "date": "Tue, 06 May 2025 15:11:09 GMT",
