@@ -281,9 +281,9 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
     it('Should be able to get transactions with default pageSize param', async () => {
       const newParams = {
         ...params,
-        dateFrom: new Date('2023-01-25T12:00:00').toJSON(),
-        dateTo: new Date('2023-04-25T12:00:00').toJSON(),
-        address: 'NV96QgerjXNmu4jLdMW4ZWkhySVMYX52Ex',
+        dateFrom: new Date('2024-08-20T12:00:00').toJSON(),
+        dateTo: new Date('2025-05-20T12:00:00').toJSON(),
+        address: 'NeM8SHQsDCX54A12xa3ZbvWb4a7xiwYtdJ',
       }
 
       const response = await doraBDSNeo3.getFullTransactionsByAddress(newParams)
