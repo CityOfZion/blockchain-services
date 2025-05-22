@@ -1,6 +1,17 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Thu, 15 May 2025 12:48:12 GMT and should not be manually modified.
+This log was last generated on Thu, 22 May 2025 18:44:58 GMT and should not be manually modified.
+
+## 1.12.0
+Thu, 22 May 2025 18:44:58 GMT
+
+### Minor changes
+
+- Create the exportFullTransactionsByAddress method
+
+### Patches
+
+- Add pageSize param for getFullTransactionsByAddress
 
 ## 1.11.1
 Thu, 15 May 2025 12:48:12 GMT

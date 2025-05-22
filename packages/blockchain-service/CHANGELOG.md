@@ -1,6 +1,17 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 06 May 2025 15:11:09 GMT and should not be manually modified.
+This log was last generated on Thu, 22 May 2025 18:44:58 GMT and should not be manually modified.
+
+## 1.18.0
+Thu, 22 May 2025 18:44:58 GMT
+
+### Minor changes
+
+- Create the exportFullTransactionsByAddress method
+
+### Patches
+
+- Add pageSize param for getFullTransactionsByAddress
 
 ## 1.17.1
 Tue, 06 May 2025 15:11:09 GMT

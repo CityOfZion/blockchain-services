@@ -1,0 +1,25 @@
+{
+  "name": "@cityofzion/bs-neox",
+  "entries": [
+    {
+      "version": "0.0.1",
+      "tag": "@cityofzion/bs-neox_v0.0.1",
+      "date": "Thu, 22 May 2025 18:44:59 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Project bootstrap, create the exportFullTransactionsByAddress method and add pageSize param for getFullTransactionsByAddress"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.18.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.12.0`"
+          }
+        ]
+      }
+    }
+  ]
+}
