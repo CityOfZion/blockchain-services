@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "1.1.1",
+      "tag": "@cityofzion/bs-neox_v1.1.1",
+      "date": "Fri, 23 May 2025 14:32:57 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change Mainnet and Testnet names"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.1.0",
       "tag": "@cityofzion/bs-neox_v1.1.0",
       "date": "Thu, 22 May 2025 23:10:38 GMT",

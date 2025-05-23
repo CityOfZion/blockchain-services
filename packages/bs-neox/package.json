@@ -1,6 +1,6 @@
 {
   "name": "@cityofzion/bs-neox",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/CityOfZion/blockchain-services",
