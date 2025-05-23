@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Change Mainnet and Testnet names",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}
