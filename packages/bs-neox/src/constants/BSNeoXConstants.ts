@@ -16,16 +16,16 @@ export class BSNeoXConstants {
 
   static MAINNET_NETWORK: Network<BSNeoXNetworkId> = {
     id: '47763',
-    name: 'NeoX Testnet',
+    name: 'NeoX Mainnet',
     url: this.RPC_LIST_BY_NETWORK_ID['47763'][0],
   }
   static TESTNET_NETWORK: Network<BSNeoXNetworkId> = {
     id: '12227332',
-    name: 'NeoX Mainnet',
+    name: 'NeoX Testnet',
     url: this.RPC_LIST_BY_NETWORK_ID['12227332'][0],
   }
 
-  static ALL_NETWORK: Network<BSNeoXNetworkId>[] = [this.TESTNET_NETWORK, this.MAINNET_NETWORK]
+  static ALL_NETWORK: Network<BSNeoXNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 
   static DEFAULT_NETWORK = this.MAINNET_NETWORK
 }
