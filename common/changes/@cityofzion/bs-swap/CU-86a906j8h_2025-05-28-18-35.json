@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "comment": "Add no-cache in SimpleSwapApi",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-swap"
+}

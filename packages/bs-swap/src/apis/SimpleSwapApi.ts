@@ -25,7 +25,14 @@ export class SimpleSwapApi<BSName extends string = string> {
   #allCurrenciesMap: Map<string, SimpleSwapApiCurrency<BSName>> = new Map()
 
   constructor() {
-    this.#axios = axios.create({ baseURL: `${BSCommonConstants.DORA_URL}/api/v2/swap` })
+    this.#axios = axios.create({
+      baseURL: `${BSCommonConstants.DORA_URL}/api/v2/swap`,
+      headers: {
+        'Cache-Control': 'no-cache',
+        Pragma: 'no-cache',
+        Expires: '0',
+      },
+    })
   }
 
   #createAddressTemplateUrl(
