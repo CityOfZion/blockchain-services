@@ -246,11 +246,11 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
             // Add 1% because the SimpleSwap sends us a smaller minimum than the required
             const minWithOnePercent = formatNumber((Number(rangeResponse.min) * 1.01).toString(), decimals)
 
-            // Add the smallest number to round up because the SimpleSwap doesn't have the decimals, and we need to apply the decimals here
-            const smallestNumberToRoundUp = decimals ? `0.${'1'.padStart(decimals, '0')}` : '1'
+            // Add the smallest number to round up correctly because the SimpleSwap doesn't have the decimals, and we need to apply the decimals here
+            const smallestNumberToRoundUp = decimals ? `0.${'2'.padStart(decimals, '0')}` : '1'
 
             range = {
-              min: (Number(minWithOnePercent) + Number(smallestNumberToRoundUp)).toString(),
+              min: formatNumber(Number(minWithOnePercent) + Number(smallestNumberToRoundUp), decimals),
               max: rangeResponse.max ? formatNumber(rangeResponse.max, decimals) : rangeResponse.max,
             }
           }
