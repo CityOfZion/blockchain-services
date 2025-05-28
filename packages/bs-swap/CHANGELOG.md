@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Wed, 28 May 2025 13:56:29 GMT and should not be manually modified.
+This log was last generated on Wed, 28 May 2025 19:16:52 GMT and should not be manually modified.
+
+## 0.5.23
+Wed, 28 May 2025 19:16:52 GMT
+
+### Patches
+
+- Add no-cache in SimpleSwapApi
 
 ## 0.5.22
 Wed, 28 May 2025 13:56:28 GMT

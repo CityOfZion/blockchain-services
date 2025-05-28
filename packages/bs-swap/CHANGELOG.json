@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.23",
+      "tag": "@cityofzion/bs-swap_v0.5.23",
+      "date": "Wed, 28 May 2025 19:16:52 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add no-cache in SimpleSwapApi"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.22",
       "tag": "@cityofzion/bs-swap_v0.5.22",
       "date": "Wed, 28 May 2025 13:56:28 GMT",
