@@ -89,12 +89,19 @@ export interface BSWithLedger<BSName extends string = string> {
   generateAccountFromPublicKey(publicKey: string): Account<BSName>
 }
 
+export type TransactionNotificationTypedResponse = {
+  type: string
+  value?: string
+}
+
+export type TransactionNotificationStateResponse = {
+  type: string
+  value?: string | TransactionNotificationTypedResponse[]
+}
+
 export type TransactionNotifications = {
   eventName: string
-  state: {
-    type: string
-    value: string
-  }[]
+  state?: TransactionNotificationStateResponse | TransactionNotificationStateResponse[]
 }
 export type TransactionTransferAsset = {
   amount: string
