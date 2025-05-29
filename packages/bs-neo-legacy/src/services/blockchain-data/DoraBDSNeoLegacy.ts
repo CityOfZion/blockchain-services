@@ -147,6 +147,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
     const itemPromises = items.map(async item => {
       const txId = item.transactionID
+
       const newItem: FullTransactionsItem = {
         txId,
         txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
@@ -164,17 +165,17 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
         const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isNep5 = this.#supportedNep5Standards.includes(standard)
-        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
         const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
 
         const assetEvent: FullTransactionAssetEvent = {
           eventType: 'token',
           amount: formatNumber(amount, token?.decimals ?? event.tokenDecimals),
           methodName: event.methodName,
-          from: from || 'Mint',
+          from: from ?? undefined,
           fromUrl,
-          to: to || 'Burn',
+          to: to ?? undefined,
           toUrl,
           hash,
           hashUrl,
