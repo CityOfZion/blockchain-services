@@ -198,18 +198,14 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       const eventPromises = item.events.map(async event => {
         let nftEvent: FullTransactionNftEvent
         let assetEvent: FullTransactionAssetEvent
-        let from = event.from
-        let to = event.to
 
         const { methodName, tokenID: tokenId, contractHash: hash } = event
 
+        const from = event.from ?? undefined
+        const to = event.to ?? undefined
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
         const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
-
-        if (!from) from = 'Mint'
-        if (!to) to = 'Burn'
-
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isNft = this.#supportedNep11Standards.includes(standard) && !!tokenId
 
