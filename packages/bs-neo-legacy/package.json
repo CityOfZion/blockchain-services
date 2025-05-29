@@ -17,7 +17,7 @@
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
     "@cityofzion/bs-asteroid-sdk": "workspace:*",
-    "@cityofzion/dora-ts": "0.5.0",
+    "@cityofzion/dora-ts": "0.5.1",
     "@cityofzion/neon-js": "4.8.3",
     "@ledgerhq/hw-transport": "~6.30.5",
     "axios": "1.8.2",

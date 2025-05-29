@@ -28,7 +28,7 @@ import { u, wallet } from '@cityofzion/neon-js'
 import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
-import { TypedResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
+import { StateResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
 
 const NeoRest = new api.NeoRESTApi({
   doraUrl: BSCommonConstants.DORA_URL,
@@ -90,22 +90,21 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       const transferPromises: Promise<TransactionTransferAsset | TransactionTransferNft>[] = []
 
       item.notifications.forEach(({ contract: contractHash, state, event_name: eventName }) => {
-        // TODO: created issue to fix it (https://app.clickup.com/t/86a86n3yw), type from @cityofzion/dora-ts is wrong, it's necessary to do this force casting now
-        const properties = (Array.isArray(state) ? state : ((state as any)?.value as TypedResponse[])) ?? []
+        const properties = Array.isArray(state) ? state : state?.value ?? []
 
         if (eventName !== 'Transfer' || (properties.length !== 3 && properties.length !== 4)) return
 
         const promise = async (): Promise<TransactionTransferAsset | TransactionTransferNft> => {
           const isAsset = properties.length === 3
-
-          const from = properties[0].value
-          const to = properties[1].value
+          const from = (properties[0] as StateResponse).value as string
+          const to = (properties[1] as StateResponse).value as string
           const convertedFrom = from ? this.convertByteStringToAddress(from) : 'Mint'
           const convertedTo = to ? this.convertByteStringToAddress(to) : 'Burn'
 
           if (isAsset) {
             const token = await this.getTokenInfo(contractHash)
-            const [, , { value: amount }] = properties
+            const amount = (properties[2] as StateResponse).value as string
+
             return {
               amount: amount ? u.BigInteger.fromNumber(amount).toDecimal(token.decimals ?? 0) : '0',
               from: convertedFrom,
@@ -119,7 +118,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
           return {
             from: convertedFrom,
             to: convertedTo,
-            tokenId: properties[3].value ?? '',
+            tokenId: (properties[3] as StateResponse).value as string,
             contractHash,
             type: 'nft',
           }
@@ -132,7 +131,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
       const notifications = item.notifications.map<TransactionNotifications>(notification => ({
         eventName: notification.event_name,
-        state: notification.state as any,
+        state: notification.state,
       }))
 
       return {

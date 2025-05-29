@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Update Dora TS (SDK)",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}
