@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.18.1",
+      "tag": "@cityofzion/blockchain-service_v1.18.1",
+      "date": "Thu, 29 May 2025 19:24:38 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Dora TS (SDK)"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.18.0",
       "tag": "@cityofzion/blockchain-service_v1.18.0",
       "date": "Thu, 22 May 2025 23:10:38 GMT",

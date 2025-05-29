@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Thu, 22 May 2025 23:10:38 GMT and should not be manually modified.
+This log was last generated on Thu, 29 May 2025 19:24:38 GMT and should not be manually modified.
+
+## 1.18.1
+Thu, 29 May 2025 19:24:38 GMT
+
+### Patches
+
+- Update Dora TS (SDK)
 
 ## 1.18.0
 Thu, 22 May 2025 23:10:38 GMT
