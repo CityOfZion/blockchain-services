@@ -18,10 +18,10 @@ import {
   TransactionTransferAsset,
   TransactionTransferNft,
   BSFullTransactionsByAddressHelper,
-  formatNumber,
   BSPromisesHelper,
   ExplorerService,
   ExportTransactionsByAddressParams,
+  BSNumberHelper,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { u, wallet } from '@cityofzion/neon-js'
@@ -181,7 +181,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     const nftTemplateUrl = this.#explorerService.getNftTemplateUrl()
     const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
 
-    const itemPromises = items.map(async item => {
+    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }) => {
       const txId = item.transactionID
       const newItem: FullTransactionsItem = {
         txId,
@@ -190,8 +190,12 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         date: item.date,
         invocationCount: item.invocationCount,
         notificationCount: item.notificationCount,
-        networkFeeAmount: formatNumber(item.networkFeeAmount, this._feeToken.decimals),
-        systemFeeAmount: formatNumber(item.systemFeeAmount, this._feeToken.decimals),
+        networkFeeAmount: networkFeeAmount
+          ? BSNumberHelper.formatNumber(networkFeeAmount, { decimals: this._feeToken.decimals })
+          : undefined,
+        systemFeeAmount: systemFeeAmount
+          ? BSNumberHelper.formatNumber(systemFeeAmount, { decimals: this._feeToken.decimals })
+          : undefined,
         events: [],
       }
 
@@ -218,7 +222,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
           nftEvent = {
             eventType: 'nft',
-            amount: '0',
+            amount: undefined,
             methodName,
             from,
             fromUrl,
@@ -235,11 +239,13 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
           }
         } else {
           const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
-          const amount = formatNumber(event.amount, token?.decimals ?? event.tokenDecimals)
+          const { amount } = event
 
           assetEvent = {
             eventType: 'token',
-            amount,
+            amount: amount
+              ? BSNumberHelper.formatNumber(amount, { decimals: token?.decimals ?? event.tokenDecimals })
+              : undefined,
             methodName,
             from,
             fromUrl,

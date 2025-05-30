@@ -162,12 +162,12 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
             date: expect.any(String),
             invocationCount: expect.any(Number),
             notificationCount: expect.any(Number),
-            networkFeeAmount: expect.any(String),
-            systemFeeAmount: expect.any(String),
+            networkFeeAmount: expect.anything(),
+            systemFeeAmount: expect.anything(),
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
-                amount: expect.any(String),
+                amount: expect.anything(),
                 methodName: expect.any(String),
                 from: expect.anything(),
                 fromUrl: expect.anything(),

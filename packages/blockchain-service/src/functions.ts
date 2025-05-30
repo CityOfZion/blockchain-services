@@ -194,31 +194,3 @@ export function normalizeHash(hash: string, options?: NormalizedHashOptions): st
 export function denormalizeHash(hash: string): string {
   return hash.startsWith('0x') ? hash : `0x${hash}`
 }
-
-export function countDecimals(value: string | number) {
-  const [, decimals] = value.toString().split('.')
-  return decimals?.length ?? 0
-}
-
-export function formatNumber(value?: string | number, decimals: number = 0) {
-  if (!value) return '0'
-
-  let newValue = typeof value === 'number' ? value.toFixed(decimals) : value
-
-  newValue = newValue.replace(/,|\.\.|\.,/g, '.')
-
-  if (decimals === 0) {
-    newValue = newValue.split('.')[0]
-  } else {
-    newValue = newValue.replace(/[^\d.]/g, '')
-    const countedDecimals = countDecimals(newValue)
-
-    if (countedDecimals > decimals) {
-      newValue = newValue.slice(0, newValue.length - countedDecimals + decimals)
-    }
-  }
-
-  return newValue.replace(/\s|-/g, '').replace(/^([^.]*\.)(.*)$/, function (_a, b, c) {
-    return b + c.replace(/\./g, '')
-  })
-}

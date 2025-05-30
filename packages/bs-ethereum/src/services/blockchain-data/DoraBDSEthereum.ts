@@ -1,9 +1,9 @@
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import {
   BSFullTransactionsByAddressHelper,
+  BSNumberHelper,
   BSPromisesHelper,
   ExplorerService,
-  formatNumber,
   FullTransactionAssetEvent,
   FullTransactionNftEvent,
   FullTransactionsByAddressParams,
@@ -55,8 +55,9 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
     const nftTemplateUrl = this.#explorerService.getNftTemplateUrl()
     const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
 
-    const itemPromises = items.map(async item => {
+    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }) => {
       const txId = item.transactionID
+
       const newItem: FullTransactionsItem = {
         txId,
         txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
@@ -64,8 +65,12 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
         date: item.date,
         invocationCount: item.invocationCount,
         notificationCount: item.notificationCount,
-        networkFeeAmount: formatNumber(item.networkFeeAmount, nativeToken.decimals),
-        systemFeeAmount: formatNumber(item.systemFeeAmount, nativeToken.decimals),
+        networkFeeAmount: networkFeeAmount
+          ? BSNumberHelper.formatNumber(networkFeeAmount, { decimals: nativeToken.decimals })
+          : undefined,
+        systemFeeAmount: systemFeeAmount
+          ? BSNumberHelper.formatNumber(systemFeeAmount, { decimals: nativeToken.decimals })
+          : undefined,
         events: [],
       }
 
@@ -94,7 +99,7 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
 
           nftEvent = {
             eventType: 'nft',
-            amount: '0',
+            amount: undefined,
             methodName,
             from,
             fromUrl,
@@ -111,11 +116,13 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
           }
         } else {
           const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
-          const amount = formatNumber(event.amount, token?.decimals ?? event.tokenDecimals)
+          const { amount } = event
 
           assetEvent = {
             eventType: 'token',
-            amount,
+            amount: amount
+              ? BSNumberHelper.formatNumber(amount, { decimals: token?.decimals ?? event.tokenDecimals })
+              : undefined,
             methodName,
             from,
             fromUrl,
