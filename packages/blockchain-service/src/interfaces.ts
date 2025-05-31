@@ -155,7 +155,7 @@ export type ExportTransactionsByAddressParams = {
 
 export type FullTransactionNftEvent = {
   eventType: 'nft'
-  amount: string
+  amount?: string
   methodName: string
   hash: string
   hashUrl?: string
@@ -173,7 +173,7 @@ export type FullTransactionNftEvent = {
 
 export type FullTransactionAssetEvent = {
   eventType: 'token'
-  amount: string
+  amount?: string
   methodName: string
   hash: string
   hashUrl?: string
@@ -192,8 +192,8 @@ export type FullTransactionsItem = {
   date: string
   invocationCount: number
   notificationCount: number
-  networkFeeAmount: string
-  systemFeeAmount: string
+  networkFeeAmount?: string
+  systemFeeAmount?: string
   events: (FullTransactionAssetEvent | FullTransactionNftEvent)[]
 }
 

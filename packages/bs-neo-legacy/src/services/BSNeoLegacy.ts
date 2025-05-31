@@ -13,8 +13,8 @@ import {
   BSWithLedger,
   GetLedgerTransport,
   normalizeHash,
-  formatNumber,
   BalanceResponse,
+  BSNumberHelper,
 } from '@cityofzion/blockchain-service'
 import { api, sc, tx, u, wallet } from '@cityofzion/neon-js'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
@@ -411,19 +411,26 @@ export class BSNeoLegacy<BSName extends string = string>
       const allGasAmountNumberThatUserWillReceive =
         gasAmountNumberLessCozFee + BSNeoLegacyConstants.MIGRATION_NEP_17_TRANSFER_FEE
 
-      response.gasMigrationTotalFees = formatNumber(allGasFeeNumberThatUserWillPay, this.GAS_ASSET.decimals)
-      response.gasMigrationReceiveAmount = formatNumber(allGasAmountNumberThatUserWillReceive, this.GAS_ASSET.decimals)
+      response.gasMigrationTotalFees = BSNumberHelper.formatNumber(allGasFeeNumberThatUserWillPay, {
+        decimals: this.GAS_ASSET.decimals,
+      })
+
+      response.gasMigrationReceiveAmount = BSNumberHelper.formatNumber(allGasAmountNumberThatUserWillReceive, {
+        decimals: this.GAS_ASSET.decimals,
+      })
     }
 
     if (neoLegacyMigrationAmounts.neoBalance && neoLegacyMigrationAmounts.hasEnoughNeoBalance) {
       const neoMigrationAmountNumber = Number(neoLegacyMigrationAmounts.neoBalance.amount)
-      response.neoMigrationTotalFees = formatNumber(
+
+      response.neoMigrationTotalFees = BSNumberHelper.formatNumber(
         Math.ceil(neoMigrationAmountNumber * BSNeoLegacyConstants.MIGRATION_COZ_FEE),
-        this.NEO_ASSET.decimals
+        { decimals: this.NEO_ASSET.decimals }
       )
-      response.neoMigrationReceiveAmount = formatNumber(
+
+      response.neoMigrationReceiveAmount = BSNumberHelper.formatNumber(
         neoMigrationAmountNumber - Number(response.neoMigrationTotalFees),
-        this.NEO_ASSET.decimals
+        { decimals: this.NEO_ASSET.decimals }
       )
     }
 

@@ -3,11 +3,11 @@ import {
   BDSClaimable,
   BlockchainDataService,
   BSFullTransactionsByAddressHelper,
+  BSNumberHelper,
   BSPromisesHelper,
   ContractResponse,
   ExplorerService,
   ExportTransactionsByAddressParams,
-  formatNumber,
   FullTransactionAssetEvent,
   FullTransactionsByAddressParams,
   FullTransactionsByAddressResponse,
@@ -145,7 +145,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     const txTemplateUrl = this.#explorerService.getTxTemplateUrl()
     const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
 
-    const itemPromises = items.map(async item => {
+    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }) => {
       const txId = item.transactionID
 
       const newItem: FullTransactionsItem = {
@@ -155,8 +155,12 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
         date: item.date,
         invocationCount: item.invocationCount,
         notificationCount: item.notificationCount,
-        networkFeeAmount: formatNumber(item.networkFeeAmount, this.#feeToken.decimals),
-        systemFeeAmount: formatNumber(item.systemFeeAmount, this.#feeToken.decimals),
+        networkFeeAmount: networkFeeAmount
+          ? BSNumberHelper.formatNumber(networkFeeAmount, { decimals: this.#feeToken.decimals })
+          : undefined,
+        systemFeeAmount: systemFeeAmount
+          ? BSNumberHelper.formatNumber(systemFeeAmount, { decimals: this.#feeToken.decimals })
+          : undefined,
         events: [],
       }
 
@@ -171,7 +175,9 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
         const assetEvent: FullTransactionAssetEvent = {
           eventType: 'token',
-          amount: formatNumber(amount, token?.decimals ?? event.tokenDecimals),
+          amount: amount
+            ? BSNumberHelper.formatNumber(amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            : undefined,
           methodName: event.methodName,
           from: from ?? undefined,
           fromUrl,
