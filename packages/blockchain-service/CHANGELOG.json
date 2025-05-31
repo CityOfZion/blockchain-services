@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.18.2",
+      "tag": "@cityofzion/blockchain-service_v1.18.2",
+      "date": "Sat, 31 May 2025 13:37:40 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Improve formatNumber method"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.18.1",
       "tag": "@cityofzion/blockchain-service_v1.18.1",
       "date": "Thu, 29 May 2025 19:24:38 GMT",

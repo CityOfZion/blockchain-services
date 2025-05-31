@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 29 May 2025 19:24:38 GMT and should not be manually modified.
+This log was last generated on Sat, 31 May 2025 13:37:40 GMT and should not be manually modified.
+
+## 2.12.2
+Sat, 31 May 2025 13:37:40 GMT
+
+### Patches
+
+- Improve formatNumber method
 
 ## 2.12.1
 Thu, 29 May 2025 19:24:38 GMT

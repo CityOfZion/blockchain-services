@@ -2,6 +2,29 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.25",
+      "tag": "@cityofzion/bs-swap_v0.5.25",
+      "date": "Sat, 31 May 2025 13:37:40 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Improve formatNumber method"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.18.2`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.13.2`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.12.2`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.24",
       "tag": "@cityofzion/bs-swap_v0.5.24",
       "date": "Thu, 29 May 2025 19:24:38 GMT",
