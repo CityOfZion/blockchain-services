@@ -488,7 +488,9 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       throw new Error('Not all required fields are set')
     }
 
-    const service = this.#blockchainServicesByName[this.#accountToUse.value.blockchain]
+    const { blockchain } = this.#accountToUse.value
+    const service = this.#blockchainServicesByName[blockchain]
+
     if (!isCalculableFee(service)) return '0'
 
     return await service.calculateTransferFee({
@@ -496,7 +498,10 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
       intents: [
         {
           amount: this.#amountToUse.value,
-          receiverAddress: this.#addressToReceive.value,
+          receiverAddress:
+            this.#tokenToReceive.value.blockchain === blockchain
+              ? this.#addressToReceive.value
+              : this.#accountToUse.value.address,
           tokenHash: this.#tokenToUse.value.hash,
           tokenDecimals: this.#tokenToUse.value.decimals,
         },
