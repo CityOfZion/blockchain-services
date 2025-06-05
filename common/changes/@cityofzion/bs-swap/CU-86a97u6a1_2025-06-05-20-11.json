@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "comment": "Fix calculate fee on Swap",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-swap"
+}

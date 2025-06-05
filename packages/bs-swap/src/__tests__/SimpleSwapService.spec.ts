@@ -344,7 +344,7 @@ describe('SimpleSwapService', () => {
       value: expect.objectContaining({ min: expect.any(String), max: null }),
     })
     expect(min).toContain('.')
-    expect(min.split('.').at(1)!.length).toBeGreaterThanOrEqual(8)
+    expect(min.split('.').at(1)!.length).toBe(8)
   }, 10000)
 
   it('Should be able to set the correct min and max amount with Neo (0 decimals)', async () => {
