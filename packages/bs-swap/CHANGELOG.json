@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.26",
+      "tag": "@cityofzion/bs-swap_v0.5.26",
+      "date": "Thu, 05 Jun 2025 20:30:53 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix calculate fee on Swap"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.25",
       "tag": "@cityofzion/bs-swap_v0.5.25",
       "date": "Sat, 31 May 2025 13:37:40 GMT",
