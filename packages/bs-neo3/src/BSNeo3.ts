@@ -31,6 +31,9 @@ import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
 import { BSNeo3Constants, BSNeo3NetworkId } from './constants/BSNeo3Constants'
 import { RpcBDSNeo3 } from './services/blockchain-data/RpcBDSNeo3'
 
+import { DoraVoteServiceNeo3 } from './services/vote/DoraVoteServiceNeo3'
+import { GenerateSigningCallbackResponse, VoteService } from './interfaces'
+
 export class BSNeo3<BSName extends string = string>
   implements
     BlockchainService<BSName, BSNeo3NetworkId>,
@@ -55,6 +58,7 @@ export class BSNeo3<BSName extends string = string>
   ledgerService: NeonDappKitLedgerServiceNeo3<BSName>
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
+  voteService!: VoteService<BSName>
 
   network!: Network<BSNeo3NetworkId>
 
@@ -78,7 +82,7 @@ export class BSNeo3<BSName extends string = string>
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
   }
 
-  async generateSigningCallback(account: Account<BSName>) {
+  async generateSigningCallback(account: Account<BSName>): Promise<GenerateSigningCallbackResponse> {
     const neonJsAccount = new wallet.Account(account.key)
 
     if (account.isHardware) {
@@ -155,6 +159,7 @@ export class BSNeo3<BSName extends string = string>
     this.network = network
     this.nftDataService = new GhostMarketNDSNeo3(network)
     this.explorerService = new DoraESNeo3(network)
+    this.voteService = new DoraVoteServiceNeo3<BSName>(this)
 
     this.blockchainDataService = new DoraBDSNeo3(
       network,

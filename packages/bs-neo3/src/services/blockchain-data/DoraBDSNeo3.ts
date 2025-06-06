@@ -356,6 +356,10 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     return account.address
   }
 
+  #validateAddress(address: string): boolean {
+    return wallet.isAddress(address, 53)
+  }
+
   #validateFullTransactionsByAddressParams(
     params: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo'>
   ) {
@@ -363,7 +367,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams(params)
 
-    if (!wallet.isAddress(params.address)) throw new Error('Invalid address param')
+    if (!this.#validateAddress(params.address)) throw new Error('Invalid address param')
   }
 
   #validateGetFullTransactionsByAddressParams({
