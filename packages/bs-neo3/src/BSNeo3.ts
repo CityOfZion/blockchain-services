@@ -5,6 +5,8 @@ import {
   BlockchainService,
   BSCalculableFee,
   BSClaimable,
+  BSCommonConstants,
+  BSNumberHelper,
   BSWithExplorerService,
   BSWithLedger,
   BSWithNameService,
@@ -20,8 +22,8 @@ import {
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import Neon from '@cityofzion/neon-core'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
-import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
-import { api, u, wallet } from '@cityofzion/neon-js'
+import { ContractInvocation, ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
+import { api, tx, u, wallet } from '@cityofzion/neon-js'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
 import { FlamingoForthewinEDSNeo3 } from './services/exchange-data/FlamingoForthewinEDSNeo3'
@@ -30,6 +32,17 @@ import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedge
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
 import { BSNeo3Constants, BSNeo3NetworkId } from './constants/BSNeo3Constants'
 import { RpcBDSNeo3 } from './services/blockchain-data/RpcBDSNeo3'
+import {
+  AxiosGetCandidatesToVoteResponse,
+  AxiosGetVoteDetailsByAddressResponse,
+  CalculateVoteFeeParams,
+  GetCandidatesToVoteResponse,
+  GetVoteCIMParams,
+  GetVoteDetailsByAddressResponse,
+  VoteParams,
+  VoteResponse,
+} from './interfaces'
+import axios, { AxiosInstance } from 'axios'
 
 export class BSNeo3<BSName extends string = string>
   implements
@@ -41,6 +54,8 @@ export class BSNeo3<BSName extends string = string>
     BSWithExplorerService,
     BSWithLedger<BSName>
 {
+  readonly #doraAxiosInstance: AxiosInstance
+
   name: BSName
   bip44DerivationPath: string
 
@@ -61,6 +76,7 @@ export class BSNeo3<BSName extends string = string>
   constructor(name: BSName, network?: Network<BSNeo3NetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
     network = network ?? BSNeo3Constants.DEFAULT_NETWORK
 
+    this.#doraAxiosInstance = axios.create({ baseURL: `${BSCommonConstants.DORA_URL}/api/v2/neo3` })
     this.name = name
     this.ledgerService = new NeonDappKitLedgerServiceNeo3(this, getLedgerTransport)
     this.bip44DerivationPath = BSNeo3Constants.DEFAULT_BIP44_DERIVATION_PATH
@@ -293,5 +309,106 @@ export class BSNeo3<BSName extends string = string>
     })
 
     return parser.accountInputToAddress(parsed.replace('0x', ''))
+  }
+
+  async getCandidatesToVote(): Promise<GetCandidatesToVoteResponse> {
+    if (!BSNeo3Helper.isMainnet(this.network)) throw new Error('Only Mainnet is supported')
+
+    const { data } = await this.#doraAxiosInstance.get<AxiosGetCandidatesToVoteResponse>('/mainnet/committee')
+
+    return data.map(({ logo, ...candidate }, index) => {
+      const position = index + 1
+
+      return {
+        position,
+        name: candidate.name,
+        description: candidate.description,
+        location: candidate.location,
+        email: candidate.email,
+        website: candidate.website,
+        hash: candidate.scripthash,
+        pubKey: candidate.pubkey,
+        votes: candidate.votes,
+        logoUrl: logo.startsWith('https://') ? logo : undefined,
+        type: position <= 7 ? 'consensus' : 'council',
+      }
+    })
+  }
+
+  async getVoteDetailsByAddress(address: string): Promise<GetVoteDetailsByAddressResponse> {
+    if (!BSNeo3Helper.isMainnet(this.network)) throw new Error('Only Mainnet is supported')
+    if (!address) throw new Error('Missing address')
+    if (!this.validateAddress(address)) throw new Error('Invalid address')
+
+    const {
+      data: { candidatePubkey, ...data },
+    } = await this.#doraAxiosInstance.get<AxiosGetVoteDetailsByAddressResponse>(`/mainnet/voter/${address}`)
+
+    if (!candidatePubkey) throw new Error('There was a problem to get vote details by address')
+
+    return {
+      candidateName: data.candidate,
+      candidatePubKey: candidatePubkey,
+      neoBalance: data.balance,
+    }
+  }
+
+  async vote({ account, candidatePubKey }: VoteParams<BSName>): Promise<VoteResponse> {
+    if (!BSNeo3Helper.isMainnet(this.network)) throw new Error('Only Mainnet is supported')
+    if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
+
+    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account)
+
+    const invoker = await NeonInvoker.init({
+      rpcAddress: this.network.url,
+      account: neonJsAccount,
+      signingCallback,
+    })
+
+    const transactionHash = await invoker.invokeFunction(
+      this.#getVoteCIM({
+        address: account.address,
+        candidatePubKey,
+      })
+    )
+
+    return { transactionHash }
+  }
+
+  async calculateVoteFee({ account, candidatePubKey }: CalculateVoteFeeParams<BSName>): Promise<string> {
+    if (!BSNeo3Helper.isMainnet(this.network)) throw new Error('Only Mainnet is supported')
+    if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
+
+    const { neonJsAccount } = await this.generateSigningCallback(account)
+
+    const invoker = await NeonInvoker.init({
+      rpcAddress: this.network.url,
+      account: neonJsAccount,
+    })
+
+    const { total } = await invoker.calculateFee(
+      this.#getVoteCIM({
+        address: account.address,
+        candidatePubKey,
+      })
+    )
+
+    return BSNumberHelper.formatNumber(total, { decimals: this.feeToken.decimals })
+  }
+
+  #getVoteCIM({ address, candidatePubKey }: GetVoteCIMParams): ContractInvocationMulti {
+    return {
+      invocations: [
+        {
+          scriptHash: 'ef4073a0f2b305a38ec4050e4d3d28bc40ea63f5',
+          operation: 'vote',
+          args: [
+            { type: 'Hash160', value: address },
+            { type: 'PublicKey', value: candidatePubKey },
+          ],
+        },
+      ],
+      signers: [{ scopes: tx.WitnessScope.CalledByEntry }],
+    }
   }
 }
