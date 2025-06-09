@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Sat, 31 May 2025 13:37:40 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Jun 2025 18:48:47 GMT and should not be manually modified.
+
+## 1.14.0
+Mon, 09 Jun 2025 18:48:47 GMT
+
+### Minor changes
+
+- Add getCandidatesToVote, getVoteDetailsByAddress, vote and calculateVoteFee methods
 
 ## 1.13.2
 Sat, 31 May 2025 13:37:40 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.14.0",
+      "tag": "@cityofzion/bs-neo3_v1.14.0",
+      "date": "Mon, 09 Jun 2025 18:48:47 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add getCandidatesToVote, getVoteDetailsByAddress, vote and calculateVoteFee methods"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.13.2",
       "tag": "@cityofzion/bs-neo3_v1.13.2",
       "date": "Sat, 31 May 2025 13:37:40 GMT",
