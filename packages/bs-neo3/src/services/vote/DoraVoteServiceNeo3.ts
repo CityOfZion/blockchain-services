@@ -30,16 +30,18 @@ export type AxiosGetVoteDetailsByAddressResponse = {
 }
 
 export class DoraVoteServiceNeo3<BSName extends string> extends RpcVoteServiceNeo3<BSName> {
+  readonly #service: BSNeo3<BSName>
   readonly #doraAxiosInstance: AxiosInstance
 
   constructor(service: BSNeo3<BSName>) {
     super(service)
 
+    this.#service = service
     this.#doraAxiosInstance = axios.create({ baseURL: `${BSCommonConstants.DORA_URL}/api/v2/neo3` })
   }
 
   async getCandidatesToVote(): Promise<GetCandidatesToVoteResponse> {
-    if (!BSNeo3Helper.isMainnet(this._service.network)) throw new Error('Only Mainnet is supported')
+    if (!BSNeo3Helper.isMainnet(this.#service.network)) throw new Error('Only Mainnet is supported')
 
     const { data } = await this.#doraAxiosInstance.get<AxiosGetCandidatesToVoteResponse>('/mainnet/committee')
 
@@ -63,9 +65,9 @@ export class DoraVoteServiceNeo3<BSName extends string> extends RpcVoteServiceNe
   }
 
   async getVoteDetailsByAddress(address: string): Promise<GetVoteDetailsByAddressResponse> {
-    if (!BSNeo3Helper.isMainnet(this._service.network)) throw new Error('Only Mainnet is supported')
+    if (!BSNeo3Helper.isMainnet(this.#service.network)) throw new Error('Only Mainnet is supported')
     if (!address) throw new Error('Missing address')
-    if (!this._service.validateAddress(address)) throw new Error('Invalid address')
+    if (!this.#service.validateAddress(address)) throw new Error('Invalid address')
 
     const {
       data: { candidatePubkey, ...data },

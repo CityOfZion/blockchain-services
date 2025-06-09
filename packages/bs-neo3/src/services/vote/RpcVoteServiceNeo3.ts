@@ -19,10 +19,10 @@ type GetVoteCIMParams = {
 }
 
 export abstract class RpcVoteServiceNeo3<BSName extends string> implements VoteService<BSName> {
-  readonly _service: BSNeo3<BSName>
+  readonly #service: BSNeo3<BSName>
 
   protected constructor(service: BSNeo3<BSName>) {
-    this._service = service
+    this.#service = service
   }
 
   abstract getCandidatesToVote(): Promise<GetCandidatesToVoteResponse>
@@ -30,13 +30,13 @@ export abstract class RpcVoteServiceNeo3<BSName extends string> implements VoteS
   abstract getVoteDetailsByAddress(_address: string): Promise<GetVoteDetailsByAddressResponse>
 
   async vote({ account, candidatePubKey }: VoteParams<BSName>): Promise<VoteResponse> {
-    if (!BSNeo3Helper.isMainnet(this._service.network)) throw new Error('Only Mainnet is supported')
+    if (!BSNeo3Helper.isMainnet(this.#service.network)) throw new Error('Only Mainnet is supported')
     if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
 
-    const { neonJsAccount, signingCallback } = await this._service.generateSigningCallback(account)
+    const { neonJsAccount, signingCallback } = await this.#service.generateSigningCallback(account)
 
     const invoker = await NeonInvoker.init({
-      rpcAddress: this._service.network.url,
+      rpcAddress: this.#service.network.url,
       account: neonJsAccount,
       signingCallback,
     })
@@ -52,13 +52,13 @@ export abstract class RpcVoteServiceNeo3<BSName extends string> implements VoteS
   }
 
   async calculateVoteFee({ account, candidatePubKey }: CalculateVoteFeeParams<BSName>): Promise<string> {
-    if (!BSNeo3Helper.isMainnet(this._service.network)) throw new Error('Only Mainnet is supported')
+    if (!BSNeo3Helper.isMainnet(this.#service.network)) throw new Error('Only Mainnet is supported')
     if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
 
-    const { neonJsAccount } = await this._service.generateSigningCallback(account)
+    const { neonJsAccount } = await this.#service.generateSigningCallback(account)
 
     const invoker = await NeonInvoker.init({
-      rpcAddress: this._service.network.url,
+      rpcAddress: this.#service.network.url,
       account: neonJsAccount,
     })
 
@@ -69,7 +69,7 @@ export abstract class RpcVoteServiceNeo3<BSName extends string> implements VoteS
       })
     )
 
-    return BSNumberHelper.formatNumber(total, { decimals: this._service.feeToken.decimals })
+    return BSNumberHelper.formatNumber(total, { decimals: this.#service.feeToken.decimals })
   }
 
   #getVoteCIM({ address, candidatePubKey }: GetVoteCIMParams): ContractInvocationMulti {
