@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Mon, 09 Jun 2025 18:48:47 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Jun 2025 19:18:09 GMT and should not be manually modified.
+
+## 1.14.1
+Mon, 09 Jun 2025 19:18:09 GMT
+
+### Patches
+
+- Change service to private accessor in Vote Services
 
 ## 1.14.0
 Mon, 09 Jun 2025 18:48:47 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.14.1",
+      "tag": "@cityofzion/bs-neo3_v1.14.1",
+      "date": "Mon, 09 Jun 2025 19:18:09 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change service to private accessor in Vote Services"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.14.0",
       "tag": "@cityofzion/bs-neo3_v1.14.0",
       "date": "Mon, 09 Jun 2025 18:48:47 GMT",
