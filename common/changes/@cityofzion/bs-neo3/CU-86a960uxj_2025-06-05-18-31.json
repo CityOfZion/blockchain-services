@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Add getCandidatesToVote, getVoteDetailsByAddress, vote and calculateVoteFee methods",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}
