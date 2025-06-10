@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Sat, 31 May 2025 13:37:40 GMT and should not be manually modified.
+This log was last generated on Tue, 10 Jun 2025 20:47:03 GMT and should not be manually modified.
+
+## 1.19.0
+Tue, 10 Jun 2025 20:47:03 GMT
+
+### Minor changes
+
+- Add Neo3NeoXBridge feature and helpers
 
 ## 1.18.2
 Sat, 31 May 2025 13:37:40 GMT
