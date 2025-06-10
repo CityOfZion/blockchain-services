@@ -1,6 +1,7 @@
 export * from './BSEthereum'
 
 export * from './helpers/BSEthereumHelper'
+export * from './helpers/BSEthereumTokenHelper'
 
 export * from './constants/BSEthereumConstants'
 

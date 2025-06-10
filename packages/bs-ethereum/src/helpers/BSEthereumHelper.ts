@@ -1,11 +1,12 @@
-import { Network, normalizeHash } from '@cityofzion/blockchain-service'
+import { Network } from '@cityofzion/blockchain-service'
 import { BSEthereumConstants, BSEthereumNetworkId } from '../constants/BSEthereumConstants'
+import { BSEthereumTokenHelper } from './BSEthereumTokenHelper'
 
 export class BSEthereumHelper {
   static getNativeAsset(network: Network<BSEthereumNetworkId>) {
     const symbol = this.getNativeSymbol(network)
 
-    return { symbol, name: symbol, decimals: 18, hash: '-' }
+    return BSEthereumTokenHelper.normalizeToken({ symbol, name: symbol, decimals: 18, hash: '0x' })
   }
 
   static getNativeSymbol(network: Network<BSEthereumNetworkId>) {
@@ -18,35 +19,5 @@ export class BSEthereumHelper {
 
   static isMainnet(network: Network<BSEthereumNetworkId>) {
     return BSEthereumConstants.MAINNET_NETWORK_IDS.includes(network.id)
-  }
-
-  static normalizeHash(hash: string): string {
-    return normalizeHash(hash)
-  }
-
-  static wait(duration: number): Promise<void> {
-    return new Promise(resolve => {
-      setTimeout(resolve, duration)
-    })
-  }
-
-  static retry<T = any>(callback: () => Promise<T>): Promise<T> {
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-      // Wait up to 5 seconds
-      for (let i = 0; i < 50; i++) {
-        try {
-          const result = await callback()
-          return resolve(result)
-        } catch (error: any) {
-          if (error.id !== 'TransportLocked') {
-            return reject(error)
-          }
-        }
-        await this.wait(100)
-      }
-
-      return reject(new Error('timeout'))
-    })
   }
 }

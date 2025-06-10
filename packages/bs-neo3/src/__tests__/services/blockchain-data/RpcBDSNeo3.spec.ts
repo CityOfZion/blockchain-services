@@ -54,7 +54,7 @@ describe('RpcBDSNeo3', () => {
 
     expect(token).toEqual({
       decimals: 8,
-      hash: 'd2a4cff31913016155e38e474a2c06d08be276cf',
+      hash: '0xd2a4cff31913016155e38e474a2c06d08be276cf',
       name: 'GAS',
       symbol: 'GAS',
     })

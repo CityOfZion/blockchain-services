@@ -11,6 +11,7 @@ export type Account<BSName extends string = string> = {
   isHardware?: boolean
   blockchain: BSName
 }
+
 export type Token = {
   symbol: string
   name: string
@@ -87,6 +88,10 @@ export interface BSWithNft {
 export interface BSWithLedger<BSName extends string = string> {
   ledgerService: LedgerService<BSName>
   generateAccountFromPublicKey(publicKey: string): Account<BSName>
+}
+
+export interface IBSWithNeo3NeoXBridge<BSName extends string = string> {
+  neo3NeoXBridgeService: INeo3NeoXBridgeService<BSName>
 }
 
 export type TransactionNotificationTypedResponse = {
@@ -392,4 +397,46 @@ export interface SwapService<BSName extends string = string> {
   setExtraIdToReceive(extraId: string | null): Promise<void>
   swap(): Promise<SwapServiceSwapResult>
   calculateFee(): Promise<string>
+}
+
+export type TNeo3NeoXBridgeServiceCalculateMaxAmountParams<BSName extends string> = {
+  account: Account<BSName>
+  receiverAddress: string
+  token: Token
+  balances: BalanceResponse[]
+}
+
+export type TNeo3NeoXBridgeServiceValidatedInputs = {
+  amount: string
+  receiveAmount: string
+  token: Token
+}
+
+export type TNeo3NeoXBridgeServiceBridgeParam<BSName extends string> = {
+  account: Account<BSName>
+  receiverAddress: string
+  validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs
+}
+
+export type TNeo3NeoXBridgeServiceValidateInputParams<BSName extends string> = {
+  account: Account<BSName>
+  receiverAddress: string
+  amount: string
+  token: Token
+  balances: BalanceResponse[]
+}
+
+export type TNeo3NeoXBridgeServiceWaitParams = {
+  transactionHash: string
+  validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs
+}
+
+export interface INeo3NeoXBridgeService<BSName extends string = string> {
+  calculateMaxAmount(params: TNeo3NeoXBridgeServiceCalculateMaxAmountParams<BSName>): Promise<string>
+  calculateFee(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string>
+  bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string>
+  validateInputs(
+    params: TNeo3NeoXBridgeServiceValidateInputParams<BSName>
+  ): Promise<TNeo3NeoXBridgeServiceValidatedInputs>
+  wait(params: TNeo3NeoXBridgeServiceWaitParams): Promise<boolean>
 }

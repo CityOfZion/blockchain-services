@@ -1,5 +1,6 @@
 import { BuildNftUrlParams, ExplorerService, Network, NetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumTokenHelper } from '../../helpers/BSEthereumTokenHelper'
 
 const DEFAULT_BASE_URL_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
   [BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID]: 'https://eth.blockscout.com',
@@ -34,17 +35,17 @@ export class BlockscoutESEthereum<BSNetworkId extends NetworkId = BSEthereumNetw
 
   buildTransactionUrl(hash: string): string {
     const baseURL = this.#getBaseUrl(this.#network)
-    return `${baseURL}/tx/${hash}`
+    return `${baseURL}/tx/${BSEthereumTokenHelper.normalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string {
     const baseURL = this.#getBaseUrl(this.#network)
-    return `${baseURL}/address/${contractHash}`
+    return `${baseURL}/address/${BSEthereumTokenHelper.normalizeHash(contractHash)}`
   }
 
   buildNftUrl(params: BuildNftUrlParams): string {
     const baseURL = this.#getBaseUrl(this.#network)
-    return `${baseURL}/token/${params.contractHash}/instance/${params.tokenId}`
+    return `${baseURL}/token/${BSEthereumTokenHelper.normalizeHash(params.contractHash)}/instance/${params.tokenId}`
   }
 
   getAddressTemplateUrl() {

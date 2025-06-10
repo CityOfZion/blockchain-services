@@ -74,7 +74,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a native asset', async () => {
-    const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const account = bsNeoLegacy.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const gasBalance = balance.find(b => b.token.symbol === 'GAS')!
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
@@ -95,7 +95,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a nep5 asset', async () => {
-    const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const account = bsNeoLegacy.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
     expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000001)
@@ -117,7 +117,7 @@ describe('BSNeoLegacy', () => {
 
   it.skip('Should be able to transfer a asset with tip', async () => {
     bsNeoLegacy.setNetwork(BSNeoLegacyConstants.DEFAULT_NETWORK)
-    const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const account = bsNeoLegacy.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
     expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000001)
@@ -147,7 +147,7 @@ describe('BSNeoLegacy', () => {
 
   it.skip('Should be able to transfer more than one intent', async () => {
     bsNeoLegacy.setNetwork(BSNeoLegacyConstants.DEFAULT_NETWORK)
-    const account = bsNeoLegacy.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const account = bsNeoLegacy.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await bsNeoLegacy.blockchainDataService.getBalance(account.address)
 
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!

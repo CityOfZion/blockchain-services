@@ -31,6 +31,7 @@
   "dependencies": {
     "@ledgerhq/hw-transport": "~6.30.5",
     "axios": "1.8.2",
-    "date-fns": "~4.1.0"
+    "date-fns": "~4.1.0",
+    "bignumber.js": "~9.3.0"
   }
 }

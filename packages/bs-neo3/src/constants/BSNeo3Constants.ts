@@ -1,4 +1,4 @@
-import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
+import { BSTokenHelper, Network, NetworkId, Token } from '@cityofzion/blockchain-service'
 import mainnetTokens from '../assets/tokens/mainnet.json'
 import nativeTokens from '../assets/tokens/native.json'
 
@@ -6,8 +6,13 @@ export type BSNeo3NetworkId = NetworkId<'mainnet' | 'testnet'>
 
 export class BSNeo3Constants {
   static EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<BSNeo3NetworkId, Token[]>> = {
-    mainnet: mainnetTokens,
+    mainnet: BSTokenHelper.normalizeToken(mainnetTokens),
   }
+
+  static NATIVE_ASSETS: Token[] = BSTokenHelper.normalizeToken(nativeTokens)
+
+  static GAS_TOKEN: Token = this.NATIVE_ASSETS.find(token => token.name === 'GAS')!
+  static NEO_TOKEN: Token = this.NATIVE_ASSETS.find(token => token.name === 'NEO')!
 
   static RPC_LIST_BY_NETWORK_ID: Partial<Record<BSNeo3NetworkId, string[]>> = {
     mainnet: [
@@ -53,11 +58,10 @@ export class BSNeo3Constants {
   ]
   static ALL_NETWORKS: Network<BSNeo3NetworkId>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
 
+  // If tou change this, make sure to update the tests accordingly
   static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
 
   static NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
 
   static DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
-
-  static NATIVE_ASSETS: Token[] = nativeTokens
 }

@@ -12,7 +12,7 @@ let account: Account<'neoLegacy'>
 describe.skip('BSNeoLegacy - Migration', () => {
   beforeEach(async () => {
     serviceNeoLegacy = new BSNeoLegacy('neoLegacy', BSNeoLegacyConstants.DEFAULT_NETWORK)
-    account = serviceNeoLegacy.generateAccountFromKey(process.env.NEO_LEGACY_WITH_BALANCE_PRIVATE_KEY!)
+    account = serviceNeoLegacy.generateAccountFromKey(process.env.NEO_LEGACY_WITH_BALANCE_PRIVATE_KEY)
   })
 
   it('Should be able to calculate neo legacy migration values for empty balance', async () => {
@@ -24,8 +24,8 @@ describe.skip('BSNeoLegacy - Migration', () => {
     })
 
     const balances: BalanceResponse[] = [
-      { amount: '0', token: serviceNeoLegacy.NEO_ASSET },
-      { amount: '0', token: serviceNeoLegacy.GAS_ASSET },
+      { amount: '0', token: BSNeoLegacyConstants.NEO_ASSET },
+      { amount: '0', token: BSNeoLegacyConstants.GAS_ASSET },
     ]
 
     expect(serviceNeoLegacy.calculateNeoLegacyMigrationAmounts(balances)).toEqual({
@@ -38,8 +38,8 @@ describe.skip('BSNeoLegacy - Migration', () => {
 
   it('Should be able to calculate neo legacy migration values for no minimum balances', async () => {
     const balances: BalanceResponse[] = [
-      { amount: '1', token: serviceNeoLegacy.NEO_ASSET },
-      { amount: '0.0001', token: serviceNeoLegacy.GAS_ASSET },
+      { amount: '1', token: BSNeoLegacyConstants.NEO_ASSET },
+      { amount: '0.0001', token: BSNeoLegacyConstants.GAS_ASSET },
     ]
     expect(serviceNeoLegacy.calculateNeoLegacyMigrationAmounts(balances)).toEqual({
       hasEnoughGasBalance: false,
@@ -50,7 +50,7 @@ describe.skip('BSNeoLegacy - Migration', () => {
   })
 
   it('Should be able to calculate neo legacy migration values', async () => {
-    const gasBalance: BalanceResponse = { amount: '1', token: serviceNeoLegacy.GAS_ASSET }
+    const gasBalance: BalanceResponse = { amount: '1', token: BSNeoLegacyConstants.GAS_ASSET }
     expect(serviceNeoLegacy.calculateNeoLegacyMigrationAmounts([gasBalance])).toEqual({
       hasEnoughNeoBalance: false,
       hasEnoughGasBalance: true,
@@ -58,7 +58,7 @@ describe.skip('BSNeoLegacy - Migration', () => {
       gasBalance,
     })
 
-    const neoBalance = { amount: '4', token: serviceNeoLegacy.NEO_ASSET }
+    const neoBalance = { amount: '4', token: BSNeoLegacyConstants.NEO_ASSET }
     expect(serviceNeoLegacy.calculateNeoLegacyMigrationAmounts([neoBalance])).toEqual({
       hasEnoughNeoBalance: true,
       hasEnoughGasBalance: false,
@@ -75,8 +75,8 @@ describe.skip('BSNeoLegacy - Migration', () => {
   })
 
   it('Should be able to calculate neo3 values for empty balance', async () => {
-    const neoBalance = { amount: '0', token: serviceNeoLegacy.NEO_ASSET }
-    const gasBalance = { amount: '0', token: serviceNeoLegacy.GAS_ASSET }
+    const neoBalance = { amount: '0', token: BSNeoLegacyConstants.NEO_ASSET }
+    const gasBalance = { amount: '0', token: BSNeoLegacyConstants.GAS_ASSET }
 
     expect(
       serviceNeoLegacy.calculateNeo3MigrationAmounts({
@@ -132,8 +132,8 @@ describe.skip('BSNeoLegacy - Migration', () => {
   })
 
   it('Should be able to calculate neo3 values', async () => {
-    const neoBalance = { amount: '4', token: serviceNeoLegacy.NEO_ASSET }
-    const gasBalance = { amount: '1', token: serviceNeoLegacy.GAS_ASSET }
+    const neoBalance = { amount: '4', token: BSNeoLegacyConstants.NEO_ASSET }
+    const gasBalance = { amount: '1', token: BSNeoLegacyConstants.GAS_ASSET }
 
     const expectNeoTotalFees = '1'
     const expectNeoReceiveAmount = '3'
@@ -206,7 +206,7 @@ describe.skip('BSNeoLegacy - Migration', () => {
       })
     ).rejects.toThrow('Must have at least 0.1 GAS')
 
-    const gasBalance = { amount: '1', token: serviceNeoLegacy.GAS_ASSET }
+    const gasBalance = { amount: '1', token: BSNeoLegacyConstants.GAS_ASSET }
     await expect(
       serviceNeoLegacy.migrate({
         account,

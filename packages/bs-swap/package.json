@@ -17,12 +17,12 @@
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "@cityofzion/bs-neo3": "workspace:*",
-    "@cityofzion/bs-ethereum": "workspace:*",
     "axios": "1.8.2",
     "lodash": "~4.17.21"
   },
   "devDependencies": {
+    "@cityofzion/bs-neo3": "workspace:*",
+    "@cityofzion/bs-ethereum": "workspace:*",
     "@types/jest": "29.5.3",
     "dotenv": "16.3.1",
     "eslint": "^8.48.0",

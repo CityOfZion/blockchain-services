@@ -1,4 +1,4 @@
-import { BuildNftUrlParams, denormalizeHash, ExplorerService, Network } from '@cityofzion/blockchain-service'
+import { BSTokenHelper, BuildNftUrlParams, ExplorerService, Network } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyNetworkId } from '../../constants/BSNeoLegacyConstants'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
@@ -14,13 +14,13 @@ export class NeoTubeESNeoLegacy implements ExplorerService {
   buildTransactionUrl(hash: string): string {
     if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('NeoTube is only available on mainnet')
 
-    return `${this.#BASE_URL}/transaction/${denormalizeHash(hash)}`
+    return `${this.#BASE_URL}/transaction/${BSTokenHelper.normalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string {
     if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('NeoTube is only available on mainnet')
 
-    return `${this.#BASE_URL}/asset/${contractHash}/page/1`
+    return `${this.#BASE_URL}/asset/${BSTokenHelper.normalizeHash(contractHash)}/page/1`
   }
 
   buildNftUrl(_params: BuildNftUrlParams): string {

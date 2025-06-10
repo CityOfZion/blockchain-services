@@ -238,5 +238,6 @@ export class BSEthereumConstants {
   ]
   static ALL_NETWORKS: Network<BSEthereumNetworkId>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
 
+  // If tou change this, make sure to update the tests accordingly
   static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
 }

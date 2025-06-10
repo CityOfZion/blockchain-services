@@ -12,9 +12,9 @@ import {
   ExplorerService,
   BSWithLedger,
   GetLedgerTransport,
-  normalizeHash,
   BalanceResponse,
-  BSNumberHelper,
+  BSTokenHelper,
+  BSBigNumberHelper,
 } from '@cityofzion/blockchain-service'
 import { api, sc, tx, u, wallet } from '@cityofzion/neon-js'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
@@ -52,13 +52,7 @@ export class BSNeoLegacy<BSName extends string = string>
     BSWithExplorerService,
     BSWithLedger<BSName>
 {
-  NATIVE_ASSETS = BSNeoLegacyConstants.NATIVE_ASSETS.map(asset => ({
-    ...asset,
-    hash: normalizeHash(asset.hash),
-  }))!
-
-  GAS_ASSET = this.NATIVE_ASSETS.find(({ symbol }) => symbol === 'GAS')!
-  NEO_ASSET = this.NATIVE_ASSETS.find(({ symbol }) => symbol === 'NEO')!
+  NATIVE_ASSETS = BSNeoLegacyConstants.NATIVE_ASSETS
 
   readonly name: BSName
   readonly bip44DerivationPath: string
@@ -283,15 +277,16 @@ export class BSNeoLegacy<BSName extends string = string>
     const concatIntents = [...intents, ...(tipIntent ? [tipIntent] : [])]
 
     for (const intent of concatIntents) {
-      const tokenHashFixed = BSNeoLegacyHelper.normalizeHash(intent.tokenHash)
-      const nativeAsset = this.NATIVE_ASSETS.find(({ hash }) => hash === tokenHashFixed)
+      const normalizeTokenHash = BSTokenHelper.normalizeHash(intent.tokenHash)
+
+      const nativeAsset = this.NATIVE_ASSETS.find(BSTokenHelper.predicateByHash(normalizeTokenHash))
 
       if (nativeAsset) {
         nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
         continue
       }
 
-      nep5ScriptBuilder.emitAppCall(tokenHashFixed, 'transfer', [
+      nep5ScriptBuilder.emitAppCall(normalizeTokenHash, 'transfer', [
         u.reverseHex(wallet.getScriptHashFromAddress(neonJsAccount.address)),
         u.reverseHex(wallet.getScriptHashFromAddress(intent.receiverAddress)),
         sc.ContractParam.integer(
@@ -347,7 +342,7 @@ export class BSNeoLegacy<BSName extends string = string>
     if (neoLegacyMigrationAmounts.gasBalance)
       intents.push(
         ...api.makeIntent(
-          { [this.GAS_ASSET.symbol]: Number(neoLegacyMigrationAmounts.gasBalance.amount) },
+          { [BSNeoLegacyConstants.GAS_ASSET.symbol]: Number(neoLegacyMigrationAmounts.gasBalance.amount) },
           BSNeoLegacyConstants.MIGRATION_COZ_LEGACY_ADDRESS
         )
       )
@@ -355,7 +350,7 @@ export class BSNeoLegacy<BSName extends string = string>
     if (neoLegacyMigrationAmounts.neoBalance)
       intents.push(
         ...api.makeIntent(
-          { [this.NEO_ASSET.symbol]: Number(neoLegacyMigrationAmounts.neoBalance.amount) },
+          { [BSNeoLegacyConstants.NEO_ASSET.symbol]: Number(neoLegacyMigrationAmounts.neoBalance.amount) },
           BSNeoLegacyConstants.MIGRATION_COZ_LEGACY_ADDRESS
         )
       )
@@ -411,26 +406,23 @@ export class BSNeoLegacy<BSName extends string = string>
       const allGasAmountNumberThatUserWillReceive =
         gasAmountNumberLessCozFee + BSNeoLegacyConstants.MIGRATION_NEP_17_TRANSFER_FEE
 
-      response.gasMigrationTotalFees = BSNumberHelper.formatNumber(allGasFeeNumberThatUserWillPay, {
-        decimals: this.GAS_ASSET.decimals,
+      response.gasMigrationTotalFees = BSBigNumberHelper.format(allGasFeeNumberThatUserWillPay, {
+        decimals: BSNeoLegacyConstants.GAS_ASSET.decimals,
       })
-
-      response.gasMigrationReceiveAmount = BSNumberHelper.formatNumber(allGasAmountNumberThatUserWillReceive, {
-        decimals: this.GAS_ASSET.decimals,
+      response.gasMigrationReceiveAmount = BSBigNumberHelper.format(allGasAmountNumberThatUserWillReceive, {
+        decimals: BSNeoLegacyConstants.GAS_ASSET.decimals,
       })
     }
 
     if (neoLegacyMigrationAmounts.neoBalance && neoLegacyMigrationAmounts.hasEnoughNeoBalance) {
       const neoMigrationAmountNumber = Number(neoLegacyMigrationAmounts.neoBalance.amount)
-
-      response.neoMigrationTotalFees = BSNumberHelper.formatNumber(
+      response.neoMigrationTotalFees = BSBigNumberHelper.format(
         Math.ceil(neoMigrationAmountNumber * BSNeoLegacyConstants.MIGRATION_COZ_FEE),
-        { decimals: this.NEO_ASSET.decimals }
+        { decimals: BSNeoLegacyConstants.NEO_ASSET.decimals }
       )
-
-      response.neoMigrationReceiveAmount = BSNumberHelper.formatNumber(
+      response.neoMigrationReceiveAmount = BSBigNumberHelper.format(
         neoMigrationAmountNumber - Number(response.neoMigrationTotalFees),
-        { decimals: this.NEO_ASSET.decimals }
+        { decimals: BSNeoLegacyConstants.NEO_ASSET.decimals }
       )
     }
 
@@ -438,18 +430,20 @@ export class BSNeoLegacy<BSName extends string = string>
   }
 
   calculateNeoLegacyMigrationAmounts(balance: BalanceResponse[]): CalculateNeoLegacyMigrationAmountsResponse {
-    const gasBalance = balance.find(({ token }) => normalizeHash(token.hash) === this.GAS_ASSET.hash)
-    const neoBalance = balance.find(({ token }) => normalizeHash(token.hash) === this.NEO_ASSET.hash)
+    const gasBalance = balance.find(({ token }) => BSTokenHelper.predicateByHash(BSNeoLegacyConstants.GAS_ASSET)(token))
+    const neoBalance = balance.find(({ token }) => BSTokenHelper.predicateByHash(BSNeoLegacyConstants.NEO_ASSET)(token))
 
     let hasEnoughGasBalance = false
     let hasEnoughNeoBalance = false
 
     if (gasBalance) {
-      hasEnoughGasBalance = Number(gasBalance.amount) >= BSNeoLegacyConstants.MIGRATION_MIN_GAS
+      const gasBalanceNumber = BSBigNumberHelper.fromNumber(gasBalance.amount)
+      hasEnoughGasBalance = gasBalanceNumber.isGreaterThanOrEqualTo(BSNeoLegacyConstants.MIGRATION_MIN_GAS)
     }
 
     if (neoBalance) {
-      hasEnoughNeoBalance = Number(neoBalance.amount) >= BSNeoLegacyConstants.MIGRATION_MIN_NEO
+      const neoBalanceNumber = BSBigNumberHelper.fromNumber(neoBalance.amount)
+      hasEnoughNeoBalance = neoBalanceNumber.isGreaterThanOrEqualTo(BSNeoLegacyConstants.MIGRATION_MIN_NEO)
     }
 
     return {
