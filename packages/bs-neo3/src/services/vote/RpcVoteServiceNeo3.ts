@@ -8,10 +8,10 @@ import {
 } from '../../interfaces'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { NeonInvoker } from '@cityofzion/neon-dappkit'
-import { BSNumberHelper } from '@cityofzion/blockchain-service'
 import { ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
 import { tx } from '@cityofzion/neon-js'
 import { BSNeo3 } from '../../BSNeo3'
+import { BSBigNumberHelper } from '@cityofzion/blockchain-service'
 
 type GetVoteCIMParams = {
   address: string
@@ -69,7 +69,7 @@ export abstract class RpcVoteServiceNeo3<BSName extends string> implements VoteS
       })
     )
 
-    return BSNumberHelper.formatNumber(total, { decimals: this.#service.feeToken.decimals })
+    return BSBigNumberHelper.format(total, { decimals: this.#service.feeToken.decimals })
   }
 
   #getVoteCIM({ address, candidatePubKey }: GetVoteCIMParams): ContractInvocationMulti {
