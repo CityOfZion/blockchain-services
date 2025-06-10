@@ -15,7 +15,7 @@ describe('DoraVoteServiceNeo3', () => {
 
     doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'neo3'>(bsNeo3)
 
-    account = bsNeo3.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY!)
+    account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
   })
 
   describe('getCandidatesToVote', () => {

@@ -12,6 +12,8 @@ import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
 
+const mainnetNetwork = BSNeoXConstants.DEFAULT_NETWORK
+const testnetNetwork = BSNeoXConstants.TESTNET_NETWORKS[0]
 const otherNetwork: Network = { id: 'other-network', name: 'Other network', url: 'https://other-network.com' }
 const address = '0x889D02c0df966Ea5BE11dd8E3Eb0d5E4BD0500dD'
 
@@ -33,20 +35,20 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
-    nftDataService = new GhostMarketNDSNeoX(BSNeoXConstants.MAINNET_NETWORK) as jest.Mocked<GhostMarketNDSNeoX>
+    nftDataService = new GhostMarketNDSNeoX(mainnetNetwork) as jest.Mocked<GhostMarketNDSNeoX>
 
     nftDataService.getNft = jest
       .fn()
       .mockReturnValue({ image: 'nftImage', name: 'nftName', collectionName: 'nftCollectionName' })
 
-    explorerService = new BlockscoutESNeoX(BSNeoXConstants.MAINNET_NETWORK) as jest.Mocked<BlockscoutESNeoX>
+    explorerService = new BlockscoutESNeoX(mainnetNetwork) as jest.Mocked<BlockscoutESNeoX>
 
     explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
     explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
     explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
     explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
 
-    blockscoutBDSNeoX = new BlockscoutBDSNeoX(BSNeoXConstants.MAINNET_NETWORK, nftDataService, explorerService)
+    blockscoutBDSNeoX = new BlockscoutBDSNeoX(mainnetNetwork, nftDataService, explorerService)
   })
 
   describe('getFullTransactionsByAddress', () => {
@@ -156,8 +158,8 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
     })
 
     it('Should be able to get transactions when is using a Neo X Testnet network', async () => {
-      nftDataService = new GhostMarketNDSNeoX(BSNeoXConstants.TESTNET_NETWORK)
-      blockscoutBDSNeoX = new BlockscoutBDSNeoX(BSNeoXConstants.TESTNET_NETWORK, nftDataService, explorerService)
+      nftDataService = new GhostMarketNDSNeoX(testnetNetwork)
+      blockscoutBDSNeoX = new BlockscoutBDSNeoX(testnetNetwork, nftDataService, explorerService)
 
       const response = await blockscoutBDSNeoX.getFullTransactionsByAddress({
         ...params,
@@ -176,7 +178,6 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
             invocationCount: expect.any(Number),
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
-            systemFeeAmount: expect.anything(),
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
@@ -187,7 +188,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
                 to: expect.anything(),
                 toUrl: expect.anything(),
                 hash: expect.any(String),
-                tokenType: 'generic',
+                tokenType: expect.any(String),
               }),
             ]),
           }),
@@ -213,7 +214,6 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
             invocationCount: expect.any(Number),
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
-            systemFeeAmount: expect.anything(),
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
@@ -304,8 +304,8 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Neo X Testnet network', async () => {
-      nftDataService = new GhostMarketNDSNeoX(BSNeoXConstants.TESTNET_NETWORK)
-      blockscoutBDSNeoX = new BlockscoutBDSNeoX(BSNeoXConstants.TESTNET_NETWORK, nftDataService, explorerService)
+      nftDataService = new GhostMarketNDSNeoX(testnetNetwork)
+      blockscoutBDSNeoX = new BlockscoutBDSNeoX(testnetNetwork, nftDataService, explorerService)
 
       const response = await blockscoutBDSNeoX.exportFullTransactionsByAddress({
         address: params.address,

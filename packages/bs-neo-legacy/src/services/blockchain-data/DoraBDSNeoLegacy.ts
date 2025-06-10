@@ -2,9 +2,10 @@ import {
   BalanceResponse,
   BDSClaimable,
   BlockchainDataService,
+  BSBigNumberHelper,
   BSFullTransactionsByAddressHelper,
-  BSNumberHelper,
   BSPromisesHelper,
+  BSTokenHelper,
   ContractResponse,
   ExplorerService,
   ExportTransactionsByAddressParams,
@@ -156,10 +157,10 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
         invocationCount: item.invocationCount,
         notificationCount: item.notificationCount,
         networkFeeAmount: networkFeeAmount
-          ? BSNumberHelper.formatNumber(networkFeeAmount, { decimals: this.#feeToken.decimals })
+          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#feeToken.decimals })
           : undefined,
         systemFeeAmount: systemFeeAmount
-          ? BSNumberHelper.formatNumber(systemFeeAmount, { decimals: this.#feeToken.decimals })
+          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#feeToken.decimals })
           : undefined,
         events: [],
       }
@@ -176,7 +177,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
         const assetEvent: FullTransactionAssetEvent = {
           eventType: 'token',
           amount: amount
-            ? BSNumberHelper.formatNumber(amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            ? BSBigNumberHelper.format(amount, { decimals: token?.decimals ?? event.tokenDecimals })
             : undefined,
           methodName: event.methodName,
           from: from ?? undefined,
@@ -225,26 +226,26 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const localToken = this.#tokens.find(
-      token => BSNeoLegacyHelper.normalizeHash(token.hash) === BSNeoLegacyHelper.normalizeHash(tokenHash)
-    )
-    if (localToken) return localToken
-
-    if (this.#tokenCache.has(tokenHash)) {
-      return this.#tokenCache.get(tokenHash)!
+    const cachedToken = this.#tokenCache.get(tokenHash)
+    if (cachedToken) {
+      return cachedToken
     }
 
-    const data = await api.NeoLegacyREST.asset(tokenHash, this.#network.id)
-    if (!data || 'error' in data) throw new Error(`Token ${tokenHash} not found`)
+    let token = this.#tokens.find(BSTokenHelper.predicateByHash(tokenHash))
 
-    const token = {
-      decimals: Number(data.decimals),
-      symbol: data.symbol,
-      hash: data.scripthash,
-      name: data.name,
+    if (!token) {
+      const data = await api.NeoLegacyREST.asset(tokenHash, this.#network.id)
+      if (!data || 'error' in data) throw new Error(`Token ${tokenHash} not found`)
+
+      token = {
+        decimals: Number(data.decimals),
+        symbol: data.symbol,
+        hash: data.scripthash,
+        name: data.name,
+      }
     }
 
-    this.#tokenCache.set(tokenHash, token)
+    this.#tokenCache.set(tokenHash, BSTokenHelper.normalizeToken(token))
 
     return token
   }
@@ -253,23 +254,21 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     const data = await api.NeoLegacyREST.balance(address, this.#network.id)
 
     const promises = data.map<Promise<BalanceResponse>>(async balance => {
-      const hash = BSNeoLegacyHelper.normalizeHash(balance.asset)
-
-      let token: Token = {
-        hash,
+      let token: Token = BSTokenHelper.normalizeToken({
+        hash: balance.asset,
         name: balance.asset_name,
         symbol: balance.symbol,
         decimals: 8,
-      }
+      })
 
       try {
-        token = await this.getTokenInfo(hash)
+        token = await this.getTokenInfo(balance.asset)
       } catch {
         // Empty block
       }
 
       return {
-        amount: Number(balance.balance).toFixed(token.decimals),
+        amount: BSBigNumberHelper.format(balance.balance, { decimals: token.decimals }),
         token,
       }
     })

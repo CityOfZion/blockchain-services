@@ -1,11 +1,11 @@
-import { Network, normalizeHash } from '@cityofzion/blockchain-service'
-import nativeTokens from '../assets/tokens/native.json'
+import { Network } from '@cityofzion/blockchain-service'
+
 import { BSNeo3Constants, BSNeo3NetworkId } from '../constants/BSNeo3Constants'
 
 export class BSNeo3Helper {
   static getTokens(network: Network<BSNeo3NetworkId>) {
     const extraTokens = BSNeo3Constants.EXTRA_TOKENS_BY_NETWORK_ID[network.id] ?? []
-    return [...extraTokens, ...nativeTokens]
+    return [...extraTokens, ...BSNeo3Constants.NATIVE_ASSETS]
   }
 
   static getRpcList(network: Network<BSNeo3NetworkId>) {
@@ -18,9 +18,5 @@ export class BSNeo3Helper {
 
   static isCustomNet(network: Network<BSNeo3NetworkId>) {
     return !BSNeo3Constants.ALL_NETWORK_IDS.includes(network.id)
-  }
-
-  static normalizeHash(hash: string): string {
-    return normalizeHash(hash, { lowercase: false })
   }
 }

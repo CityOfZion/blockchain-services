@@ -11,7 +11,7 @@ import {
   SimpleSwapApiGetRangeResponse,
   SimpleSwapServiceInitParams,
 } from '../types/simpleSwap'
-import { BlockchainService, BSCommonConstants, hasExplorerService, normalizeHash } from '@cityofzion/blockchain-service'
+import { BlockchainService, BSCommonConstants, BSTokenHelper, hasExplorerService } from '@cityofzion/blockchain-service'
 
 export class SimpleSwapApi<BSName extends string = string> {
   readonly #tickersBySimpleSwapBlockchain: Partial<Record<string, Record<string, string>>> = {
@@ -79,7 +79,7 @@ export class SimpleSwapApi<BSName extends string = string> {
     let blockchainService: BlockchainService | undefined
     let decimals: number | undefined
     let hash = currency.contractAddress ?? undefined
-    const normalizedHash = hash ? normalizeHash(hash) : ''
+    const normalizedHash = hash ? BSTokenHelper.normalizeHash(hash) : ''
     const lowerCaseSymbol = symbol!.toLowerCase()
     const tickers = this.#tickersBySimpleSwapBlockchain[simpleSwapBlockchain]
 
@@ -88,7 +88,7 @@ export class SimpleSwapApi<BSName extends string = string> {
       blockchainService = options.blockchainServicesByName[blockchain]
 
       const token = blockchainService.tokens.find(item => {
-        if (normalizedHash && normalizedHash === normalizeHash(item.hash)) return true
+        if (normalizedHash && BSTokenHelper.predicateByHash(item)(normalizedHash)) return true
 
         const currentLowerCaseSymbol = item.symbol.toLowerCase()
 

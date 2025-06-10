@@ -1,4 +1,3 @@
-
 {
   "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/command-line.schema.json",
   "commands": [
@@ -17,6 +16,15 @@
       "safeForSimultaneousRushProcesses": true,
       "autoinstallerName": "rush-format",
       "shellCommand": "prettier . --write && npm run format . --prefix ./common/autoinstallers/rush-format/"
+    },
+    {
+      "commandKind": "bulk",
+      "name": "test",
+      "summary": "Exec all packages tests",
+      "description": "Exec 'npm test' or 'rushx test' for all packages in the repo.",
+      "enableParallelism": false,
+      "ignoreMissingScript": true,
+      "safeForSimultaneousRushProcesses": true
     }
     // {
     //   /**
@@ -183,7 +191,6 @@
     //   // "autoinstallerName": "my-task"
     // }
   ],
-
   /**
    * Custom "parameters" introduce new parameters for specified Rush command-line commands.
    * For example, you might define a "--production" parameter for the "rush build" command.

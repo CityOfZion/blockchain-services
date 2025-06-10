@@ -2,6 +2,7 @@ import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
+import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 
 const network = BSEthereumConstants.DEFAULT_NETWORK
 
@@ -68,15 +69,10 @@ describe('MoralisBDSEthereum', () => {
   }, 60000)
 
   it('Should be able to get eth info - %s', async () => {
-    const hash = '-'
-    const token = await moralisBDSEthereum.getTokenInfo(hash)
+    const nativeToken = BSEthereumHelper.getNativeAsset(network)
+    const token = await moralisBDSEthereum.getTokenInfo(nativeToken.hash)
 
-    expect(token).toEqual({
-      symbol: 'ETH',
-      name: 'ETH',
-      hash: '-',
-      decimals: 18,
-    })
+    expect(token).toEqual(nativeToken)
   })
 
   it('Should be able to get token info - %s', async () => {

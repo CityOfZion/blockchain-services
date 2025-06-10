@@ -1,7 +1,7 @@
 import {
   Account,
   BlockchainService,
-  BSNumberHelper,
+  BSBigNumberHelper,
   isCalculableFee,
   SwapService,
   SwapServiceEvents,
@@ -244,7 +244,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
             const rangeResponse = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value)
 
             // Add 1% because the SimpleSwap sends us a smaller minimum than the required
-            const minWithOnePercent = BSNumberHelper.formatNumber((Number(rangeResponse.min) * 1.01).toString(), {
+            const minWithOnePercent = BSBigNumberHelper.format((Number(rangeResponse.min) * 1.01).toString(), {
               decimals,
             })
 
@@ -252,10 +252,10 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
             const smallestNumberToRoundUp = decimals ? `0.${'2'.padStart(decimals, '0')}` : '1'
 
             range = {
-              min: BSNumberHelper.formatNumber(Number(minWithOnePercent) + Number(smallestNumberToRoundUp), {
+              min: BSBigNumberHelper.format(Number(minWithOnePercent) + Number(smallestNumberToRoundUp), {
                 decimals,
               }),
-              max: rangeResponse.max ? BSNumberHelper.formatNumber(rangeResponse.max, { decimals }) : rangeResponse.max,
+              max: rangeResponse.max ? BSBigNumberHelper.format(rangeResponse.max, { decimals }) : rangeResponse.max,
             }
           }
 
@@ -264,7 +264,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
           if (shouldRecalculateAmountToUse && range) {
             this.#amountToUse = {
               value: range.min
-                ? BSNumberHelper.formatNumber(range.min, { decimals: this.#tokenToUse.value.decimals })
+                ? BSBigNumberHelper.format(range.min, { decimals: this.#tokenToUse.value.decimals })
                 : range.min,
             }
           }
@@ -368,7 +368,7 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
     this.#amountToUse = {
       value:
         this.#tokenToUse.value && amount
-          ? BSNumberHelper.formatNumber(amount, { decimals: this.#tokenToUse.value.decimals })
+          ? BSBigNumberHelper.format(amount, { decimals: this.#tokenToUse.value.decimals })
           : amount,
     }
 

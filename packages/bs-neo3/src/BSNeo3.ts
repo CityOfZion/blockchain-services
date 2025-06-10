@@ -3,6 +3,7 @@ import {
   BDSClaimable,
   BlockchainDataService,
   BlockchainService,
+  BSBigNumberHelper,
   BSCalculableFee,
   BSClaimable,
   BSWithExplorerService,
@@ -12,6 +13,8 @@ import {
   ExchangeDataService,
   ExplorerService,
   GetLedgerTransport,
+  IBSWithNeo3NeoXBridge,
+  INeo3NeoXBridgeService,
   Network,
   NftDataService,
   Token,
@@ -21,7 +24,7 @@ import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import Neon from '@cityofzion/neon-core'
 import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
 import { ContractInvocation } from '@cityofzion/neon-dappkit-types'
-import { api, u, wallet } from '@cityofzion/neon-js'
+import { api, wallet } from '@cityofzion/neon-js'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
 import { FlamingoForthewinEDSNeo3 } from './services/exchange-data/FlamingoForthewinEDSNeo3'
@@ -30,6 +33,7 @@ import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedge
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
 import { BSNeo3Constants, BSNeo3NetworkId } from './constants/BSNeo3Constants'
 import { RpcBDSNeo3 } from './services/blockchain-data/RpcBDSNeo3'
+import { Neo3NeoXBridgeService } from './services/neo3neoXBridge/Neo3NeoXBridgeService'
 
 import { DoraVoteServiceNeo3 } from './services/vote/DoraVoteServiceNeo3'
 import { GenerateSigningCallbackResponse, VoteService } from './interfaces'
@@ -42,7 +46,8 @@ export class BSNeo3<BSName extends string = string>
     BSCalculableFee<BSName>,
     BSWithNft,
     BSWithExplorerService,
-    BSWithLedger<BSName>
+    BSWithLedger<BSName>,
+    IBSWithNeo3NeoXBridge<BSName>
 {
   name: BSName
   bip44DerivationPath: string
@@ -59,6 +64,7 @@ export class BSNeo3<BSName extends string = string>
   exchangeDataService!: ExchangeDataService
   explorerService!: ExplorerService
   voteService!: VoteService<BSName>
+  neo3NeoXBridgeService!: INeo3NeoXBridgeService<BSName>
 
   network!: Network<BSNeo3NetworkId>
 
@@ -132,12 +138,7 @@ export class BSNeo3<BSName extends string = string>
           { type: 'Hash160', value: intent.receiverAddress },
           {
             type: 'Integer',
-            value: intent.tokenDecimals
-              ? u.BigInteger.fromDecimal(
-                  Number(intent.amount).toFixed(intent.tokenDecimals),
-                  intent.tokenDecimals
-                ).toString()
-              : intent.amount,
+            value: BSBigNumberHelper.toDecimals(BSBigNumberHelper.fromNumber(intent.amount), decimals),
           },
           { type: 'Any', value: null },
         ],
@@ -159,7 +160,8 @@ export class BSNeo3<BSName extends string = string>
     this.network = network
     this.nftDataService = new GhostMarketNDSNeo3(network)
     this.explorerService = new DoraESNeo3(network)
-    this.voteService = new DoraVoteServiceNeo3<BSName>(this)
+    this.voteService = new DoraVoteServiceNeo3(this)
+    this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
 
     this.blockchainDataService = new DoraBDSNeo3(
       network,

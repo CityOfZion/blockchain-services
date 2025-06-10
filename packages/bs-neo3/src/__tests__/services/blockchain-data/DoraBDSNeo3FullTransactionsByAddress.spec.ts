@@ -227,12 +227,13 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
     it('Should be able to get transactions when send the nextCursor param', async () => {
       const newParams = {
         ...params,
-        dateFrom: new Date('2022-04-26T12:00:00').toJSON(),
-        dateTo: new Date('2023-04-25T12:00:00').toJSON(),
-        address: 'NV96QgerjXNmu4jLdMW4ZWkhySVMYX52Ex',
+        dateFrom: new Date('2024-04-22T03:00:00').toJSON(),
+        dateTo: new Date('2025-03-22T03:00:00').toJSON(),
+        address: 'Nc18TvxNomHdbizZxcW5znbYWsDSr4C2XR',
       }
 
       const response = await doraBDSNeo3.getFullTransactionsByAddress(newParams)
+
       const nextResponse = await doraBDSNeo3.getFullTransactionsByAddress({
         ...newParams,
         nextCursor: response.nextCursor,
@@ -246,8 +247,8 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
     it('Should be able to get transactions with NFTs when it was called', async () => {
       const response = await doraBDSNeo3.getFullTransactionsByAddress({
         ...params,
-        dateFrom: new Date('2024-03-22T12:00:00').toJSON(),
-        dateTo: new Date('2025-02-22T12:00:00').toJSON(),
+        dateFrom: new Date('2024-05-22T03:00:00').toJSON(),
+        dateTo: new Date('2025-01-22T03:00:00').toJSON(),
         address: 'Nc18TvxNomHdbizZxcW5znbYWsDSr4C2XR',
       })
 

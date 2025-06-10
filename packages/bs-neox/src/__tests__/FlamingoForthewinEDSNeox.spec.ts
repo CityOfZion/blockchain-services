@@ -2,6 +2,8 @@ import { GetTokenPricesParams } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { FlamingoForthewinEDSNeoX } from '../services/exchange-data/FlamingoForthewinEDSNeoX'
 
+const network = BSNeoXConstants.DEFAULT_NETWORK
+
 describe('FlamingoForthewinEDSNeox', () => {
   it('Should get token prices', async () => {
     const params: GetTokenPricesParams = {
@@ -18,16 +20,11 @@ describe('FlamingoForthewinEDSNeox', () => {
           name: 'NEO',
           symbol: 'NEO',
         },
-        {
-          hash: '-',
-          decimals: 18,
-          name: 'GAS',
-          symbol: 'GAS',
-        },
+        BSNeoXConstants.NATIVE_ASSET,
       ],
     }
 
-    const response = await new FlamingoForthewinEDSNeoX(BSNeoXConstants.MAINNET_NETWORK).getTokenPrices(params)
+    const response = await new FlamingoForthewinEDSNeoX(network).getTokenPrices(params)
 
     expect(response).toEqual(
       expect.arrayContaining([
@@ -41,12 +38,7 @@ describe('FlamingoForthewinEDSNeox', () => {
           usdPrice: expect.any(Number),
         },
         {
-          token: {
-            hash: '-',
-            decimals: 18,
-            name: 'GAS',
-            symbol: 'GAS',
-          },
+          token: BSNeoXConstants.NATIVE_ASSET,
           usdPrice: expect.any(Number),
         },
       ])

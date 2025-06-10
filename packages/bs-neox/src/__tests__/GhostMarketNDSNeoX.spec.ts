@@ -1,11 +1,12 @@
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { GhostMarketNDSNeoX } from '../services/nft-data/GhostMarketNDSNeoX'
 
+const network = BSNeoXConstants.MAINNET_NETWORKS[0]
 let ghostMarketNDSEthereum: GhostMarketNDSNeoX
 
 describe('Neo X Blockchain', () => {
   beforeAll(() => {
-    ghostMarketNDSEthereum = new GhostMarketNDSNeoX(BSNeoXConstants.MAINNET_NETWORK)
+    ghostMarketNDSEthereum = new GhostMarketNDSNeoX(network)
   })
 
   describe('NEONAUTS', () => {

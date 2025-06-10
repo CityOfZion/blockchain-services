@@ -1,10 +1,10 @@
 import {
   Account,
+  BSUtilsHelper,
   SwapServiceLoadableValue,
   SwapServiceMinMaxAmount,
   SwapServiceToken,
   SwapServiceValidateValue,
-  wait,
 } from '@cityofzion/blockchain-service'
 import { SimpleSwapService } from '../services/SimpleSwapService'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
@@ -250,7 +250,7 @@ describe('SimpleSwapService', () => {
     const amount = '89'
     await simpleSwapService.setAmountToUse(amount)
 
-    await wait(1000)
+    await BSUtilsHelper.wait(1000)
 
     expect(tokenToUse).toEqual({ loading: false, value: token })
     expect(accountToUse).toEqual({ loading: false, value: account, valid: true })

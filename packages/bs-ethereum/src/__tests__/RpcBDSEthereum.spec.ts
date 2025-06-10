@@ -1,4 +1,5 @@
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
+import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { RpcBDSEthereum } from '../services/blockchain-data/RpcBDSEthereum'
 
 const network = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '11155111')!
@@ -34,15 +35,10 @@ describe('RpcBDSEthereum', () => {
   }, 60000)
 
   it('Should be able to get eth info', async () => {
-    const hash = '-'
-    const token = await rpcBDSEthereum.getTokenInfo(hash)
+    const nativeAsset = BSEthereumHelper.getNativeAsset(network)
+    const token = await rpcBDSEthereum.getTokenInfo(nativeAsset.hash)
 
-    expect(token).toEqual({
-      symbol: 'ETH',
-      name: 'ETH',
-      hash: '-',
-      decimals: 18,
-    })
+    expect(token).toEqual(nativeAsset)
   }, 60000)
 
   it('Should be able to get balance', async () => {

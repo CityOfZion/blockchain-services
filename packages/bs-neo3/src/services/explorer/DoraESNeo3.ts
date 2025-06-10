@@ -1,4 +1,10 @@
-import { BuildNftUrlParams, BSCommonConstants, ExplorerService, Network } from '@cityofzion/blockchain-service'
+import {
+  BuildNftUrlParams,
+  BSCommonConstants,
+  ExplorerService,
+  Network,
+  BSTokenHelper,
+} from '@cityofzion/blockchain-service'
 import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 
@@ -13,19 +19,19 @@ export class DoraESNeo3 implements ExplorerService {
   buildTransactionUrl(hash: string): string {
     if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/transaction/neo3/${this.#network.id}/${hash}`
+    return `${this.#BASE_URL}/transaction/neo3/${this.#network.id}/${BSTokenHelper.normalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string {
     if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/contract/neo3/${this.#network.id}/${contractHash}`
+    return `${this.#BASE_URL}/contract/neo3/${this.#network.id}/${BSTokenHelper.normalizeHash(contractHash)}`
   }
 
   buildNftUrl({ contractHash, tokenId }: BuildNftUrlParams): string {
     if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/${contractHash}/${tokenId}`
+    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/${BSTokenHelper.normalizeHash(contractHash)}/${tokenId}`
   }
 
   getAddressTemplateUrl() {

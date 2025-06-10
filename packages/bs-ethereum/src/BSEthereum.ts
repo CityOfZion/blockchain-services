@@ -28,6 +28,7 @@ import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
 import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { RpcBDSEthereum } from './services/blockchain-data/RpcBDSEthereum'
+import { BSEthereumTokenHelper } from './helpers/BSEthereumTokenHelper'
 
 export class BSEthereum<BSName extends string = string, NetworkId extends string = BSEthereumNetworkId>
   implements
@@ -98,8 +99,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
       type: 2,
     }
 
-    const isNative =
-      BSEthereumHelper.normalizeHash(this.feeToken.hash) === BSEthereumHelper.normalizeHash(intent.tokenHash)
+    const isNative = BSEthereumTokenHelper.predicateByHash(this.feeToken)(intent.tokenHash)
 
     if (isNative) {
       transactionParams.to = intent.receiverAddress

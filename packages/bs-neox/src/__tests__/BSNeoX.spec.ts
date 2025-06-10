@@ -5,11 +5,11 @@ let bsNeoX: BSNeoX<'neox'>
 
 describe('BSNeoX', () => {
   beforeEach(async () => {
-    bsNeoX = new BSNeoX('neox', BSNeoXConstants.TESTNET_NETWORK)
+    bsNeoX = new BSNeoX('neox', BSNeoXConstants.TESTNET_NETWORKS[0])
   })
 
   it.skip('Should be able to transfer a native token using a EVM', async () => {
-    const account = bsNeoX.generateAccountFromKey(process.env.TESTNET_PRIVATE_KEY as string)
+    const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const [transactionHash] = await bsNeoX.transfer({
       senderAccount: account,
@@ -17,8 +17,8 @@ describe('BSNeoX', () => {
         {
           amount: '0.0000000000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          tokenDecimals: 18,
-          tokenHash: '-',
+          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
+          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
         },
       ],
     })

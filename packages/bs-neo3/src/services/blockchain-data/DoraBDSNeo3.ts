@@ -21,7 +21,8 @@ import {
   BSPromisesHelper,
   ExplorerService,
   ExportTransactionsByAddressParams,
-  BSNumberHelper,
+  BSBigNumberHelper,
+  BSTokenHelper,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { u, wallet } from '@cityofzion/neon-js'
@@ -30,7 +31,7 @@ import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
 import { StateResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
 
-const NeoRest = new api.NeoRESTApi({
+export const DoraNeoRest = new api.NeoRESTApi({
   doraUrl: BSCommonConstants.DORA_URL,
   endpoint: '/api/v2/neo3',
 })
@@ -60,14 +61,17 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     }
 
     try {
-      const data = await NeoRest.transaction(hash, this._network.id)
+      const data = await DoraNeoRest.transaction(hash, this._network.id)
+
+      const systemFeeNumber = BSBigNumberHelper.fromNumber(data.sysfee ?? 0)
+      const networkFeeNumber = BSBigNumberHelper.fromNumber(data.netfee ?? 0)
+      const totalFee = systemFeeNumber.plus(networkFeeNumber)
+
       return {
         block: data.block,
         time: Number(data.time),
         hash: data.hash,
-        fee: u.BigInteger.fromNumber(data.netfee ?? 0)
-          .add(u.BigInteger.fromNumber(data.sysfee ?? 0))
-          .toDecimal(this._feeToken.decimals),
+        fee: BSBigNumberHelper.format(totalFee, { decimals: this._feeToken.decimals }),
         notifications: [],
         transfers: [],
       }
@@ -84,7 +88,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       return await super.getTransactionsByAddress({ address, nextPageParams })
     }
 
-    const data = await NeoRest.addressTXFull(address, nextPageParams, this._network.id)
+    const data = await DoraNeoRest.addressTXFull(address, nextPageParams, this._network.id)
 
     const promises = data.items.map(async (item): Promise<TransactionResponse> => {
       const transferPromises: Promise<TransactionTransferAsset | TransactionTransferNft>[] = []
@@ -134,13 +138,15 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         state: notification.state,
       }))
 
+      const systemFeeNumber = BSBigNumberHelper.fromNumber(item.sysfee ?? 0)
+      const networkFeeNumber = BSBigNumberHelper.fromNumber(item.netfee ?? 0)
+      const totalFee = systemFeeNumber.plus(networkFeeNumber)
+
       return {
         block: item.block,
         time: Number(item.time),
         hash: item.hash,
-        fee: u.BigInteger.fromNumber(item.netfee ?? 0)
-          .add(u.BigInteger.fromNumber(item.sysfee ?? 0))
-          .toDecimal(this._feeToken.decimals),
+        fee: BSBigNumberHelper.format(totalFee, { decimals: this._feeToken.decimals }),
         transfers,
         notifications,
       }
@@ -165,7 +171,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
     const data: FullTransactionsItem[] = []
 
-    const response = await NeoRest.getFullTransactionsByAddress({
+    const response = await DoraNeoRest.getFullTransactionsByAddress({
       address: params.address,
       timestampFrom: params.dateFrom,
       timestampTo: params.dateTo,
@@ -191,10 +197,10 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         invocationCount: item.invocationCount,
         notificationCount: item.notificationCount,
         networkFeeAmount: networkFeeAmount
-          ? BSNumberHelper.formatNumber(networkFeeAmount, { decimals: this._feeToken.decimals })
+          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this._feeToken.decimals })
           : undefined,
         systemFeeAmount: systemFeeAmount
-          ? BSNumberHelper.formatNumber(systemFeeAmount, { decimals: this._feeToken.decimals })
+          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this._feeToken.decimals })
           : undefined,
         events: [],
       }
@@ -239,12 +245,11 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
           }
         } else {
           const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
-          const { amount } = event
 
           assetEvent = {
             eventType: 'token',
-            amount: amount
-              ? BSNumberHelper.formatNumber(amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            amount: event.amount
+              ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
               : undefined,
             methodName,
             from,
@@ -274,7 +279,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
     this.#validateFullTransactionsByAddressParams(params)
 
-    return await NeoRest.exportFullTransactionsByAddress({
+    return await DoraNeoRest.exportFullTransactionsByAddress({
       address: params.address,
       timestampFrom: params.dateFrom,
       timestampTo: params.dateTo,
@@ -288,7 +293,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     }
 
     try {
-      const data = await NeoRest.contract(contractHash, this._network.id)
+      const data = await DoraNeoRest.contract(contractHash, this._network.id)
       return {
         hash: data.hash,
         methods: data.manifest.abi?.methods ?? [],
@@ -304,21 +309,24 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       return await super.getTokenInfo(tokenHash)
     }
 
-    const localToken = this._tokens.find(token => token.hash === tokenHash)
-    if (localToken) return localToken
-
-    if (this._tokenCache.has(tokenHash)) {
-      return this._tokenCache.get(tokenHash)!
-    }
-
     try {
-      const { decimals, symbol, name, scripthash } = await NeoRest.asset(tokenHash, this._network.id)
-      const token = {
-        decimals: Number(decimals),
-        symbol,
-        name,
-        hash: scripthash,
+      const cachedToken = this._tokenCache.get(tokenHash)
+      if (cachedToken) {
+        return cachedToken
       }
+
+      let token = this._tokens.find(BSTokenHelper.predicateByHash(tokenHash))
+
+      if (!token) {
+        const { decimals, symbol, name, scripthash } = await DoraNeoRest.asset(tokenHash, this._network.id)
+        token = BSTokenHelper.normalizeToken({
+          decimals: Number(decimals),
+          symbol,
+          name,
+          hash: scripthash,
+        })
+      }
+
       this._tokenCache.set(tokenHash, token)
 
       return token
@@ -332,7 +340,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       return await super.getBalance(address)
     }
 
-    const response = await NeoRest.balance(address, this._network.id)
+    const response = await DoraNeoRest.balance(address, this._network.id)
 
     const promises = response.map<Promise<BalanceResponse | undefined>>(async balance => {
       try {
