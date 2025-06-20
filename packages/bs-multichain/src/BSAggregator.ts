@@ -1,24 +1,21 @@
-import { generateAccountForBlockchainService } from './functions'
-import { Account, BlockchainService, UntilIndexRecord } from './interfaces'
+import {
+  Account,
+  BlockchainService,
+  generateAccountForBlockchainService,
+  UntilIndexRecord,
+} from '@cityofzion/blockchain-service'
 
-export class BSAggregator<BSName extends string = string> {
-  readonly blockchainServicesByName: Record<BSName, BlockchainService<BSName>>
+type TBSServices<T extends string> = {
+  [K in T]: BlockchainService<K>
+}
+
+export class BSAggregator<BSName extends string, BSServicesByName extends TBSServices<BSName>> {
+  readonly blockchainServicesByName: BSServicesByName
   readonly #blockchainServices: BlockchainService<BSName>[]
 
-  constructor(blockchainServices: BlockchainService<BSName>[]) {
-    this.#blockchainServices = blockchainServices
-
-    this.blockchainServicesByName = blockchainServices.reduce(
-      (acc, service) => {
-        if (acc[service.name]) {
-          throw new Error(`Duplicate blockchain service name: ${service.name}`)
-        }
-
-        acc[service.name] = service
-        return acc
-      },
-      {} as Record<BSName, BlockchainService<BSName>>
-    )
+  constructor(blockchainServicesByName: BSServicesByName) {
+    this.#blockchainServices = Object.values(blockchainServicesByName) as BlockchainService<BSName>[]
+    this.blockchainServicesByName = blockchainServicesByName
   }
 
   validateAddressAllBlockchains(address: string) {

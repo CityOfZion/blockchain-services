@@ -1,17 +1,17 @@
-import { SwapServiceHelper, SwapServiceStatusResponse } from '@cityofzion/blockchain-service'
-import { SimpleSwapApi } from '../apis/SimpleSwapApi'
+import { ISwapService, TSwapServiceStatusResponse } from '@cityofzion/blockchain-service'
+import { SimpleSwapApi } from './SimpleSwapApi'
 
-export class SimpleSwapServiceHelper<BSName extends string = string> implements SwapServiceHelper {
+export class SimpleSwapService<BSName extends string = string> implements ISwapService {
   #api: SimpleSwapApi<BSName>
 
   constructor() {
     this.#api = new SimpleSwapApi()
   }
 
-  async getStatus(id: string): Promise<SwapServiceStatusResponse> {
+  async getStatus(id: string): Promise<TSwapServiceStatusResponse> {
     const response = await this.#api.getExchange(id)
 
-    const statusBySimpleSwapStatus: Record<string, SwapServiceStatusResponse['status']> = {
+    const statusBySimpleSwapStatus: Record<string, TSwapServiceStatusResponse['status']> = {
       waiting: 'confirming',
       confirming: 'confirming',
       exchanging: 'exchanging',

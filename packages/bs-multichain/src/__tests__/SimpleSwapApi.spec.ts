@@ -1,11 +1,11 @@
-import { SimpleSwapApi } from '../apis/SimpleSwapApi'
-import { SimpleSwapApiCurrency } from '../types/simpleSwap'
+import { SimpleSwapApi } from '../features/swap/SimpleSwapApi'
+import { TSimpleSwapApiCurrency } from '../features/swap/types'
 import { BSCommonConstants } from '@cityofzion/blockchain-service'
 
 describe('SimpleSwapApi', () => {
   const simpleSwapApi = new SimpleSwapApi()
 
-  const gasCurrency: SimpleSwapApiCurrency<'neo3'> = {
+  const gasCurrency: TSimpleSwapApiCurrency<'neo3'> = {
     id: 'gasn3:neo3',
     ticker: 'gasn3',
     symbol: 'gasn3',
@@ -22,7 +22,7 @@ describe('SimpleSwapApi', () => {
     blockchain: 'neo3',
   }
 
-  const neoCurrency: SimpleSwapApiCurrency<'neo3'> = {
+  const neoCurrency: TSimpleSwapApiCurrency<'neo3'> = {
     id: 'neo3:neo3',
     ticker: 'neo3',
     symbol: 'NEO',
@@ -39,7 +39,7 @@ describe('SimpleSwapApi', () => {
     blockchain: 'neo3',
   }
 
-  const xrpCurrency: SimpleSwapApiCurrency = {
+  const xrpCurrency: TSimpleSwapApiCurrency = {
     id: 'xrp:xrp',
     ticker: 'xrp',
     symbol: 'XRP',
@@ -53,7 +53,7 @@ describe('SimpleSwapApi', () => {
     txTemplateUrl: 'https://xrpscan.com/tx/{txId}',
   }
 
-  const notcoinCurrency: SimpleSwapApiCurrency = {
+  const notcoinCurrency: TSimpleSwapApiCurrency = {
     id: 'ton:ton',
     ticker: 'ton',
     symbol: 'NOT',
