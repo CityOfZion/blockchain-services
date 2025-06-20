@@ -1,325 +1,190 @@
-import { Account, BalanceResponse, BSBigNumberHelper, BSError } from '@cityofzion/blockchain-service'
+import { Account, BSBigNumberHelper, BSError, BSTokenHelper, TBridgeToken } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { BSNeoX } from '../BSNeoX'
 import { Neo3NeoXBridgeService } from '../services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { ethers } from 'ethers'
 
 let neo3NeoXBridgeService: Neo3NeoXBridgeService<'neox'>
 let bsNeoXService: BSNeoX<'neox'>
 let account: Account<'neox'>
-let balances: BalanceResponse[]
-let gasBalance: BalanceResponse
-let neoBalance: BalanceResponse
 let receiverAddress: string
+let gasToken: TBridgeToken
+let neoToken: TBridgeToken
 
 const network = BSNeoXConstants.DEFAULT_NETWORK
 
-describe.skip('Neo3NeoXBridgeService', () => {
+describe('Neo3NeoXBridgeService', () => {
   beforeAll(async () => {
     receiverAddress = process.env.TEST_BRIDGE_NEO3_ADDRESS
     bsNeoXService = new BSNeoX('neox', network)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
+
     account = bsNeoXService.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
 
-    balances = await bsNeoXService.blockchainDataService.getBalance(account.address)
-    balances.push({
-      token: BSNeoXConstants.NEO_TOKEN,
-      amount: '1',
-    })
-
-    gasBalance = balances.find(balance => balance.token.hash === BSNeoXConstants.NATIVE_ASSET.hash)!
-    if (!gasBalance) {
-      throw new Error('Gas balance not found')
-    }
-
-    neoBalance = balances.find(balance => balance.token.hash === BSNeoXConstants.NEO_TOKEN.hash)!
-    if (!neoBalance) {
-      throw new Error('NEO balance not found')
-    }
+    gasToken = neo3NeoXBridgeService.tokens.find(BSTokenHelper.predicateByHash(BSNeoXConstants.NATIVE_ASSET))!
+    neoToken = neo3NeoXBridgeService.tokens.find(BSTokenHelper.predicateByHash(BSNeoXConstants.NEO_TOKEN))!
   }, 60000)
 
-  it('Should not be able to validate bridge using a token different of GAS or NEO', async () => {
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: '1.0',
-        token: { decimals: 8, hash: 'non-existent', name: 'non-existent', symbol: 'non-existent' },
-        balances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('Only GAS and NEO tokens are supported for bridging', 'UNSUPPORTED_TOKEN'))
-  }, 60000)
-
-  it('Should not be able to validate bridge if GAS balance not found', async () => {
-    const filteredBalances = balances.filter(balance => balance.token.hash !== BSNeoXConstants.NATIVE_ASSET.hash)
-
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: '1.0',
-        token: gasBalance.token,
-        balances: filteredBalances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('GAS is necessary to bridge', 'GAS_BALANCE_NOT_FOUND'))
-  }, 60000)
-
-  it('Should not be able to validate bridge GAS if amount is less than the minimum amount plus bridge fee', async () => {
-    const minAmount = (neo3NeoXBridgeService.BRIDGE_MIN_AMOUNT - 0.1).toString()
-
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: minAmount,
-        token: gasBalance.token,
-        balances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('Amount is less than the minimum amount plus bridge fee', 'AMOUNT_TOO_LOW'))
-  }, 60000)
-
-  it('Should not be able to validate bridge GAS if amount is greater than balance', async () => {
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: BSBigNumberHelper.fromNumber(gasBalance.amount).plus(1).toString(),
-        token: gasBalance.token,
-        balances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('Amount is greater than your balance', 'INSUFFICIENT_GAS_BALANCE'))
-  }, 60000)
-
-  it('Should not be able to validate bridge GAS if amount is greater than balance plus fee', async () => {
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: gasBalance.amount,
-        token: gasBalance.token,
-        balances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('Amount is greater than your balance plus fee', 'INSUFFICIENT_GAS_BALANCE_FEE'))
-  }, 60000)
-
-  it('Should not be able to validate bridge NEO if NEO balance not found', async () => {
-    const filteredBalances = balances.filter(balance => balance.token.hash !== BSNeoXConstants.NEO_TOKEN.hash)
-
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: '1',
-        token: neoBalance.token,
-        balances: filteredBalances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('NEO balance not found', 'NEO_BALANCE_NOT_FOUND'))
-  }, 60000)
-
-  it('Should not be able to validate bridge NEO if amount is less than the minimum amount', async () => {
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: '0',
-        token: neoBalance.token,
-        balances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('Amount is less than the minimum amount', 'AMOUNT_TOO_LOW'))
-  }, 60000)
-
-  it('Should not be able to validate bridge NEO if amount is greater than balance', async () => {
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: BSBigNumberHelper.fromNumber(neoBalance.amount).plus(1).toString(),
-        token: neoBalance.token,
-        balances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('Amount is greater than your balance', 'INSUFFICIENT_NEO_BALANCE'))
-  }, 60000)
-
-  it('Should not be able to validate bridge NEO if gas balance is less than bridge fee', async () => {
-    const lowGasBalances = [neoBalance, { ...gasBalance, amount: '0' }]
-
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: '1',
-        token: neoBalance.token,
-        balances: lowGasBalances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('GAS balance is less than bridge fee', 'INSUFFICIENT_GAS_BALANCE_BRIDGE_FEE'))
-  }, 60000)
-
-  it('Should not be able to validate bridge NEO if gas balance is less than fees', async () => {
-    const lowGasBalances = [neoBalance, { ...gasBalance, amount: '0.101' }]
-
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: '1',
-        token: neoBalance.token,
-        balances: lowGasBalances,
-        account,
-        receiverAddress,
-      })
-    ).rejects.toThrow(new BSError('GAS balance is less than fees', 'INSUFFICIENT_GAS_BALANCE_FEES'))
-  }, 60000)
-
-  it('Should be able to validate bridge GAS', async () => {
-    const validatedAmounts = await neo3NeoXBridgeService.validateInputs({
-      amount: '1.1',
-      token: gasBalance.token,
-      balances,
-      account,
-      receiverAddress,
-    })
-
-    expect(validatedAmounts).toEqual({
-      amount: '1.1',
-      receiveAmount: '1',
-      token: gasBalance.token,
-    })
+  afterEach(() => {
+    jest.restoreAllMocks()
   })
 
-  it('Should be able to validate bridge NEO', async () => {
-    const validatedAmounts = await neo3NeoXBridgeService.validateInputs({
-      amount: '1',
-      token: neoBalance.token,
-      balances,
-      account,
-      receiverAddress,
+  it('Should be able to get the NEO bridge constants', async () => {
+    const constants = await neo3NeoXBridgeService.getBridgeConstants(neoToken)
+
+    expect(constants).toEqual({
+      bridgeFee: expect.any(String),
+      bridgeMinAmount: expect.any(String),
+      bridgeMaxAmount: expect.any(String),
     })
-    expect(validatedAmounts).toEqual({
-      amount: '1',
-      receiveAmount: '1',
-      token: neoBalance.token,
-    })
+
+    expect(Number(constants.bridgeFee)).toBeGreaterThan(0)
+    expect(Number(constants.bridgeMinAmount)).toBeGreaterThan(0)
+    expect(Number(constants.bridgeMaxAmount)).toBeGreaterThan(0)
   })
 
-  it('Should be able to calculate bridge GAS fee', async () => {
-    const fee = await neo3NeoXBridgeService.calculateFee({
-      account,
-      receiverAddress,
-      validatedInputs: {
-        amount: '1.1',
-        receiveAmount: '1',
-        token: gasBalance.token,
-      },
-    })
-    expect(fee).toBeDefined()
-    expect(Number(fee)).toBeGreaterThan(0)
-  }, 60000)
+  it('Should be able to get the GAS bridge constants', async () => {
+    const constants = await neo3NeoXBridgeService.getBridgeConstants(gasToken)
 
-  it('Should be able to calculate bridge NEO fee', async () => {
-    const fee = await neo3NeoXBridgeService.calculateFee({
-      account,
-      receiverAddress,
-      validatedInputs: {
-        amount: '1',
-        receiveAmount: '1',
-        token: neoBalance.token,
-      },
-    })
-    expect(fee).toBeDefined()
-    expect(Number(fee)).toBeGreaterThan(0)
-  }, 60000)
-
-  it('Should be able to calculate max amount to bridge', async () => {
-    const maxAmount = await neo3NeoXBridgeService.calculateMaxAmount({
-      account,
-      receiverAddress,
-      token: gasBalance.token,
-      balances,
+    expect(constants).toEqual({
+      bridgeFee: expect.any(String),
+      bridgeMinAmount: expect.any(String),
+      bridgeMaxAmount: expect.any(String),
     })
 
-    expect(maxAmount).toBeDefined()
-    expect(Number(maxAmount)).toBeLessThanOrEqual(Number(gasBalance.amount))
+    expect(Number(constants.bridgeFee)).toBeGreaterThan(0)
+    expect(Number(constants.bridgeMinAmount)).toBeGreaterThan(0)
+    expect(Number(constants.bridgeMaxAmount)).toBeGreaterThan(0)
+  })
 
-    await expect(
-      neo3NeoXBridgeService.validateInputs({
-        amount: maxAmount,
-        token: gasBalance.token,
-        balances,
-        account,
-        receiverAddress,
-      })
-    ).resolves.toEqual(
-      expect.objectContaining({
-        receiveAmount: BSBigNumberHelper.fromNumber(maxAmount).minus(neo3NeoXBridgeService.BRIDGE_GAS_FEE).toString(),
-        token: gasBalance.token,
-      })
+  it('Should not be able to get the approval fee for GAS bridge', async () => {
+    await expect(neo3NeoXBridgeService.getApprovalFee({ account, amount: '1', token: gasToken })).rejects.toThrow(
+      new BSError('No allowance fee for native token', 'NO_ALLOWANCE_FEE')
     )
   })
 
+  it('Should not be able to get the approval fee for NEO bridge when it is already approved', async () => {
+    const allowanceMock = jest.fn().mockResolvedValue(ethers.BigNumber.from('1000000000000000000'))
+    jest.spyOn(ethers, 'Contract').mockImplementation(
+      () =>
+        ({
+          allowance: allowanceMock,
+        }) as any
+    )
+
+    await expect(neo3NeoXBridgeService.getApprovalFee({ account, amount: '1', token: neoToken })).rejects.toThrow(
+      new BSError('Allowance is already sufficient', 'ALLOWANCE_ALREADY_SUFFICIENT')
+    )
+  })
+
+  it('Should be able to get the approval fee for NEO bridge', async () => {
+    const approvalFee = await neo3NeoXBridgeService.getApprovalFee({
+      account,
+      amount: '1',
+      token: neoToken,
+    })
+
+    expect(approvalFee).toBeDefined()
+    expect(Number(approvalFee)).toBeGreaterThan(0)
+  })
+
+  it('Should not be able to get the nonce of a not found transaction', async () => {
+    await expect(
+      neo3NeoXBridgeService.getNonce({
+        token: gasToken,
+        transactionHash: 'invalid-transaction-hash',
+      })
+    ).rejects.toThrow(new BSError('Transaction logs not found', 'LOGS_NOT_FOUND'))
+  })
+
+  it('Should be able to get the nonce of a GAS bridge', async () => {
+    const nonce = await neo3NeoXBridgeService.getNonce({
+      token: gasToken,
+      transactionHash: '0x6369f5b1adb5d948b0cb65a5250cab0f4c4f97aa5d2544dec13afefe9393227f',
+    })
+
+    expect(nonce).toBe('761')
+  })
+
+  it('Should be able to get the nonce of a NEO bridge', async () => {
+    const nonce = await neo3NeoXBridgeService.getNonce({
+      token: neoToken,
+      transactionHash: '0x1952f45ce753b9f280e5ad743b4e481ca0c8a380465a17f29df5ef6319528abf',
+    })
+
+    expect(nonce).toBe('1420')
+  }, 60000)
+
+  it('Should not be able to get the transaction hash by invalid nonce', async () => {
+    await expect(
+      neo3NeoXBridgeService.getTransactionHashByNonce({
+        token: gasToken,
+        nonce: 'non-existing-nonce',
+      })
+    ).rejects.toThrow(new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND'))
+  })
+
+  it('Should not be able to get the transaction hash by non-existent nonce', async () => {
+    await expect(
+      neo3NeoXBridgeService.getTransactionHashByNonce({
+        token: gasToken,
+        nonce: '1000',
+      })
+    ).rejects.toThrow(new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND'))
+  })
+
+  it('Should be able to get the transaction hash by nonce', async () => {
+    const transactionHash = await neo3NeoXBridgeService.getTransactionHashByNonce({
+      token: neoToken,
+      nonce: '35',
+    })
+
+    expect(transactionHash).toBe('0xe1d296d0bbff5239b76386dc2e0a2d55322c1ac08eb7291ec2545a2b9dab7ae4')
+  })
+
   it.skip('Should be able to bridge GAS', async () => {
+    const { bridgeFee, bridgeMinAmount } = await neo3NeoXBridgeService.getBridgeConstants(gasToken)
+
     const balances = await bsNeoXService.blockchainDataService.getBalance(account.address)
 
-    const maxAmount = await neo3NeoXBridgeService.calculateMaxAmount({
-      account,
-      receiverAddress,
-      token: gasBalance.token,
-      balances,
-    })
+    const gasBalance = balances.find(balance => BSTokenHelper.predicateByHash(gasToken)(balance.token))
+    if (!gasBalance) {
+      throw new Error('It seems you do not have GAS balance to bridge')
+    }
 
-    const validatedInputs = await neo3NeoXBridgeService.validateInputs({
-      amount: maxAmount,
-      token: gasBalance.token,
-      balances,
-      account,
-      receiverAddress,
-    })
+    expect(BSBigNumberHelper.fromNumber(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
       receiverAddress,
-      validatedInputs,
+      amount: bridgeMinAmount,
+      token: gasToken,
+      bridgeFee,
     })
 
     expect(transactionHash).toBeDefined()
   }, 60000)
 
   it.skip('Should be able to bridge NEO', async () => {
+    const { bridgeFee, bridgeMinAmount } = await neo3NeoXBridgeService.getBridgeConstants(neoToken)
+
     const balances = await bsNeoXService.blockchainDataService.getBalance(account.address)
-    const validatedInputs = await neo3NeoXBridgeService.validateInputs({
-      amount: '1',
-      token: neoBalance.token,
-      balances,
-      account,
-      receiverAddress,
-    })
+
+    const neoBalance = balances.find(balance => BSTokenHelper.predicateByHash(neoToken)(balance.token))
+    if (!neoBalance) {
+      throw new Error('It seems you do not have GAS balance to bridge')
+    }
+
+    expect(BSBigNumberHelper.fromNumber(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
       receiverAddress,
-      validatedInputs,
-    })
-    expect(transactionHash).toBeDefined()
-  }, 60000)
-
-  it.skip('Should be able to wait for bridge', async () => {
-    const validatedInputs = await neo3NeoXBridgeService.validateInputs({
-      amount: '1',
-      token: neoBalance.token,
-      balances,
-      account,
-      receiverAddress,
-    })
-
-    const transactionHash = await neo3NeoXBridgeService.bridge({
-      account,
-      receiverAddress,
-      validatedInputs,
+      amount: bridgeMinAmount,
+      token: neoToken,
+      bridgeFee,
     })
 
     expect(transactionHash).toBeDefined()
-
-    const waitForBridge = await neo3NeoXBridgeService.wait({
-      transactionHash,
-      validatedInputs,
-    })
-
-    expect(waitForBridge).toBeDefined()
   }, 60000)
 })

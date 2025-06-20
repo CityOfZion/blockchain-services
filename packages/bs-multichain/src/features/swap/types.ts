@@ -1,11 +1,11 @@
-import { BlockchainService, SwapServiceToken } from '@cityofzion/blockchain-service'
+import { BlockchainService, TSwapToken } from '@cityofzion/blockchain-service'
 
-export type SimpleSwapServiceInitParams<BSName extends string = string> = {
+export type TSimpleSwapOrchestratorInitParams<BSName extends string = string> = {
   blockchainServicesByName: Record<BSName, BlockchainService<BSName>>
   chainsByServiceName: Partial<Record<BSName, string[]>>
 }
 
-export type SimpleSwapApiCurrency<BSName extends string = string> = SwapServiceToken<BSName> & {
+export type TSimpleSwapApiCurrency<BSName extends string = string> = TSwapToken<BSName> & {
   network: string
   ticker: string
   hasExtraId: boolean
@@ -13,16 +13,16 @@ export type SimpleSwapApiCurrency<BSName extends string = string> = SwapServiceT
   validationAddress: string
 }
 
-export type SimpleSwapApiCreateExchangeParams = {
-  currencyFrom: SimpleSwapApiCurrency
-  currencyTo: SimpleSwapApiCurrency
+export type TSimpleSwapApiCreateExchangeParams = {
+  currencyFrom: TSimpleSwapApiCurrency
+  currencyTo: TSimpleSwapApiCurrency
   amount: string
   refundAddress: string
   address: string
   extraIdToReceive: string | null
 }
 
-export type SimpleSwapApiCurrencyResponse = {
+export type TSimpleSwapApiCurrencyResponse = {
   name: string | null
   ticker: string | null
   network: string | null
@@ -35,28 +35,28 @@ export type SimpleSwapApiCurrencyResponse = {
   txExplorer: string | null
 }
 
-export type SimpleSwapApiGetCurrenciesResponse = {
-  result: SimpleSwapApiCurrencyResponse[]
+export type TSimpleSwapApiGetCurrenciesResponse = {
+  result: TSimpleSwapApiCurrencyResponse[]
 }
 
-export type SimpleSwapApiGetPairsResponse = {
+export type TSimpleSwapApiGetPairsResponse = {
   result: Record<string, string[]>
 }
 
-export type SimpleSwapApiGetRangeResponse = {
+export type TSimpleSwapApiGetRangeResponse = {
   result: {
     min: string
     max: string | null
   }
 }
 
-export type SimpleSwapApiGetEstimateResponse = {
+export type TSimpleSwapApiGetEstimateResponse = {
   result: {
     estimatedAmount: string
   }
 }
 
-export type SimpleSwapApiCreateExchangeResponse = {
+export type TSimpleSwapApiCreateExchangeResponse = {
   result: {
     id: string
     addressFrom: string
@@ -64,7 +64,7 @@ export type SimpleSwapApiCreateExchangeResponse = {
   }
 }
 
-export type SimpleSwapApiGetExchangeResponse = {
+export type TSimpleSwapApiGetExchangeResponse = {
   result: {
     status: string
     txFrom?: string
