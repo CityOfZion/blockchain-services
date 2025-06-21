@@ -7,7 +7,7 @@ export type GenerateSigningCallbackResponse = {
   signingCallback: api.SigningFunction
 }
 
-type Candidate = {
+export type Candidate = {
   position: number
   name: string
   description: string
@@ -24,9 +24,10 @@ type Candidate = {
 export type GetCandidatesToVoteResponse = Candidate[]
 
 export type GetVoteDetailsByAddressResponse = {
-  candidateName: string
-  candidatePubKey: string
+  candidateName?: string
+  candidatePubKey?: string
   neoBalance: number
+  address: string
 }
 
 export type VoteParams<BSName extends string> = {
