@@ -11,3 +11,5 @@ export * from './services/explorer/DoraESNeo3'
 export * from './services/ledger/NeonDappKitLedgerServiceNeo3'
 export * from './services/nft-data/GhostMarketNDSNeo3'
 export * from './services/nft-data/RpcNDSNeo3'
+
+export * from './interfaces'

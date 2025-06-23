@@ -69,16 +69,15 @@ export class DoraVoteServiceNeo3<BSName extends string> extends RpcVoteServiceNe
     if (!address) throw new Error('Missing address')
     if (!this.#service.validateAddress(address)) throw new Error('Invalid address')
 
-    const {
-      data: { candidatePubkey, ...data },
-    } = await this.#doraAxiosInstance.get<AxiosGetVoteDetailsByAddressResponse>(`/mainnet/voter/${address}`)
-
-    if (!candidatePubkey) throw new Error('There was a problem to get vote details by address')
+    const { data } = await this.#doraAxiosInstance.get<AxiosGetVoteDetailsByAddressResponse>(
+      `/mainnet/voter/${address}`
+    )
 
     return {
-      candidateName: data.candidate,
-      candidatePubKey: candidatePubkey,
+      candidateName: data.candidate ?? undefined,
+      candidatePubKey: data.candidatePubkey ?? undefined,
       neoBalance: data.balance,
+      address,
     }
   }
 }
