@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.15.1",
+      "tag": "@cityofzion/bs-neo3_v1.15.1",
+      "date": "Mon, 23 Jun 2025 14:15:51 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Stop throwing error when there is no candidatePubKey in getVoteDetailsByAddress function"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.15.0",
       "tag": "@cityofzion/bs-neo3_v1.15.0",
       "date": "Tue, 10 Jun 2025 20:47:03 GMT",

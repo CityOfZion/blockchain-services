@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Tue, 10 Jun 2025 20:47:03 GMT and should not be manually modified.
+This log was last generated on Mon, 23 Jun 2025 14:15:51 GMT and should not be manually modified.
+
+## 1.15.1
+Mon, 23 Jun 2025 14:15:51 GMT
+
+### Patches
+
+- Stop throwing error when there is no candidatePubKey in getVoteDetailsByAddress function
 
 ## 1.15.0
 Tue, 10 Jun 2025 20:47:03 GMT
