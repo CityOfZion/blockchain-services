@@ -366,15 +366,19 @@ export class SimpleSwapService<BSName extends string = string> implements SwapSe
 
   async setAmountToUse(amount: string | null): Promise<void> {
     this.#amountToUse = {
-      value:
-        this.#tokenToUse.value && amount
-          ? BSBigNumberHelper.format(amount, { decimals: this.#tokenToUse.value.decimals })
-          : amount,
+      value: amount,
     }
 
     if (this.#amountToUseTimeout !== null) clearTimeout(this.#amountToUseTimeout)
 
     this.#amountToUseTimeout = setTimeout(() => {
+      this.#amountToUse = {
+        value: this.#amountToUse.value
+          ? BSBigNumberHelper.format(this.#amountToUse.value, {
+              decimals: this.#tokenToUse.value?.decimals,
+            })
+          : this.#amountToUse.value,
+      }
       this.#recalculateValues(['amountToReceive'])
     }, 1500)
   }
