@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-swap
 
-This log was last generated on Mon, 23 Jun 2025 14:15:51 GMT and should not be manually modified.
+This log was last generated on Mon, 23 Jun 2025 20:33:14 GMT and should not be manually modified.
+
+## 0.5.31
+Mon, 23 Jun 2025 20:33:14 GMT
+
+### Patches
+
+- Move the format of amountToUse inside the setTimeout
 
 ## 0.5.30
 Mon, 23 Jun 2025 14:15:51 GMT

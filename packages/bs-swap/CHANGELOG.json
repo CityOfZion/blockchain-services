@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.31",
+      "tag": "@cityofzion/bs-swap_v0.5.31",
+      "date": "Mon, 23 Jun 2025 20:33:14 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Move the format of amountToUse inside the setTimeout"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.30",
       "tag": "@cityofzion/bs-swap_v0.5.30",
       "date": "Mon, 23 Jun 2025 14:15:51 GMT",
