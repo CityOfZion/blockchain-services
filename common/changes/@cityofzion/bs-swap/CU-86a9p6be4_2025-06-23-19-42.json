@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-swap",
+      "comment": "Move the format of amountToUse inside the setTimeout",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-swap"
+}
