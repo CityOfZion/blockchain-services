@@ -53,6 +53,7 @@ export class BSTokenHelper {
   }
 
   static normalizeHash(hash: string): string {
-    return hash.startsWith('0x') ? hash : `0x${hash}`
+    const fixed = hash.startsWith('0x') ? hash : `0x${hash}`
+    return fixed.toLowerCase()
   }
 }
