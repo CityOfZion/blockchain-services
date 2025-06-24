@@ -2,6 +2,24 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.32",
+      "tag": "@cityofzion/bs-swap_v0.5.32",
+      "date": "Tue, 24 Jun 2025 16:33:10 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.19.1`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.15.2`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.12.4`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.31",
       "tag": "@cityofzion/bs-swap_v0.5.31",
       "date": "Mon, 23 Jun 2025 20:33:14 GMT",

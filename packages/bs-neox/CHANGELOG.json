@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "1.2.1",
+      "tag": "@cityofzion/bs-neox_v1.2.1",
+      "date": "Tue, 24 Jun 2025 16:33:10 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.19.1`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.12.4`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.2.0",
       "tag": "@cityofzion/bs-neox_v1.2.0",
       "date": "Tue, 10 Jun 2025 20:47:03 GMT",

@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 10 Jun 2025 20:47:03 GMT and should not be manually modified.
+This log was last generated on Tue, 24 Jun 2025 16:33:10 GMT and should not be manually modified.
+
+## 1.19.1
+Tue, 24 Jun 2025 16:33:10 GMT
+
+### Patches
+
+- Apply a lowercase to hash within the normalizeHash function.
 
 ## 1.19.0
 Tue, 10 Jun 2025 20:47:03 GMT

@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.19.1",
+      "tag": "@cityofzion/blockchain-service_v1.19.1",
+      "date": "Tue, 24 Jun 2025 16:33:10 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Apply a lowercase to hash within the normalizeHash function."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.19.0",
       "tag": "@cityofzion/blockchain-service_v1.19.0",
       "date": "Tue, 10 Jun 2025 20:47:03 GMT",
