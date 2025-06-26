@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-swap",
   "entries": [
     {
+      "version": "0.5.33",
+      "tag": "@cityofzion/bs-swap_v0.5.33",
+      "date": "Thu, 26 Jun 2025 13:37:50 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.12.5`"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.5.32",
       "tag": "@cityofzion/bs-swap_v0.5.32",
       "date": "Tue, 24 Jun 2025 16:33:10 GMT",

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.12.5",
+      "tag": "@cityofzion/bs-ethereum_v2.12.5",
+      "date": "Thu, 26 Jun 2025 13:37:50 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix retry validation on Ledger"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.12.4",
       "tag": "@cityofzion/bs-ethereum_v2.12.4",
       "date": "Tue, 24 Jun 2025 16:33:10 GMT",
