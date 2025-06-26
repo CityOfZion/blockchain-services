@@ -16,7 +16,7 @@ import EventEmitter from 'events'
 import { BSEthereum } from '../../BSEthereum'
 
 const shouldRetry = (error: any): boolean => {
-  return error?.id !== 'TransportLocked'
+  return error?.id === 'TransportLocked'
 }
 
 export class EthersLedgerSigner extends Signer implements TypedDataSigner {
