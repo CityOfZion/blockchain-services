@@ -56,29 +56,24 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
 
     const client = MoralisBDSEthereum.getClient(this.#network)
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
-
+    const tokensBody: { token_address: string }[] = []
     let wrappedNativeToken: Token | undefined
+
     if (params.tokens.some(token => token.symbol === nativeToken.symbol)) {
       try {
         wrappedNativeToken = await this.#getWrappedNativeToken()
+
+        if (wrappedNativeToken) {
+          tokensBody.push({ token_address: wrappedNativeToken.hash })
+        }
       } catch {
         /* empty */
       }
     }
 
-    const tokensBody: { token_address: string }[] = []
-
-    params.tokens.map(token => {
+    params.tokens.forEach(token => {
       if (token.symbol !== nativeToken.symbol) {
-        tokensBody.push({
-          token_address: token.hash,
-        })
-      }
-
-      if (wrappedNativeToken) {
-        tokensBody.push({
-          token_address: wrappedNativeToken.hash,
-        })
+        tokensBody.push({ token_address: token.hash })
       }
     })
 
