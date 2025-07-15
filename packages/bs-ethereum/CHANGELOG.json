@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.12.6",
+      "tag": "@cityofzion/bs-ethereum_v2.12.6",
+      "date": "Tue, 15 Jul 2025 16:42:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Improve validations for getTokenPrices"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.12.5",
       "tag": "@cityofzion/bs-ethereum_v2.12.5",
       "date": "Thu, 26 Jun 2025 13:37:50 GMT",
