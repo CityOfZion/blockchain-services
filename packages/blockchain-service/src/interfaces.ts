@@ -1,5 +1,6 @@
 import Transport from '@ledgerhq/hw-transport'
 import TypedEmitter from 'typed-emitter'
+import { BSError } from './error'
 
 export type UntilIndexRecord<BSName extends string = string> = Partial<Record<BSName, Record<string, number>>>
 
@@ -88,10 +89,6 @@ export interface BSWithNft {
 export interface BSWithLedger<BSName extends string = string> {
   ledgerService: LedgerService<BSName>
   generateAccountFromPublicKey(publicKey: string): Account<BSName>
-}
-
-export interface IBSWithNeo3NeoXBridge<BSName extends string = string> {
-  neo3NeoXBridgeService: INeo3NeoXBridgeService<BSName>
 }
 
 export type TransactionNotificationTypedResponse = {
@@ -333,7 +330,7 @@ export interface LedgerService<BSName extends string = string> {
   getAccount(transport: Transport, index: number): Promise<Account<BSName>>
 }
 
-export type SwapServiceToken<BSName extends string = string> = {
+export type TSwapToken<BSName extends string = string> = {
   id: string
   blockchain?: BSName
   imageUrl?: string
@@ -347,96 +344,130 @@ export type SwapServiceToken<BSName extends string = string> = {
   hasExtraId: boolean
 }
 
-export type SwapServiceLoadableValue<T> = { loading: boolean; value: T | null }
-export type SwapServiceValidateValue<T> = SwapServiceLoadableValue<T> & { valid: boolean | null }
+export type TSwapLoadableValue<T> = { loading: boolean; value: T | null }
+export type TSwapValidateValue<T> = TSwapLoadableValue<T> & { valid: boolean | null }
 
-export type SwapServiceMinMaxAmount = {
+export type TSwapMinMaxAmount = {
   min: string
   max: string | null
 }
 
-export type SwapServiceEvents<BSName extends string = string> = {
-  accountToUse: (account: SwapServiceValidateValue<Account<BSName>>) => void | Promise<void>
-  amountToUse: (amount: SwapServiceLoadableValue<string>) => void | Promise<void>
-  amountToUseMinMax: (minMax: SwapServiceLoadableValue<SwapServiceMinMaxAmount>) => void | Promise<void>
-  tokenToUse: (token: SwapServiceLoadableValue<SwapServiceToken<BSName>>) => void | Promise<void>
-  availableTokensToUse: (tokens: SwapServiceLoadableValue<SwapServiceToken<BSName>[]>) => void | Promise<void>
-  addressToReceive: (account: SwapServiceValidateValue<string>) => void | Promise<void>
-  extraIdToReceive: (extraIdToReceive: SwapServiceValidateValue<string>) => void
-  amountToReceive: (amount: SwapServiceLoadableValue<string>) => void | Promise<void>
-  tokenToReceive: (token: SwapServiceLoadableValue<SwapServiceToken<BSName>>) => void | Promise<void>
-  availableTokensToReceive: (tokens: SwapServiceLoadableValue<SwapServiceToken<BSName>[]>) => void | Promise<void>
+export type TSwapOrchestratorEvents<BSName extends string = string> = {
+  accountToUse: (account: TSwapValidateValue<Account<BSName>>) => void | Promise<void>
+  amountToUse: (amount: TSwapLoadableValue<string>) => void | Promise<void>
+  amountToUseMinMax: (minMax: TSwapLoadableValue<TSwapMinMaxAmount>) => void | Promise<void>
+  tokenToUse: (token: TSwapLoadableValue<TSwapToken<BSName>>) => void | Promise<void>
+  availableTokensToUse: (tokens: TSwapLoadableValue<TSwapToken<BSName>[]>) => void | Promise<void>
+  addressToReceive: (account: TSwapValidateValue<string>) => void | Promise<void>
+  extraIdToReceive: (extraIdToReceive: TSwapValidateValue<string>) => void
+  amountToReceive: (amount: TSwapLoadableValue<string>) => void | Promise<void>
+  tokenToReceive: (token: TSwapLoadableValue<TSwapToken<BSName>>) => void | Promise<void>
+  availableTokensToReceive: (tokens: TSwapLoadableValue<TSwapToken<BSName>[]>) => void | Promise<void>
   error: (error: string) => void | Promise<void>
 }
 
-export type SwapServiceSwapResult = {
+export type TSwapResult = {
   id: string
   txFrom?: string
   log?: string
 }
 
-export type SwapServiceStatusResponse = {
+export type TSwapServiceStatusResponse = {
   status: 'finished' | 'confirming' | 'exchanging' | 'failed' | 'refunded'
   txFrom?: string
   txTo?: string
   log?: string
 }
-
-export interface SwapServiceHelper {
-  getStatus(id: string): Promise<SwapServiceStatusResponse>
+export interface ISwapService {
+  getStatus(id: string): Promise<TSwapServiceStatusResponse>
 }
 
-export interface SwapService<BSName extends string = string> {
-  eventEmitter: TypedEmitter<SwapServiceEvents<BSName>>
+export interface ISwapOrchestrator<BSName extends string = string> {
+  eventEmitter: TypedEmitter<TSwapOrchestratorEvents<BSName>>
 
-  setTokenToUse(token: SwapServiceToken<BSName> | null): Promise<void>
+  setTokenToUse(token: TSwapToken<BSName> | null): Promise<void>
   setAccountToUse(account: Account<BSName> | null): Promise<void>
   setAmountToUse(amount: string | null): Promise<void>
-  setTokenToReceive(token: SwapServiceToken<BSName> | null): Promise<void>
+  setTokenToReceive(token: TSwapToken<BSName> | null): Promise<void>
   setAddressToReceive(address: string | null): Promise<void>
   setExtraIdToReceive(extraId: string | null): Promise<void>
-  swap(): Promise<SwapServiceSwapResult>
+  swap(): Promise<TSwapResult>
   calculateFee(): Promise<string>
 }
 
-export type TNeo3NeoXBridgeServiceCalculateMaxAmountParams<BSName extends string> = {
-  account: Account<BSName>
-  receiverAddress: string
-  token: Token
-  balances: BalanceResponse[]
+export type TBridgeToken = Token & {
+  multichainId: string
 }
 
-export type TNeo3NeoXBridgeServiceValidatedInputs = {
+export type TBridgeValue<T> = { value: T | null; loading: boolean; error: BSError | null }
+
+export type TBridgeValidateValue<T> = TBridgeValue<T> & { valid: boolean | null }
+
+export type TBridgeOrchestratorEvents<BSName extends string = string> = {
+  accountToUse: (account: TBridgeValue<Account<BSName>>) => void | Promise<void>
+  amountToUse: (amount: TBridgeValidateValue<string>) => void | Promise<void>
+  amountToUseMin: (max: TBridgeValue<string>) => void | Promise<void>
+  amountToUseMax: (max: TBridgeValue<string>) => void | Promise<void>
+  tokenToUse: (token: TBridgeValue<TBridgeToken>) => void | Promise<void>
+  availableTokensToUse: (tokens: TBridgeValue<TBridgeToken[]>) => void | Promise<void>
+  addressToReceive: (account: TBridgeValidateValue<string>) => void | Promise<void>
+  amountToReceive: (amount: TBridgeValue<string>) => void | Promise<void>
+  tokenToReceive: (token: TBridgeValue<TBridgeToken>) => void | Promise<void>
+  tokenToUseBalance: (balance: TBridgeValue<BalanceResponse | undefined>) => void | Promise<void>
+  bridgeFee: (fee: TBridgeValue<string>) => void | Promise<void>
+}
+
+export interface IBridgeOrchestrator<BSName extends string = string> {
+  eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<BSName>>
+
+  setTokenToUse(token: TBridgeToken | null): Promise<void>
+  setAccountToUse(account: Account<BSName> | null): Promise<void>
+  setAmountToUse(amount: string | null): Promise<void>
+  setAddressToReceive(address: string | null): Promise<void>
+  setBalances(balances: BalanceResponse[] | null): Promise<void>
+  switchTokens(): Promise<void>
+  bridge(): Promise<string>
+  wait(): Promise<boolean>
+}
+
+export interface IBSWithNeo3NeoXBridge<BSName extends string = string> {
+  neo3NeoXBridgeService: INeo3NeoXBridgeService<BSName>
+}
+
+export type TNeo3NeoXBridgeServiceConstants = {
+  bridgeFee: string
+  bridgeMaxAmount: string
+  bridgeMinAmount: string
+}
+
+export type TNeo3NeoXBridgeServiceBridgeParam<BSName extends string = string> = {
+  account: Account<BSName>
+  receiverAddress: string
   amount: string
-  receiveAmount: string
-  token: Token
+  token: TBridgeToken
+  bridgeFee: string
 }
 
-export type TNeo3NeoXBridgeServiceBridgeParam<BSName extends string> = {
+export type TNeo3NeoXBridgeServiceGetApprovalParam<BSName extends string = string> = {
   account: Account<BSName>
-  receiverAddress: string
-  validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs
-}
-
-export type TNeo3NeoXBridgeServiceValidateInputParams<BSName extends string> = {
-  account: Account<BSName>
-  receiverAddress: string
   amount: string
-  token: Token
-  balances: BalanceResponse[]
+  token: TBridgeToken
 }
 
-export type TNeo3NeoXBridgeServiceWaitParams = {
+export type TNeo3NeoXBridgeServiceGetNonceParams = {
+  token: TBridgeToken
   transactionHash: string
-  validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs
 }
 
+export type TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams = {
+  token: TBridgeToken
+  nonce: string
+}
 export interface INeo3NeoXBridgeService<BSName extends string = string> {
-  calculateMaxAmount(params: TNeo3NeoXBridgeServiceCalculateMaxAmountParams<BSName>): Promise<string>
-  calculateFee(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string>
+  tokens: TBridgeToken[]
+  getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam): Promise<string>
+  getBridgeConstants(token: TBridgeToken): Promise<TNeo3NeoXBridgeServiceConstants>
   bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string>
-  validateInputs(
-    params: TNeo3NeoXBridgeServiceValidateInputParams<BSName>
-  ): Promise<TNeo3NeoXBridgeServiceValidatedInputs>
-  wait(params: TNeo3NeoXBridgeServiceWaitParams): Promise<boolean>
+  getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams): Promise<string | null>
+  getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams): Promise<string | null>
 }

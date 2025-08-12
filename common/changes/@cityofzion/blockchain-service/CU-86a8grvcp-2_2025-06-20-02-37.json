@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Add BridgeOrchestrator interface and update Neo3NeoXBrigeService interface",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

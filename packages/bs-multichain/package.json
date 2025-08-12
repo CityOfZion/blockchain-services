@@ -1,6 +1,6 @@
 {
-  "name": "@cityofzion/bs-swap",
-  "version": "0.5.34",
+  "name": "@cityofzion/bs-multichain",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/CityOfZion/blockchain-services",
@@ -17,12 +17,14 @@
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "axios": "1.8.2",
+    "axios": "~1.8.2",
     "lodash": "~4.17.21"
   },
   "devDependencies": {
     "@cityofzion/bs-neo3": "workspace:*",
     "@cityofzion/bs-ethereum": "workspace:*",
+    "@cityofzion/bs-neo-legacy": "workspace:*",
+    "@cityofzion/bs-neox": "workspace:*",
     "@types/jest": "29.5.3",
     "dotenv": "16.3.1",
     "eslint": "^8.48.0",

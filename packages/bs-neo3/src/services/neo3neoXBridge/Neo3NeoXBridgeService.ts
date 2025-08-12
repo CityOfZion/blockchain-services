@@ -2,280 +2,109 @@ import {
   BSBigNumberHelper,
   BSError,
   BSTokenHelper,
-  BSUtilsHelper,
   INeo3NeoXBridgeService,
+  TBridgeToken,
   TNeo3NeoXBridgeServiceBridgeParam,
-  TNeo3NeoXBridgeServiceCalculateMaxAmountParams,
-  TNeo3NeoXBridgeServiceValidatedInputs,
-  TNeo3NeoXBridgeServiceValidateInputParams,
-  TNeo3NeoXBridgeServiceWaitParams,
+  TNeo3NeoXBridgeServiceConstants,
+  TNeo3NeoXBridgeServiceGetNonceParams,
+  TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams,
 } from '@cityofzion/blockchain-service'
-import Neon from '@cityofzion/neon-core'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import { NeonInvoker } from '@cityofzion/neon-dappkit'
+import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
 import { BSNeo3 } from '../../BSNeo3'
-import type { ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
+import type { ContractInvocation, Signer } from '@cityofzion/neon-dappkit-types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { DoraNeoRest } from '../blockchain-data/DoraBDSNeo3'
 import axios from 'axios'
 
+type TGetBridgeTxByNonceResponse = { result: { Vmstate: string; txid: string } }
+
 export class Neo3NeoXBridgeService<BSName extends string = string> implements INeo3NeoXBridgeService<BSName> {
   readonly BRIDGE_SCRIPT_HASH = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
-  readonly BRIDGE_GAS_FEE = 0.1
-  readonly BRIDGE_MIN_AMOUNT = 1
-  readonly BRIDGE_NEOX_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
-  readonly BRIDGE_NEOX_NEO_TOKEN_HASH = '0xc28736dc83f4fd43d6fb832Fd93c3eE7bB26828f'
 
   readonly #service: BSNeo3<BSName>
+  tokens: TBridgeToken[]
 
   constructor(service: BSNeo3<BSName>) {
     this.#service = service
+
+    this.tokens = [
+      { ...BSNeo3Constants.GAS_TOKEN, multichainId: 'gas' },
+      { ...BSNeo3Constants.NEO_TOKEN, multichainId: 'neo' },
+    ]
   }
 
-  #buildGasCIM(
-    { receiverAddress, validatedInputs }: TNeo3NeoXBridgeServiceBridgeParam<BSName>,
-    neonJsAccount: Neon.wallet.Account
-  ): ContractInvocationMulti {
-    return {
-      invocations: [
-        {
-          scriptHash: this.BRIDGE_SCRIPT_HASH,
-          operation: 'depositNative',
-          args: [
-            { type: 'Hash160', value: neonJsAccount.address },
-            { type: 'Hash160', value: receiverAddress },
-            {
-              type: 'Integer',
-              value: BSBigNumberHelper.toDecimals(
-                BSBigNumberHelper.fromNumber(validatedInputs.receiveAmount),
-                validatedInputs.token.decimals
-              ),
-            },
-            {
-              type: 'Integer',
-              value: BSBigNumberHelper.toDecimals(
-                BSBigNumberHelper.fromNumber(this.BRIDGE_GAS_FEE),
-                BSNeo3Constants.GAS_TOKEN.decimals
-              ),
-            },
-          ],
-        },
-      ],
-      signers: [
-        {
-          scopes: 16,
-          allowedContracts: [this.BRIDGE_SCRIPT_HASH, BSNeo3Constants.GAS_TOKEN.hash],
-        },
-      ],
-    }
+  async getApprovalFee(): Promise<string> {
+    throw new BSError('Neo3 does not require approval', 'APPROVAl_NOT_NEEDED')
   }
 
-  #buildNeoCIM(
-    { receiverAddress, validatedInputs }: TNeo3NeoXBridgeServiceBridgeParam<BSName>,
-    neonJsAccount: Neon.wallet.Account
-  ): ContractInvocationMulti {
-    return {
-      invocations: [
-        {
-          scriptHash: this.BRIDGE_SCRIPT_HASH,
-          operation: 'depositToken',
-          args: [
-            { type: 'Hash160', value: BSNeo3Constants.NEO_TOKEN.hash },
-            { type: 'Hash160', value: neonJsAccount.scriptHash },
-            { type: 'Hash160', value: receiverAddress },
-            {
-              type: 'Integer',
-              value: BSBigNumberHelper.toDecimals(
-                BSBigNumberHelper.fromNumber(validatedInputs.receiveAmount),
-                validatedInputs.token.decimals
-              ),
-            },
-            {
-              type: 'Integer',
-              value: BSBigNumberHelper.toDecimals(
-                BSBigNumberHelper.fromNumber(this.BRIDGE_GAS_FEE),
-                BSNeo3Constants.GAS_TOKEN.decimals
-              ),
-            },
-          ],
-        },
-      ],
-      signers: [
-        {
-          scopes: 16,
-          allowedContracts: [this.BRIDGE_SCRIPT_HASH, BSNeo3Constants.GAS_TOKEN.hash, BSNeo3Constants.NEO_TOKEN.hash],
-        },
-      ],
-    }
-  }
-
-  #buildCIM(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>, neonJsAccount: Neon.wallet.Account) {
-    const isGasToken = BSTokenHelper.predicateByHash(params.validatedInputs.token)(BSNeo3Constants.GAS_TOKEN)
-
-    if (isGasToken) {
-      return this.#buildGasCIM(params, neonJsAccount)
-    }
-
-    return this.#buildNeoCIM(params, neonJsAccount)
-  }
-
-  async #validateGas({
-    amount,
-    balances,
-    token,
-    account,
-    receiverAddress,
-  }: TNeo3NeoXBridgeServiceValidateInputParams<BSName>): Promise<TNeo3NeoXBridgeServiceValidatedInputs> {
-    const gasBalance = balances.find(balance => BSTokenHelper.predicateByHash(balance.token)(BSNeo3Constants.GAS_TOKEN))
-
-    if (!gasBalance) {
-      throw new BSError('GAS is necessary to bridge', 'GAS_BALANCE_NOT_FOUND')
-    }
-
-    const amountNumber = BSBigNumberHelper.fromNumber(amount)
-    const gasBalanceNumber = BSBigNumberHelper.fromNumber(gasBalance.amount)
-
-    const validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs = {
-      receiveAmount: amountNumber.minus(this.BRIDGE_GAS_FEE).toString(),
-      token,
-      amount,
-    }
-
-    if (amountNumber.isLessThan(this.BRIDGE_MIN_AMOUNT + this.BRIDGE_GAS_FEE)) {
-      throw new BSError('Amount is less than the minimum amount plus bridge fee', 'AMOUNT_TOO_LOW')
-    }
-
-    if (amountNumber.isGreaterThan(gasBalanceNumber)) {
-      throw new BSError('Amount is greater than your balance', 'INSUFFICIENT_GAS_BALANCE')
-    }
-
-    const fee = await this.calculateFee({
-      account,
-      receiverAddress,
-      validatedInputs,
+  async getBridgeConstants(token: TBridgeToken): Promise<TNeo3NeoXBridgeServiceConstants> {
+    const invoker = await NeonInvoker.init({
+      rpcAddress: this.#service.network.url,
     })
 
-    if (amountNumber.plus(fee).isGreaterThan(gasBalanceNumber)) {
-      throw new BSError('Amount is greater than your balance plus fee', 'INSUFFICIENT_GAS_BALANCE_FEE')
+    const isNativeToken = BSTokenHelper.predicateByHash(token)(BSNeo3Constants.GAS_TOKEN)
+
+    let invocations: ContractInvocation[]
+
+    if (isNativeToken) {
+      invocations = [
+        { operation: 'nativeDepositFee', scriptHash: this.BRIDGE_SCRIPT_HASH, args: [] },
+        { operation: 'minNativeDeposit', scriptHash: this.BRIDGE_SCRIPT_HASH, args: [] },
+        { operation: 'maxNativeDeposit', scriptHash: this.BRIDGE_SCRIPT_HASH, args: [] },
+      ]
+    } else {
+      invocations = [
+        {
+          operation: 'tokenDepositFee',
+          scriptHash: this.BRIDGE_SCRIPT_HASH,
+          args: [{ type: 'Hash160', value: token.hash }],
+        },
+        {
+          operation: 'minTokenDeposit',
+          scriptHash: this.BRIDGE_SCRIPT_HASH,
+          args: [{ type: 'Hash160', value: token.hash }],
+        },
+        {
+          operation: 'maxTokenDeposit',
+          scriptHash: this.BRIDGE_SCRIPT_HASH,
+          args: [{ type: 'Hash160', value: token.hash }],
+        },
+      ]
     }
 
-    return validatedInputs
-  }
-
-  async #validateNeo({
-    amount,
-    balances,
-    token,
-    account,
-    receiverAddress,
-  }: TNeo3NeoXBridgeServiceValidateInputParams<BSName>): Promise<TNeo3NeoXBridgeServiceValidatedInputs> {
-    const gasBalance = balances.find(balance => BSTokenHelper.predicateByHash(balance.token)(BSNeo3Constants.GAS_TOKEN))
-    if (!gasBalance) {
-      throw new BSError('GAS is necessary to bridge', 'GAS_BALANCE_NOT_FOUND')
-    }
-
-    const neoBalance = balances.find(balance => BSTokenHelper.predicateByHash(balance.token)(BSNeo3Constants.NEO_TOKEN))
-    if (!neoBalance) {
-      throw new BSError('NEO balance not found', 'NEO_BALANCE_NOT_FOUND')
-    }
-
-    const amountNumber = BSBigNumberHelper.fromNumber(amount)
-    const gasBalanceNumber = BSBigNumberHelper.fromNumber(gasBalance.amount)
-    const minGasBalanceNumber = BSBigNumberHelper.fromNumber(this.BRIDGE_GAS_FEE)
-
-    const validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs = {
-      receiveAmount: amount,
-      token,
-      amount,
-    }
-
-    if (amountNumber.isLessThan(this.BRIDGE_MIN_AMOUNT)) {
-      throw new BSError('Amount is less than the minimum amount', 'AMOUNT_TOO_LOW')
-    }
-
-    if (amountNumber.isGreaterThan(neoBalance.amount)) {
-      throw new BSError('Amount is greater than your balance', 'INSUFFICIENT_NEO_BALANCE')
-    }
-
-    if (gasBalanceNumber.isLessThan(minGasBalanceNumber)) {
-      throw new BSError('GAS balance is less than bridge fee', 'INSUFFICIENT_GAS_BALANCE_BRIDGE_FEE')
-    }
-
-    const fee = await this.calculateFee({
-      account,
-      receiverAddress,
-      validatedInputs,
+    const response = await invoker.testInvoke({
+      invocations,
     })
 
-    if (minGasBalanceNumber.plus(fee).isGreaterThan(gasBalanceNumber)) {
-      throw new BSError('GAS balance is less than fees', 'INSUFFICIENT_GAS_BALANCE_FEES')
-    }
+    const [depositFeeItem, minDepositItem, maxDepositItem] = response.stack
 
-    return validatedInputs
-  }
-
-  async calculateMaxAmount({
-    account,
-    balances,
-    receiverAddress,
-    token,
-  }: TNeo3NeoXBridgeServiceCalculateMaxAmountParams<BSName>): Promise<string> {
-    if (!BSNeo3Helper.isMainnet(this.#service.network))
-      throw new BSError('Bridging to NeoX is only supported on mainnet', 'UNSUPPORTED_NETWORK')
-
-    const normalizedSelectedToken = BSTokenHelper.normalizeToken(token)
-
-    const selectedTokenBalance = balances.find(
-      balance => BSTokenHelper.normalizeHash(balance.token.hash) === normalizedSelectedToken.hash
+    if (
+      !TypeChecker.isStackTypeInteger(depositFeeItem) ||
+      !TypeChecker.isStackTypeInteger(minDepositItem) ||
+      !TypeChecker.isStackTypeInteger(maxDepositItem)
     )
-    if (!selectedTokenBalance) {
-      throw new BSError('Token balance not found', 'TOKEN_BALANCE_NOT_FOUND')
-    }
+      throw new BSError('Invalid response', 'INVALID_RESPONSE')
 
-    const amountNumber = BSBigNumberHelper.fromNumber(selectedTokenBalance.amount)
+    const bridgeFeeBn = BSBigNumberHelper.fromDecimals(
+      depositFeeItem.value,
+      BSNeo3Constants.GAS_TOKEN.decimals
+    ).toString()
+    const minAmountBn = BSBigNumberHelper.fromDecimals(minDepositItem.value, token.decimals).toString()
+    const maxAmountBn = BSBigNumberHelper.fromDecimals(maxDepositItem.value, token.decimals).toString()
 
-    const validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs = {
-      receiveAmount: amountNumber.minus(this.BRIDGE_MIN_AMOUNT).toString(),
-      token,
-      amount: amountNumber.toString(),
-    }
+    const bridgeFee = BSBigNumberHelper.format(bridgeFeeBn, { decimals: BSNeo3Constants.GAS_TOKEN.decimals })
+    const bridgeMinAmount = BSBigNumberHelper.format(minAmountBn, { decimals: token.decimals })
+    const bridgeMaxAmount = BSBigNumberHelper.format(maxAmountBn, { decimals: token.decimals })
 
-    const fee = await this.calculateFee({
-      account,
-      receiverAddress,
-      validatedInputs,
-    })
-
-    const maxAmount = amountNumber.minus(fee).toString()
-
-    return maxAmount
-  }
-
-  async calculateFee(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string> {
-    if (!BSNeo3Helper.isMainnet(this.#service.network))
-      throw new BSError('Bridging to NeoX is only supported on mainnet', 'UNSUPPORTED_NETWORK')
-
-    try {
-      const { account } = params
-
-      const { neonJsAccount } = await this.#service.generateSigningCallback(account)
-
-      const invoker = await NeonInvoker.init({
-        rpcAddress: this.#service.network.url,
-        account: neonJsAccount,
-      })
-
-      const contractInvocationMulti = this.#buildCIM(params, neonJsAccount)
-
-      const { total } = await invoker.calculateFee(contractInvocationMulti)
-
-      return total.toString()
-    } catch (error: any) {
-      throw new BSError(error.message, 'FEE_CALCULATION_ERROR')
+    return {
+      bridgeFee,
+      bridgeMinAmount,
+      bridgeMaxAmount,
     }
   }
 
-  async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>) {
+  async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string> {
     if (!BSNeo3Helper.isMainnet(this.#service.network))
       throw new BSError('Bridging to NeoX is only supported on mainnet', 'UNSUPPORTED_NETWORK')
 
@@ -289,89 +118,84 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
       signingCallback: signingCallback,
     })
 
-    const contractInvocationMulti = this.#buildCIM(params, neonJsAccount)
+    const contractInvocation: ContractInvocation = {
+      scriptHash: this.BRIDGE_SCRIPT_HASH,
+      operation: 'depositNative',
+      args: [
+        { type: 'Hash160', value: neonJsAccount.address },
+        { type: 'Hash160', value: params.receiverAddress },
+        {
+          type: 'Integer',
+          value: BSBigNumberHelper.toDecimals(BSBigNumberHelper.fromNumber(params.amount), params.token.decimals),
+        },
+        {
+          type: 'Integer',
+          value: BSBigNumberHelper.toDecimals(
+            BSBigNumberHelper.fromNumber(params.bridgeFee),
+            BSNeo3Constants.GAS_TOKEN.decimals
+          ),
+        },
+      ],
+    }
 
-    const transactionHash = await invoker.invokeFunction(contractInvocationMulti)
+    const signer: Signer = {
+      scopes: 16,
+      allowedContracts: [this.BRIDGE_SCRIPT_HASH, BSNeo3Constants.GAS_TOKEN.hash],
+    }
+
+    const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
+
+    if (!isNativeToken) {
+      contractInvocation.args?.unshift({ type: 'Hash160', value: BSNeo3Constants.NEO_TOKEN.hash })
+      signer.allowedContracts?.push(BSNeo3Constants.NEO_TOKEN.hash)
+    }
+
+    const transactionHash = await invoker.invokeFunction({
+      invocations: [contractInvocation],
+      signers: [signer],
+    })
 
     return transactionHash
   }
 
-  async validateInputs(
-    params: TNeo3NeoXBridgeServiceValidateInputParams<BSName>
-  ): Promise<TNeo3NeoXBridgeServiceValidatedInputs> {
-    if (!BSNeo3Helper.isMainnet(this.#service.network))
-      throw new BSError('Bridging to NeoX is only supported on mainnet', 'UNSUPPORTED_NETWORK')
+  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams): Promise<string | null> {
+    const log = await DoraNeoRest.log(params.transactionHash, this.#service.network.id)
 
-    const normalizedSelectedToken = BSTokenHelper.normalizeToken(params.token)
-
-    const isGasToken = normalizedSelectedToken.hash === BSNeo3Constants.GAS_TOKEN.hash
-    const isNeoToken = normalizedSelectedToken.hash === BSNeo3Constants.NEO_TOKEN.hash
-
-    if (isGasToken) {
-      return this.#validateGas(params)
-    } else if (isNeoToken) {
-      return this.#validateNeo(params)
-    } else {
-      throw new BSError('Only GAS and NEO tokens are supported for bridging', 'UNSUPPORTED_TOKEN')
+    if (log.vmstate !== 'HALT') {
+      return null
     }
+
+    const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
+
+    if (isNativeToken) {
+      const notification = log.notifications.find(item => item.event_name === 'NativeDeposit')
+      return notification?.state.value[0].value ?? null
+    }
+
+    const notification = log.notifications.find(item => item.event_name === 'TokenDeposit')
+    return notification?.state.value[2].value ?? null
   }
 
-  async wait(params: TNeo3NeoXBridgeServiceWaitParams) {
-    if (!BSNeo3Helper.isMainnet(this.#service.network))
-      throw new BSError('Bridging to NeoX is only supported on mainnet', 'UNSUPPORTED_NETWORK')
+  async getTransactionHashByNonce(
+    params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams
+  ): Promise<string | null> {
+    const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
 
-    try {
-      const { transactionHash, validatedInputs } = params
+    const { data } = await axios.post<TGetBridgeTxByNonceResponse>('https://neofura.ngd.network', {
+      jsonrpc: '2.0',
+      method: 'GetBridgeTxByNonce',
+      params: {
+        ContractHash: this.BRIDGE_SCRIPT_HASH,
+        TokenHash: isNativeToken ? '' : BSNeo3Constants.NEO_TOKEN.hash,
+        Nonce: Number(params.nonce),
+      },
+      id: 1,
+    })
 
-      let nonce: string
-
-      const log = await BSUtilsHelper.retry(() => DoraNeoRest.log(transactionHash, this.#service.network.id), {
-        retries: 10,
-        delay: 30000,
-      })
-
-      if (log.vmstate !== 'HALT') {
-        throw new Error()
-      }
-
-      const isGasToken = BSTokenHelper.predicateByHash(validatedInputs.token)(BSNeo3Constants.GAS_TOKEN)
-
-      if (isGasToken) {
-        const notification = log.notifications.find(item => item.event_name === 'NativeDeposit')
-        nonce = notification?.state.value[0].value
-      } else {
-        const notification = log.notifications.find(item => item.event_name === 'TokenDeposit')
-        nonce = notification?.state.value[2].value
-      }
-
-      if (!nonce) {
-        throw new Error()
-      }
-
-      await BSUtilsHelper.retry(
-        async () => {
-          let url: string
-          if (isGasToken) {
-            url = `${this.BRIDGE_NEOX_BASE_CONFIRMATION_URL}/${nonce}`
-          } else {
-            url = `${this.BRIDGE_NEOX_BASE_CONFIRMATION_URL}/${this.BRIDGE_NEOX_NEO_TOKEN_HASH}/${nonce}`
-          }
-
-          const response = await axios.get<{ txid: string | null }>(url)
-
-          if (!response.data?.txid) {
-            throw new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND')
-          }
-        },
-        {
-          retries: 10,
-          delay: 30000,
-        }
-      )
-
-      return true
-    } catch (error: any) {
-      return false
+    if (!data?.result) {
+      throw new BSError('Transaction not found', 'INVALID_RESPONSE')
     }
+
+    return data.result.Vmstate === 'HALT' ? data.result.txid ?? null : null
   }
 }

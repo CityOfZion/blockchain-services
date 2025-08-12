@@ -13,7 +13,7 @@ complexity of each one with a single interface.
 | @cityofzion/bs-ethereum        | Implementation of interfaces and methods for the Ethereum blockchain                                                                                           |
 | @cityofzion/bs-neo3            | Implementation of interfaces and methods for the NEO 3 blockchain                                                                                              |
 | @cityofzion/bs-neo-legacy      | Implementation of interfaces and methods for the NEO Legacy (NEO 2) blockchain                                                                                 |
-| @cityofzion/bs-swap            | Implementation of interfaces and methods for the Swaps                                                                                                         |
+| @cityofzion/bs-multichain            | Implementation of interfaces and methods for multichain features                                                                                                        |
 | @cityofzion/bs-neox            | Implementation of interfaces and methods for the Neo X blockchain                                                                                              |
 
 

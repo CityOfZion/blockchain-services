@@ -2,288 +2,120 @@ import {
   BSBigNumberHelper,
   BSError,
   BSTokenHelper,
-  BSUtilsHelper,
   INeo3NeoXBridgeService,
+  TBridgeToken,
   TNeo3NeoXBridgeServiceBridgeParam,
-  TNeo3NeoXBridgeServiceCalculateMaxAmountParams,
-  TNeo3NeoXBridgeServiceValidatedInputs,
-  TNeo3NeoXBridgeServiceValidateInputParams,
-  TNeo3NeoXBridgeServiceWaitParams,
+  TNeo3NeoXBridgeServiceConstants,
+  TNeo3NeoXBridgeServiceGetApprovalParam,
+  TNeo3NeoXBridgeServiceGetNonceParams,
+  TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams,
 } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import { BSNeoX } from '../../BSNeoX'
 import { ethers } from 'ethers'
 import { wallet } from '@cityofzion/neon-js'
 import { BRIDGE_ABI } from '../../assets/abis/bridge'
-import { BSEthereumConstants, BSEthereumTokenHelper, ERC20_ABI } from '@cityofzion/bs-ethereum'
+import { BSEthereumConstants, ERC20_ABI } from '@cityofzion/bs-ethereum'
 import axios from 'axios'
 import { BlockscoutBDSNeoX } from '../blockchain-data/BlockscoutBDSNeoX'
 import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
 
 type TBlockscoutTransactionLogResponse = { items: { data: string; topics: any[] }[] }
 
-type TGetBridgeTxByNonceResponse = { result: { Vmstate: string; txid: string } }
-
 export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBridgeService<BSName> {
   readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
-  readonly BRIDGE_GAS_FEE = 0.1
-  readonly BRIDGE_MIN_AMOUNT = 1
-  readonly BRIDGE_NEO_BRIDGE_TRANSACTION_FEE = 0.008
-  readonly BRIDGE_NEO3_NEO_TOKEN_HASH = '0xef4073a0f2b305a38ec4050e4d3d28bc40ea63f5'
+  readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
 
   readonly #service: BSNeoX<BSName>
 
+  tokens: TBridgeToken[]
+
   constructor(service: BSNeoX<BSName>) {
     this.#service = service
+
+    this.tokens = [
+      { ...BSNeoXConstants.NATIVE_ASSET, multichainId: 'gas' },
+      { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo' },
+    ]
   }
 
-  async #buildGasTransactionParams(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>) {
+  async #buildApproveTransactionParam(params: TNeo3NeoXBridgeServiceGetApprovalParam<BSName>) {
     const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
-
-    const gasPrice = await provider.getGasPrice()
-
-    const to = '0x' + wallet.getScriptHashFromAddress(params.receiverAddress)
-    const bridgeContract = new ethers.Contract(this.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
-    const bridgeFee = ethers.utils.parseUnits(this.BRIDGE_GAS_FEE.toString(), BSNeoXConstants.NATIVE_ASSET.decimals)
-
-    const populatedTransaction = await bridgeContract.populateTransaction.withdrawNative(to, bridgeFee)
-    const bridgeTransactionParam: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
-      ...populatedTransaction,
-      value: ethers.utils.parseUnits(params.validatedInputs.amount, params.validatedInputs.token.decimals),
-      type: 2,
-    }
-
-    return {
-      bridgeTransactionParam,
-      approveTransactionParams: undefined, // No approval needed for GAS
-      gasPrice,
-    }
-  }
-
-  async #buildNeoTransactionParams(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>) {
-    const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
-
-    const gasPrice = await provider.getGasPrice()
-
-    const to = '0x' + wallet.getScriptHashFromAddress(params.receiverAddress)
-    const bridgeContract = new ethers.Contract(this.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
-    const bridgeFee = ethers.utils.parseUnits(this.BRIDGE_GAS_FEE.toString(), BSNeoXConstants.NATIVE_ASSET.decimals)
-
-    // We are using 0 as the decimals because the NEO token in Neo3 has 0 decimals
-    const fixedAmount = BSBigNumberHelper.format(params.validatedInputs.amount, { decimals: 0 })
-    const amount = ethers.utils.parseUnits(fixedAmount, params.validatedInputs.token.decimals)
-
-    const erc20Contract = new ethers.Contract(BSNeoXConstants.NEO_TOKEN.hash, ERC20_ABI, provider)
+    const erc20Contract = new ethers.Contract(params.token.hash, ERC20_ABI, provider)
 
     const allowance = await erc20Contract.allowance(params.account.address, this.BRIDGE_SCRIPT_HASH)
     const allowanceNumber = BSBigNumberHelper.fromDecimals(allowance.toString(), BSNeoXConstants.NEO_TOKEN.decimals)
 
-    let approveTransactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest> | undefined
+    // We are using 0 as the decimals because the NEO token in Neo3 has 0 decimals
+    const fixedAmount = BSBigNumberHelper.format(params.amount, { decimals: 0 })
 
-    if (allowanceNumber.isLessThan(fixedAmount)) {
-      const populatedApproveTransaction = await erc20Contract.populateTransaction.approve(
-        this.BRIDGE_SCRIPT_HASH,
-        amount
-      )
-      approveTransactionParams = {
-        ...populatedApproveTransaction,
-        type: 2,
-      }
+    if (allowanceNumber.isGreaterThanOrEqualTo(fixedAmount)) {
+      return null
     }
 
-    const populatedTransaction = await bridgeContract.populateTransaction.withdrawToken(
-      params.validatedInputs.token.hash,
-      to,
-      amount
-    )
+    const amount = ethers.utils.parseUnits(fixedAmount, params.token.decimals)
+    const populatedApproveTransaction = await erc20Contract.populateTransaction.approve(this.BRIDGE_SCRIPT_HASH, amount)
 
-    const bridgeTransactionParam: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
-      ...populatedTransaction,
-      type: 2,
-      value: bridgeFee,
-    }
-
-    return {
-      bridgeTransactionParam,
-      approveTransactionParams,
-      gasPrice,
-    }
+    return populatedApproveTransaction
   }
 
-  async #buildTransactionParams(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>) {
-    const isGasToken = BSTokenHelper.predicateByHash(params.validatedInputs.token)(BSNeoXConstants.NATIVE_ASSET)
-    if (isGasToken) {
-      return this.#buildGasTransactionParams(params)
-    }
-
-    return this.#buildNeoTransactionParams(params)
-  }
-
-  async #validateGas({
-    amount,
-    balances,
-    token,
-    account,
-    receiverAddress,
-  }: TNeo3NeoXBridgeServiceValidateInputParams<BSName>): Promise<TNeo3NeoXBridgeServiceValidatedInputs> {
-    const gasBalance = balances.find(balance =>
-      BSEthereumTokenHelper.predicateByHash(balance.token)(BSNeoXConstants.NATIVE_ASSET)
-    )
-    if (!gasBalance) {
-      throw new BSError('GAS is necessary to bridge', 'GAS_BALANCE_NOT_FOUND')
-    }
-
-    const amountNumber = BSBigNumberHelper.fromNumber(amount)
-    const gasBalanceNumber = BSBigNumberHelper.fromNumber(gasBalance.amount)
-
-    const validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs = {
-      receiveAmount: amountNumber.minus(this.BRIDGE_GAS_FEE).toString(),
-      token,
-      amount,
-    }
-
-    if (amountNumber.isLessThan(this.BRIDGE_MIN_AMOUNT + this.BRIDGE_GAS_FEE)) {
-      throw new BSError('Amount is less than the minimum amount plus bridge fee', 'AMOUNT_TOO_LOW')
-    }
-
-    if (amountNumber.isGreaterThan(gasBalanceNumber)) {
-      throw new BSError('Amount is greater than your balance', 'INSUFFICIENT_GAS_BALANCE')
-    }
-
-    const fee = await this.calculateFee({
-      account,
-      receiverAddress,
-      validatedInputs,
-    })
-
-    if (amountNumber.plus(fee).isGreaterThan(gasBalanceNumber)) {
-      throw new BSError('Amount is greater than your balance plus fee', 'INSUFFICIENT_GAS_BALANCE_FEE')
-    }
-
-    return validatedInputs
-  }
-
-  async #validateNeo({
-    amount,
-    balances,
-    token,
-    account,
-    receiverAddress,
-  }: TNeo3NeoXBridgeServiceValidateInputParams<BSName>): Promise<TNeo3NeoXBridgeServiceValidatedInputs> {
-    const gasBalance = balances.find(balance =>
-      BSEthereumTokenHelper.predicateByHash(balance.token)(BSNeoXConstants.NATIVE_ASSET)
-    )
-    if (!gasBalance) {
-      throw new BSError('GAS is necessary to bridge', 'GAS_BALANCE_NOT_FOUND')
-    }
-
-    const neoBalance = balances.find(balance =>
-      BSEthereumTokenHelper.predicateByHash(balance.token)(BSNeoXConstants.NEO_TOKEN)
-    )
-    if (!neoBalance) {
-      throw new BSError('NEO balance not found', 'NEO_BALANCE_NOT_FOUND')
-    }
-
-    const amountNumber = BSBigNumberHelper.fromNumber(amount)
-    const gasBalanceNumber = BSBigNumberHelper.fromNumber(gasBalance.amount)
-    const minGasBalanceNumber = BSBigNumberHelper.fromNumber(this.BRIDGE_GAS_FEE)
-
-    const validatedInputs: TNeo3NeoXBridgeServiceValidatedInputs = { receiveAmount: amount, token, amount }
-
-    if (amountNumber.isLessThan(this.BRIDGE_MIN_AMOUNT)) {
-      throw new BSError('Amount is less than the minimum amount', 'AMOUNT_TOO_LOW')
-    }
-
-    if (amountNumber.isGreaterThan(neoBalance.amount)) {
-      throw new BSError('Amount is greater than your balance', 'INSUFFICIENT_NEO_BALANCE')
-    }
-
-    if (gasBalanceNumber.isLessThan(minGasBalanceNumber)) {
-      throw new BSError('GAS balance is less than bridge fee', 'INSUFFICIENT_GAS_BALANCE_BRIDGE_FEE')
-    }
-
-    const fee = await this.calculateFee({
-      account,
-      receiverAddress,
-      validatedInputs,
-    })
-
-    if (minGasBalanceNumber.plus(fee).isGreaterThan(gasBalanceNumber)) {
-      throw new BSError('GAS balance is less than fees', 'INSUFFICIENT_GAS_BALANCE_FEES')
-    }
-
-    return validatedInputs
-  }
-
-  async calculateMaxAmount({
-    account,
-    balances,
-    receiverAddress,
-    token,
-  }: TNeo3NeoXBridgeServiceCalculateMaxAmountParams<BSName>) {
-    if (!BSNeoXHelper.isMainnet(this.#service.network))
-      throw new BSError('Bridging to Neo3 is only supported on mainnet', 'UNSUPPORTED_NETWORK')
-
-    const normalizedSelectedToken = BSEthereumTokenHelper.normalizeToken(token)
-
-    const selectedTokenBalance = balances.find(
-      balance => BSEthereumTokenHelper.normalizeHash(balance.token.hash) === normalizedSelectedToken.hash
-    )
-    if (!selectedTokenBalance) {
-      throw new BSError('Token balance not found', 'TOKEN_BALANCE_NOT_FOUND')
-    }
-
-    const amountNumber = BSBigNumberHelper.fromNumber(selectedTokenBalance.amount)
-    const receiveAmount = amountNumber.minus(this.BRIDGE_MIN_AMOUNT).toString()
-
-    const amount = amountNumber.toString()
-
-    const fee = await this.calculateFee({
-      account,
-      receiverAddress,
-      validatedInputs: { receiveAmount, token, amount },
-    })
-
-    const maxAmount = amountNumber.minus(fee).toString()
-
-    return maxAmount
-  }
-
-  async calculateFee(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string> {
-    if (!BSNeoXHelper.isMainnet(this.#service.network))
-      throw new BSError('Bridging to Neo3 is only supported on mainnet', 'UNSUPPORTED_NETWORK')
-
+  async getBridgeConstants(token: TBridgeToken): Promise<TNeo3NeoXBridgeServiceConstants> {
     try {
-      const signer = await this.#service.generateSigner(params.account)
-      const { gasPrice, approveTransactionParams, bridgeTransactionParam } = await this.#buildTransactionParams(params)
+      const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
+      const bridgeContract = new ethers.Contract(this.BRIDGE_SCRIPT_HASH, BRIDGE_ABI, provider)
 
-      let fee = ethers.utils.parseEther('0')
+      const isNativeToken = BSTokenHelper.predicateByHash(token)(BSNeoXConstants.NATIVE_ASSET)
 
-      const isGasToken = BSTokenHelper.predicateByHash(params.validatedInputs.token)(BSNeoXConstants.NATIVE_ASSET)
+      const response = isNativeToken
+        ? await bridgeContract.nativeBridge()
+        : await bridgeContract.tokenBridges(token.hash)
 
-      if (isGasToken) {
-        const estimated = await signer.estimateGas(bridgeTransactionParam)
-        fee = gasPrice.mul(estimated)
-      } else {
-        let approvedEstimated = ethers.utils.parseEther('0')
+      const bridgeFeeBn = BSBigNumberHelper.fromDecimals(
+        response.config.fee.toString(),
+        BSNeoXConstants.NATIVE_ASSET.decimals
+      )
+      const minAmountBn = BSBigNumberHelper.fromDecimals(response.config.minAmount.toString(), token.decimals)
+      const maxAmountBn = BSBigNumberHelper.fromDecimals(response.config.maxAmount.toString(), token.decimals)
 
-        if (approveTransactionParams) {
-          approvedEstimated = await signer.estimateGas(approveTransactionParams!)
-        }
+      const bridgeFee = BSBigNumberHelper.format(bridgeFeeBn, { decimals: BSNeoXConstants.NATIVE_ASSET.decimals })
+      const bridgeMinAmount = BSBigNumberHelper.format(minAmountBn, { decimals: token.decimals })
+      const bridgeMaxAmount = BSBigNumberHelper.format(maxAmountBn, { decimals: token.decimals })
 
-        // We can't estimate the gas for the bridge transaction because it requires the approve transaction to be done first
-        // if not the gas estimation of bridge transaction will fail so we add a fixed value
-        const neoBridgeFee = ethers.utils.parseUnits(
-          this.BRIDGE_NEO_BRIDGE_TRANSACTION_FEE.toString(),
-          BSNeoXConstants.NATIVE_ASSET.decimals
-        )
+      return {
+        bridgeFee,
+        bridgeMaxAmount,
+        bridgeMinAmount,
+      }
+    } catch (error) {
+      throw new BSError('Failed to get bridge constants', 'BRIDGE_CONSTANTS_ERROR', error)
+    }
+  }
 
-        fee = gasPrice.mul(approvedEstimated).add(neoBridgeFee)
+  async getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam<BSName>): Promise<string> {
+    try {
+      const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeoXConstants.NATIVE_ASSET)
+      if (isNativeToken) {
+        throw new BSError('No allowance fee for native token', 'NO_ALLOWANCE_FEE')
       }
 
-      return ethers.utils.formatEther(fee)
-    } catch (error: any) {
-      throw new BSError(error.message, 'FEE_CALCULATION_ERROR')
+      const populatedApproveTransaction = await this.#buildApproveTransactionParam(params)
+      if (!populatedApproveTransaction) {
+        throw new BSError('Allowance is already sufficient', 'ALLOWANCE_ALREADY_SUFFICIENT')
+      }
+
+      const signer = await this.#service.generateSigner(params.account)
+      const approvedEstimated = await signer.estimateGas({ ...populatedApproveTransaction, type: 2 })
+
+      const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
+      const gasPrice = await provider.getGasPrice()
+
+      return ethers.utils.formatEther(gasPrice.mul(approvedEstimated))
+    } catch (error) {
+      if (error instanceof BSError) {
+        throw error
+      }
+
+      throw new BSError('Failed to get allowance fee', 'ALLOWANCE_FEE_ERROR', error)
     }
   }
 
@@ -295,11 +127,41 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
 
     const signer = await this.#service.generateSigner(account)
 
-    const { approveTransactionParams, bridgeTransactionParam, gasPrice } = await this.#buildTransactionParams(params)
+    const bridgeContract = new ethers.Contract(this.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
 
-    if (approveTransactionParams) {
-      const approveTransaction = await signer.sendTransaction(approveTransactionParams)
-      await approveTransaction.wait()
+    const to = '0x' + wallet.getScriptHashFromAddress(params.receiverAddress)
+    const bridgeFee = ethers.utils.parseUnits(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals)
+
+    const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeoXConstants.NATIVE_ASSET)
+
+    let bridgeTransactionParam: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
+      type: 2,
+    }
+
+    if (isNativeToken) {
+      const populatedTransaction = await bridgeContract.populateTransaction.withdrawNative(to, bridgeFee)
+      bridgeTransactionParam = {
+        ...bridgeTransactionParam,
+        ...populatedTransaction,
+        value: ethers.utils.parseUnits(params.amount, params.token.decimals),
+      }
+    } else {
+      const approveTransactionParam = await this.#buildApproveTransactionParam(params)
+      if (approveTransactionParam) {
+        const approveTransaction = await signer.sendTransaction(approveTransactionParam)
+        await approveTransaction.wait()
+      }
+
+      const fixedAmount = BSBigNumberHelper.format(params.amount, { decimals: 0 })
+      const amount = ethers.utils.parseUnits(fixedAmount, params.token.decimals)
+
+      const populatedTransaction = await bridgeContract.populateTransaction.withdrawToken(params.token.hash, to, amount)
+
+      bridgeTransactionParam = {
+        ...bridgeTransactionParam,
+        ...populatedTransaction,
+        value: bridgeFee,
+      }
     }
 
     let gasLimit: ethers.BigNumberish
@@ -308,6 +170,8 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     } catch {
       gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
     }
+
+    const gasPrice = await signer.getGasPrice()
 
     const transaction = await signer.sendTransaction({
       ...bridgeTransactionParam,
@@ -318,100 +182,63 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     return transaction.hash
   }
 
-  async validateInputs(
-    params: TNeo3NeoXBridgeServiceValidateInputParams<BSName>
-  ): Promise<TNeo3NeoXBridgeServiceValidatedInputs> {
-    if (!BSNeoXHelper.isMainnet(this.#service.network))
-      throw new BSError('Bridging to Neo3 is only supported on mainnet', 'UNSUPPORTED_NETWORK')
+  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams): Promise<string | null> {
+    let data: TBlockscoutTransactionLogResponse
+    try {
+      const client = BlockscoutBDSNeoX.getClient(this.#service.network)
+      const response = await client.get<TBlockscoutTransactionLogResponse>(
+        `/transactions/${params.transactionHash}/logs`
+      )
+      data = response.data
+    } catch (error) {
+      throw new BSError('Transaction logs not found', 'LOGS_NOT_FOUND', error)
+    }
 
-    const normalizedSelectedToken = BSEthereumTokenHelper.normalizeToken(params.token)
+    if (!data.items || data.items.length === 0) {
+      throw new BSError('Transaction logs not found', 'LOGS_NOT_FOUND')
+    }
 
-    const isGasToken = normalizedSelectedToken.hash === BSNeoXConstants.NATIVE_ASSET.hash
-    const isNeoToken = normalizedSelectedToken.hash === BSNeoXConstants.NEO_TOKEN.hash
+    try {
+      const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
 
-    if (isGasToken) {
-      return this.#validateGas(params)
-    } else if (isNeoToken) {
-      return this.#validateNeo(params)
-    } else {
-      throw new BSError('Only GAS and NEO tokens are supported for bridging', 'UNSUPPORTED_TOKEN')
+      const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeoXConstants.NATIVE_ASSET)
+
+      if (isNativeToken) {
+        const item = data.items[0]
+        const parsedLog = BridgeInterface.parseLog({ data: item.data, topics: item.topics.filter(Boolean) })
+        return parsedLog.args.nonce ? parsedLog.args.nonce.toString() : null
+      }
+
+      const item = data.items[1]
+      const parsedLog = BridgeInterface.parseLog({ data: item.data, topics: item.topics.filter(Boolean) })
+      return parsedLog.args.nonce ? parsedLog.args.nonce.toString() : null
+    } catch (error) {
+      return null
     }
   }
 
-  async wait(params: TNeo3NeoXBridgeServiceWaitParams): Promise<boolean> {
-    if (!BSNeoXHelper.isMainnet(this.#service.network))
-      throw new BSError('Bridging to Neo3 is only supported on mainnet', 'UNSUPPORTED_NETWORK')
-
+  async getTransactionHashByNonce(
+    params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams
+  ): Promise<string | null> {
     try {
-      const { transactionHash, validatedInputs } = params
+      let url: string
 
-      let nonce: string
-
-      const log = await BSUtilsHelper.retry(
-        async () => {
-          const client = BlockscoutBDSNeoX.getClient(this.#service.network)
-          const { data } = await client.get<TBlockscoutTransactionLogResponse>(`/transactions/${transactionHash}/logs`)
-
-          if (!data.items || data.items.length === 0) {
-            throw new BSError('Transaction logs not found', 'LOGS_NOT_FOUND')
-          }
-
-          return data
-        },
-        {
-          retries: 10,
-          delay: 30000,
-        }
-      )
-
-      const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
-
-      const isGasToken = BSTokenHelper.predicateByHash(validatedInputs.token)(BSNeoXConstants.NATIVE_ASSET)
-
-      if (isGasToken) {
-        const item = log.items[0]
-        const response = BridgeInterface.decodeEventLog('NativeWithdrawal', item.data, item.topics.filter(Boolean))
-        nonce = response.nonce.toString()
+      const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeoXConstants.NATIVE_ASSET)
+      if (isNativeToken) {
+        url = `${this.BRIDGE_BASE_CONFIRMATION_URL}/${params.nonce}`
       } else {
-        const item = log.items[1]
-        const response = BridgeInterface.decodeEventLog('TokenWithdrawal', item.data, item.topics.filter(Boolean))
-        nonce = response.nonce.toString()
+        url = `${this.BRIDGE_BASE_CONFIRMATION_URL}/${BSNeoXConstants.NEO_TOKEN.hash}/${params.nonce}`
       }
 
-      if (!nonce) {
-        throw new Error()
+      const response = await axios.get<{ txid: string | null }>(url)
+
+      if (!response.data?.txid) {
+        throw new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND')
       }
 
-      await BSUtilsHelper.retry(
-        async () => {
-          const response = await axios.post<TGetBridgeTxByNonceResponse>('https://neofura.ngd.network', {
-            jsonrpc: '2.0',
-            method: 'GetBridgeTxByNonce',
-            params: {
-              ContractHash: this.BRIDGE_SCRIPT_HASH,
-              TokenHash: isGasToken ? '' : this.BRIDGE_NEO3_NEO_TOKEN_HASH,
-              Nonce: Number(nonce),
-            },
-            id: 1,
-          })
-
-          if (!response.data?.result.Vmstate || !response.data?.result.txid) {
-            throw new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND')
-          }
-
-          if (response.data.result.Vmstate !== 'HALT') {
-            throw new BSError('Transaction is not in a valid state', 'INVALID_TRANSACTION_STATE')
-          }
-        },
-        {
-          retries: 10,
-          delay: 30000,
-        }
-      )
-
-      return true
-    } catch (error: any) {
-      return false
+      return response.data?.txid
+    } catch (error) {
+      throw new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND', error)
     }
   }
 }

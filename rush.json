@@ -38,8 +38,8 @@
       "shouldPublish": true
     },
     {
-      "packageName": "@cityofzion/bs-swap",
-      "projectFolder": "packages/bs-swap",
+      "packageName": "@cityofzion/bs-multichain",
+      "projectFolder": "packages/bs-multichain",
       "shouldPublish": true
     },
     {
