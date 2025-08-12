@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Tue, 24 Jun 2025 16:33:10 GMT and should not be manually modified.
+This log was last generated on Tue, 12 Aug 2025 18:55:01 GMT and should not be manually modified.
+
+## 1.15.3
+Tue, 12 Aug 2025 18:55:01 GMT
+
+### Patches
+
+- Refactor Neo3NeoXBridgeService class
 
 ## 1.15.2
 Tue, 24 Jun 2025 16:33:10 GMT

@@ -1,6 +1,13 @@
-# Change Log - @cityofzion/bs-swap
+# Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Tue, 15 Jul 2025 16:42:01 GMT and should not be manually modified.
+This log was last generated on Tue, 12 Aug 2025 18:55:01 GMT and should not be manually modified.
+
+## 1.0.1
+Tue, 12 Aug 2025 18:55:01 GMT
+
+### Patches
+
+- Move swap feature and add bridge feature
 
 ## 0.5.34
 Tue, 15 Jul 2025 16:42:01 GMT

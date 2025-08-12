@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 24 Jun 2025 16:33:10 GMT and should not be manually modified.
+This log was last generated on Tue, 12 Aug 2025 18:55:01 GMT and should not be manually modified.
+
+## 1.19.2
+Tue, 12 Aug 2025 18:55:01 GMT
+
+### Patches
+
+- Add BridgeOrchestrator interface and update Neo3NeoXBrigeService interface
 
 ## 1.19.1
 Tue, 24 Jun 2025 16:33:10 GMT

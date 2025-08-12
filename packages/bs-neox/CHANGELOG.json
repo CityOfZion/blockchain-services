@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "1.2.4",
+      "tag": "@cityofzion/bs-neox_v1.2.4",
+      "date": "Tue, 12 Aug 2025 18:55:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Refactor Neo3NeoXBridgeService class"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.19.2`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.12.7`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.2.3",
       "tag": "@cityofzion/bs-neox_v1.2.3",
       "date": "Tue, 15 Jul 2025 16:42:01 GMT",

@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.19.2",
+      "tag": "@cityofzion/blockchain-service_v1.19.2",
+      "date": "Tue, 12 Aug 2025 18:55:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add BridgeOrchestrator interface and update Neo3NeoXBrigeService interface"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.19.1",
       "tag": "@cityofzion/blockchain-service_v1.19.1",
       "date": "Tue, 24 Jun 2025 16:33:10 GMT",

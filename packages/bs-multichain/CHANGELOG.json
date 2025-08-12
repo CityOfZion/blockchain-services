@@ -1,6 +1,35 @@
 {
-  "name": "@cityofzion/bs-swap",
+  "name": "@cityofzion/bs-multichain",
   "entries": [
+    {
+      "version": "1.0.1",
+      "tag": "@cityofzion/bs-multichain_v1.0.1",
+      "date": "Tue, 12 Aug 2025 18:55:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Move swap feature and add bridge feature"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.19.2`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.15.3`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.12.7`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo-legacy\" to `1.12.5`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neox\" to `1.2.4`"
+          }
+        ]
+      }
+    },
     {
       "version": "0.5.34",
       "tag": "@cityofzion/bs-swap_v0.5.34",
