@@ -1,15 +1,15 @@
 import { Token } from '../interfaces'
 
-type TPredicateToken = {
+export type TBSTokenHelperPredicateParams = {
   hash: string
   symbol?: string
 }
 
 export class BSTokenHelper {
-  static predicate({ hash, symbol }: TPredicateToken) {
+  static predicate({ hash, symbol }: TBSTokenHelperPredicateParams) {
     const normalizedHash = this.normalizeHash(hash)
 
-    return (params: TPredicateToken) => {
+    return (params: TBSTokenHelperPredicateParams) => {
       if (normalizedHash === this.normalizeHash(params.hash)) return true
 
       if (symbol && params.symbol && symbol.toLowerCase() === params.symbol.toLowerCase()) return true
