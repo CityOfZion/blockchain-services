@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Tue, 12 Aug 2025 18:55:01 GMT and should not be manually modified.
+This log was last generated on Wed, 13 Aug 2025 17:24:01 GMT and should not be manually modified.
+
+## 1.12.6
+Wed, 13 Aug 2025 17:24:01 GMT
+
+### Patches
+
+- Improve send, claim and migration required fee
 
 ## 1.12.5
 Tue, 12 Aug 2025 18:55:01 GMT
