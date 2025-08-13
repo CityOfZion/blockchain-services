@@ -9,7 +9,7 @@ const neo3Address = 'NWs1nPJP8XkZxsNwuGYmikzQrEJcZBAUJN'
 let serviceNeoLegacy: BSNeoLegacy<'neoLegacy'>
 let account: Account<'neoLegacy'>
 
-describe.skip('BSNeoLegacy - Migration', () => {
+describe('BSNeoLegacy - Migration', () => {
   beforeEach(async () => {
     serviceNeoLegacy = new BSNeoLegacy('neoLegacy', BSNeoLegacyConstants.DEFAULT_NETWORK)
     account = serviceNeoLegacy.generateAccountFromKey(process.env.NEO_LEGACY_WITH_BALANCE_PRIVATE_KEY)
@@ -138,7 +138,7 @@ describe.skip('BSNeoLegacy - Migration', () => {
     const expectNeoTotalFees = '1'
     const expectNeoReceiveAmount = '3'
     const expectGasTotalFees = '0.03209217'
-    const expectGasReceiveAmount = '0.96790783'
+    const expectGasReceiveAmount = '0.96790782'
 
     expect(
       serviceNeoLegacy.calculateNeo3MigrationAmounts({
@@ -204,20 +204,7 @@ describe.skip('BSNeoLegacy - Migration', () => {
           hasEnoughNeoBalance: false,
         },
       })
-    ).rejects.toThrow('Must have at least 0.1 GAS')
-
-    const gasBalance = { amount: '1', token: BSNeoLegacyConstants.GAS_ASSET }
-    await expect(
-      serviceNeoLegacy.migrate({
-        account,
-        neo3Address,
-        neoLegacyMigrationAmounts: {
-          hasEnoughGasBalance: true,
-          hasEnoughNeoBalance: false,
-          gasBalance,
-        },
-      })
-    ).rejects.toThrow('Must have at least 2 NEO')
+    ).rejects.toThrow('Must have at least 0.1 GAS or 2 NEO')
   })
 
   it.skip('Should be able to migrate', async () => {

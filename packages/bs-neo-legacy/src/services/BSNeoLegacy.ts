@@ -128,6 +128,20 @@ export class BSNeoLegacy<BSName extends string = string>
     return false
   }
 
+  #getRequiredTransactionFeeConfig(config: any) {
+    config.fees = BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION
+
+    const gasIntent = config.intents
+      ?.filter((intent: any) => BSTokenHelper.normalizeHash(intent.assetId) === BSNeoLegacyConstants.GAS_ASSET.hash)
+      ?.sort((a: any, b: any) => b.value.comparedTo(a.value) ?? 0)?.[0]
+
+    if (gasIntent?.value) {
+      gasIntent.value = gasIntent.value.sub(BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION)
+    }
+
+    return config
+  }
+
   async #signTransfer(config: any, nep5ScriptBuilder?: any) {
     if (!nep5ScriptBuilder || nep5ScriptBuilder.isEmpty()) {
       config = await api.createContractTx(config)
@@ -145,14 +159,10 @@ export class BSNeoLegacy<BSName extends string = string>
 
   async #sendTransfer(config: any, nep5ScriptBuilder?: any) {
     const sharedConfig = await api.fillBalance(config)
-
     let signedConfig = await this.#signTransfer({ ...sharedConfig }, nep5ScriptBuilder)
 
     if (this.#hasTransactionMoreThanMaxSize(signedConfig)) {
-      signedConfig = await this.#signTransfer(
-        { ...sharedConfig, fees: BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION },
-        nep5ScriptBuilder
-      )
+      signedConfig = await this.#signTransfer(this.#getRequiredTransactionFeeConfig(sharedConfig), nep5ScriptBuilder)
     }
 
     signedConfig = await api.sendTx(signedConfig)
@@ -171,14 +181,10 @@ export class BSNeoLegacy<BSName extends string = string>
 
   async #sendClaim(config: any) {
     const sharedConfig = await api.fillClaims(config)
-
     let signedConfig = await this.#signClaim({ ...sharedConfig })
 
     if (this.#hasTransactionMoreThanMaxSize(signedConfig)) {
-      signedConfig = await this.#signClaim({
-        ...sharedConfig,
-        fees: BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION,
-      })
+      signedConfig = await this.#signClaim(this.#getRequiredTransactionFeeConfig(sharedConfig))
     }
 
     signedConfig = await api.sendTx(signedConfig)
@@ -331,7 +337,10 @@ export class BSNeoLegacy<BSName extends string = string>
       throw new Error('Must use Mainnet network')
     }
 
-    if (!neoLegacyMigrationAmounts.hasEnoughGasBalance && !neoLegacyMigrationAmounts.hasEnoughNeoBalance) {
+    if (
+      (!neoLegacyMigrationAmounts.hasEnoughGasBalance && !neoLegacyMigrationAmounts.hasEnoughNeoBalance) ||
+      (!neoLegacyMigrationAmounts.gasBalance && !neoLegacyMigrationAmounts.neoBalance)
+    ) {
       throw new Error('Must have at least 0.1 GAS or 2 NEO')
     }
 
@@ -339,7 +348,7 @@ export class BSNeoLegacy<BSName extends string = string>
     const provider = new api.neoCli.instance(this.network.url)
     const intents: ReturnType<typeof api.makeIntent> = []
 
-    if (neoLegacyMigrationAmounts.gasBalance)
+    if (neoLegacyMigrationAmounts.hasEnoughGasBalance && neoLegacyMigrationAmounts.gasBalance)
       intents.push(
         ...api.makeIntent(
           { [BSNeoLegacyConstants.GAS_ASSET.symbol]: Number(neoLegacyMigrationAmounts.gasBalance.amount) },
@@ -347,7 +356,7 @@ export class BSNeoLegacy<BSName extends string = string>
         )
       )
 
-    if (neoLegacyMigrationAmounts.neoBalance)
+    if (neoLegacyMigrationAmounts.hasEnoughNeoBalance && neoLegacyMigrationAmounts.neoBalance)
       intents.push(
         ...api.makeIntent(
           { [BSNeoLegacyConstants.NEO_ASSET.symbol]: Number(neoLegacyMigrationAmounts.neoBalance.amount) },
@@ -393,6 +402,7 @@ export class BSNeoLegacy<BSName extends string = string>
       // Two transfers fee and one transfer fee left over
       const allNep17TransfersFee = BSNeoLegacyConstants.MIGRATION_NEP_17_TRANSFER_FEE * 3
       const gasMigrationAmountNumber = Number(neoLegacyMigrationAmounts.gasBalance.amount)
+
       // Necessary to calculate the COZ fee
       const gasAmountNumberLessAllNep17TransfersFee = gasMigrationAmountNumber - allNep17TransfersFee
 
@@ -409,6 +419,7 @@ export class BSNeoLegacy<BSName extends string = string>
       response.gasMigrationTotalFees = BSBigNumberHelper.format(allGasFeeNumberThatUserWillPay, {
         decimals: BSNeoLegacyConstants.GAS_ASSET.decimals,
       })
+
       response.gasMigrationReceiveAmount = BSBigNumberHelper.format(allGasAmountNumberThatUserWillReceive, {
         decimals: BSNeoLegacyConstants.GAS_ASSET.decimals,
       })
@@ -416,10 +427,12 @@ export class BSNeoLegacy<BSName extends string = string>
 
     if (neoLegacyMigrationAmounts.neoBalance && neoLegacyMigrationAmounts.hasEnoughNeoBalance) {
       const neoMigrationAmountNumber = Number(neoLegacyMigrationAmounts.neoBalance.amount)
+
       response.neoMigrationTotalFees = BSBigNumberHelper.format(
         Math.ceil(neoMigrationAmountNumber * BSNeoLegacyConstants.MIGRATION_COZ_FEE),
         { decimals: BSNeoLegacyConstants.NEO_ASSET.decimals }
       )
+
       response.neoMigrationReceiveAmount = BSBigNumberHelper.format(
         neoMigrationAmountNumber - Number(response.neoMigrationTotalFees),
         { decimals: BSNeoLegacyConstants.NEO_ASSET.decimals }
