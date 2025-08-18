@@ -11,7 +11,7 @@ import { GhostMarketNDSNeoX } from '../services/nft-data/GhostMarketNDSNeoX'
 import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
 
-const neoxTestnetNetwork = BSNeoXConstants.TESTNET_NETWORK
+const neoxTestnetNetwork = BSNeoXConstants.MAINNET_NETWORKS[0]
 let nftDataService: NftDataService
 let explorerService: ExplorerService
 let blockscoutBDSNeoX: BlockscoutBDSNeoX

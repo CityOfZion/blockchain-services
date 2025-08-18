@@ -395,8 +395,9 @@ export interface ISwapOrchestrator<BSName extends string = string> {
   calculateFee(): Promise<string>
 }
 
-export type TBridgeToken = Token & {
+export type TBridgeToken<BSName extends string = string> = Token & {
   multichainId: string
+  blockchain: BSName
 }
 
 export type TBridgeValue<T> = { value: T | null; loading: boolean; error: BSError | null }
@@ -408,11 +409,11 @@ export type TBridgeOrchestratorEvents<BSName extends string = string> = {
   amountToUse: (amount: TBridgeValidateValue<string>) => void | Promise<void>
   amountToUseMin: (max: TBridgeValue<string>) => void | Promise<void>
   amountToUseMax: (max: TBridgeValue<string>) => void | Promise<void>
-  tokenToUse: (token: TBridgeValue<TBridgeToken>) => void | Promise<void>
-  availableTokensToUse: (tokens: TBridgeValue<TBridgeToken[]>) => void | Promise<void>
+  tokenToUse: (token: TBridgeValue<TBridgeToken<BSName>>) => void | Promise<void>
+  availableTokensToUse: (tokens: TBridgeValue<TBridgeToken<BSName>[]>) => void | Promise<void>
   addressToReceive: (account: TBridgeValidateValue<string>) => void | Promise<void>
   amountToReceive: (amount: TBridgeValue<string>) => void | Promise<void>
-  tokenToReceive: (token: TBridgeValue<TBridgeToken>) => void | Promise<void>
+  tokenToReceive: (token: TBridgeValue<TBridgeToken<BSName>>) => void | Promise<void>
   tokenToUseBalance: (balance: TBridgeValue<BalanceResponse | undefined>) => void | Promise<void>
   bridgeFee: (fee: TBridgeValue<string>) => void | Promise<void>
 }
@@ -420,14 +421,13 @@ export type TBridgeOrchestratorEvents<BSName extends string = string> = {
 export interface IBridgeOrchestrator<BSName extends string = string> {
   eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<BSName>>
 
-  setTokenToUse(token: TBridgeToken | null): Promise<void>
+  setTokenToUse(token: TBridgeToken<BSName> | null): Promise<void>
   setAccountToUse(account: Account<BSName> | null): Promise<void>
   setAmountToUse(amount: string | null): Promise<void>
   setAddressToReceive(address: string | null): Promise<void>
   setBalances(balances: BalanceResponse[] | null): Promise<void>
   switchTokens(): Promise<void>
   bridge(): Promise<string>
-  wait(): Promise<boolean>
 }
 
 export interface IBSWithNeo3NeoXBridge<BSName extends string = string> {
@@ -444,30 +444,30 @@ export type TNeo3NeoXBridgeServiceBridgeParam<BSName extends string = string> = 
   account: Account<BSName>
   receiverAddress: string
   amount: string
-  token: TBridgeToken
+  token: TBridgeToken<BSName>
   bridgeFee: string
 }
 
 export type TNeo3NeoXBridgeServiceGetApprovalParam<BSName extends string = string> = {
   account: Account<BSName>
   amount: string
-  token: TBridgeToken
+  token: TBridgeToken<BSName>
 }
 
-export type TNeo3NeoXBridgeServiceGetNonceParams = {
-  token: TBridgeToken
+export type TNeo3NeoXBridgeServiceGetNonceParams<BSName extends string = string> = {
+  token: TBridgeToken<BSName>
   transactionHash: string
 }
 
-export type TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams = {
-  token: TBridgeToken
+export type TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<BSName extends string = string> = {
+  token: TBridgeToken<BSName>
   nonce: string
 }
 export interface INeo3NeoXBridgeService<BSName extends string = string> {
-  tokens: TBridgeToken[]
+  tokens: TBridgeToken<BSName>[]
   getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam): Promise<string>
   getBridgeConstants(token: TBridgeToken): Promise<TNeo3NeoXBridgeServiceConstants>
   bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string>
-  getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams): Promise<string | null>
-  getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams): Promise<string | null>
+  getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string>
+  getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<BSName>): Promise<string>
 }

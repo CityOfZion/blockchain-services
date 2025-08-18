@@ -8,8 +8,8 @@ let neo3NeoXBridgeService: Neo3NeoXBridgeService<'neox'>
 let bsNeoXService: BSNeoX<'neox'>
 let account: Account<'neox'>
 let receiverAddress: string
-let gasToken: TBridgeToken
-let neoToken: TBridgeToken
+let gasToken: TBridgeToken<'neox'>
+let neoToken: TBridgeToken<'neox'>
 
 const network = BSNeoXConstants.DEFAULT_NETWORK
 
@@ -94,7 +94,25 @@ describe('Neo3NeoXBridgeService', () => {
         token: gasToken,
         transactionHash: 'invalid-transaction-hash',
       })
-    ).rejects.toThrow(new BSError('Transaction logs not found', 'LOGS_NOT_FOUND'))
+    ).rejects.toThrow(new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE'))
+  })
+
+  it('Should not be able to get the nonce of a invalid transaction', async () => {
+    await expect(
+      neo3NeoXBridgeService.getNonce({
+        token: gasToken,
+        transactionHash: '0xddd182be1bf9e4d9d3098eeb7b67ef9b883c1a5019c8fa716e8db2423bab0e91',
+      })
+    ).rejects.toThrow(new BSError('Transaction invalid', 'INVALID_TRANSACTION'))
+  })
+
+  it('Should not be able to get the nonce of a non-bridge transaction', async () => {
+    await expect(
+      neo3NeoXBridgeService.getNonce({
+        token: gasToken,
+        transactionHash: '0x1b644eeab5df6b840c03228d609138858e23c730af81afc74a9018fe375266df',
+      })
+    ).rejects.toThrow(new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE'))
   })
 
   it('Should be able to get the nonce of a GAS bridge', async () => {
@@ -121,7 +139,7 @@ describe('Neo3NeoXBridgeService', () => {
         token: gasToken,
         nonce: 'non-existing-nonce',
       })
-    ).rejects.toThrow(new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND'))
+    ).rejects.toThrow(new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND'))
   })
 
   it('Should not be able to get the transaction hash by non-existent nonce', async () => {
@@ -130,7 +148,7 @@ describe('Neo3NeoXBridgeService', () => {
         token: gasToken,
         nonce: '1000',
       })
-    ).rejects.toThrow(new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND'))
+    ).rejects.toThrow(new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND'))
   })
 
   it('Should be able to get the transaction hash by nonce', async () => {

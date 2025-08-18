@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Fix bridge bugs",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

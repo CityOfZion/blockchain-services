@@ -16,6 +16,7 @@ import type { ContractInvocation, Signer } from '@cityofzion/neon-dappkit-types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { DoraNeoRest } from '../blockchain-data/DoraBDSNeo3'
 import axios from 'axios'
+import { LogResponse } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 
 type TGetBridgeTxByNonceResponse = { result: { Vmstate: string; txid: string } }
 
@@ -23,14 +24,15 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
   readonly BRIDGE_SCRIPT_HASH = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
 
   readonly #service: BSNeo3<BSName>
-  tokens: TBridgeToken[]
+
+  tokens: TBridgeToken<BSName>[]
 
   constructor(service: BSNeo3<BSName>) {
     this.#service = service
 
     this.tokens = [
-      { ...BSNeo3Constants.GAS_TOKEN, multichainId: 'gas' },
-      { ...BSNeo3Constants.NEO_TOKEN, multichainId: 'neo' },
+      { ...BSNeo3Constants.GAS_TOKEN, multichainId: 'gas', blockchain: service.name },
+      { ...BSNeo3Constants.NEO_TOKEN, multichainId: 'neo', blockchain: service.name },
     ]
   }
 
@@ -38,7 +40,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
     throw new BSError('Neo3 does not require approval', 'APPROVAl_NOT_NEEDED')
   }
 
-  async getBridgeConstants(token: TBridgeToken): Promise<TNeo3NeoXBridgeServiceConstants> {
+  async getBridgeConstants(token: TBridgeToken<BSName>): Promise<TNeo3NeoXBridgeServiceConstants> {
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#service.network.url,
     })
@@ -158,44 +160,71 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
     return transactionHash
   }
 
-  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams): Promise<string | null> {
-    const log = await DoraNeoRest.log(params.transactionHash, this.#service.network.id)
+  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string> {
+    let log: LogResponse | undefined
+    try {
+      log = await DoraNeoRest.log(params.transactionHash, this.#service.network.id)
+    } catch (error) {
+      throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', error)
+    }
 
-    if (log.vmstate !== 'HALT') {
-      return null
+    if (log?.vmstate !== 'HALT') {
+      throw new BSError('Transaction invalid', 'INVALID_TRANSACTION')
     }
 
     const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
+
+    let nonce: string | null = null
 
     if (isNativeToken) {
       const notification = log.notifications.find(item => item.event_name === 'NativeDeposit')
-      return notification?.state.value[0].value ?? null
+      nonce = notification?.state.value[0].value ?? null
+    } else {
+      const notification = log.notifications.find(item => item.event_name === 'TokenDeposit')
+      nonce = notification?.state.value[2].value ?? null
     }
 
-    const notification = log.notifications.find(item => item.event_name === 'TokenDeposit')
-    return notification?.state.value[2].value ?? null
+    if (!nonce) {
+      throw new BSError('Nonce not found in transaction log', 'NONCE_NOT_FOUND')
+    }
+
+    return nonce
   }
 
   async getTransactionHashByNonce(
-    params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams
-  ): Promise<string | null> {
-    const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
+    params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<BSName>
+  ): Promise<string> {
+    let data: TGetBridgeTxByNonceResponse | undefined
+    try {
+      const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
 
-    const { data } = await axios.post<TGetBridgeTxByNonceResponse>('https://neofura.ngd.network', {
-      jsonrpc: '2.0',
-      method: 'GetBridgeTxByNonce',
-      params: {
-        ContractHash: this.BRIDGE_SCRIPT_HASH,
-        TokenHash: isNativeToken ? '' : BSNeo3Constants.NEO_TOKEN.hash,
-        Nonce: Number(params.nonce),
-      },
-      id: 1,
-    })
-
-    if (!data?.result) {
-      throw new BSError('Transaction not found', 'INVALID_RESPONSE')
+      const response = await axios.post<TGetBridgeTxByNonceResponse>('https://neofura.ngd.network', {
+        jsonrpc: '2.0',
+        method: 'GetBridgeTxByNonce',
+        params: {
+          ContractHash: this.BRIDGE_SCRIPT_HASH,
+          TokenHash: isNativeToken ? '' : BSNeo3Constants.NEO_TOKEN.hash,
+          Nonce: Number(params.nonce),
+        },
+        id: 1,
+      })
+      data = response.data
+    } catch (error) {
+      throw new BSError('Failed to get transaction by nonce', 'FAILED_TO_GET_TRANSACTION_BY_NONCE', error)
     }
 
-    return data.result.Vmstate === 'HALT' ? data.result.txid ?? null : null
+    if (!data?.result) {
+      throw new BSError('Failed to get transaction by nonce', 'FAILED_TO_GET_TRANSACTION_BY_NONCE')
+    }
+
+    if (data.result.Vmstate !== 'HALT') {
+      throw new BSError('Transaction invalid', 'INVALID_TRANSACTION')
+    }
+
+    if (!data.result.txid) {
+      throw new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND')
+    }
+
+    return data.result.txid
   }
 }

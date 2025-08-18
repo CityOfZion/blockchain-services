@@ -1,3 +1,5 @@
+import { BSError } from '../error'
+
 type RetryOptions = {
   retries?: number
   delay?: number
@@ -14,11 +16,14 @@ export class BSUtilsHelper {
 
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
+      let errorMessage: string = ''
+
       for (let i = 0; i < retries; i++) {
         try {
           const result = await callback()
           return resolve(result)
         } catch (error: any) {
+          errorMessage = error.message
           if (shouldRetry && !shouldRetry(error)) {
             return reject(error)
           }
@@ -26,7 +31,7 @@ export class BSUtilsHelper {
         await this.wait(delay)
       }
 
-      return reject(new Error('timeout'))
+      return reject(new BSError('Timeout: ' + errorMessage, 'TIMEOUT'))
     })
   }
 }

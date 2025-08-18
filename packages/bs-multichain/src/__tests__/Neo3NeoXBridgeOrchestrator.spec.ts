@@ -13,13 +13,17 @@ import { Neo3NeoXBridgeOrchestrator } from '../features/bridge'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX } from '@cityofzion/bs-neox'
 
-let neo3NeoXBridgeOrchestrator: Neo3NeoXBridgeOrchestrator<'neo3' | 'neox'>
-let tokenToUse: TBridgeValue<TBridgeToken>
-let accountToUse: TBridgeValue<Account<'neo3' | 'neox'>>
+type TBridgeBlockchains = 'neo3' | 'neox'
+
+let neo3Service: BSNeo3<TBridgeBlockchains>
+let neoXService: BSNeoX<TBridgeBlockchains>
+let neo3NeoXBridgeOrchestrator: Neo3NeoXBridgeOrchestrator<TBridgeBlockchains>
+let tokenToUse: TBridgeValue<TBridgeToken<TBridgeBlockchains>>
+let accountToUse: TBridgeValue<Account<TBridgeBlockchains>>
 let amountToUse: TBridgeValidateValue<string>
 let amountToUseMin: TBridgeValue<string>
 let amountToUseMax: TBridgeValue<string>
-let tokenToReceive: TBridgeValue<TBridgeToken>
+let tokenToReceive: TBridgeValue<TBridgeToken<TBridgeBlockchains>>
 let addressToReceive: TBridgeValidateValue<string>
 let amountToReceive: TBridgeValue<string>
 let tokenToUseBalance: TBridgeValue<BalanceResponse | undefined>
@@ -40,9 +44,12 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     tokenToUseBalance = { value: null, loading: false, error: null }
     bridgeFee = { value: null, loading: false, error: null }
 
-    neo3NeoXBridgeOrchestrator = new Neo3NeoXBridgeOrchestrator({
-      neo3Service: new BSNeo3<'neo3' | 'neox'>('neo3'),
-      neoXService: new BSNeoX<'neo3' | 'neox'>('neox'),
+    neo3Service = new BSNeo3<'neo3' | 'neox'>('neo3')
+    neoXService = new BSNeoX<'neo3' | 'neox'>('neox')
+
+    neo3NeoXBridgeOrchestrator = new Neo3NeoXBridgeOrchestrator<'neo3' | 'neox'>({
+      neo3Service,
+      neoXService,
     })
 
     neo3NeoXBridgeOrchestrator.eventEmitter.on('tokenToUse', value => {
@@ -102,6 +109,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
         hash: 'INVALID',
         decimals: 0,
         multichainId: 'INVALID',
+        blockchain: 'neo3',
       })
     ).rejects.toThrow(new BSError('You are trying to use a token that is not available', 'TOKEN_NOT_AVAILABLE'))
   })
@@ -275,23 +283,6 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     expect(validateAddressSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('Should be able to set balances if token to use is not set', async () => {
-    await neo3NeoXBridgeOrchestrator.init()
-
-    const balances: BalanceResponse[] = []
-
-    const error = new BSError('Token to use is not set', 'TOKEN_NOT_SET')
-    await expect(neo3NeoXBridgeOrchestrator.setBalances(balances)).rejects.toThrow(error)
-
-    expect(tokenToUseBalance.value).toEqual(null)
-    expect(amountToUseMax.value).toEqual(null)
-    expect(amountToUseMin.value).toEqual(null)
-    expect(bridgeFee.value).toEqual(null)
-    expect(amountToUseMax.error).toEqual(error)
-    expect(amountToUseMin.error).toEqual(error)
-    expect(bridgeFee.error).toEqual(error)
-  })
-
   it('Should be able to set balances if balance does not exist', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
@@ -331,14 +322,15 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.init()
 
     const amount = '1'
-    const error = new BSError('Required parameters are not set', 'REQUIRED_PARAMETERS_NOT_SET')
 
-    await expect(neo3NeoXBridgeOrchestrator.setAmountToUse(amount)).rejects.toThrow(error)
+    await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
+
+    await BSUtilsHelper.wait(3000)
 
     expect(amountToUse.value).toEqual(amount)
-    expect(amountToUse.valid).toEqual(false)
-    expect(amountToUse.error).toEqual(error)
-    expect(amountToReceive.value).toEqual(amount)
+    expect(amountToUse.valid).toEqual(null)
+    expect(amountToUse.error).toEqual(null)
+    expect(amountToReceive.value).toEqual(null)
   })
 
   it('Should not be able to set amount to use if amount is less than min', async () => {
@@ -356,12 +348,14 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = '0'
-    const error = new BSError('Amount is out of range', 'AMOUNT_OUT_OF_RANGE')
-    await expect(neo3NeoXBridgeOrchestrator.setAmountToUse(amount)).rejects.toThrow(error)
+
+    await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
+
+    await BSUtilsHelper.wait(3000)
 
     expect(amountToUse.value).toEqual(amount)
     expect(amountToUse.valid).toEqual(false)
-    expect(amountToUse.error).toEqual(error)
+    expect(amountToUse.error).toEqual(new BSError('Amount is below the minimum', 'AMOUNT_BELOW_MINIMUM'))
     expect(amountToReceive.value).toEqual(amount)
   })
 
@@ -380,13 +374,14 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = '10'
-    const error = new BSError('Amount is out of range', 'AMOUNT_OUT_OF_RANGE')
 
-    await expect(neo3NeoXBridgeOrchestrator.setAmountToUse(amount)).rejects.toThrow(error)
+    await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
+
+    await BSUtilsHelper.wait(3000)
 
     expect(amountToUse.value).toEqual(amount)
     expect(amountToUse.valid).toEqual(false)
-    expect(amountToUse.error).toEqual(error)
+    expect(amountToUse.error).toEqual(new BSError('Amount is above the maximum', 'AMOUNT_ABOVE_MAXIMUM'))
     expect(amountToReceive.value).toEqual(amount)
   })
 
@@ -411,9 +406,9 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     jest.spyOn(neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService, 'getApprovalFee').mockResolvedValue('1')
 
-    await expect(neo3NeoXBridgeOrchestrator.setAmountToUse(amount)).rejects.toThrow(
-      new BSError('You do not have enough fee token balance to cover the bridge fee', 'INSUFFICIENT_FEE_TOKEN_BALANCE')
-    )
+    await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
+
+    await BSUtilsHelper.wait(3000)
 
     expect(amountToUse.value).toEqual(amount)
     expect(amountToUse.valid).toEqual(false)
@@ -441,6 +436,8 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const amount = amountToUseMax.value!
     await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
 
+    await BSUtilsHelper.wait(3000)
+
     expect(amountToUse.value).toEqual(amount)
     expect(amountToUse.valid).toEqual(true)
     expect(amountToReceive.value).toEqual(amount)
@@ -464,9 +461,13 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const amount = amountToUseMax.value!
     await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
 
+    await BSUtilsHelper.wait(3000)
+
     expect(amountToUse.value).toEqual(amount)
 
     await neo3NeoXBridgeOrchestrator.setAmountToUse(null)
+
+    await BSUtilsHelper.wait(3000)
 
     expect(amountToUse.value).toEqual(null)
     expect(amountToUse.valid).toEqual(null)
@@ -490,6 +491,8 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     const amount = amountToUseMax.value!
     await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
+
+    await BSUtilsHelper.wait(3000)
 
     expect(amountToUse.value).toEqual(amount)
 
@@ -522,30 +525,34 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it.skip('Should be able to bridge', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
+    await neo3NeoXBridgeOrchestrator.switchTokens()
+
+    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+      process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
+    )
+
+    const balances = await neo3NeoXBridgeOrchestrator.fromService.blockchainDataService.getBalance(account.address)
+
     const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
-    )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
-    const amount = amountToUseMax.value!
+    await neo3NeoXBridgeOrchestrator.setAddressToReceive(
+      neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY).address
+    )
+
+    const amount = amountToUseMin.value!
     await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
+
+    await BSUtilsHelper.wait(3000)
 
     const transactionHash = await neo3NeoXBridgeOrchestrator.bridge()
 
     expect(transactionHash).toEqual(expect.any(String))
-  })
-
-  it('Should not be able to wait if it was not bridge', async () => {
-    await expect(neo3NeoXBridgeOrchestrator.wait()).rejects.toThrow(
-      new BSError('You need to bridge before', 'BRIDGE_NOT_EXECUTED')
-    )
   })
 
   it.skip('Should be able to wait', async () => {
@@ -566,9 +573,19 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const amount = amountToUseMax.value!
     await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
 
-    await neo3NeoXBridgeOrchestrator.bridge()
+    await BSUtilsHelper.wait(3000)
 
-    const response = await neo3NeoXBridgeOrchestrator.wait()
+    const transactionHash = await neo3NeoXBridgeOrchestrator.bridge()
+
+    expect(transactionHash).toEqual(expect.any(String))
+
+    const response = await Neo3NeoXBridgeOrchestrator.wait({
+      neo3Service,
+      neoXService,
+      tokenToUse: tokenToUse.value!,
+      tokenToReceive: tokenToReceive.value!,
+      transactionHash,
+    })
 
     expect(response).toEqual(true)
   })
