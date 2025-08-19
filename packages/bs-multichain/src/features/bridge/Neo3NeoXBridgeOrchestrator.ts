@@ -17,7 +17,7 @@ import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX } from '@cityofzion/bs-neox'
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
-import { TNeo3NeoXBridgeOrchestratorInitParams } from './types'
+import { TNeo3NeoXBridgeOrchestratorInitParams, TNeo3NeoXBridgeOrchestratorWaitParams } from './types'
 
 export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridgeOrchestrator<BSName> {
   eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<BSName>>
@@ -27,15 +27,15 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
   #balances: BalanceResponse[] | null = null
   #feeTokenBalance: BalanceResponse | null | undefined = null
   #addressToReceiveTimeout: NodeJS.Timeout | undefined = undefined
-  #transactionHash: string | null = null
+  #amountToUseTimeout: NodeJS.Timeout | undefined = undefined
 
-  #internalAvailableTokensToUse: TBridgeValue<TBridgeToken[]> = { value: null, loading: false, error: null }
-  #internalTokenToUse: TBridgeValue<TBridgeToken> = { value: null, loading: false, error: null }
+  #internalAvailableTokensToUse: TBridgeValue<TBridgeToken<BSName>[]> = { value: null, loading: false, error: null }
+  #internalTokenToUse: TBridgeValue<TBridgeToken<BSName>> = { value: null, loading: false, error: null }
   #internalAccountToUse: TBridgeValue<Account<BSName>> = { value: null, loading: false, error: null }
   #internalAmountToUse: TBridgeValidateValue<string> = { value: null, valid: null, loading: false, error: null }
   #internalAmountToUseMin: TBridgeValue<string> = { value: null, loading: false, error: null }
   #internalAmountToUseMax: TBridgeValue<string> = { value: null, loading: false, error: null }
-  #internalTokenToReceive: TBridgeValue<TBridgeToken> = { value: null, loading: false, error: null }
+  #internalTokenToReceive: TBridgeValue<TBridgeToken<BSName>> = { value: null, loading: false, error: null }
   #internalAddressToReceive: TBridgeValidateValue<string> = { value: null, valid: null, loading: false, error: null }
   #internalAmountToReceive: TBridgeValue<string> = { value: null, loading: false, error: null }
   #internalTokenToUseBalance: TBridgeValue<BalanceResponse | undefined> = { value: null, loading: false, error: null }
@@ -44,14 +44,16 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
   constructor(params: TNeo3NeoXBridgeOrchestratorInitParams<BSName>) {
     this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents>
 
-    this.fromService = params.neo3Service
-    this.toService = params.neoXService
+    const isInitialNeoX = params.initialFromServiceName === params.neoXService.name
+
+    this.fromService = isInitialNeoX ? params.neoXService : params.neo3Service
+    this.toService = isInitialNeoX ? params.neo3Service : params.neoXService
   }
 
-  get #availableTokensToUse(): TBridgeValue<TBridgeToken[]> {
+  get #availableTokensToUse(): TBridgeValue<TBridgeToken<BSName>[]> {
     return this.#internalAvailableTokensToUse
   }
-  set #availableTokensToUse(value: Partial<TBridgeValue<TBridgeToken[]>>) {
+  set #availableTokensToUse(value: Partial<TBridgeValue<TBridgeToken<BSName>[]>>) {
     this.#internalAvailableTokensToUse = {
       ...this.#internalAvailableTokensToUse,
       ...value,
@@ -59,10 +61,10 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
     this.eventEmitter.emit('availableTokensToUse', this.#internalAvailableTokensToUse)
   }
 
-  get #tokenToUse(): TBridgeValue<TBridgeToken> {
+  get #tokenToUse(): TBridgeValue<TBridgeToken<BSName>> {
     return this.#internalTokenToUse
   }
-  set #tokenToUse(value: Partial<TBridgeValue<TBridgeToken>>) {
+  set #tokenToUse(value: Partial<TBridgeValue<TBridgeToken<BSName>>>) {
     this.#internalTokenToUse = {
       ...this.#internalTokenToUse,
       ...value,
@@ -114,10 +116,10 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
     this.eventEmitter.emit('amountToUseMax', this.#internalAmountToUseMax)
   }
 
-  get #tokenToReceive(): TBridgeValue<TBridgeToken> {
+  get #tokenToReceive(): TBridgeValue<TBridgeToken<BSName>> {
     return this.#internalTokenToReceive
   }
-  set #tokenToReceive(value: Partial<TBridgeValue<TBridgeToken>>) {
+  set #tokenToReceive(value: Partial<TBridgeValue<TBridgeToken<BSName>>>) {
     this.#internalTokenToReceive = {
       ...this.#internalTokenToReceive,
       ...value,
@@ -189,7 +191,6 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
     this.#tokenToReceive = { value: null, loading: false }
     this.#tokenToUseBalance = { value: null, loading: false }
     this.#bridgeFee = { value: null, loading: false }
-    this.#transactionHash = null
     this.#balances = null
     this.#feeTokenBalance = null
   }
@@ -207,8 +208,8 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
     await this.setTokenToUse(tokenToReceive)
   }
 
-  async setTokenToUse(token: TBridgeToken | null): Promise<void> {
-    let tokenToReceive: TBridgeToken | undefined
+  async setTokenToUse(token: TBridgeToken<BSName> | null): Promise<void> {
+    let tokenToReceive: TBridgeToken<BSName> | undefined
 
     try {
       if (!this.#availableTokensToUse.value) throw new BSError('No available tokens to use', 'NO_AVAILABLE_TOKENS')
@@ -300,14 +301,15 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
       : null
     this.#feeTokenBalance = feeTokenBalance
 
+    if (tokenToUseBalance === null || !this.#tokenToUse.value) {
+      return
+    }
+
     this.#amountToUseMax = { loading: true, error: null }
     this.#amountToUseMin = { loading: true, error: null }
     this.#bridgeFee = { loading: true, error: null }
 
     try {
-      if (tokenToUseBalance === null || !this.#tokenToUse.value)
-        throw new BSError('Token to use is not set', 'TOKEN_NOT_SET')
-
       const constants = await this.fromService.neo3NeoXBridgeService.getBridgeConstants(this.#tokenToUse.value)
       this.#amountToUseMin = { value: constants.bridgeMinAmount }
       this.#bridgeFee = { value: constants.bridgeFee }
@@ -335,77 +337,81 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
   }
 
   async setAmountToUse(amount: string | null): Promise<void> {
-    const formattedAmount =
-      amount && this.#tokenToUse.value
-        ? BSBigNumberHelper.format(amount, { decimals: this.#tokenToUse.value.decimals })
-        : amount
+    this.#amountToUse = { value: amount }
 
-    this.#amountToUse = { value: formattedAmount }
-    this.#amountToReceive = { value: formattedAmount }
-
-    if (formattedAmount === null) {
+    if (!amount) {
       this.#amountToUse = { valid: null, loading: false }
+      this.#amountToReceive = { value: null, loading: false }
       return
     }
 
-    try {
-      if (
-        this.#tokenToUse.value === null ||
-        this.#amountToUseMin.value === null ||
-        this.#amountToUseMax.value === null ||
-        this.#bridgeFee.value === null ||
-        this.#accountToUse.value === null ||
-        this.#feeTokenBalance === null
-      ) {
-        throw new BSError('Required parameters are not set', 'REQUIRED_PARAMETERS_NOT_SET')
+    if (this.#amountToUseTimeout !== null) clearTimeout(this.#amountToUseTimeout)
+
+    this.#amountToUseTimeout = setTimeout(async () => {
+      if (!this.#tokenToUse.value) return
+
+      const formattedAmount = BSBigNumberHelper.format(amount, { decimals: this.#tokenToUse.value.decimals })
+      this.#amountToReceive = { value: formattedAmount }
+      this.#amountToUse = { value: formattedAmount }
+
+      try {
+        if (
+          this.#tokenToUse.value === null ||
+          this.#amountToUseMin.value === null ||
+          this.#amountToUseMax.value === null ||
+          this.#bridgeFee.value === null ||
+          this.#accountToUse.value === null ||
+          this.#feeTokenBalance === null
+        ) {
+          return
+        }
+
+        this.#amountToUse = { loading: true }
+        this.#bridgeFee = { loading: true }
+
+        const amountToUseBn = BSBigNumberHelper.fromNumber(formattedAmount)
+
+        if (amountToUseBn.isLessThan(this.#amountToUseMin.value)) {
+          throw new BSError('Amount is below the minimum', 'AMOUNT_BELOW_MINIMUM')
+        }
+
+        if (amountToUseBn.isGreaterThan(this.#amountToUseMax.value)) {
+          throw new BSError('Amount is above the maximum', 'AMOUNT_ABOVE_MAXIMUM')
+        }
+
+        const approvalFee = await this.fromService.neo3NeoXBridgeService
+          .getApprovalFee({
+            account: this.#accountToUse.value,
+            token: this.#tokenToUse.value,
+            amount: formattedAmount,
+          })
+          .then(fee => fee)
+          .catch(() => '0')
+
+        const newBridgeFee = BSBigNumberHelper.fromNumber(this.#bridgeFee.value!).plus(approvalFee)
+        this.#bridgeFee = {
+          value: BSBigNumberHelper.format(newBridgeFee, { decimals: this.fromService.feeToken.decimals }),
+        }
+
+        const isFeeToken = BSTokenHelper.predicateByHash(this.fromService.feeToken)(this.#tokenToUse.value)
+
+        if (newBridgeFee.plus(isFeeToken ? amountToUseBn : 0).isGreaterThan(this.#feeTokenBalance?.amount ?? 0)) {
+          throw new BSError(
+            'You do not have enough fee token balance to cover the bridge fee',
+            'INSUFFICIENT_FEE_TOKEN_BALANCE'
+          )
+        }
+
+        this.#amountToUse = { valid: true }
+      } catch (error) {
+        const treatedError = this.#treatError(error)
+
+        this.#amountToUse = { valid: false, error: treatedError }
+      } finally {
+        this.#amountToUse = { loading: false }
+        this.#bridgeFee = { loading: false }
       }
-
-      this.#amountToUse = { loading: true }
-      this.#bridgeFee = { loading: true }
-
-      const amountToUseBn = BSBigNumberHelper.fromNumber(formattedAmount)
-
-      if (
-        amountToUseBn.isLessThan(this.#amountToUseMin.value) ||
-        amountToUseBn.isGreaterThan(this.#amountToUseMax.value)
-      ) {
-        throw new BSError('Amount is out of range', 'AMOUNT_OUT_OF_RANGE')
-      }
-
-      const approvalFee = await this.fromService.neo3NeoXBridgeService
-        .getApprovalFee({
-          account: this.#accountToUse.value,
-          token: this.#tokenToUse.value,
-          amount: formattedAmount,
-        })
-        .then(fee => fee)
-        .catch(() => '0')
-
-      const newBridgeFee = BSBigNumberHelper.fromNumber(this.#bridgeFee.value!).plus(approvalFee)
-      this.#bridgeFee = {
-        value: BSBigNumberHelper.format(newBridgeFee, { decimals: this.fromService.feeToken.decimals }),
-      }
-
-      const isFeeToken = BSTokenHelper.predicateByHash(this.fromService.feeToken)(this.#tokenToUse.value)
-
-      if (newBridgeFee.plus(isFeeToken ? amountToUseBn : 0).isGreaterThan(this.#feeTokenBalance?.amount ?? 0)) {
-        throw new BSError(
-          'You do not have enough fee token balance to cover the bridge fee',
-          'INSUFFICIENT_FEE_TOKEN_BALANCE'
-        )
-      }
-
-      this.#amountToUse = { valid: true }
-    } catch (error) {
-      const treatedError = this.#treatError(error)
-
-      this.#amountToUse = { valid: false, error: treatedError }
-
-      throw treatedError
-    } finally {
-      this.#amountToUse = { loading: false }
-      this.#bridgeFee = { loading: false }
-    }
+    }, 1500)
   }
 
   async bridge(): Promise<string> {
@@ -430,46 +436,39 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
       bridgeFee: this.#bridgeFee.value,
     })
 
-    this.#transactionHash = transaction
     return transaction
   }
 
-  async wait(): Promise<boolean> {
-    if (this.#transactionHash === null || this.#tokenToUse.value === null) {
-      throw new BSError('You need to bridge before', 'BRIDGE_NOT_EXECUTED')
-    }
+  static async wait<BSName extends string = string>({
+    tokenToUse,
+    tokenToReceive,
+    transactionHash,
+    neo3Service,
+    neoXService,
+  }: TNeo3NeoXBridgeOrchestratorWaitParams<BSName>) {
+    const isNeo3Service = tokenToUse.blockchain === neo3Service.name
 
-    try {
-      const transactionHash = this.#transactionHash
-      const token = this.#tokenToUse.value
+    const fromService = isNeo3Service ? neo3Service : neoXService
+    const toService = isNeo3Service ? neoXService : neo3Service
 
-      const nonce = await BSUtilsHelper.retry(
-        () =>
-          this.fromService.neo3NeoXBridgeService.getNonce({
-            token,
-            transactionHash,
-          }),
-        {
-          retries: 10,
-          delay: 30000,
-        }
-      )
-
-      if (!nonce) {
-        return false
+    const nonce = await BSUtilsHelper.retry(
+      () =>
+        fromService.neo3NeoXBridgeService.getNonce({
+          token: tokenToUse,
+          transactionHash,
+        }),
+      {
+        retries: 10,
+        delay: 30000,
       }
+    )
 
-      await BSUtilsHelper.retry(
-        () => this.toService.neo3NeoXBridgeService.getTransactionHashByNonce({ nonce, token }),
-        {
-          retries: 10,
-          delay: 30000,
-        }
-      )
-
-      return true
-    } catch {
-      return false
-    }
+    await BSUtilsHelper.retry(
+      () => toService.neo3NeoXBridgeService.getTransactionHashByNonce({ nonce, token: tokenToReceive }),
+      {
+        retries: 10,
+        delay: 30000,
+      }
+    )
   }
 }

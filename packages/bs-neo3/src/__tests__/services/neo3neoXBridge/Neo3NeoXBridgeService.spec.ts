@@ -11,8 +11,8 @@ let neo3NeoXBridgeService: Neo3NeoXBridgeService<'neo3'>
 let bsNeo3Service: BSNeo3<'neo3'>
 let account: Account<'neo3'>
 let receiverAddress: string
-let gasToken: TBridgeToken
-let neoToken: TBridgeToken
+let gasToken: TBridgeToken<'neo3'>
+let neoToken: TBridgeToken<'neo3'>
 
 const network = BSNeo3Constants.DEFAULT_NETWORK
 
@@ -78,15 +78,33 @@ describe('Neo3NeoXBridgeService', () => {
     await expect(neo3NeoXBridgeService.getApprovalFee()).rejects.toThrow(BSError)
   })
 
+  it('Should be able to get the nonce of a non-existent transaction', async () => {
+    await expect(
+      neo3NeoXBridgeService.getNonce({
+        token: gasToken,
+        transactionHash: 'invalid-transaction-hash',
+      })
+    ).rejects.toThrow(new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE'))
+  })
+
   it('Should be able to get the nonce of a invalid transaction vmState', async () => {
     jest.spyOn(DoraNeoRest, 'log').mockResolvedValue({ vmstate: 'FAULT' } as any)
 
-    const nonce = await neo3NeoXBridgeService.getNonce({
-      token: gasToken,
-      transactionHash: 'invalid-transaction-hash',
-    })
+    await expect(
+      neo3NeoXBridgeService.getNonce({
+        token: gasToken,
+        transactionHash: 'invalid-transaction-hash',
+      })
+    ).rejects.toThrow(new BSError('Transaction invalid', 'INVALID_TRANSACTION'))
+  })
 
-    expect(nonce).toBe(null)
+  it('Should not be able to get the nonce of a non-bridge transaction', async () => {
+    await expect(
+      neo3NeoXBridgeService.getNonce({
+        token: gasToken,
+        transactionHash: '0x0d4daca576d1c8b17d2ed3fc2e33e8bf560af0798c0b46b6b20eab456e36d005',
+      })
+    ).rejects.toThrow(new BSError('Nonce not found in transaction log', 'NONCE_NOT_FOUND'))
   })
 
   it('Should be able to get the nonce of a GAS bridge', async () => {
@@ -113,18 +131,18 @@ describe('Neo3NeoXBridgeService', () => {
         token: gasToken,
         nonce: 'non-existing-nonce',
       })
-    ).rejects.toThrow(BSError)
+    ).rejects.toThrow(new BSError('Failed to get transaction by nonce', 'FAILED_TO_GET_TRANSACTION_BY_NONCE'))
   })
 
   it('Should be able to get the transaction hash by nonce for a invalid transaction vmState', async () => {
     jest.spyOn(axios, 'post').mockResolvedValue({ data: { result: { Vmstate: 'FAULT' } } } as any)
 
-    const transactionHash = await neo3NeoXBridgeService.getTransactionHashByNonce({
-      token: gasToken,
-      nonce: '761',
-    })
-
-    expect(transactionHash).toBe(null)
+    await expect(
+      neo3NeoXBridgeService.getTransactionHashByNonce({
+        token: gasToken,
+        nonce: '761',
+      })
+    ).rejects.toThrow(new BSError('Transaction invalid', 'INVALID_TRANSACTION'))
   })
 
   it('Should be able to get the transaction hash by nonce', async () => {

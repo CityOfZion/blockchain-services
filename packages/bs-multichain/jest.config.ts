@@ -9,6 +9,7 @@ const config: JestConfigWithTsJest = {
   testMatch: ['<rootDir>/**/*.spec.ts'],
   setupFiles: ['<rootDir>/jest.setup.ts'],
   forceExit: true,
+  testTimeout: 60000,
 }
 
 export default config
