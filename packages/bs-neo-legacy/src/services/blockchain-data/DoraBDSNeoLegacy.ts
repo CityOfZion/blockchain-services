@@ -277,8 +277,10 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getUnclaimed(address: string): Promise<string> {
-    const { unclaimed } = await api.NeoLegacyREST.getUnclaimed(address, this.#network.id)
-    return (unclaimed / 10 ** this.#claimToken.decimals).toFixed(this.#claimToken.decimals)
+    const rpcClient = new rpc.RPCClient(this.#network.url)
+    const response = await rpcClient.getUnclaimed(address)
+
+    return (response?.unclaimed ?? 0).toFixed(this.#claimToken.decimals)
   }
 
   async getBlockHeight(): Promise<number> {
