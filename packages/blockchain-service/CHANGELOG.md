@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 12 Aug 2025 18:55:01 GMT and should not be manually modified.
+This log was last generated on Tue, 19 Aug 2025 15:03:33 GMT and should not be manually modified.
+
+## 1.19.3
+Tue, 19 Aug 2025 15:03:33 GMT
+
+### Patches
+
+- Update bridge interfaces
 
 ## 1.19.2
 Tue, 12 Aug 2025 18:55:01 GMT

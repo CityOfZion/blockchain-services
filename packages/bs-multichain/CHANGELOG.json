@@ -2,6 +2,35 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "1.0.3",
+      "tag": "@cityofzion/bs-multichain_v1.0.3",
+      "date": "Tue, 19 Aug 2025 15:03:33 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix bridge bugs"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.19.3`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.15.4`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.12.8`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo-legacy\" to `1.12.7`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neox\" to `1.2.5`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.2",
       "tag": "@cityofzion/bs-multichain_v1.0.2",
       "date": "Wed, 13 Aug 2025 17:24:01 GMT",

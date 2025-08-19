@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.15.4",
+      "tag": "@cityofzion/bs-neo3_v1.15.4",
+      "date": "Tue, 19 Aug 2025 15:03:33 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix bridge bugs"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.19.3`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.15.3",
       "tag": "@cityofzion/bs-neo3_v1.15.3",
       "date": "Tue, 12 Aug 2025 18:55:01 GMT",
