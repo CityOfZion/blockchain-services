@@ -316,10 +316,14 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
 
       const bridgeMaxAmountBn = BSBigNumberHelper.fromNumber(constants.bridgeMaxAmount)
       const tokenBalanceAmountBn = BSBigNumberHelper.fromNumber(tokenToUseBalance?.amount ?? 0)
-      const max = Math.max(
-        0,
-        Math.min(bridgeMaxAmountBn.toNumber(), tokenBalanceAmountBn.minus(constants.bridgeFee).toNumber())
-      )
+
+      const isFeeToken = BSTokenHelper.predicateByHash(this.fromService.feeToken)(this.#tokenToUse.value)
+      const maxTokenBalanceAmountBn = isFeeToken
+        ? tokenBalanceAmountBn.minus(constants.bridgeFee)
+        : tokenBalanceAmountBn
+
+      const max = Math.max(0, Math.min(bridgeMaxAmountBn.toNumber(), maxTokenBalanceAmountBn.toNumber()))
+
       this.#amountToUseMax = { value: BSBigNumberHelper.format(max, { decimals: this.#tokenToUse.value.decimals }) }
     } catch (error) {
       const treatedError = this.#treatError(error)
