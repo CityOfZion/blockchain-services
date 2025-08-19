@@ -94,8 +94,9 @@ describe('DoraBDSNeoLegacy', () => {
   })
 
   it('Should be able to get unclaimed - %s', async () => {
-    const address = 'AeGgZTTWPzyVtNiQRcpngkV75Xip1hznmi'
+    const address = 'AQB8KjskTmRghCS3kMzxBNxKwT6b9kKM4v'
     const unclaimed = await doraBDSNeoLegacy.getUnclaimed(address)
+
     expect(unclaimed).toEqual(expect.any(String))
   })
 
