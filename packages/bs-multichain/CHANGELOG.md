@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Tue, 19 Aug 2025 17:17:33 GMT and should not be manually modified.
+This log was last generated on Tue, 19 Aug 2025 20:25:09 GMT and should not be manually modified.
+
+## 1.0.5
+Tue, 19 Aug 2025 20:25:09 GMT
+
+### Patches
+
+- Fix NEO max amount bug
 
 ## 1.0.4
 Tue, 19 Aug 2025 17:17:33 GMT

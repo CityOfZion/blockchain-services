@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "1.0.5",
+      "tag": "@cityofzion/bs-multichain_v1.0.5",
+      "date": "Tue, 19 Aug 2025 20:25:09 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix NEO max amount bug"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.4",
       "tag": "@cityofzion/bs-multichain_v1.0.4",
       "date": "Tue, 19 Aug 2025 17:17:33 GMT",
