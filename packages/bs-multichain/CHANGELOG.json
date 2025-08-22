@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "1.0.6",
+      "tag": "@cityofzion/bs-multichain_v1.0.6",
+      "date": "Fri, 22 Aug 2025 21:12:34 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Reset error amount on change"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.5",
       "tag": "@cityofzion/bs-multichain_v1.0.5",
       "date": "Tue, 19 Aug 2025 20:25:09 GMT",

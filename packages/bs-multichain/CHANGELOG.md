@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Tue, 19 Aug 2025 20:25:09 GMT and should not be manually modified.
+This log was last generated on Fri, 22 Aug 2025 21:12:34 GMT and should not be manually modified.
+
+## 1.0.6
+Fri, 22 Aug 2025 21:12:34 GMT
+
+### Patches
+
+- Reset error amount on change
 
 ## 1.0.5
 Tue, 19 Aug 2025 20:25:09 GMT
