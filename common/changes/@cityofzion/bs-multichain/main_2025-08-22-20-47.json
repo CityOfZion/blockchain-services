@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Reset error amount on change",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}

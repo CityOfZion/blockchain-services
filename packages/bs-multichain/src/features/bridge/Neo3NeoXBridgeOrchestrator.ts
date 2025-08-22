@@ -344,8 +344,8 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
     this.#amountToUse = { value: amount }
 
     if (!amount) {
-      this.#amountToUse = { valid: null, loading: false }
-      this.#amountToReceive = { value: null, loading: false }
+      this.#amountToUse = { valid: null, loading: false, error: null }
+      this.#amountToReceive = { value: null, loading: false, error: null }
       return
     }
 
@@ -406,7 +406,7 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
           )
         }
 
-        this.#amountToUse = { valid: true }
+        this.#amountToUse = { valid: true, error: null }
       } catch (error) {
         const treatedError = this.#treatError(error)
 
