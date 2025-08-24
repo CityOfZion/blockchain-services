@@ -1,6 +1,7 @@
 import {
   BSBigNumberHelper,
   BSError,
+  BSPromisesHelper,
   INeo3NeoXBridgeService,
   TBridgeToken,
   TNeo3NeoXBridgeServiceBridgeParam,
@@ -18,18 +19,18 @@ import { BSEthereumConstants, ERC20_ABI } from '@cityofzion/bs-ethereum'
 import axios from 'axios'
 import { BlockscoutBDSNeoX } from '../blockchain-data/BlockscoutBDSNeoX'
 import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
-
-type TBlockscoutTransactionLogResponse = { items: { data: string; topics: any[] }[] }
+import {
+  TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse,
+  TNeo3NeoXBridgeServiceTransactionLogApiResponse,
+} from '../../types'
 
 export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBridgeService<BSName> {
   static readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
   static readonly BRIDGE_FEE = 0.1
-
-  readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
+  static readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
 
   readonly #service: BSNeoX<BSName>
-
-  tokens: TBridgeToken<BSName>[]
+  readonly tokens: TBridgeToken<BSName>[]
 
   constructor(service: BSNeoX<BSName>) {
     this.#service = service
@@ -121,7 +122,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
   }
 
   async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string> {
-    if (!BSNeoXHelper.isMainnet(this.#service.network))
+    if (!BSNeoXHelper.isMainnetNetwork(this.#service.network))
       throw new BSError('Bridging to Neo3 is only supported on mainnet', 'UNSUPPORTED_NETWORK')
 
     const { account } = params
@@ -184,47 +185,34 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
   }
 
   async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string> {
-    let data: TBlockscoutTransactionLogResponse
-    try {
+    const [transactionLogsResponse, transactionLogsResponseError] = await BSPromisesHelper.tryCatch(async () => {
       const client = BlockscoutBDSNeoX.getClient(this.#service.network)
-      const response = await client.get<TBlockscoutTransactionLogResponse>(
+      return await client.get<TNeo3NeoXBridgeServiceTransactionLogApiResponse>(
         `/transactions/${params.transactionHash}/logs`
       )
-      data = response.data
-    } catch (error) {
-      throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', error)
-    }
+    })
 
-    if (!data.items || data.items.length === 0) {
-      throw new BSError('Transaction invalid', 'INVALID_TRANSACTION')
-    }
+    if (!transactionLogsResponse)
+      throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', transactionLogsResponseError)
 
-    try {
+    const [nonce, nonceError] = await BSPromisesHelper.tryCatch(() => {
       const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
 
       const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
 
-      let nonce: string | undefined
+      const dataIndex = isNativeToken ? 0 : 1
+      const parsedLog = BridgeInterface.parseLog({
+        data: transactionLogsResponse.data.items[dataIndex].data,
+        topics: transactionLogsResponse.data.items[dataIndex].topics.filter(Boolean),
+      })
+      return parsedLog.args.nonce ? parsedLog.args.nonce.toString() : undefined
+    })
 
-      if (isNativeToken) {
-        const item = data.items[0]
-        const parsedLog = BridgeInterface.parseLog({ data: item.data, topics: item.topics.filter(Boolean) })
-        nonce = parsedLog.args.nonce ? parsedLog.args.nonce.toString() : undefined
-      } else {
-        const item = data.items[1]
-        const parsedLog = BridgeInterface.parseLog({ data: item.data, topics: item.topics.filter(Boolean) })
-
-        nonce = parsedLog.args.nonce ? parsedLog.args.nonce.toString() : undefined
-      }
-
-      if (!nonce) {
-        throw new BSError('Nonce not found in transaction log', 'NONCE_NOT_FOUND')
-      }
-
-      return nonce
-    } catch (error) {
-      throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', error)
+    if (!nonce) {
+      throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', nonceError)
     }
+
+    return nonce
   }
 
   async getTransactionHashByNonce(
@@ -236,12 +224,12 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
       const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
 
       if (isNativeToken) {
-        url = `${this.BRIDGE_BASE_CONFIRMATION_URL}/${params.nonce}`
+        url = `${Neo3NeoXBridgeService.BRIDGE_BASE_CONFIRMATION_URL}/${params.nonce}`
       } else {
-        url = `${this.BRIDGE_BASE_CONFIRMATION_URL}/${BSNeoXConstants.NEO_TOKEN.hash}/${params.nonce}`
+        url = `${Neo3NeoXBridgeService.BRIDGE_BASE_CONFIRMATION_URL}/${BSNeoXConstants.NEO_TOKEN.hash}/${params.nonce}`
       }
 
-      const response = await axios.get<{ txid: string | null }>(url)
+      const response = await axios.get<TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse>(url)
 
       if (!response.data?.txid) {
         throw new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND')

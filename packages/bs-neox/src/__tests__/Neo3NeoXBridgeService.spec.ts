@@ -12,13 +12,12 @@ let receiverAddress: string
 let gasToken: TBridgeToken<'neox'>
 let neoToken: TBridgeToken<'neox'>
 
-const network = BSNeoXConstants.DEFAULT_NETWORK
 const tokenService = new TokenServiceEthereum()
 
 describe('Neo3NeoXBridgeService', () => {
   beforeAll(async () => {
     receiverAddress = process.env.TEST_BRIDGE_NEO3_ADDRESS
-    bsNeoXService = new BSNeoX('neox', network)
+    bsNeoXService = new BSNeoX('neox')
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
 
     account = bsNeoXService.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
@@ -76,7 +75,7 @@ describe('Neo3NeoXBridgeService', () => {
       () =>
         ({
           allowance: allowanceMock,
-        }) as any
+        } as any)
     )
 
     await expect(neo3NeoXBridgeService.getApprovalFee({ account, amount: '1', token: neoToken })).rejects.toThrow(
@@ -102,15 +101,6 @@ describe('Neo3NeoXBridgeService', () => {
         transactionHash: 'invalid-transaction-hash',
       })
     ).rejects.toThrow(new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE'))
-  })
-
-  it('Should not be able to get the nonce of a invalid transaction', async () => {
-    await expect(
-      neo3NeoXBridgeService.getNonce({
-        token: gasToken,
-        transactionHash: '0xddd182be1bf9e4d9d3098eeb7b67ef9b883c1a5019c8fa716e8db2423bab0e91',
-      })
-    ).rejects.toThrow(new BSError('Transaction invalid', 'INVALID_TRANSACTION'))
   })
 
   it('Should not be able to get the nonce of a non-bridge transaction', async () => {

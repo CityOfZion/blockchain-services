@@ -8,7 +8,7 @@ describe('DoraVoteServiceNeo3', () => {
   let doraVoteServiceNeo3: DoraVoteServiceNeo3<'neo3'>
   let account: Account<'neo3'>
   const cozCandidatePubKey = '02946248f71bdf14933e6735da9867e81cc9eea0b5895329aa7f71e7745cf40659'
-  const testnetNetwork = BSNeo3Constants.TESTNET_NETWORKS[0]
+  const testnetNetwork = BSNeo3Constants.TESTNET_NETWORK
 
   beforeEach(() => {
     const bsNeo3 = new BSNeo3('neo3')
@@ -97,7 +97,7 @@ describe('DoraVoteServiceNeo3', () => {
       const fee = await doraVoteServiceNeo3.calculateVoteFee({ account, candidatePubKey: cozCandidatePubKey })
 
       expect(fee).toEqual(expect.any(String))
-    }, 30000)
+    })
   })
 
   describe('vote (RpcVoteServiceNeo3)', () => {
@@ -116,7 +116,7 @@ describe('DoraVoteServiceNeo3', () => {
     })
 
     it.skip('Should be able to vote with success', async () => {
-      const { transactionHash } = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
+      const transactionHash = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
 
       expect(transactionHash).toEqual(expect.any(String))
     })
@@ -129,7 +129,7 @@ describe('DoraVoteServiceNeo3', () => {
 
       account = await bsNeo3.ledgerService.getAccount(transport, 0)
 
-      const { transactionHash } = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
+      const transactionHash = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
 
       transport.close()
 

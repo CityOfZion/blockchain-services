@@ -1,32 +1,29 @@
-import { FullTransactionsByAddressParams, Network } from '@cityofzion/blockchain-service'
+import { FullTransactionsByAddressParams } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
-import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
 import { DoraBDSNeoLegacy } from '../services/blockchain-data/DoraBDSNeoLegacy'
 import { isLeapYear } from 'date-fns'
-import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
-import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
+import { BSNeoLegacy } from '../BSNeoLegacy'
 
-describe('BDSNeoLegacyFullTransactionsByAddress', () => {
-  const address = 'AFnH8Cv7qzuxWZdeLqK9QqTrfPWCq5f8A3'
-  let dateFrom: Date
-  let dateTo: Date
-  let params: FullTransactionsByAddressParams
-  let bdsNeoLegacy: DoraBDSNeoLegacy
-
-  const initBDSNeoLegacy = (network: Network) => {
-    const tokens = BSNeoLegacyHelper.getTokens(network)
-    const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')!
-    const tokenService = new TokenServiceNeoLegacy()
-    const explorerService = new NeoTubeESNeoLegacy(network, tokenService) as jest.Mocked<NeoTubeESNeoLegacy>
-
-    explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
-    explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
-    explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
-    explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
-
-    bdsNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens, explorerService, tokenService)
+jest.mock('../services/explorer/NeoTubeESNeoLegacy', () => {
+  return {
+    NeoTubeESNeoLegacy: jest.fn().mockImplementation(() => {
+      return {
+        getAddressTemplateUrl: jest.fn().mockReturnValue('addressTemplateUrl'),
+        getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
+        getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
+        getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
+      }
+    }),
   }
+})
 
+const address = 'AFnH8Cv7qzuxWZdeLqK9QqTrfPWCq5f8A3'
+let dateFrom: Date
+let dateTo: Date
+let params: FullTransactionsByAddressParams
+let bdsNeoLegacy: DoraBDSNeoLegacy<'test'>
+
+describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
   beforeEach(() => {
     dateFrom = new Date()
     dateTo = new Date()
@@ -37,18 +34,26 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
 
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
-    initBDSNeoLegacy(BSNeoLegacyConstants.MAINNET_NETWORKS[0])
+    const service = new BSNeoLegacy('test', BSNeoLegacyConstants.MAINNET_NETWORK)
+    bdsNeoLegacy = new DoraBDSNeoLegacy(service)
   })
 
   describe('getFullTransactionsByAddress', () => {
     it("Shouldn't be able to get transactions when is using a different network (Testnet or Custom) from Mainnet", async () => {
-      initBDSNeoLegacy(BSNeoLegacyConstants.TESTNET_NETWORKS[0])
+      bdsNeoLegacy = new DoraBDSNeoLegacy(new BSNeoLegacy('test', BSNeoLegacyConstants.TESTNET_NETWORK))
 
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress(params)).rejects.toThrow('Only Mainnet is supported')
+      await expect(bdsNeoLegacy.getFullTransactionsByAddress(params)).rejects.toThrow('Network not supported')
 
-      initBDSNeoLegacy({ id: 'custom-network', name: 'Custom network', url: 'https://custom-network.com' })
+      bdsNeoLegacy = new DoraBDSNeoLegacy(
+        new BSNeoLegacy('test', {
+          id: 'custom-network',
+          name: 'Custom network',
+          url: 'https://custom-network.com',
+          type: 'custom',
+        })
+      )
 
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress(params)).rejects.toThrow('Only Mainnet is supported')
+      await expect(bdsNeoLegacy.getFullTransactionsByAddress(params)).rejects.toThrow('Network not supported')
     })
 
     it("Shouldn't be able to get transactions when missing one of the dates", async () => {
@@ -135,15 +140,15 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
 
     it("Shouldn't be able to get transactions when pageSize param was invalid", async () => {
       await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 0 })).rejects.toThrow(
-        'Page size should be between 1 and 30'
+        'Page size should be between 1 and 500'
       )
 
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 31 })).rejects.toThrow(
-        'Page size should be between 1 and 30'
+      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 501 })).rejects.toThrow(
+        'Page size should be between 1 and 500'
       )
 
       await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: NaN })).rejects.toThrow(
-        'Page size should be between 1 and 30'
+        'Page size should be between 1 and 500'
       )
     })
 
@@ -190,7 +195,7 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
           }),
         ]),
       })
-    }, 30000)
+    })
 
     it('Should be able to get transactions when send the nextCursor param', async () => {
       const newParams = {
@@ -209,7 +214,7 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
-    }, 60000)
+    })
 
     it('Should be able to get transactions with default pageSize param', async () => {
       const newParams = {
@@ -222,7 +227,7 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBe(30)
-    }, 60000)
+    })
   })
 
   describe('exportFullTransactionsByAddress', () => {
@@ -234,6 +239,6 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
       })
 
       expect(response.length).toBeGreaterThan(0)
-    }, 30000)
+    })
   })
 })

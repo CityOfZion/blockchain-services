@@ -1,36 +1,27 @@
-import { BuildNftUrlParams, ExplorerService, Network, NetworkId, TokenService } from '@cityofzion/blockchain-service'
-import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BuildNftUrlParams, IExplorerService, TNetworkId } from '@cityofzion/blockchain-service'
+import { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 
-const DEFAULT_BASE_URL_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
-  [BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID]: 'https://eth.blockscout.com',
-  '10': 'https://optimism.blockscout.com',
-  [BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID]: 'https://polygon.blockscout.com',
-  [BSEthereumConstants.BASE_MAINNET_NETWORK_ID]: 'https://base.blockscout.com',
-  [BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID]: 'https://arbitrum.blockscout.com',
-  '42220': 'https://explorer.celo.org/mainnet',
-  '59144': 'https://explorer.linea.build',
-  '1101': 'https://zkevm.blockscout.com',
-  '11155111': 'https://eth-sepolia.blockscout.com',
-}
-
-export class BlockscoutESEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId> implements ExplorerService {
-  readonly #network: Network<BSEthereumNetworkId>
-  readonly #baseUrlByNetworkId: Partial<Record<BSNetworkId, string>>
-  readonly #tokenService: TokenService
-
-  constructor(
-    network: Network<BSEthereumNetworkId>,
-    tokenService: TokenService,
-    baseUrlByNetworkId?: Partial<Record<BSNetworkId, string>>
-  ) {
-    this.#network = network
-    this.#baseUrlByNetworkId = baseUrlByNetworkId ?? DEFAULT_BASE_URL_BY_NETWORK_ID
-    this.#tokenService = tokenService
+export class BlockscoutESEthereum<N extends string, A extends TNetworkId> implements IExplorerService {
+  static readonly DEFAULT_BASE_URL_BY_NETWORK_ID: Partial<Record<TBSEthereumNetworkId, string>> = {
+    '1': 'https://eth.blockscout.com',
+    '10': 'https://optimism.blockscout.com',
+    '137': 'https://polygon.blockscout.com',
+    '8453': 'https://base.blockscout.com',
+    '42161': 'https://arbitrum.blockscout.com',
+    '42220': 'https://explorer.celo.org/mainnet',
+    '59144': 'https://explorer.linea.build',
+    '1101': 'https://zkevm.blockscout.com',
+    '11155111': 'https://eth-sepolia.blockscout.com',
   }
 
-  #getBaseUrl(network: Network<BSEthereumNetworkId>) {
-    const baseUrl = this.#baseUrlByNetworkId[network.id as BSNetworkId]
+  readonly _service: IBSEthereum<N, A>
 
+  constructor(service: IBSEthereum<N, A>) {
+    this._service = service
+  }
+
+  getBaseUrl() {
+    const baseUrl = BlockscoutESEthereum.DEFAULT_BASE_URL_BY_NETWORK_ID[this._service.network.id]
     if (!baseUrl) {
       throw new Error('Network not supported')
     }
@@ -39,23 +30,25 @@ export class BlockscoutESEthereum<BSNetworkId extends NetworkId = BSEthereumNetw
   }
 
   buildTransactionUrl(hash: string): string {
-    const baseURL = this.#getBaseUrl(this.#network)
-    return `${baseURL}/tx/${this.#tokenService.normalizeHash(hash)}`
+    const baseURL = this.getBaseUrl()
+    return `${baseURL}/tx/${this._service.tokenService.normalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string {
-    const baseURL = this.#getBaseUrl(this.#network)
-    return `${baseURL}/address/${this.#tokenService.normalizeHash(contractHash)}`
+    const baseURL = this.getBaseUrl()
+    return `${baseURL}/address/${this._service.tokenService.normalizeHash(contractHash)}`
   }
 
   buildNftUrl(params: BuildNftUrlParams): string {
-    const baseURL = this.#getBaseUrl(this.#network)
-    return `${baseURL}/token/${this.#tokenService.normalizeHash(params.collectionHash)}/instance/${params.tokenHash}`
+    const baseURL = this.getBaseUrl()
+    return `${baseURL}/token/${this._service.tokenService.normalizeHash(params.collectionHash)}/instance/${
+      params.tokenHash
+    }`
   }
 
   getAddressTemplateUrl() {
     try {
-      const baseUrl = this.#getBaseUrl(this.#network)
+      const baseUrl = this.getBaseUrl()
       return `${baseUrl}/address/{address}`
     } catch {
       return undefined
@@ -64,7 +57,7 @@ export class BlockscoutESEthereum<BSNetworkId extends NetworkId = BSEthereumNetw
 
   getTxTemplateUrl() {
     try {
-      const baseUrl = this.#getBaseUrl(this.#network)
+      const baseUrl = this.getBaseUrl()
       return `${baseUrl}/tx/{txId}`
     } catch {
       return undefined
@@ -73,7 +66,7 @@ export class BlockscoutESEthereum<BSNetworkId extends NetworkId = BSEthereumNetw
 
   getNftTemplateUrl() {
     try {
-      const baseUrl = this.#getBaseUrl(this.#network)
+      const baseUrl = this.getBaseUrl()
       return `${baseUrl}/token/{collectionHash}/instance/{tokenHash}`
     } catch {
       return undefined
@@ -82,7 +75,7 @@ export class BlockscoutESEthereum<BSNetworkId extends NetworkId = BSEthereumNetw
 
   getContractTemplateUrl() {
     try {
-      const baseUrl = this.#getBaseUrl(this.#network)
+      const baseUrl = this.getBaseUrl()
       return `${baseUrl}/address/{hash}`
     } catch {
       return undefined

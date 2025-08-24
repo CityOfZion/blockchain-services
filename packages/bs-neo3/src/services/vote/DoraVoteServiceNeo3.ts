@@ -1,49 +1,35 @@
+import { BSBigNumberHelper, BSCommonConstants } from '@cityofzion/blockchain-service'
+import axios from 'axios'
+import {
+  IBSNeo3,
+  IVoteService,
+  TDoraVoteServiceNeo3GetCommitteeApiResponse,
+  TDoraVoteServiceNeo3GetVoteCIMParams,
+  TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse,
+  TVoteServiceCandidate,
+  TVoteServiceDetailsByAddressResponse,
+  TVoteServiceVoteParams,
+} from '../../types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
-import { BSCommonConstants } from '@cityofzion/blockchain-service'
-import axios, { AxiosInstance } from 'axios'
-import { RpcVoteServiceNeo3 } from './RpcVoteServiceNeo3'
-import { GetCandidatesToVoteResponse, GetVoteDetailsByAddressResponse } from '../../interfaces'
-import { BSNeo3 } from '../../BSNeo3'
+import { NeonInvoker } from '@cityofzion/neon-dappkit'
+import { ContractInvocationMulti } from '@cityofzion/neon-dappkit-types'
+import { tx } from '@cityofzion/neon-js'
 
-type AxiosCandidate = {
-  scripthash: string
-  name: string
-  description: string
-  location: string
-  website: string
-  email: string
-  github: string
-  telegram: string
-  twitter: string
-  logo: string
-  votes: number
-  pubkey: string
-}
+export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
+  static readonly API = axios.create({ baseURL: `${BSCommonConstants.DORA_URL}/api/v2/neo3` })
 
-export type AxiosGetCandidatesToVoteResponse = AxiosCandidate[]
+  readonly _service: IBSNeo3<N>
 
-export type AxiosGetVoteDetailsByAddressResponse = {
-  vote: string
-  candidate: string
-  candidatePubkey: string
-  balance: number
-}
-
-export class DoraVoteServiceNeo3<BSName extends string> extends RpcVoteServiceNeo3<BSName> {
-  readonly #service: BSNeo3<BSName>
-  readonly #doraAxiosInstance: AxiosInstance
-
-  constructor(service: BSNeo3<BSName>) {
-    super(service)
-
-    this.#service = service
-    this.#doraAxiosInstance = axios.create({ baseURL: `${BSCommonConstants.DORA_URL}/api/v2/neo3` })
+  constructor(service: IBSNeo3<N>) {
+    this._service = service
   }
 
-  async getCandidatesToVote(): Promise<GetCandidatesToVoteResponse> {
-    if (!BSNeo3Helper.isMainnet(this.#service.network)) throw new Error('Only Mainnet is supported')
+  async getCandidatesToVote(): Promise<TVoteServiceCandidate[]> {
+    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Only Mainnet is supported')
 
-    const { data } = await this.#doraAxiosInstance.get<AxiosGetCandidatesToVoteResponse>('/mainnet/committee')
+    const { data } = await DoraVoteServiceNeo3.API.get<TDoraVoteServiceNeo3GetCommitteeApiResponse[]>(
+      '/mainnet/committee'
+    )
 
     return data.map(({ logo, ...candidate }, index) => {
       const position = index + 1
@@ -64,12 +50,12 @@ export class DoraVoteServiceNeo3<BSName extends string> extends RpcVoteServiceNe
     })
   }
 
-  async getVoteDetailsByAddress(address: string): Promise<GetVoteDetailsByAddressResponse> {
-    if (!BSNeo3Helper.isMainnet(this.#service.network)) throw new Error('Only Mainnet is supported')
+  async getVoteDetailsByAddress(address: string): Promise<TVoteServiceDetailsByAddressResponse> {
+    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Only Mainnet is supported')
     if (!address) throw new Error('Missing address')
-    if (!this.#service.validateAddress(address)) throw new Error('Invalid address')
+    if (!this._service.validateAddress(address)) throw new Error('Invalid address')
 
-    const { data } = await this.#doraAxiosInstance.get<AxiosGetVoteDetailsByAddressResponse>(
+    const { data } = await DoraVoteServiceNeo3.API.get<TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse>(
       `/mainnet/voter/${address}`
     )
 
@@ -78,6 +64,65 @@ export class DoraVoteServiceNeo3<BSName extends string> extends RpcVoteServiceNe
       candidatePubKey: data.candidatePubkey ?? undefined,
       neoBalance: data.balance,
       address,
+    }
+  }
+
+  async vote({ account, candidatePubKey }: TVoteServiceVoteParams<N>): Promise<string> {
+    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Only Mainnet is supported')
+    if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
+
+    const { neonJsAccount, signingCallback } = await this._service.generateSigningCallback(account)
+
+    const invoker = await NeonInvoker.init({
+      rpcAddress: this._service.network.url,
+      account: neonJsAccount,
+      signingCallback,
+    })
+
+    const cim = this.#getVoteCIM({
+      address: account.address,
+      candidatePubKey,
+    })
+
+    const transactionHash = await invoker.invokeFunction(cim)
+
+    return transactionHash
+  }
+
+  async calculateVoteFee({ account, candidatePubKey }: TVoteServiceVoteParams<N>): Promise<string> {
+    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Only Mainnet is supported')
+    if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
+
+    const { neonJsAccount } = await this._service.generateSigningCallback(account)
+
+    const invoker = await NeonInvoker.init({
+      rpcAddress: this._service.network.url,
+      account: neonJsAccount,
+    })
+
+    const cim = this.#getVoteCIM({
+      address: account.address,
+      candidatePubKey,
+    })
+
+    const { total } = await invoker.calculateFee(cim)
+
+    return BSBigNumberHelper.format(total, { decimals: this._service.feeToken.decimals })
+  }
+
+  #getVoteCIM({ address, candidatePubKey }: TDoraVoteServiceNeo3GetVoteCIMParams): ContractInvocationMulti {
+    return {
+      invocations: [
+        {
+          scriptHash: 'ef4073a0f2b305a38ec4050e4d3d28bc40ea63f5',
+          operation: 'vote',
+          args: [
+            { type: 'Hash160', value: address },
+            { type: 'PublicKey', value: candidatePubKey },
+          ],
+        },
+      ],
+      signers: [{ scopes: tx.WitnessScope.CalledByEntry }],
     }
   }
 }

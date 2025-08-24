@@ -1,24 +1,23 @@
 import mainnetTokens from '../assets/tokens/mainnet.json'
 import nativeTokens from '../assets/tokens/native.json'
 
-import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
+import { TNetwork, Token } from '@cityofzion/blockchain-service'
 import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
-
-export type BSNeoLegacyNetworkId = NetworkId<'mainnet' | 'testnet'>
+import { TBSNeoLegacyNetworkId } from '../types'
 
 export class BSNeoLegacyConstants {
   static #tokenService = new TokenServiceNeoLegacy()
 
-  static EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<BSNeoLegacyNetworkId, Token[]>> = {
+  static readonly EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<TBSNeoLegacyNetworkId, Token[]>> = {
     mainnet: this.#tokenService.normalizeToken(mainnetTokens),
   }
 
-  static NATIVE_ASSETS = this.#tokenService.normalizeToken(nativeTokens)
+  static readonly NATIVE_ASSETS = this.#tokenService.normalizeToken(nativeTokens)
 
-  static GAS_ASSET = this.NATIVE_ASSETS.find(token => this.#tokenService.predicateBySymbol('GAS', token))!
-  static NEO_ASSET = this.NATIVE_ASSETS.find(token => this.#tokenService.predicateBySymbol('NEO', token))!
+  static readonly GAS_ASSET = this.NATIVE_ASSETS.find(token => this.#tokenService.predicateBySymbol('GAS', token))!
+  static readonly NEO_ASSET = this.NATIVE_ASSETS.find(token => this.#tokenService.predicateBySymbol('NEO', token))!
 
-  static RPC_LIST_BY_NETWORK_ID: Record<BSNeoLegacyNetworkId, string[]> = {
+  static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSNeoLegacyNetworkId, string[]> = {
     mainnet: [
       'https://mainnet1.neo2.coz.io:443',
       'https://mainnet2.neo2.coz.io:443',
@@ -38,35 +37,26 @@ export class BSNeoLegacyConstants {
     ],
   }
 
-  static LEGACY_NETWORK_BY_NETWORK_ID: Record<BSNeoLegacyNetworkId, string> = {
+  static readonly LEGACY_NETWORK_BY_NETWORK_ID: Record<TBSNeoLegacyNetworkId, string> = {
     mainnet: 'MainNet',
     testnet: 'TestNet',
   }
 
-  static MAINNET_NETWORK_IDS: BSNeoLegacyNetworkId[] = ['mainnet']
-  static TESTNET_NETWORK_IDS: BSNeoLegacyNetworkId[] = ['testnet']
-  static ALL_NETWORK_IDS: BSNeoLegacyNetworkId[] = [...this.MAINNET_NETWORK_IDS, ...this.TESTNET_NETWORK_IDS]
+  static readonly MAINNET_NETWORK: TNetwork<TBSNeoLegacyNetworkId> = {
+    id: 'mainnet',
+    name: 'Mainnet',
+    url: this.RPC_LIST_BY_NETWORK_ID['mainnet']![0],
+    type: 'mainnet',
+  }
+  static readonly TESTNET_NETWORK: TNetwork<TBSNeoLegacyNetworkId> = {
+    id: 'testnet',
+    name: 'Testnet',
+    url: this.RPC_LIST_BY_NETWORK_ID['testnet']![0],
+    type: 'testnet',
+  }
+  static readonly ALL_NETWORKS: TNetwork<TBSNeoLegacyNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 
-  static MAINNET_NETWORKS: Network<BSNeoLegacyNetworkId>[] = [
-    {
-      id: 'mainnet',
-      name: 'Mainnet',
-      url: this.RPC_LIST_BY_NETWORK_ID['mainnet']![0],
-    },
-  ]
-  static TESTNET_NETWORKS: Network<BSNeoLegacyNetworkId>[] = [
-    {
-      id: 'testnet',
-      name: 'Testnet',
-      url: this.RPC_LIST_BY_NETWORK_ID['testnet']![0],
-    },
-  ]
-  static ALL_NETWORKS: Network<BSNeoLegacyNetworkId>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
-
-  static DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
-
-  // If tou change this, make sure to update the tests accordingly
-  static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
+  static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
 
   static readonly MIGRATION_COZ_LEGACY_ADDRESS = 'AaT27thuyPaqERPwERhk7QhfKrbj4xoyAV'
   static readonly MIGRATION_COZ_FEE = 0.01 // 1%
@@ -75,6 +65,6 @@ export class BSNeoLegacyConstants {
   static readonly MIGRATION_MIN_NEO = 2
   static readonly MIGRATION_COZ_NEO3_ADDRESS = 'NLMsicDapULKFDmAzTsbhwrZjYZ83j53Ty'
 
-  static MAX_TRANSACTION_SIZE_WITHOUT_FEE = 1024
-  static FEE_APPLIED_TO_PLAYABLE_TRANSACTION = 0.05
+  static readonly MAX_TRANSACTION_SIZE_WITHOUT_FEE = 1024
+  static readonly FEE_APPLIED_TO_PLAYABLE_TRANSACTION = 0.05
 }

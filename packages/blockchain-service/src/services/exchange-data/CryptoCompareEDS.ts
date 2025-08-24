@@ -1,38 +1,18 @@
 import {
-  ExchangeDataService,
   GetTokenPriceHistoryParams,
   GetTokenPricesParams,
+  IExchangeDataService,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
 } from '../../interfaces'
-import axios, { AxiosInstance } from 'axios'
+import axios from 'axios'
+import { TCryptoCompareEDSDataResponse, TCryptoCompareEDSHistoryResponse } from '../../types'
 
-type CryptoCompareDataResponse = {
-  RAW: {
-    [symbol: string]: {
-      [currency: string]: {
-        PRICE: number
-      }
-    }
-  }
-}
-
-type CryptoCompareHistoryResponse = {
-  Data: {
-    time: number
-    close: number
-  }[]
-}
-
-export class CryptoCompareEDS implements ExchangeDataService {
-  readonly #axiosInstance: AxiosInstance
-
-  constructor() {
-    this.#axiosInstance = axios.create({ baseURL: 'https://min-api.cryptocompare.com' })
-  }
+export class CryptoCompareEDS implements IExchangeDataService {
+  static readonly API = axios.create({ baseURL: 'https://min-api.cryptocompare.com' })
 
   async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
-    const { data: prices } = await this.#axiosInstance.get<CryptoCompareDataResponse>('/data/pricemultifull', {
+    const { data: prices } = await CryptoCompareEDS.API.get<TCryptoCompareEDSDataResponse>('/data/pricemultifull', {
       params: {
         fsyms: params.tokens.map(token => token.symbol).join(','),
         tsyms: 'USD',
@@ -50,7 +30,7 @@ export class CryptoCompareEDS implements ExchangeDataService {
   async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
     const path = `/data/${params.type === 'hour' ? 'histohour' : 'histoday'}`
 
-    const response = await this.#axiosInstance.get<CryptoCompareHistoryResponse>(path, {
+    const response = await CryptoCompareEDS.API.get<TCryptoCompareEDSHistoryResponse>(path, {
       params: {
         fsym: params.token.symbol,
         tsym: 'USD',

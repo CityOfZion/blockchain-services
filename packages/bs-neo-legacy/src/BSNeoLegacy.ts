@@ -1,123 +1,72 @@
 import {
   Account,
-  BDSClaimable,
-  BlockchainDataService,
-  BlockchainService,
-  BSClaimable,
-  ExchangeDataService,
   Token,
-  Network,
   TransferParam,
-  BSWithExplorerService,
-  ExplorerService,
-  BSWithLedger,
   GetLedgerTransport,
-  BalanceResponse,
-  BSBigNumberHelper,
-  BSWithEncryption,
   ITokenService,
+  TNetwork,
+  IClaimDataService,
+  IBlockchainDataService,
+  IExchangeDataService,
+  IExplorerService,
 } from '@cityofzion/blockchain-service'
-import { api, sc, tx, u, wallet } from '@cityofzion/neon-js'
+import { api, sc, u, wallet } from '@cityofzion/neon-js'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
-import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from './constants/BSNeoLegacyConstants'
+import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
 import { BSNeoLegacyHelper } from './helpers/BSNeoLegacyHelper'
 import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
 import { DoraBDSNeoLegacy } from './services/blockchain-data/DoraBDSNeoLegacy'
 import { NeoTubeESNeoLegacy } from './services/explorer/NeoTubeESNeoLegacy'
 import { NeonJsLedgerServiceNeoLegacy } from './services/ledger/NeonJsLedgerServiceNeoLegacy'
 import { TokenServiceNeoLegacy } from './services/token/TokenServiceNeoLegacy'
+import { IBSNeoLegacy, TBSNeoLegacyNetworkId, TSigningCallback } from './types'
+import { DoraCDSNeoLegacy } from './services/claim-data/DoraCDSNeoLegacy'
+import { Neo3NeoLegacyMigrationService } from './services/migration/Neo3NeoLegacyMigrationService'
 
-export type MigrateParams<BSName extends string = string> = {
-  account: Account<BSName>
-  neo3Address: string
-  neoLegacyMigrationAmounts: CalculateNeoLegacyMigrationAmountsResponse
-}
-
-export type CalculateNeo3MigrationAmountsResponse = {
-  gasMigrationTotalFees?: string
-  neoMigrationTotalFees?: string
-  gasMigrationReceiveAmount?: string
-  neoMigrationReceiveAmount?: string
-}
-
-export type CalculateNeoLegacyMigrationAmountsResponse = {
-  hasEnoughGasBalance: boolean
-  hasEnoughNeoBalance: boolean
-  gasBalance?: BalanceResponse
-  neoBalance?: BalanceResponse
-}
-
-export class BSNeoLegacy<BSName extends string = string>
-  implements
-    BlockchainService<BSName, BSNeoLegacyNetworkId>,
-    BSClaimable<BSName>,
-    BSWithExplorerService,
-    BSWithLedger<BSName>,
-    BSWithEncryption<BSName>
-{
-  NATIVE_ASSETS = BSNeoLegacyConstants.NATIVE_ASSETS
-
-  readonly name: BSName
+export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
+  readonly name: N
   readonly bip44DerivationPath: string
-
-  nativeTokens!: Token[]
-
-  feeToken!: Token
-  claimToken!: Token
-  burnToken!: Token
-
-  blockchainDataService!: BlockchainDataService & BDSClaimable
-  exchangeDataService!: ExchangeDataService
-  ledgerService: NeonJsLedgerServiceNeoLegacy<BSName>
-  explorerService!: ExplorerService
-  tokenService!: ITokenService
+  readonly isMultiTransferSupported = true
+  readonly isCustomNetworkSupported = false
 
   tokens!: Token[]
-  network!: Network<BSNeoLegacyNetworkId>
-  legacyNetwork: string
+  readonly nativeTokens!: Token[]
+  readonly feeToken!: Token
+  readonly claimToken!: Token
+  readonly burnToken!: Token
 
-  constructor(name: BSName, network?: Network<BSNeoLegacyNetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
-    network = network ?? BSNeoLegacyConstants.DEFAULT_NETWORK
+  network!: TNetwork<TBSNeoLegacyNetworkId>
+  legacyNetwork!: string
+  readonly defaultNetwork: TNetwork<TBSNeoLegacyNetworkId>
+  readonly availableNetworks: TNetwork<TBSNeoLegacyNetworkId>[]
 
+  blockchainDataService!: IBlockchainDataService
+  exchangeDataService!: IExchangeDataService
+  ledgerService: NeonJsLedgerServiceNeoLegacy<N>
+  explorerService!: IExplorerService
+  tokenService!: ITokenService
+  claimDataService!: IClaimDataService
+  neo3NeoLegacyMigrationService!: Neo3NeoLegacyMigrationService<N>
+
+  constructor(name: N, network?: TNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: GetLedgerTransport<N>) {
     this.name = name
-    this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
     this.ledgerService = new NeonJsLedgerServiceNeoLegacy(this, getLedgerTransport)
     this.bip44DerivationPath = BSNeoLegacyConstants.DEFAULT_BIP44_DERIVATION_PATH
 
-    this.setNetwork(network)
-  }
-
-  async #generateSigningCallback(account: Account<BSName>) {
-    const neonJsAccount = new wallet.Account(account.key)
-
-    if (account.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide a getLedgerTransport function to use Ledger')
-
-      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
-
-      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
-
-      return {
-        neonJsAccount,
-        signingCallback: this.ledgerService.getSigningCallback(ledgerTransport, account),
-      }
-    }
-
-    return {
-      neonJsAccount,
-      signingCallback: api.signWithPrivateKey(neonJsAccount.privateKey),
-    }
-  }
-
-  #setTokens(network: Network<BSNeoLegacyNetworkId>) {
-    const tokens = BSNeoLegacyHelper.getTokens(network)
-
     this.nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
+    this.feeToken = BSNeoLegacyConstants.GAS_ASSET
+    this.burnToken = BSNeoLegacyConstants.NEO_ASSET
+    this.claimToken = BSNeoLegacyConstants.GAS_ASSET
+
+    this.availableNetworks = BSNeoLegacyConstants.ALL_NETWORKS
+    this.defaultNetwork = BSNeoLegacyConstants.MAINNET_NETWORK
+
+    this.setNetwork(network ?? this.defaultNetwork)
+  }
+
+  #setTokens(network: TNetwork<TBSNeoLegacyNetworkId>) {
+    const tokens = BSNeoLegacyHelper.getTokens(network)
     this.tokens = tokens
-    this.feeToken = tokens.find(token => token.symbol === 'GAS')!
-    this.burnToken = tokens.find(token => token.symbol === 'NEO')!
-    this.claimToken = tokens.find(token => token.symbol === 'GAS')!
   }
 
   #hasTransactionMoreThanMaxSize(config: any) {
@@ -147,34 +96,6 @@ export class BSNeoLegacy<BSName extends string = string>
     return config
   }
 
-  async #signTransfer(config: any, nep5ScriptBuilder?: any) {
-    if (!nep5ScriptBuilder || nep5ScriptBuilder.isEmpty()) {
-      config = await api.createContractTx(config)
-    } else {
-      config.script = nep5ScriptBuilder.str
-      config = await api.createInvocationTx(config)
-    }
-    config = await api.modifyTransactionForEmptyTransaction(config)
-    config = await api.addAttributeIfExecutingAsSmartContract(config)
-    config = await api.signTx(config)
-    config = await api.addSignatureIfExecutingAsSmartContract(config)
-
-    return config
-  }
-
-  async #sendTransfer(config: any, nep5ScriptBuilder?: any) {
-    const sharedConfig = await api.fillBalance(config)
-    let signedConfig = await this.#signTransfer({ ...sharedConfig }, nep5ScriptBuilder)
-
-    if (this.#hasTransactionMoreThanMaxSize(signedConfig)) {
-      signedConfig = await this.#signTransfer(this.#getRequiredTransactionFeeConfig(sharedConfig), nep5ScriptBuilder)
-    }
-
-    signedConfig = await api.sendTx(signedConfig)
-
-    return signedConfig.response.txid
-  }
-
   async #signClaim(config: any) {
     config = await api.createClaimTx(config)
     config = await api.addAttributeIfExecutingAsSmartContract(config)
@@ -197,37 +118,78 @@ export class BSNeoLegacy<BSName extends string = string>
     return signedConfig.response.txid
   }
 
-  async testNetwork(network: Network<BSNeoLegacyNetworkId>) {
-    const blockchainDataServiceClone = new DoraBDSNeoLegacy(
-      network,
-      this.feeToken,
-      this.claimToken,
-      this.tokens,
-      this.explorerService,
-      this.tokenService
-    )
+  async #signTransfer(config: any, nep5ScriptBuilder?: any) {
+    if (!nep5ScriptBuilder || nep5ScriptBuilder.isEmpty()) {
+      config = await api.createContractTx(config)
+    } else {
+      config.script = nep5ScriptBuilder.str
+      config = await api.createInvocationTx(config)
+    }
+    config = await api.modifyTransactionForEmptyTransaction(config)
+    config = await api.addAttributeIfExecutingAsSmartContract(config)
+    config = await api.signTx(config)
+    config = await api.addSignatureIfExecutingAsSmartContract(config)
+
+    return config
+  }
+
+  async sendTransfer(config: any, nep5ScriptBuilder?: any) {
+    const sharedConfig = await api.fillBalance(config)
+    let signedConfig = await this.#signTransfer({ ...sharedConfig }, nep5ScriptBuilder)
+
+    if (this.#hasTransactionMoreThanMaxSize(signedConfig)) {
+      signedConfig = await this.#signTransfer(this.#getRequiredTransactionFeeConfig(sharedConfig), nep5ScriptBuilder)
+    }
+
+    signedConfig = await api.sendTx(signedConfig)
+
+    return signedConfig.response.txid
+  }
+
+  async generateSigningCallback(
+    account: Account<N>
+  ): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }> {
+    const neonJsAccount = new wallet.Account(account.key)
+
+    if (account.isHardware) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+
+      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+
+      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+
+      return {
+        neonJsAccount,
+        signingCallback: this.ledgerService.getSigningCallback(ledgerTransport, account),
+      }
+    }
+
+    return {
+      neonJsAccount,
+      signingCallback: api.signWithPrivateKey(neonJsAccount.privateKey),
+    }
+  }
+
+  async testNetwork(network: TNetwork<TBSNeoLegacyNetworkId>) {
+    const service = new BSNeoLegacy(this.name, network, this.ledgerService.getLedgerTransport)
+    const blockchainDataServiceClone = new DoraBDSNeoLegacy(service)
 
     await blockchainDataServiceClone.getBlockHeight()
   }
 
-  setNetwork(network: Network<BSNeoLegacyNetworkId>) {
-    if (!BSNeoLegacyConstants.ALL_NETWORK_IDS.includes(network.id)) throw new Error('Custom network is not supported')
-
+  setNetwork(network: TNetwork<TBSNeoLegacyNetworkId>) {
     this.#setTokens(network)
 
     this.network = network
-    this.tokenService = new TokenServiceNeoLegacy()
-    this.explorerService = new NeoTubeESNeoLegacy(network, this.tokenService)
+    this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
 
-    this.blockchainDataService = new DoraBDSNeoLegacy(
-      network,
-      this.feeToken,
-      this.claimToken,
-      this.tokens,
-      this.explorerService,
-      this.tokenService
-    )
-    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network)
+    this.tokenService = new TokenServiceNeoLegacy()
+    this.explorerService = new NeoTubeESNeoLegacy(this)
+    this.blockchainDataService = new DoraBDSNeoLegacy(this)
+    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(this)
+    this.claimDataService = new DoraCDSNeoLegacy(this)
+    this.neo3NeoLegacyMigrationService = new Neo3NeoLegacyMigrationService(this)
   }
 
   validateAddress(address: string): boolean {
@@ -242,7 +204,7 @@ export class BSNeoLegacy<BSName extends string = string>
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account<BSName> {
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account<N> {
     keychain.importMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
     const childKey = keychain.generateChildKey('neo', bip44Path)
@@ -251,7 +213,7 @@ export class BSNeoLegacy<BSName extends string = string>
     return { address, key, type: 'wif', bip44Path, blockchain: this.name }
   }
 
-  generateAccountFromKey(key: string): Account<BSName> {
+  generateAccountFromKey(key: string): Account<N> {
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
     if (!type) throw new Error('Invalid key')
 
@@ -259,7 +221,7 @@ export class BSNeoLegacy<BSName extends string = string>
     return { address, key, type, blockchain: this.name }
   }
 
-  generateAccountFromPublicKey(publicKey: string): Account<BSName> {
+  generateAccountFromPublicKey(publicKey: string): Account<N> {
     if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
 
     const account = new wallet.Account(publicKey)
@@ -272,7 +234,7 @@ export class BSNeoLegacy<BSName extends string = string>
     }
   }
 
-  async decrypt(encryptedKey: string, password: string): Promise<Account<BSName>> {
+  async decrypt(encryptedKey: string, password: string): Promise<Account<N>> {
     const key = await wallet.decrypt(encryptedKey, password)
     return this.generateAccountFromKey(key)
   }
@@ -281,8 +243,8 @@ export class BSNeoLegacy<BSName extends string = string>
     return wallet.encrypt(key, password)
   }
 
-  async transfer({ intents, senderAccount, tipIntent, ...params }: TransferParam<BSName>): Promise<string[]> {
-    const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(senderAccount)
+  async transfer({ intents, senderAccount, tipIntent, ...params }: TransferParam<N>): Promise<string[]> {
+    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
     const apiProvider = new api.neoCli.instance(this.network.url)
     const priorityFee = Number(params.priorityFee ?? 0)
 
@@ -294,7 +256,7 @@ export class BSNeoLegacy<BSName extends string = string>
     for (const intent of concatIntents) {
       const normalizeTokenHash = this.tokenService.normalizeHash(intent.tokenHash)
 
-      const nativeAsset = this.NATIVE_ASSETS.find(token => this.tokenService.predicateByHash(normalizeTokenHash, token))
+      const nativeAsset = this.nativeTokens.find(token => this.tokenService.predicateByHash(normalizeTokenHash, token))
 
       if (nativeAsset) {
         nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
@@ -313,7 +275,7 @@ export class BSNeoLegacy<BSName extends string = string>
       ])
     }
 
-    const hash = await this.#sendTransfer(
+    const hash = await this.sendTransfer(
       {
         account: neonJsAccount,
         api: apiProvider,
@@ -328,8 +290,8 @@ export class BSNeoLegacy<BSName extends string = string>
     return intents.map(() => hash)
   }
 
-  async claim(account: Account<BSName>): Promise<string> {
-    const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(account)
+  async claim(account: Account<N>): Promise<string> {
+    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account)
 
     const apiProvider = new api.neoCli.instance(this.legacyNetwork)
 
@@ -339,145 +301,5 @@ export class BSNeoLegacy<BSName extends string = string>
       url: this.network.url,
       signingFunction: signingCallback,
     })
-  }
-
-  async migrate({ account, neo3Address, neoLegacyMigrationAmounts }: MigrateParams<BSName>): Promise<string> {
-    if (!BSNeoLegacyHelper.isMainnet(this.network)) {
-      throw new Error('Must use Mainnet network')
-    }
-
-    if (
-      (!neoLegacyMigrationAmounts.hasEnoughGasBalance && !neoLegacyMigrationAmounts.hasEnoughNeoBalance) ||
-      (!neoLegacyMigrationAmounts.gasBalance && !neoLegacyMigrationAmounts.neoBalance)
-    ) {
-      throw new Error('Must have at least 0.1 GAS or 2 NEO')
-    }
-
-    const { neonJsAccount, signingCallback } = await this.#generateSigningCallback(account)
-    const provider = new api.neoCli.instance(this.network.url)
-    const intents: ReturnType<typeof api.makeIntent> = []
-
-    if (neoLegacyMigrationAmounts.hasEnoughGasBalance && neoLegacyMigrationAmounts.gasBalance)
-      intents.push(
-        ...api.makeIntent(
-          { [BSNeoLegacyConstants.GAS_ASSET.symbol]: Number(neoLegacyMigrationAmounts.gasBalance.amount) },
-          BSNeoLegacyConstants.MIGRATION_COZ_LEGACY_ADDRESS
-        )
-      )
-
-    if (neoLegacyMigrationAmounts.hasEnoughNeoBalance && neoLegacyMigrationAmounts.neoBalance)
-      intents.push(
-        ...api.makeIntent(
-          { [BSNeoLegacyConstants.NEO_ASSET.symbol]: Number(neoLegacyMigrationAmounts.neoBalance.amount) },
-          BSNeoLegacyConstants.MIGRATION_COZ_LEGACY_ADDRESS
-        )
-      )
-
-    return await this.#sendTransfer({
-      url: this.network.url,
-      api: provider,
-      account: neonJsAccount,
-      intents,
-      signingFunction: signingCallback,
-      override: {
-        attributes: [
-          new tx.TransactionAttribute({
-            usage: tx.TxAttrUsage.Remark14,
-            data: u.str2hexstring(neo3Address),
-          }),
-          new tx.TransactionAttribute({
-            usage: tx.TxAttrUsage.Remark15,
-            data: u.str2hexstring('Neon Desktop Migration'),
-          }),
-        ],
-      },
-    })
-  }
-
-  /**
-   * Reference: https://github.com/CityOfZion/legacy-n3-swap-service/blob/master/policy/policy.go
-   */
-  calculateNeo3MigrationAmounts(
-    neoLegacyMigrationAmounts: CalculateNeoLegacyMigrationAmountsResponse
-  ): CalculateNeo3MigrationAmountsResponse {
-    const response: CalculateNeo3MigrationAmountsResponse = {
-      gasMigrationReceiveAmount: undefined,
-      gasMigrationTotalFees: undefined,
-      neoMigrationReceiveAmount: undefined,
-      neoMigrationTotalFees: undefined,
-    }
-
-    if (neoLegacyMigrationAmounts.gasBalance && neoLegacyMigrationAmounts.hasEnoughGasBalance) {
-      // Two transfers fee and one transfer fee left over
-      const allNep17TransfersFee = BSNeoLegacyConstants.MIGRATION_NEP_17_TRANSFER_FEE * 3
-      const gasMigrationAmountNumber = Number(neoLegacyMigrationAmounts.gasBalance.amount)
-
-      // Necessary to calculate the COZ fee
-      const gasAmountNumberLessAllNep17TransfersFee = gasMigrationAmountNumber - allNep17TransfersFee
-
-      // Example: ~0.06635710 * 0.01 = ~0.00066357
-      const cozFee = gasAmountNumberLessAllNep17TransfersFee * BSNeoLegacyConstants.MIGRATION_COZ_FEE
-
-      // Example: ~0.06635710 - ~0.00066357 = ~0.06569352
-      const gasAmountNumberLessCozFee = gasAmountNumberLessAllNep17TransfersFee - cozFee
-
-      const allGasFeeNumberThatUserWillPay = cozFee + BSNeoLegacyConstants.MIGRATION_NEP_17_TRANSFER_FEE * 2
-      const allGasAmountNumberThatUserWillReceive =
-        gasAmountNumberLessCozFee + BSNeoLegacyConstants.MIGRATION_NEP_17_TRANSFER_FEE
-
-      response.gasMigrationTotalFees = BSBigNumberHelper.format(allGasFeeNumberThatUserWillPay, {
-        decimals: BSNeoLegacyConstants.GAS_ASSET.decimals,
-      })
-
-      response.gasMigrationReceiveAmount = BSBigNumberHelper.format(allGasAmountNumberThatUserWillReceive, {
-        decimals: BSNeoLegacyConstants.GAS_ASSET.decimals,
-      })
-    }
-
-    if (neoLegacyMigrationAmounts.neoBalance && neoLegacyMigrationAmounts.hasEnoughNeoBalance) {
-      const neoMigrationAmountNumber = Number(neoLegacyMigrationAmounts.neoBalance.amount)
-
-      response.neoMigrationTotalFees = BSBigNumberHelper.format(
-        Math.ceil(neoMigrationAmountNumber * BSNeoLegacyConstants.MIGRATION_COZ_FEE),
-        { decimals: BSNeoLegacyConstants.NEO_ASSET.decimals }
-      )
-
-      response.neoMigrationReceiveAmount = BSBigNumberHelper.format(
-        neoMigrationAmountNumber - Number(response.neoMigrationTotalFees),
-        { decimals: BSNeoLegacyConstants.NEO_ASSET.decimals }
-      )
-    }
-
-    return response
-  }
-
-  calculateNeoLegacyMigrationAmounts(balance: BalanceResponse[]): CalculateNeoLegacyMigrationAmountsResponse {
-    const gasBalance = balance.find(({ token }) =>
-      this.tokenService.predicateByHash(BSNeoLegacyConstants.GAS_ASSET, token)
-    )
-
-    const neoBalance = balance.find(({ token }) =>
-      this.tokenService.predicateByHash(BSNeoLegacyConstants.NEO_ASSET, token)
-    )
-
-    let hasEnoughGasBalance = false
-    let hasEnoughNeoBalance = false
-
-    if (gasBalance) {
-      const gasBalanceNumber = BSBigNumberHelper.fromNumber(gasBalance.amount)
-      hasEnoughGasBalance = gasBalanceNumber.isGreaterThanOrEqualTo(BSNeoLegacyConstants.MIGRATION_MIN_GAS)
-    }
-
-    if (neoBalance) {
-      const neoBalanceNumber = BSBigNumberHelper.fromNumber(neoBalance.amount)
-      hasEnoughNeoBalance = neoBalanceNumber.isGreaterThanOrEqualTo(BSNeoLegacyConstants.MIGRATION_MIN_NEO)
-    }
-
-    return {
-      gasBalance,
-      neoBalance,
-      hasEnoughGasBalance,
-      hasEnoughNeoBalance,
-    }
   }
 }

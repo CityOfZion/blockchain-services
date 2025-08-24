@@ -1,36 +1,27 @@
-import { Network } from '@cityofzion/blockchain-service'
+import { TNetworkId } from '@cityofzion/blockchain-service'
 import { MoralisEDSEthereum } from '../services/exchange-data/MoralisEDSEthereum'
-import { BSEthereumConstants, BSEthereumNetworkId } from '../constants/BSEthereumConstants'
-import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
-import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
-import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
-import { TokenServiceEthereum } from '../services/token/TokenServiceEthereum'
+import { BSEthereum } from '../BSEthereum'
 
-let moralisEDSEthereum: MoralisEDSEthereum
-let network: Network<BSEthereumNetworkId>
+let service: BSEthereum<'test', TNetworkId>
+let moralisEDSEthereum: MoralisEDSEthereum<'test', TNetworkId>
 
 describe('MoralisEDSEthereum', () => {
   beforeAll(() => {
-    network = BSEthereumConstants.DEFAULT_NETWORK
-    const tokenService = new TokenServiceEthereum()
-    const nftDataService = new GhostMarketNDSEthereum(network)
-    const explorerService = new BlockscoutESEthereum(network, tokenService)
-    const moralisBDSEthereum = new MoralisBDSEthereum(network, nftDataService, explorerService, tokenService)
-
-    moralisEDSEthereum = new MoralisEDSEthereum(network, moralisBDSEthereum, tokenService)
+    service = new BSEthereum('test')
+    moralisEDSEthereum = new MoralisEDSEthereum(service)
   })
 
   it('Should return the ETH price in USD', async () => {
     const tokenPriceList = await moralisEDSEthereum.getTokenPrices({
-      tokens: [BSEthereumHelper.getNativeAsset(network)],
+      tokens: [BSEthereumHelper.getNativeAsset(service.network)],
     })
     expect(tokenPriceList).toHaveLength(1)
     expect(tokenPriceList[0]).toEqual({
       usdPrice: expect.any(Number),
-      token: BSEthereumHelper.getNativeAsset(network),
+      token: BSEthereumHelper.getNativeAsset(service.network),
     })
-  }, 60000)
+  })
 
   it('Should return a list with prices of tokens in USD', async () => {
     const tokenPriceList = await moralisEDSEthereum.getTokenPrices({
@@ -979,13 +970,13 @@ describe('MoralisEDSEthereum', () => {
         },
       })
     })
-  }, 60000)
+  })
 
   it('Should return the BRL currency ratio', async () => {
     const ratio = await moralisEDSEthereum.getCurrencyRatio('BRL')
 
     expect(ratio).toEqual(expect.any(Number))
-  }, 20000)
+  })
 
   it('Should return EUR currency ratio', async () => {
     const ratio = await moralisEDSEthereum.getCurrencyRatio('EUR')
@@ -995,7 +986,7 @@ describe('MoralisEDSEthereum', () => {
 
   it("Should return the token's price history", async () => {
     const tokenPriceHistory = await moralisEDSEthereum.getTokenPriceHistory({
-      token: BSEthereumHelper.getNativeAsset(network),
+      token: BSEthereumHelper.getNativeAsset(service.network),
       limit: 24,
       type: 'hour',
     })
@@ -1004,8 +995,8 @@ describe('MoralisEDSEthereum', () => {
       expect(tokenPrice).toEqual({
         usdPrice: expect.any(Number),
         timestamp: expect.any(Number),
-        token: BSEthereumHelper.getNativeAsset(network),
+        token: BSEthereumHelper.getNativeAsset(service.network),
       })
     })
-  }, 60000)
+  })
 })

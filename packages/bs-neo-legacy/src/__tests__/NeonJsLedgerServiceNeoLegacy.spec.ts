@@ -10,12 +10,12 @@ let bsNeoLegacy: BSNeoLegacy<'neo-legacy'>
 
 describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
   beforeAll(async () => {
-    const network = BSNeoLegacyConstants.TESTNET_NETWORKS[0]!
+    const network = BSNeoLegacyConstants.TESTNET_NETWORK
     bsNeoLegacy = new BSNeoLegacy('neo-legacy', network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new NeonJsLedgerServiceNeoLegacy(bsNeoLegacy, async () => transport)
-  }, 60000)
+  })
 
   it('Should be able to get all accounts automatically', async () => {
     const accounts = await ledgerService.getAccounts(transport)
@@ -31,7 +31,7 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get all accounts until index', async () => {
     const firstAccount = await ledgerService.getAccount(transport, 0)
@@ -52,7 +52,7 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get account', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -64,5 +64,5 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
         bip44Path: bsNeoLegacy.bip44DerivationPath.replace('?', '0'),
       })
     )
-  }, 60000)
+  })
 })

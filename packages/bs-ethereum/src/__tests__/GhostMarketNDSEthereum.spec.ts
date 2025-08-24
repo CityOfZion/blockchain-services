@@ -1,11 +1,13 @@
-import { BSEthereumConstants } from '../constants/BSEthereumConstants'
+import { TNetworkId } from '@cityofzion/blockchain-service'
+import { BSEthereum } from '../BSEthereum'
 import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 
-let ghostMarketNDSEthereum: GhostMarketNDSEthereum
+let ghostMarketNDSEthereum: GhostMarketNDSEthereum<'test', TNetworkId>
 
 describe.skip('GhostMarketNDSEthereum', () => {
   beforeAll(() => {
-    ghostMarketNDSEthereum = new GhostMarketNDSEthereum(BSEthereumConstants.DEFAULT_NETWORK)
+    const service = new BSEthereum('test', 'ethereum')
+    ghostMarketNDSEthereum = new GhostMarketNDSEthereum(service)
   })
 
   it('Get NFT', async () => {
@@ -61,5 +63,5 @@ describe.skip('GhostMarketNDSEthereum', () => {
       })
       expect(hasToken).toBeTruthy()
     }
-  }, 60000)
+  })
 })

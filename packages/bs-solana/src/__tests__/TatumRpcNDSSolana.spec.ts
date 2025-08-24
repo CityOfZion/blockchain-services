@@ -1,16 +1,12 @@
-import { BSSolanaConstants } from '../constants/BSSolanaConstants'
+import { BSSolana } from '../BSSolana'
 import { TatumRpcNDSSolana } from '../services/nft-data/TatumRpcNDSSolana'
 
-let tatumRpcNDSSolana: TatumRpcNDSSolana
-const network = BSSolanaConstants.MAINNET_NETWORKS[0]
+let tatumRpcNDSSolana: TatumRpcNDSSolana<'test'>
 
 describe('TatumRpcNDSSolana.spec', () => {
   beforeAll(() => {
-    tatumRpcNDSSolana = new TatumRpcNDSSolana(
-      network,
-      process.env.TATUM_MAINNET_API_KEY!,
-      process.env.TATUM_TESTNET_API_KEY!
-    )
+    const service = new BSSolana('test')
+    tatumRpcNDSSolana = new TatumRpcNDSSolana(service)
   })
 
   it('Get NFT', async () => {

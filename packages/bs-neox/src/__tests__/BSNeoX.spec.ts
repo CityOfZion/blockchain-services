@@ -5,7 +5,7 @@ let bsNeoX: BSNeoX<'neox'>
 
 describe('BSNeoX', () => {
   beforeEach(async () => {
-    bsNeoX = new BSNeoX('neox', BSNeoXConstants.TESTNET_NETWORKS[0])
+    bsNeoX = new BSNeoX('neox', BSNeoXConstants.TESTNET_NETWORK)
   })
 
   it.skip('Should be able to transfer a native token using a EVM', async () => {

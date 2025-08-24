@@ -1,55 +1,37 @@
 import {
-  BlockchainDataService,
   CryptoCompareEDS,
-  ExchangeDataService,
   GetTokenPriceHistoryParams,
   GetTokenPricesParams,
-  Network,
+  TNetworkId,
   Token,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
-  TokenService,
 } from '@cityofzion/blockchain-service'
-import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from '../blockchain-data/MoralisBDSEthereum'
+import { IBSEthereum, TMoralisEDSEthereumERC20PriceApiResponse } from '../../types'
 
-type MoralisERC20PriceResponse = {
-  tokenName: string
-  tokenSymbol: string
-  tokenDecimals: string
-  usdPrice: number
-  tokenAddress: string
-  blockTimestamp: string
-}
+export class MoralisEDSEthereum<N extends string, A extends TNetworkId> extends CryptoCompareEDS {
+  static readonly NUMBERS_OF_BLOCK_BY_HOUR = (15 / 60) * 60
+  static readonly NUMBER_OF_BLOCK_BY_DAY = MoralisEDSEthereum.NUMBERS_OF_BLOCK_BY_HOUR * 24
+  static readonly MAX_TOKEN_PRICES_PER_CALL = 24
 
-export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeDataService {
-  readonly #network: Network<BSEthereumNetworkId>
-  readonly #blockchainDataService: BlockchainDataService
-  readonly #numberOfBlockByHour = (15 / 60) * 60
-  readonly #numberOfBlockByDay = this.#numberOfBlockByHour * 24
-  readonly #maxTokenPricesPerCall = 24
-  readonly #tokenService: TokenService
+  readonly #service: IBSEthereum<N, A>
 
-  constructor(
-    network: Network<BSEthereumNetworkId>,
-    blockchainDataService: BlockchainDataService,
-    tokenService: TokenService
-  ) {
+  constructor(service: IBSEthereum<N, A>) {
     super()
 
-    this.#network = network
-    this.#blockchainDataService = blockchainDataService
-    this.#tokenService = tokenService
+    this.#service = service
   }
 
   async #getWrappedNativeToken(): Promise<Token> {
-    const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
+    const nativeToken = BSEthereumHelper.getNativeAsset(this.#service.network)
     const wrappedSymbol = `W${nativeToken.symbol}`
-    const localWrappedHash = BSEthereumConstants.NATIVE_WRAPPED_HASH_BY_NETWORK_ID[this.#network.id]
+    const localWrappedHash = BSEthereumConstants.NATIVE_WRAPPED_HASH_BY_NETWORK_ID[this.#service.network.id]
     if (!localWrappedHash) throw new Error('Wrapper token not found')
 
-    return this.#tokenService.normalizeToken({
+    return this.#service.tokenService.normalizeToken({
       ...nativeToken,
       symbol: wrappedSymbol,
       hash: localWrappedHash,
@@ -57,11 +39,13 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
   }
 
   async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
-    if (!BSEthereumHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
-    if (!MoralisBDSEthereum.isSupported(this.#network)) throw new Error('Exchange is not supported on this network')
+    if (!BSEthereumHelper.isMainnetNetwork(this.#service)) throw new Error('Exchange is only available on mainnet')
 
-    const client = MoralisBDSEthereum.getClient(this.#network)
-    const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
+    if (!MoralisBDSEthereum.isSupported(this.#service.network))
+      throw new Error('Exchange is not supported on this network')
+
+    const client = MoralisBDSEthereum.getClient(this.#service.network)
+    const nativeToken = BSEthereumHelper.getNativeAsset(this.#service.network)
     const tokensBody: { token_address: string }[] = []
     let wrappedNativeToken: Token | undefined
 
@@ -86,22 +70,21 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     if (tokensBody.length === 0) return []
 
     const splitTokensBody = []
-    for (let i = 0; i < tokensBody.length; i += this.#maxTokenPricesPerCall) {
-      splitTokensBody.push(tokensBody.slice(i, i + this.#maxTokenPricesPerCall))
+    for (let i = 0; i < tokensBody.length; i += MoralisEDSEthereum.MAX_TOKEN_PRICES_PER_CALL) {
+      splitTokensBody.push(tokensBody.slice(i, i + MoralisEDSEthereum.MAX_TOKEN_PRICES_PER_CALL))
     }
 
     const response: TokenPricesResponse[] = []
 
     await Promise.allSettled(
       splitTokensBody.map(async body => {
-        const { data } = await client.post<MoralisERC20PriceResponse[]>('/erc20/prices', {
+        const { data } = await client.post<TMoralisEDSEthereumERC20PriceApiResponse[]>('/erc20/prices', {
           tokens: body,
         })
 
         data.forEach(item => {
           let token: Token
-
-          if (wrappedNativeToken && this.#tokenService.predicateByHash(wrappedNativeToken, item.tokenAddress)) {
+          if (wrappedNativeToken && this.#service.tokenService.predicateByHash(wrappedNativeToken, item.tokenAddress)) {
             token = nativeToken
           } else {
             token = {
@@ -124,38 +107,44 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
   }
 
   async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
-    if (!BSEthereumHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
-    if (!MoralisBDSEthereum.isSupported(this.#network)) throw new Error('Exchange is not supported on this network')
+    if (!BSEthereumHelper.isMainnetNetwork(this.#service)) throw new Error('Exchange is only available on mainnet')
+    if (!MoralisBDSEthereum.isSupported(this.#service.network))
+      throw new Error('Exchange is not supported on this network')
 
-    const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
+    const nativeToken = BSEthereumHelper.getNativeAsset(this.#service.network)
 
     let token: Token
-
-    if (this.#tokenService.predicateByHash(nativeToken, params.token)) {
+    if (this.#service.tokenService.predicateByHash(nativeToken, params.token)) {
       token = await this.#getWrappedNativeToken()
     } else {
       token = params.token
     }
 
-    const client = MoralisBDSEthereum.getClient(this.#network)
-    const currentBlockNumber = (await this.#blockchainDataService.getBlockHeight()) - 1 // Last block is not included
+    const client = MoralisBDSEthereum.getClient(this.#service.network)
+    const currentBlockNumber = (await this.#service.blockchainDataService.getBlockHeight()) - 1 // Last block is not included
 
     const tokensBody = Array.from({ length: params.limit }).map((_, index) => ({
       token_address: token.hash,
       to_block:
-        currentBlockNumber - index * (params.type === 'hour' ? this.#numberOfBlockByHour : this.#numberOfBlockByDay),
+        currentBlockNumber -
+        index *
+          (params.type === 'hour'
+            ? MoralisEDSEthereum.NUMBERS_OF_BLOCK_BY_HOUR
+            : MoralisEDSEthereum.NUMBER_OF_BLOCK_BY_DAY),
     }))
 
     const splitTokensBody = []
-    for (let i = 0; i < tokensBody.length; i += this.#maxTokenPricesPerCall) {
-      splitTokensBody.push(tokensBody.slice(i, i + this.#maxTokenPricesPerCall))
+    for (let i = 0; i < tokensBody.length; i += MoralisEDSEthereum.MAX_TOKEN_PRICES_PER_CALL) {
+      splitTokensBody.push(tokensBody.slice(i, i + MoralisEDSEthereum.MAX_TOKEN_PRICES_PER_CALL))
     }
 
     const history: TokenPricesHistoryResponse[] = []
 
     await Promise.allSettled(
       splitTokensBody.map(async body => {
-        const priceResponse = await client.post<MoralisERC20PriceResponse[]>('/erc20/prices', { tokens: body })
+        const priceResponse = await client.post<TMoralisEDSEthereumERC20PriceApiResponse[]>('/erc20/prices', {
+          tokens: body,
+        })
 
         priceResponse.data.forEach(item => {
           history.push({

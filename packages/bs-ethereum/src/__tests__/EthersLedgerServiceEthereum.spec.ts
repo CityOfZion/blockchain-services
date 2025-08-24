@@ -5,18 +5,18 @@ import Transport from '@ledgerhq/hw-transport'
 import { BSEthereum } from '../BSEthereum'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 
-let ledgerService: EthersLedgerServiceEthereum<'ethereum'>
+let ledgerService: EthersLedgerServiceEthereum<'test'>
 let transport: Transport
-let bsEthereum: BSEthereum<'ethereum'>
+let bsEthereum: BSEthereum<'test'>
 
 describe.skip('EthersLedgerServiceEthereum', () => {
   beforeAll(async () => {
-    const network = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '11155111')!
-    bsEthereum = new BSEthereum('ethereum', network)
+    const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
+    bsEthereum = new BSEthereum('test', 'ethereum', network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new EthersLedgerServiceEthereum(bsEthereum, async () => transport)
-  }, 60000)
+  })
 
   it('Should be able to get address', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -32,7 +32,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
     const message = 'Hello, World!'
     const signedMessage = await signer.signMessage(message)
     expect(signedMessage).toBeDefined()
-  }, 60000)
+  })
 
   it('Should be able to sign a transaction', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -51,7 +51,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
     const signedTransaction = await signer.signTransaction(transaction)
 
     expect(signedTransaction).toBeDefined()
-  }, 60000)
+  })
 
   it('Should be able to sign a typed data', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -117,7 +117,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
     const address = await signer.getAddress()
 
     expect(signatureAddress).toEqual(address)
-  }, 60000)
+  })
 
   it('Should be able to get all accounts automatically', async () => {
     const accounts = await ledgerService.getAccounts(transport)
@@ -133,13 +133,13 @@ describe.skip('EthersLedgerServiceEthereum', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get all accounts until index', async () => {
     const firstAccount = await ledgerService.getAccount(transport, 0)
 
     const accounts = await ledgerService.getAccounts(transport, {
-      ethereum: {
+      test: {
         [firstAccount.address]: 6,
       },
     })
@@ -155,7 +155,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get account', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -167,5 +167,5 @@ describe.skip('EthersLedgerServiceEthereum', () => {
         bip44Path: bsEthereum.bip44DerivationPath.replace('?', '0'),
       })
     )
-  }, 60000)
+  })
 })

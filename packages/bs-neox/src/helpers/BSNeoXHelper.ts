@@ -1,8 +1,9 @@
-import { Network } from '@cityofzion/blockchain-service'
-import { BSNeoXConstants, BSNeoXNetworkId } from '../constants/BSNeoXConstants'
+import { TNetwork } from '@cityofzion/blockchain-service'
+import { TBSNeoXNetworkId } from '../types'
+import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 
 export class BSNeoXHelper {
-  static isMainnet(network: Network<BSNeoXNetworkId>) {
-    return BSNeoXConstants.MAINNET_NETWORK_IDS.includes(network.id)
+  static isMainnetNetwork(network: TNetwork<TBSNeoXNetworkId>) {
+    return network.id === BSNeoXConstants.MAINNET_NETWORK.id && network.type === 'mainnet'
   }
 }

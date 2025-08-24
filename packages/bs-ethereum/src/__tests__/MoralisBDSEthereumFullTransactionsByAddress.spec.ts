@@ -1,106 +1,88 @@
-import { BSEthereumConstants, BSEthereumNetworkId } from '../constants/BSEthereumConstants'
 import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 import {
   BSUtilsHelper,
-  ExplorerService,
   FullTransactionNftEvent,
   FullTransactionsByAddressParams,
-  Network,
-  NftDataService,
+  TNetwork,
+  TNetworkId,
 } from '@cityofzion/blockchain-service'
-import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 import { isLeapYear } from 'date-fns'
-import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
-import { TokenServiceEthereum } from '../services/token/TokenServiceEthereum'
+import { BSEthereum } from '../BSEthereum'
 
-describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
-  const address = '0xd1d6634415be11a54664298373c57c131aa828d5'
-  const polygonAddress = '0x019d0706d65c4768ec8081ed7ce41f59eef9b86c'
-  const baseAddress = '0x36d7a1ef48bb241f1e31ec5c4b9bf78e553f422a'
-  const arbitrumAddress = '0x009905bf008CcA637185EEaFE8F51BB56dD2ACa7'
+const address = '0xd1d6634415be11a54664298373c57c131aa828d5'
+const polygonAddress = '0xbCc845dcfF7005c0ca7BD11eA8b5049a384a9f94'
+const baseAddress = '0x4088e9E4d61B8F575aB7518fe46D741980017daA'
+const arbitrumAddress = '0x0b07f64ABc342B68AEc57c0936E4B6fD4452967E'
 
-  const network = BSEthereumConstants.DEFAULT_NETWORK
+const invalidNetwork: TNetwork = {
+  id: 'invalid-network',
+  name: 'Invalid network',
+  url: 'https://invalid-network.com',
+  type: 'mainnet',
+}
 
-  const polygonNetwork: Network<BSEthereumNetworkId> = {
-    id: BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
-    name: 'Polygon',
-    url: 'https://polygon.meowrpc.com',
+const expectedResponse = {
+  nextCursor: expect.anything(),
+  data: expect.arrayContaining([
+    expect.objectContaining({
+      txId: expect.any(String),
+      txIdUrl: expect.anything(),
+      block: expect.any(Number),
+      date: expect.any(String),
+      invocationCount: expect.any(Number),
+      notificationCount: expect.any(Number),
+      networkFeeAmount: expect.anything(),
+      type: expect.any(String),
+      events: expect.arrayContaining([
+        expect.objectContaining({
+          eventType: expect.any(String),
+          amount: expect.anything(),
+          methodName: expect.any(String),
+          from: expect.anything(),
+          fromUrl: expect.anything(),
+          to: expect.anything(),
+          toUrl: expect.anything(),
+          tokenType: expect.any(String),
+        }),
+      ]),
+    }),
+  ]),
+}
+
+let dateFrom: Date
+let dateTo: Date
+let params: FullTransactionsByAddressParams
+let moralisBDSEthereum: MoralisBDSEthereum<'test', TNetworkId>
+
+jest.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
+  return {
+    GhostMarketNDSEthereum: jest.fn().mockImplementation(() => {
+      return {
+        getNft: jest.fn().mockReturnValue({
+          image: 'nftImage',
+          name: 'nftName',
+          collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+        }),
+      }
+    }),
   }
+})
 
-  const baseNetwork: Network<BSEthereumNetworkId> = {
-    id: BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
-    name: 'Base',
-    url: 'https://base.llamarpc.com',
+jest.mock('../services/explorer/BlockscoutESEthereum', () => {
+  return {
+    BlockscoutESEthereum: jest.fn().mockImplementation(() => {
+      return {
+        getAddressTemplateUrl: jest.fn().mockReturnValue('addressTemplateUrl'),
+        getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
+        getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
+        getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
+      }
+    }),
   }
+})
 
-  const arbitrumNetwork: Network<BSEthereumNetworkId> = {
-    id: BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
-    name: 'Arbitrum',
-    url: 'https://arbitrum.llamarpc.com',
-  }
-
-  const invalidNetwork: Network = {
-    id: 'invalid-network',
-    name: 'Invalid network',
-    url: 'https://invalid-network.com',
-  }
-
-  let dateFrom: Date
-  let dateTo: Date
-  let params: FullTransactionsByAddressParams
-  let nftDataService: NftDataService
-  let explorerService: ExplorerService
-  let moralisBDSEthereum: MoralisBDSEthereum
-  const tokenService = new TokenServiceEthereum()
-
-  const expectedResponse = {
-    nextCursor: expect.anything(),
-    data: expect.arrayContaining([
-      expect.objectContaining({
-        txId: expect.any(String),
-        txIdUrl: expect.anything(),
-        block: expect.any(Number),
-        date: expect.any(String),
-        invocationCount: expect.any(Number),
-        notificationCount: expect.any(Number),
-        networkFeeAmount: expect.anything(),
-        type: expect.any(String),
-        events: expect.arrayContaining([
-          expect.objectContaining({
-            eventType: expect.any(String),
-            amount: expect.anything(),
-            methodName: expect.any(String),
-            from: expect.anything(),
-            fromUrl: expect.anything(),
-            to: expect.anything(),
-            toUrl: expect.anything(),
-            tokenType: expect.any(String),
-          }),
-        ]),
-      }),
-    ]),
-  }
-
-  const initMoralisBDSEthereum = (network: Network) => {
-    nftDataService = new GhostMarketNDSEthereum(network) as jest.Mocked<GhostMarketNDSEthereum>
-
-    nftDataService.getNft = jest.fn().mockReturnValue({
-      image: 'nftImage',
-      name: 'nftName',
-      collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
-    })
-
-    explorerService = new BlockscoutESEthereum(network, tokenService) as jest.Mocked<BlockscoutESEthereum>
-
-    explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
-    explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
-    explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
-    explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
-
-    moralisBDSEthereum = new MoralisBDSEthereum(network, nftDataService, explorerService, tokenService)
-  }
-
-  beforeEach(() => {
+describe('MoralisBDSEthereum - fullTransactionsByAddress', () => {
+  beforeEach(async () => {
     dateFrom = new Date()
     dateTo = new Date()
 
@@ -110,16 +92,18 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
 
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
-    initMoralisBDSEthereum(network)
+    const service = new BSEthereum('test', 'ethereum')
+    moralisBDSEthereum = new MoralisBDSEthereum(service)
+
+    await BSUtilsHelper.wait(2000)
   })
 
   describe('getFullTransactionsByAddress', () => {
     it("Shouldn't be able to get transactions when is using a different network (invalid) from Ethereum Mainnet and EVMs Mainnet", async () => {
-      initMoralisBDSEthereum(invalidNetwork)
+      const service = new BSEthereum('test', 'ethereum', invalidNetwork)
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress(params)).rejects.toThrow(
-        'This network is not supported'
-      )
+      await expect(moralisBDSEthereum.getFullTransactionsByAddress(params)).rejects.toThrow('Network not supported')
     })
 
     it("Shouldn't be able to get transactions when missing one of the dates", async () => {
@@ -226,10 +210,11 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       })
 
       expect(response).toEqual(expectedResponse)
-    }, 30000)
+    })
 
     it('Should be able to get transactions when is using a Polygon Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(polygonNetwork)
+      const service = new BSEthereum('test', 'polygon')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const response = await moralisBDSEthereum.getFullTransactionsByAddress({
         ...params,
@@ -239,10 +224,11 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       })
 
       expect(response).toEqual(expectedResponse)
-    }, 30000)
+    })
 
     it('Should be able to get transactions when is using a Base Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(baseNetwork)
+      const service = new BSEthereum('test', 'base')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const response = await moralisBDSEthereum.getFullTransactionsByAddress({
         ...params,
@@ -252,27 +238,27 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       })
 
       expect(response).toEqual(expectedResponse)
-    }, 30000)
+    })
 
     it('Should be able to get transactions when is using a Arbitrum Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(arbitrumNetwork)
+      const service = new BSEthereum('test', 'arbitrum')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const response = await moralisBDSEthereum.getFullTransactionsByAddress({
         ...params,
-        dateFrom: new Date('2024-10-25T12:00:00').toJSON(),
-        dateTo: new Date('2024-11-25T12:00:00').toJSON(),
+        dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
+        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
         address: arbitrumAddress,
       })
 
       expect(response).toEqual(expectedResponse)
-    }, 30000)
+    })
 
     it('Should be able to get transactions when send the nextCursor param using Ethereum Mainnet network', async () => {
       const newParams = {
         ...params,
-        dateFrom: new Date('2025-04-25T11:45:00').toJSON(),
+        dateFrom: new Date('2024-06-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
-        address: '0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97',
       }
 
       const response = await moralisBDSEthereum.getFullTransactionsByAddress(newParams)
@@ -284,14 +270,15 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
-    }, 60000)
+    })
 
     it('Should be able to get transactions when send the nextCursor param using Polygon Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(polygonNetwork)
+      const service = new BSEthereum('test', 'polygon')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const newParams = {
         ...params,
-        dateFrom: new Date('2025-04-25T11:50:00').toJSON(),
+        dateFrom: new Date('2025-02-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
         address: polygonAddress,
       }
@@ -305,10 +292,11 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
-    }, 60000)
+    })
 
     it('Should be able to get transactions when send the nextCursor param using Base Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(baseNetwork)
+      const service = new BSEthereum('test', 'base')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const newParams = {
         ...params,
@@ -326,14 +314,15 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
-    }, 60000)
+    })
 
     it('Should be able to get transactions when send the nextCursor param using Arbitrum Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(arbitrumNetwork)
+      const service = new BSEthereum('test', 'arbitrum')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const newParams = {
         ...params,
-        dateFrom: new Date('2025-04-25T10:30:00').toJSON(),
+        dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
         address: arbitrumAddress,
       }
@@ -350,46 +339,11 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
-    }, 60000)
-
-    // When NFTs from Ethereum were supported, uncomment this test
-    // it('Should be able to get transactions with NFTs when it was called using Ethereum Mainnet network', async () => {
-    //   const response = await moralisBDSEthereum.getFullTransactionsByAddress({
-    //     ...params,
-    //     address: '0x604eb5d4126e3318ec27721bd5059307684f5c89',
-    //     dateFrom: new Date('2024-01-01T12:00:00').toJSON(),
-    //     dateTo: new Date('2024-12-31T12:00:00').toJSON(),
-    //   })
-    //
-    //   const nftEvents = response.data
-    //     .flatMap(({ events }) => events)
-    //     .filter(({ eventType }) => eventType === 'nft') as FullTransactionNftEvent[]
-    //
-    //   expect(nftEvents).toEqual(
-    //     expect.arrayContaining([
-    //       expect.objectContaining({
-    //         eventType: 'nft',
-    //         amount: undefined,
-    //         methodName: expect.any(String),
-    //         from: expect.anything(),
-    //         fromUrl: expect.anything(),
-    //         to: expect.anything(),
-    //         toUrl: expect.anything(),
-    //         hash: expect.any(String),
-    //         hashUrl: expect.any(String),
-    //         tokenId: expect.any(String),
-    //         tokenType: expect.any(String),
-    //         nftImageUrl: 'nftImage',
-    //         nftUrl: expect.any(String),
-    //         name: 'nftName',
-    //         collectionName: 'nftCollectionName',
-    //       }),
-    //     ])
-    //   )
-    // }, 30000)
+    })
 
     it('Should be able to get transactions with NFTs when it was called using Polygon Mainnet network', async () => {
-      initMoralisBDSEthereum(polygonNetwork)
+      const service = new BSEthereum('test', 'polygon')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const response = await moralisBDSEthereum.getFullTransactionsByAddress({
         ...params,
@@ -423,21 +377,7 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
           }),
         ])
       )
-    }, 30000)
-
-    it('Should be able to get transactions with default pageSize param using Ethereum Mainnet network', async () => {
-      const newParams = {
-        ...params,
-        dateFrom: new Date('2025-04-25T11:45:00').toJSON(),
-        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
-        address: '0x4838B106FCe9647Bdf1E7877BF73cE8B0BAD5f97',
-      }
-
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress(newParams)
-
-      expect(response.nextCursor).toBeTruthy()
-      expect(response.data.length).toBeTruthy()
-    }, 60000)
+    })
   })
 
   describe('exportFullTransactionsByAddress', () => {
@@ -449,10 +389,11 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       })
 
       expect(response.length).toBeGreaterThan(0)
-    }, 30000)
+    })
 
     it('Should be able to export transactions when is using a Polygon Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(polygonNetwork)
+      const service = new BSEthereum('test', 'polygon')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
         dateFrom: new Date('2025-02-25T12:00:00').toJSON(),
@@ -461,10 +402,11 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       })
 
       expect(response.length).toBeGreaterThan(0)
-    }, 30000)
+    })
 
     it('Should be able to export transactions when is using a Base Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(baseNetwork)
+      const service = new BSEthereum('test', 'base')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
         dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
@@ -473,10 +415,11 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       })
 
       expect(response.length).toBeGreaterThan(0)
-    }, 30000)
+    })
 
     it('Should be able to export transactions when is using a Arbitrum Mainnet network (EVM)', async () => {
-      initMoralisBDSEthereum(arbitrumNetwork)
+      const service = new BSEthereum('test', 'arbitrum')
+      moralisBDSEthereum = new MoralisBDSEthereum(service)
 
       const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
         dateFrom: new Date('2024-10-25T12:00:00').toJSON(),
@@ -485,6 +428,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
       })
 
       expect(response.length).toBeGreaterThan(0)
-    }, 30000)
+    })
   })
 })

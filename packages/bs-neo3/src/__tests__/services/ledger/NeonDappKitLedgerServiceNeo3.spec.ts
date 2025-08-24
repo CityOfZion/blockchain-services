@@ -10,12 +10,12 @@ let bsNeo3: BSNeo3<'neo3'>
 
 describe.skip('NeonDappKitLedgerServiceNeo3', () => {
   beforeAll(async () => {
-    const network = BSNeo3Constants.TESTNET_NETWORKS[0]!
+    const network = BSNeo3Constants.TESTNET_NETWORK
     bsNeo3 = new BSNeo3('neo3', network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new NeonDappKitLedgerServiceNeo3(bsNeo3, async () => transport)
-  }, 60000)
+  })
 
   it('Should be able to get all accounts automatically', async () => {
     const accounts = await ledgerService.getAccounts(transport)
@@ -31,7 +31,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get all accounts until index', async () => {
     const firstAccount = await ledgerService.getAccount(transport, 0)
@@ -52,7 +52,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get account', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -64,5 +64,5 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         bip44Path: bsNeo3.bip44DerivationPath.replace('?', '0'),
       })
     )
-  }, 60000)
+  })
 })

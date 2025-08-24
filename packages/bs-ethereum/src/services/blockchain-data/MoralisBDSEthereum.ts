@@ -2,7 +2,6 @@ import {
   BalanceResponse,
   ContractMethod,
   ContractResponse,
-  Network,
   Token,
   TransactionResponse,
   TransactionTransferAsset,
@@ -12,150 +11,48 @@ import {
   BSCommonConstants,
   FullTransactionsByAddressParams,
   FullTransactionsByAddressResponse,
-  NftDataService,
-  ExplorerService,
   ExportTransactionsByAddressParams,
+  TNetwork,
+  TNetworkId,
+  BSFullTransactionsByAddressHelper,
   FullTransactionsItem,
   BSBigNumberHelper,
-  FullTransactionNftEvent,
-  FullTransactionAssetEvent,
   BSPromisesHelper,
   NftResponse,
-  TokenService,
 } from '@cityofzion/blockchain-service'
 import axios from 'axios'
 import { ethers } from 'ethers'
-import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import { api } from '@cityofzion/dora-ts'
-import { DoraBDSEthereum } from './DoraBDSEthereum'
+import {
+  IBSEthereum,
+  TBSEthereumNetworkId,
+  TMoralisBDSEthereumERC20BalanceApiResponse,
+  TMoralisBDSEthereumERC20MetadataApiResponse,
+  TMoralisBDSEthereumNativeBalanceApiResponse,
+  TMoralisBDSEthereumTransactionApiResponse,
+  TMoralisTokenMetadataApiResponse,
+  TMoralisWalletHistoryApiResponse,
+} from '../../types'
+import { RpcBDSEthereum } from './RpcBDSEthereum'
 
-type MoralisNativeBalanceResponse = {
-  balance: string
-}
-
-type MoralisERC20BalanceResponse = {
-  token_address: string
-  name: string
-  symbol: string
-  decimals: number
-  balance: string
-  possible_spam: boolean
-}
-
-type MoralisERC20MetadataResponse = {
-  name: string
-  symbol: string
-  decimals: string
-}
-
-interface MoralisTransactionResponse {
-  from_address: string
-  to_address: string
-  value: string
-  transaction_fee: string
-  block_timestamp: string
-  block_number: string
-  logs: {
-    address: string
-    decoded_event: {
-      label: string
-      params: {
-        name: string
-        value: string
-        type: string
-      }[]
-    }
-  }[]
-}
-
-interface MoralisWalletHistoryResponse {
-  cursor?: string
-  result: {
-    hash: string
-    transaction_fee: string
-    block_timestamp: string
-    block_number: string
-    nft_transfers: {
-      token_address: string
-      token_id: string
-      from_address: string
-      to_address: string
-      possible_spam: boolean
-    }[]
-    erc20_transfers: {
-      token_name: string
-      token_symbol: string
-      token_decimals: string
-      address: string
-      to_address: string
-      from_address: string
-      value: string
-      possible_spam: boolean
-      verified_contract: boolean
-    }[]
-    native_transfers: {
-      from_address: string
-      to_address: string
-      value: string
-    }[]
-  }[]
-}
-
-interface MoralisTokenMetadataResponse {
-  name: string
-}
-
-export class MoralisBDSEthereum extends DoraBDSEthereum {
-  readonly #nftDataService: NftDataService
-  readonly #explorerService: ExplorerService
-
-  static BASE_URL = `${BSCommonConstants.DORA_URL}/api/v2/meta`
-
-  static SUPPORTED_CHAINS = [
-    BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID,
-    '11155111',
-    '17000',
-    BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
-    '80002',
-    '56',
-    '97',
-    BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
-    '421614',
-    BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
-    '84532',
-    '10',
-    '11155420',
-    '59144',
-    '59141',
-    '43114',
-    '250',
-    '4002',
-    '25',
-    '11297108109',
-    '2020',
-    '100',
-    '10200',
-    '88888',
-    '88882',
-    '369',
-    '1284',
-    '1285',
-    '1287',
-    '81457',
-    '168587773',
-    '324',
-    '300',
-    '5000',
-    '5003',
-    '1101',
-    '2442',
-    '7000',
-    '7001',
+export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends RpcBDSEthereum<N, A> {
+  static readonly BASE_URL = `${BSCommonConstants.DORA_URL}/api/v2/meta`
+  static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = ['1', '42161', '8453', '137']
+  static readonly FULL_TRANSACTIONS_ERC721_STANDARDS = ['erc721', 'erc-721']
+  static readonly FULL_TRANSACTIONS_ERC1155_STANDARDS = ['erc1155', 'erc-1155']
+  static readonly FULL_TRANSACTIONS_ERC20_STANDARDS = ['erc20', 'erc-20']
+  // prettier-ignore
+  static readonly MORALIS_SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = [
+    '1', '11155111', '17000', '137', '80002', '56', '97', '42161', '421614',
+    '8453', '84532', '10', '11155420', '59144', '59141', '43114', '250',
+    '4002', '25', '11297108109', '2020', '100', '10200', '88888', '88882',
+    '369', '1284', '1285', '1287', '81457', '168587773', '324', '300',
+    '5000', '5003', '1101', '2442', '7000', '7001'
   ]
 
-  static getClient(network: Network<BSEthereumNetworkId>) {
+  static getClient(network: TNetwork<TBSEthereumNetworkId>) {
     return axios.create({
       baseURL: MoralisBDSEthereum.BASE_URL,
       params: {
@@ -164,44 +61,26 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
     })
   }
 
-  static isSupported(network: Network<BSEthereumNetworkId>) {
-    return MoralisBDSEthereum.SUPPORTED_CHAINS.includes(network.id)
+  static isSupported(network: TNetwork<TBSEthereumNetworkId>) {
+    return MoralisBDSEthereum.MORALIS_SUPPORTED_NETWORKS_IDS.includes(network.id)
   }
 
-  constructor(
-    network: Network<BSEthereumNetworkId>,
-
-    nftDataService: NftDataService,
-    explorerService: ExplorerService,
-    tokenService: TokenService
-  ) {
-    super(
-      network,
-      [
-        BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID,
-        BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
-        BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
-        BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
-      ],
-      tokenService
-    )
-
-    this.#nftDataService = nftDataService
-    this.#explorerService = explorerService
+  constructor(service: IBSEthereum<N, A>) {
+    super(service)
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
-    if (!MoralisBDSEthereum.isSupported(this._network)) {
+    if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getBalance(address)
     }
 
-    const client = MoralisBDSEthereum.getClient(this._network)
+    const client = MoralisBDSEthereum.getClient(this._service.network)
 
     const {
       data: { balance: nativeBalance },
-    } = await client.get<MoralisNativeBalanceResponse>(`${address}/balance`)
+    } = await client.get<TMoralisBDSEthereumNativeBalanceApiResponse>(`${address}/balance`)
 
-    const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+    const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
 
     const balances: BalanceResponse[] = [
       {
@@ -210,14 +89,14 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
       },
     ]
 
-    const { data: erc20Balances } = await client.get<MoralisERC20BalanceResponse[]>(`${address}/erc20`)
+    const { data: erc20Balances } = await client.get<TMoralisBDSEthereumERC20BalanceApiResponse[]>(`${address}/erc20`)
 
     erc20Balances.forEach(balance => {
       if (balance.possible_spam || !balance.decimals || !balance.token_address || !balance.symbol) return
 
       balances.push({
         amount: ethers.utils.formatUnits(balance.balance, balance.decimals),
-        token: this._tokenService.normalizeToken({
+        token: this._service.tokenService.normalizeToken({
           decimals: balance.decimals,
           hash: balance.token_address,
           name: balance.name ?? '',
@@ -230,20 +109,20 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
   }
 
   async getTokenInfo(hash: string): Promise<Token> {
-    if (!MoralisBDSEthereum.isSupported(this._network)) {
+    if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTokenInfo(hash)
     }
 
-    const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
+    const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
 
-    if (this._tokenService.predicateByHash(nativeAsset, hash)) return nativeAsset
+    if (this._service.tokenService.predicateByHash(nativeAsset, hash)) return nativeAsset
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!
     }
 
-    const client = MoralisBDSEthereum.getClient(this._network)
-    const response = await client.get<MoralisERC20MetadataResponse[]>(`/erc20/metadata`, {
+    const client = MoralisBDSEthereum.getClient(this._service.network)
+    const response = await client.get<TMoralisBDSEthereumERC20MetadataApiResponse[]>(`/erc20/metadata`, {
       params: {
         addresses: [hash],
       },
@@ -251,7 +130,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
     const data = response.data[0]
 
-    const token = this._tokenService.normalizeToken({
+    const token = this._service.tokenService.normalizeToken({
       decimals: Number(data.decimals),
       symbol: data.symbol,
       hash,
@@ -264,18 +143,18 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
-    if (!MoralisBDSEthereum.isSupported(this._network)) {
+    if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransaction(hash)
     }
 
-    const client = MoralisBDSEthereum.getClient(this._network)
+    const client = MoralisBDSEthereum.getClient(this._service.network)
 
-    const { data } = await client.get<MoralisTransactionResponse>(`/transaction/${hash}/verbose`)
+    const { data } = await client.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
 
     const transfers: (TransactionTransferAsset | TransactionTransferNft)[] = []
 
     if (data.value && Number(data.value) > 0) {
-      const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+      const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
 
       transfers.push({
         amount: ethers.utils.formatUnits(data.value, nativeToken.decimals),
@@ -337,13 +216,13 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
   }
 
   async getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    if (!MoralisBDSEthereum.isSupported(this._network)) {
+    if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransactionsByAddress(params)
     }
 
-    const client = MoralisBDSEthereum.getClient(this._network)
+    const client = MoralisBDSEthereum.getClient(this._service.network)
 
-    const { data } = await client.get<MoralisWalletHistoryResponse>(`/wallets/${params.address}/history`, {
+    const { data } = await client.get<TMoralisWalletHistoryApiResponse>(`/wallets/${params.address}/history`, {
       params: {
         limit: 15,
         cursor: params.nextPageParams,
@@ -352,7 +231,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
     const transactions: TransactionResponse[] = []
 
-    const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
+    const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
 
     const promises = data.result.map(async item => {
       const transfers: (TransactionTransferAsset | TransactionTransferNft)[] = []
@@ -376,7 +255,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
           from: transfer.from_address,
           to: transfer.to_address,
           type: 'token',
-          token: this._tokenService.normalizeToken({
+          token: this._service.tokenService.normalizeToken({
             decimals: Number(transfer.token_decimals),
             hash: transfer.address,
             name: transfer.token_name,
@@ -419,7 +298,11 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
     nextCursor,
     ...params
   }: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse> {
-    this._validateGetFullTransactionsByAddressParams(params)
+    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
+      service: this._service,
+      supportedNetworksIds: MoralisBDSEthereum.FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS,
+      ...params,
+    })
 
     const data: FullTransactionsItem[] = []
 
@@ -427,19 +310,19 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
       address: params.address,
       timestampFrom: params.dateFrom,
       timestampTo: params.dateTo,
-      network: this._network.id,
+      network: this._service.network.id,
       cursor: nextCursor,
       pageLimit: params.pageSize ?? 50,
     })
 
     const items = response.data ?? []
 
-    const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+    const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
 
-    const addressTemplateUrl = this.#explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this.#explorerService.getTxTemplateUrl()
-    const nftTemplateUrl = this.#explorerService.getNftTemplateUrl()
-    const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
+    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
+    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
+    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
+    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
@@ -461,16 +344,13 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
-        let nftEvent: FullTransactionNftEvent
-        let assetEvent: FullTransactionAssetEvent
-
         const { methodName, tokenID: tokenHash, contractHash } = event
         const from = event.from ?? undefined
         const to = event.to ?? undefined
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
-        const isErc1155 = this._supportedErc1155Standards.includes(standard)
-        const isErc721 = this._supportedErc721Standards.includes(standard)
-        const isErc20 = this._supportedErc20Standards.includes(standard)
+        const isErc1155 = MoralisBDSEthereum.FULL_TRANSACTIONS_ERC1155_STANDARDS.includes(standard)
+        const isErc721 = MoralisBDSEthereum.FULL_TRANSACTIONS_ERC721_STANDARDS.includes(standard)
+        const isErc20 = MoralisBDSEthereum.FULL_TRANSACTIONS_ERC20_STANDARDS.includes(standard)
         const isNft = (isErc1155 || isErc721) && !!tokenHash
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
@@ -478,14 +358,14 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
         if (isNft) {
           const [nft] = await BSPromisesHelper.tryCatch<NftResponse>(() =>
-            this.#nftDataService.getNft({ collectionHash: contractHash, tokenHash })
+            this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
 
           const nftUrl = contractHash
             ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
             : undefined
 
-          nftEvent = {
+          newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
             amount: undefined,
             methodName,
@@ -501,28 +381,27 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
             nftUrl,
             name: nft?.name,
             collectionName: nft?.collection?.name,
-          }
-        } else {
-          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(contractHash))
+          })
 
-          assetEvent = {
-            eventType: 'token',
-            amount: event.amount
-              ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
-              : undefined,
-            methodName,
-            from,
-            fromUrl,
-            to,
-            toUrl,
-            contractHash,
-            contractHashUrl,
-            token: token ?? undefined,
-            tokenType: isErc20 ? 'erc-20' : 'generic',
-          }
+          return
         }
+        const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(contractHash))
 
-        newItem.events.splice(eventIndex, 0, isNft ? nftEvent! : assetEvent!)
+        newItem.events.splice(eventIndex, 0, {
+          eventType: 'token',
+          amount: event.amount
+            ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            : undefined,
+          methodName,
+          from,
+          fromUrl,
+          to,
+          toUrl,
+          contractHash,
+          contractHashUrl,
+          token: token ?? undefined,
+          tokenType: isErc20 ? 'erc-20' : 'generic',
+        })
       })
 
       await Promise.allSettled(eventPromises)
@@ -536,25 +415,29 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
   }
 
   async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
-    this._validateFullTransactionsByAddressParams(params)
+    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
+      service: this._service,
+      supportedNetworksIds: MoralisBDSEthereum.FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS,
+      ...params,
+    })
 
     return await api.EthereumREST.exportFullTransactionsByAddress({
       address: params.address,
       timestampFrom: params.dateFrom,
       timestampTo: params.dateTo,
-      network: this._network.id,
+      network: this._service.network.id,
     })
   }
 
   async getContract(hash: string): Promise<ContractResponse> {
-    if (!MoralisBDSEthereum.isSupported(this._network)) {
+    if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getContract(hash)
     }
 
     try {
-      const client = MoralisBDSEthereum.getClient(this._network)
+      const client = MoralisBDSEthereum.getClient(this._service.network)
 
-      const { data } = await client.get<MoralisTokenMetadataResponse[]>(`erc20/metadata`, {
+      const { data } = await client.get<TMoralisTokenMetadataApiResponse[]>(`erc20/metadata`, {
         params: {
           addresses: [hash],
         },

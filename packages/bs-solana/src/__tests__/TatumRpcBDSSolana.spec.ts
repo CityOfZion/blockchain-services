@@ -1,17 +1,13 @@
+import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import { TatumRpcBDSSolana } from '../services/blockchain-data/TatumRpcBDSSolana'
 
-const network = BSSolanaConstants.TESTNET_NETWORKS[0]
-let rpcBDSSolana: TatumRpcBDSSolana
+let rpcBDSSolana: TatumRpcBDSSolana<'test'>
 
 describe('TatumRpcBDSSolana', () => {
   beforeAll(() => {
-    rpcBDSSolana = new TatumRpcBDSSolana(
-      network,
-      BSSolanaConstants.NATIVE_TOKEN,
-      process.env.TATUM_MAINNET_API_KEY!,
-      process.env.TATUM_TESTNET_API_KEY!
-    )
+    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
+    rpcBDSSolana = new TatumRpcBDSSolana(service)
   })
 
   // It may throw an error as the tatum devnet only returns transaction made in less than 10 days

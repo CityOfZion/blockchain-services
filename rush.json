@@ -51,6 +51,11 @@
       "packageName": "@cityofzion/bs-solana",
       "projectFolder": "packages/bs-solana",
       "shouldPublish": true
+    },
+    {
+      "packageName": "@cityofzion/bs-cardano",
+      "projectFolder": "packages/bs-cardano",
+      "shouldPublish": true
     }
   ]
 }

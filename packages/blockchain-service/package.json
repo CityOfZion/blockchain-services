@@ -10,7 +10,7 @@
     "/dist"
   ],
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
+    "build": "tsc",
     "test": "jest --config jest.config.ts",
     "lint": "eslint .",
     "format": "eslint --fix"
@@ -32,6 +32,7 @@
     "@ledgerhq/hw-transport": "~6.31.8",
     "axios": "1.8.2",
     "date-fns": "~4.1.0",
-    "bignumber.js": "~9.3.0"
+    "bignumber.js": "~9.3.0",
+    "query-string": "7.1.3"
   }
 }

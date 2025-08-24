@@ -1,18 +1,19 @@
-import { Network } from '@cityofzion/blockchain-service'
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3 } from '../../BSNeo3'
-import { BSNeo3Constants, BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
+import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
+import { TNetwork } from '@cityofzion/blockchain-service'
+import { TBSNeo3NetworkId } from '../../types'
 
 let bsNeo3: BSNeo3<'neo3'>
-let network: Network<BSNeo3NetworkId>
+let network: TNetwork<TBSNeo3NetworkId>
 
 describe('BSNeo3', () => {
   beforeAll(async () => {
-    network = BSNeo3Constants.TESTNET_NETWORKS[0]
+    network = BSNeo3Constants.TESTNET_NETWORK
     bsNeo3 = new BSNeo3('neo3', network)
-  }, 60000)
+  })
 
   it('Should be able to validate an address', () => {
     const validAddress = 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe'
@@ -76,7 +77,7 @@ describe('BSNeo3', () => {
     const encryptedKey = await bsNeo3.encrypt(account.key, password)
     const decryptedAccount = await bsNeo3.decrypt(encryptedKey, password)
     expect(account).toEqual(expect.objectContaining(decryptedAccount))
-  }, 20000)
+  })
 
   it('Should be able to encrypt a key', async () => {
     const mnemonic = generateMnemonic()
@@ -152,16 +153,16 @@ describe('BSNeo3', () => {
     })
     transport.close()
     expect(transactionHash).toEqual(expect.any(String))
-  }, 60000)
+  })
 
   it.skip('Should be able to claim', async () => {
     const account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
-    const unclaimed = await bsNeo3.blockchainDataService.getUnclaimed(account.address)
+    const unclaimed = await bsNeo3.claimDataService.getUnclaimed(account.address)
     expect(Number(unclaimed)).toBeGreaterThan(0)
     const transactionHash = await bsNeo3.claim(account)
     expect(transactionHash).toEqual(expect.any(String))
-  }, 60000)
+  })
 
   it('Should be able to resolve a name service domain', async () => {
     const owner = await bsNeo3.resolveNameServiceDomain('neo.neo')
@@ -265,5 +266,5 @@ describe('BSNeo3', () => {
 
     transport.close()
     expect(transactionHash).toEqual(expect.any(String))
-  }, 60000)
+  })
 })

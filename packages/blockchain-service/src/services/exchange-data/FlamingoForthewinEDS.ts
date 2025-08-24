@@ -1,42 +1,36 @@
-import { ExchangeDataService, GetTokenPricesParams, ITokenService, TokenPricesResponse } from '../../interfaces'
+import { GetTokenPricesParams, IBlockchainService, IExchangeDataService, TokenPricesResponse } from '../../interfaces'
 import axios from 'axios'
 import { CryptoCompareEDS } from './CryptoCompareEDS'
+import {
+  TFlamingoForthewinEDSFlamingoPricesApiResponse,
+  TFlamingoForthewinEDSForthewinPricesApiResponse,
+} from '../../types'
 
-type FlamingoTokenInfoPricesResponse = {
-  symbol: string
-  usd_price: number
-  hash: string
-}[]
-
-type ForthewinTokenInfoPricesResponse = {
-  [key: string]: number
-}
-
-export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDataService {
+export class FlamingoForthewinEDS<N extends string> extends CryptoCompareEDS implements IExchangeDataService {
   readonly #flamingoAxiosInstance = axios.create({ baseURL: 'https://neo-api.b-cdn.net/flamingo' })
   readonly #forthewinAxiosInstance = axios.create({ baseURL: 'https://api.forthewin.network' })
-  readonly #tokenService: ITokenService
+  readonly _service: IBlockchainService<N>
 
-  constructor(tokenService: ITokenService) {
+  constructor(service: IBlockchainService<N>) {
     super()
 
-    this.#tokenService = tokenService
+    this._service = service
   }
 
   async getTokenPrices({ tokens }: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
     const { data: flamingoData } =
-      await this.#flamingoAxiosInstance.get<FlamingoTokenInfoPricesResponse>('/live-data/prices/latest')
+      await this.#flamingoAxiosInstance.get<TFlamingoForthewinEDSFlamingoPricesApiResponse>('/live-data/prices/latest')
 
     const prices: TokenPricesResponse[] = []
     const neoToken = tokens.find(({ symbol }) => symbol === 'NEO')
 
-    if (neoToken && !flamingoData.find(token => this.#tokenService.predicate(neoToken, token)))
+    if (neoToken && !flamingoData.find(token => this._service.tokenService.predicate(neoToken, token)))
       flamingoData.forEach(item => {
         if (item.symbol === 'bNEO') flamingoData.push({ ...item, symbol: neoToken.symbol, hash: neoToken.hash })
       })
 
     flamingoData.forEach(item => {
-      const token = tokens.find(currentToken => this.#tokenService.predicate(item, currentToken))
+      const token = tokens.find(token => this._service.tokenService.predicate(item, token))
 
       if (!token) return
 
@@ -45,14 +39,14 @@ export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDa
 
     if (tokens.length > prices.length) {
       const { data: forthewinData } =
-        await this.#forthewinAxiosInstance.get<ForthewinTokenInfoPricesResponse>('/mainnet/prices')
+        await this.#forthewinAxiosInstance.get<TFlamingoForthewinEDSForthewinPricesApiResponse>('/mainnet/prices')
 
       Object.entries(forthewinData).forEach(([hash, usdPrice]) => {
-        const hasPrice = !!prices.find(({ token }) => this.#tokenService.predicateByHash(hash, token))
+        const hasPrice = !!prices.find(({ token }) => this._service.tokenService.predicate({ hash }, token))
 
         if (hasPrice) return
 
-        const foundToken = tokens.find(token => this.#tokenService.predicateByHash(hash, token))
+        const foundToken = tokens.find(token => this._service.tokenService.predicate({ hash }, token))
 
         if (!foundToken) return
 

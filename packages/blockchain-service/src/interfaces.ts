@@ -2,15 +2,15 @@ import Transport from '@ledgerhq/hw-transport'
 import TypedEmitter from 'typed-emitter'
 import { BSError } from './error'
 
-export type UntilIndexRecord<BSName extends string = string> = Partial<Record<BSName, Record<string, number>>>
+export type UntilIndexRecord<N extends string = string> = Partial<Record<N, Record<string, number>>>
 
-export type Account<BSName extends string = string> = {
+export type Account<N extends string = string> = {
   key: string
   type: 'wif' | 'privateKey' | 'publicKey'
   address: string
   bip44Path?: string
   isHardware?: boolean
-  blockchain: BSName
+  blockchain: N
 }
 
 export type Token = {
@@ -21,12 +21,15 @@ export type Token = {
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-export type NetworkId<T extends string = string> = T | (string & {})
+export type TNetworkId<T extends string = string> = T | (string & {})
 
-export type Network<T extends string = string> = {
-  id: NetworkId<T>
+export type TNetworkType = 'mainnet' | 'testnet' | 'custom'
+
+export type TNetwork<T extends string = string> = {
+  id: TNetworkId<T>
   name: string
   url: string
+  type: TNetworkType
 }
 
 export type IntentTransferParam = {
@@ -36,63 +39,73 @@ export type IntentTransferParam = {
   tokenDecimals?: number
 }
 
-export type TransferParam<BSName extends string = string> = {
-  senderAccount: Account<BSName>
+export type TransferParam<N extends string = string> = {
+  senderAccount: Account<N>
   intents: IntentTransferParam[]
   tipIntent?: IntentTransferParam
   priorityFee?: string
 }
 
-export interface BlockchainService<BSName extends string = string, BSAvailableNetworks extends string = string> {
-  readonly name: BSName
+export interface IBlockchainService<N extends string = string, A extends string = string> {
+  readonly name: N
   readonly bip44DerivationPath: string
   readonly feeToken: Token
-  exchangeDataService: ExchangeDataService
-  blockchainDataService: BlockchainDataService
-  tokenService: ITokenService
+  readonly isMultiTransferSupported: boolean
+  readonly isCustomNetworkSupported: boolean
+
   tokens: Token[]
-  nativeTokens: Token[]
-  network: Network<BSAvailableNetworks>
-  testNetwork: (network: Network<BSAvailableNetworks>) => Promise<void>
-  setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void
-  generateAccountFromMnemonic(mnemonic: string, index: number): Account<BSName>
-  generateAccountFromKey(key: string): Account<BSName>
+  readonly nativeTokens: Token[]
+
+  network: TNetwork<A>
+  readonly defaultNetwork: TNetwork<A>
+  readonly availableNetworks: TNetwork<A>[]
+
+  exchangeDataService: IExchangeDataService
+  blockchainDataService: IBlockchainDataService
+  tokenService: ITokenService
+
+  testNetwork: (network: TNetwork<A>) => Promise<void>
+  setNetwork: (partialNetwork: TNetwork<A>) => void
+  generateAccountFromMnemonic(mnemonic: string, index: number): Account<N>
+  generateAccountFromKey(key: string): Account<N>
   validateAddress(address: string): boolean
   validateKey(key: string): boolean
-  transfer(param: TransferParam<BSName>): Promise<string[]>
+  transfer(param: TransferParam<N>): Promise<string[]>
 }
 
-export interface BSWithEncryption<BSName extends string = string> {
-  decrypt(keyOrJson: string, password: string): Promise<Account<BSName>>
+export interface IBSWithEncryption<N extends string = string> {
+  decrypt(keyOrJson: string, password: string): Promise<Account<N>>
   encrypt(key: string, password: string): Promise<string>
   validateEncrypted(keyOrJson: string): boolean
 }
 
-export interface BSCalculableFee<BSName extends string = string> {
-  calculateTransferFee(param: TransferParam<BSName>): Promise<string>
+export interface IBSWithFee<N extends string = string> {
+  calculateTransferFee(param: TransferParam<N>): Promise<string>
 }
-export interface BSClaimable<BSName extends string = string> {
+export interface IBSWithClaim<N extends string = string> {
   readonly claimToken: Token
   readonly burnToken: Token
-  blockchainDataService: BlockchainDataService & BDSClaimable
-  claim(account: Account<BSName>): Promise<string>
+
+  claimDataService: IClaimDataService
+
+  claim(account: Account<N>): Promise<string>
 }
-export interface BSWithNameService {
+export interface IBSWithNameService {
   resolveNameServiceDomain(domainName: string): Promise<string>
   validateNameServiceDomainFormat(domainName: string): boolean
 }
 
-export interface BSWithExplorerService {
-  explorerService: ExplorerService
+export interface IBSWithExplorer {
+  explorerService: IExplorerService
 }
 
-export interface BSWithNft {
-  nftDataService: NftDataService
+export interface IBSWithNft {
+  nftDataService: INftDataService
 }
 
-export interface BSWithLedger<BSName extends string = string> {
-  ledgerService: LedgerService<BSName>
-  generateAccountFromPublicKey(publicKey: string): Account<BSName>
+export interface IBSWithLedger<N extends string = string> {
+  ledgerService: ILedgerService<N>
+  generateAccountFromPublicKey(publicKey: string): Account<N>
 }
 
 export type TransactionNotificationTypedResponse = {
@@ -254,8 +267,9 @@ export type RpcResponse = {
   url: string
   height: number
 }
-export interface BlockchainDataService {
-  maxTimeToConfirmTransactionInMs: number
+export interface IBlockchainDataService {
+  readonly maxTimeToConfirmTransactionInMs: number
+
   getTransaction(txid: string): Promise<TransactionResponse>
   getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse>
   getFullTransactionsByAddress(params: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse>
@@ -267,7 +281,7 @@ export interface BlockchainDataService {
   getRpcList(): Promise<RpcResponse[]>
 }
 
-export interface BDSClaimable {
+export interface IClaimDataService {
   getUnclaimed(address: string): Promise<string>
 }
 
@@ -289,12 +303,12 @@ export type GetTokenPriceHistoryParams = {
 export type GetTokenPricesParams = {
   tokens: Token[]
 }
-export interface ExchangeDataService {
+export interface IExchangeDataService {
   getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]>
   getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]>
   getCurrencyRatio(currency: string): Promise<number>
 }
-export interface NftResponse {
+export type NftResponse = {
   hash: string
   collection: {
     name?: string
@@ -310,7 +324,7 @@ export interface NftResponse {
   name?: string
   isSVG?: boolean
 }
-export interface NftsResponse {
+export type NftsResponse = {
   items: NftResponse[]
   nextCursor?: string
   total?: number
@@ -330,7 +344,7 @@ export type HasTokenParam = {
   address: string
   collectionHash: string
 }
-export interface NftDataService {
+export interface INftDataService {
   getNftsByAddress(params: GetNftsByAddressParams): Promise<NftsResponse>
   getNft(params: GetNftParam): Promise<NftResponse>
   hasToken(params: HasTokenParam): Promise<boolean>
@@ -340,7 +354,7 @@ export type BuildNftUrlParams = {
   collectionHash: string
   tokenHash: string
 }
-export interface ExplorerService {
+export interface IExplorerService {
   buildTransactionUrl(hash: string): string
   buildContractUrl(contractHash: string): string
   buildNftUrl(params: BuildNftUrlParams): string
@@ -355,18 +369,18 @@ export type LedgerServiceEmitter = TypedEmitter<{
   getSignatureEnd(): void | Promise<void>
 }>
 
-export type GetLedgerTransport<BSName extends string = string> = (account: Account<BSName>) => Promise<Transport>
+export type GetLedgerTransport<N extends string = string> = (account: Account<N>) => Promise<Transport>
 
-export interface LedgerService<BSName extends string = string> {
+export interface ILedgerService<N extends string = string> {
   emitter: LedgerServiceEmitter
-  getLedgerTransport?: GetLedgerTransport<BSName>
-  getAccounts(transport: Transport, getUntilIndex?: UntilIndexRecord<BSName>): Promise<Account<BSName>[]>
-  getAccount(transport: Transport, index: number): Promise<Account<BSName>>
+  getLedgerTransport?: GetLedgerTransport<N>
+  getAccounts(transport: Transport, getUntilIndex?: UntilIndexRecord<N>): Promise<Account<N>[]>
+  getAccount(transport: Transport, index: number): Promise<Account<N>>
 }
 
-export type TSwapToken<BSName extends string = string> = {
+export type TSwapToken<N extends string = string> = {
   id: string
-  blockchain?: BSName
+  blockchain?: N
   imageUrl?: string
   symbol: string
   name: string
@@ -386,17 +400,17 @@ export type TSwapMinMaxAmount = {
   max: string | null
 }
 
-export type TSwapOrchestratorEvents<BSName extends string = string> = {
-  accountToUse: (account: TSwapValidateValue<Account<BSName>>) => void | Promise<void>
+export type TSwapOrchestratorEvents<N extends string = string> = {
+  accountToUse: (account: TSwapValidateValue<Account<N>>) => void | Promise<void>
   amountToUse: (amount: TSwapLoadableValue<string>) => void | Promise<void>
   amountToUseMinMax: (minMax: TSwapLoadableValue<TSwapMinMaxAmount>) => void | Promise<void>
-  tokenToUse: (token: TSwapLoadableValue<TSwapToken<BSName>>) => void | Promise<void>
-  availableTokensToUse: (tokens: TSwapLoadableValue<TSwapToken<BSName>[]>) => void | Promise<void>
+  tokenToUse: (token: TSwapLoadableValue<TSwapToken<N>>) => void | Promise<void>
+  availableTokensToUse: (tokens: TSwapLoadableValue<TSwapToken<N>[]>) => void | Promise<void>
   addressToReceive: (account: TSwapValidateValue<string>) => void | Promise<void>
   extraIdToReceive: (extraIdToReceive: TSwapValidateValue<string>) => void
   amountToReceive: (amount: TSwapLoadableValue<string>) => void | Promise<void>
-  tokenToReceive: (token: TSwapLoadableValue<TSwapToken<BSName>>) => void | Promise<void>
-  availableTokensToReceive: (tokens: TSwapLoadableValue<TSwapToken<BSName>[]>) => void | Promise<void>
+  tokenToReceive: (token: TSwapLoadableValue<TSwapToken<N>>) => void | Promise<void>
+  availableTokensToReceive: (tokens: TSwapLoadableValue<TSwapToken<N>[]>) => void | Promise<void>
   error: (error: string) => void | Promise<void>
 }
 
@@ -416,47 +430,47 @@ export interface ISwapService {
   getStatus(id: string): Promise<TSwapServiceStatusResponse>
 }
 
-export interface ISwapOrchestrator<BSName extends string = string> {
-  eventEmitter: TypedEmitter<TSwapOrchestratorEvents<BSName>>
+export interface ISwapOrchestrator<N extends string = string> {
+  eventEmitter: TypedEmitter<TSwapOrchestratorEvents<N>>
 
-  setTokenToUse(token: TSwapToken<BSName> | null): Promise<void>
-  setAccountToUse(account: Account<BSName> | null): Promise<void>
+  setTokenToUse(token: TSwapToken<N> | null): Promise<void>
+  setAccountToUse(account: Account<N> | null): Promise<void>
   setAmountToUse(amount: string | null): Promise<void>
-  setTokenToReceive(token: TSwapToken<BSName> | null): Promise<void>
+  setTokenToReceive(token: TSwapToken<N> | null): Promise<void>
   setAddressToReceive(address: string | null): Promise<void>
   setExtraIdToReceive(extraId: string | null): Promise<void>
   swap(): Promise<TSwapResult>
   calculateFee(): Promise<string>
 }
 
-export type TBridgeToken<BSName extends string = string> = Token & {
+export type TBridgeToken<N extends string = string> = Token & {
   multichainId: string
-  blockchain: BSName
+  blockchain: N
 }
 
 export type TBridgeValue<T> = { value: T | null; loading: boolean; error: BSError | null }
 
 export type TBridgeValidateValue<T> = TBridgeValue<T> & { valid: boolean | null }
 
-export type TBridgeOrchestratorEvents<BSName extends string = string> = {
-  accountToUse: (account: TBridgeValue<Account<BSName>>) => void | Promise<void>
+export type TBridgeOrchestratorEvents<N extends string = string> = {
+  accountToUse: (account: TBridgeValue<Account<N>>) => void | Promise<void>
   amountToUse: (amount: TBridgeValidateValue<string>) => void | Promise<void>
   amountToUseMin: (max: TBridgeValue<string>) => void | Promise<void>
   amountToUseMax: (max: TBridgeValue<string>) => void | Promise<void>
-  tokenToUse: (token: TBridgeValue<TBridgeToken<BSName>>) => void | Promise<void>
-  availableTokensToUse: (tokens: TBridgeValue<TBridgeToken<BSName>[]>) => void | Promise<void>
+  tokenToUse: (token: TBridgeValue<TBridgeToken<N>>) => void | Promise<void>
+  availableTokensToUse: (tokens: TBridgeValue<TBridgeToken<N>[]>) => void | Promise<void>
   addressToReceive: (account: TBridgeValidateValue<string>) => void | Promise<void>
   amountToReceive: (amount: TBridgeValue<string>) => void | Promise<void>
-  tokenToReceive: (token: TBridgeValue<TBridgeToken<BSName>>) => void | Promise<void>
+  tokenToReceive: (token: TBridgeValue<TBridgeToken<N>>) => void | Promise<void>
   tokenToUseBalance: (balance: TBridgeValue<BalanceResponse | undefined>) => void | Promise<void>
   bridgeFee: (fee: TBridgeValue<string>) => void | Promise<void>
 }
 
-export interface IBridgeOrchestrator<BSName extends string = string> {
-  eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<BSName>>
+export interface IBridgeOrchestrator<N extends string = string> {
+  eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<N>>
 
-  setTokenToUse(token: TBridgeToken<BSName> | null): Promise<void>
-  setAccountToUse(account: Account<BSName> | null): Promise<void>
+  setTokenToUse(token: TBridgeToken<N> | null): Promise<void>
+  setAccountToUse(account: Account<N> | null): Promise<void>
   setAmountToUse(amount: string | null): Promise<void>
   setAddressToReceive(address: string | null): Promise<void>
   setBalances(balances: BalanceResponse[] | null): Promise<void>
@@ -464,8 +478,8 @@ export interface IBridgeOrchestrator<BSName extends string = string> {
   bridge(): Promise<string>
 }
 
-export interface IBSWithNeo3NeoXBridge<BSName extends string = string> {
-  neo3NeoXBridgeService: INeo3NeoXBridgeService<BSName>
+export interface IBSWithNeo3NeoXBridge<N extends string = string> {
+  neo3NeoXBridgeService: INeo3NeoXBridgeService<N>
 }
 
 export type TNeo3NeoXBridgeServiceConstants = {
@@ -474,36 +488,36 @@ export type TNeo3NeoXBridgeServiceConstants = {
   bridgeMinAmount: string
 }
 
-export type TNeo3NeoXBridgeServiceBridgeParam<BSName extends string = string> = {
-  account: Account<BSName>
+export type TNeo3NeoXBridgeServiceBridgeParam<N extends string = string> = {
+  account: Account<N>
   receiverAddress: string
   amount: string
-  token: TBridgeToken<BSName>
+  token: TBridgeToken<N>
   bridgeFee: string
 }
 
-export type TNeo3NeoXBridgeServiceGetApprovalParam<BSName extends string = string> = {
-  account: Account<BSName>
+export type TNeo3NeoXBridgeServiceGetApprovalParam<N extends string = string> = {
+  account: Account<N>
   amount: string
-  token: TBridgeToken<BSName>
+  token: TBridgeToken<N>
 }
 
-export type TNeo3NeoXBridgeServiceGetNonceParams<BSName extends string = string> = {
-  token: TBridgeToken<BSName>
+export type TNeo3NeoXBridgeServiceGetNonceParams<N extends string = string> = {
+  token: TBridgeToken<N>
   transactionHash: string
 }
 
-export type TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<BSName extends string = string> = {
-  token: TBridgeToken<BSName>
+export type TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N extends string = string> = {
+  token: TBridgeToken<N>
   nonce: string
 }
-export interface INeo3NeoXBridgeService<BSName extends string = string> {
-  tokens: TBridgeToken<BSName>[]
+export interface INeo3NeoXBridgeService<N extends string = string> {
+  readonly tokens: TBridgeToken<N>[]
   getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam): Promise<string>
   getBridgeConstants(token: TBridgeToken): Promise<TNeo3NeoXBridgeServiceConstants>
-  bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string>
-  getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string>
-  getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<BSName>): Promise<string>
+  bridge(params: TNeo3NeoXBridgeServiceBridgeParam<N>): Promise<string>
+  getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<N>): Promise<string>
+  getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N>): Promise<string>
 }
 
 export type TTokenServicePredicateParams = {

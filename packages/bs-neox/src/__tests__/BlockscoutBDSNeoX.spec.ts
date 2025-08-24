@@ -1,8 +1,5 @@
 import {
   BalanceResponse,
-  ExplorerService,
-  INeo3NeoXBridgeService,
-  NftDataService,
   TBridgeToken,
   TransactionBridgeNeo3NeoXResponse,
   TransactionResponse,
@@ -10,42 +7,25 @@ import {
   TransactionTransferAsset,
 } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
-import { GhostMarketNDSNeoX } from '../services/nft-data/GhostMarketNDSNeoX'
-import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
+
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
-import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
-import { Neo3NeoXBridgeService } from '../services/neo3neoXBridge/Neo3NeoXBridgeService'
+
 import { BSNeoX } from '../BSNeoX'
 
-const neoxMainnetNetwork = BSNeoXConstants.MAINNET_NETWORKS[0]
-let nftDataService: NftDataService
-let explorerService: ExplorerService
-let blockscoutBDSNeoX: BlockscoutBDSNeoX
-let neo3NeoXBridgeService: INeo3NeoXBridgeService
+let blockscoutBDSNeoX: BlockscoutBDSNeoX<'test'>
 
 describe('BlockscoutBDSNeoX', () => {
-  const bridgeGasToken: TBridgeToken<'neox'> = {
+  const bridgeGasToken: TBridgeToken<'test'> = {
     ...BSNeoXConstants.NATIVE_ASSET,
     multichainId: 'gas',
-    blockchain: 'neox',
+    blockchain: 'test',
   }
 
-  const bridgeNeoToken: TBridgeToken<'neox'> = { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: 'neox' }
+  const bridgeNeoToken: TBridgeToken<'test'> = { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: 'test' }
 
   beforeEach(() => {
-    const tokenService = new TokenServiceEthereum()
-
-    nftDataService = new GhostMarketNDSNeoX(neoxMainnetNetwork)
-    explorerService = new BlockscoutESNeoX(neoxMainnetNetwork, tokenService)
-    neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeoX('neox', neoxMainnetNetwork))
-
-    blockscoutBDSNeoX = new BlockscoutBDSNeoX(
-      neoxMainnetNetwork,
-      nftDataService,
-      explorerService,
-      tokenService,
-      neo3NeoXBridgeService
-    )
+    const service = new BSNeoX('test')
+    blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
   })
 
   it('Should return transaction details for native assets (GAS)', async () => {

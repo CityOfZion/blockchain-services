@@ -1,6 +1,6 @@
 import {
   Account,
-  BlockchainService,
+  IBlockchainService,
   BSBigNumberHelper,
   isCalculableFee,
   ISwapOrchestrator,
@@ -16,41 +16,41 @@ import TypedEmitter from 'typed-emitter'
 import { SimpleSwapApi } from './SimpleSwapApi'
 import { TSimpleSwapApiCurrency, TSimpleSwapOrchestratorInitParams } from './types'
 
-type TRecalculateValuesParam<BSName extends string = string> = (keyof TSwapOrchestratorEvents<BSName>)[]
+type TRecalculateValuesParam<N extends string = string> = (keyof TSwapOrchestratorEvents<N>)[]
 
-export class SimpleSwapOrchestrator<BSName extends string = string> implements ISwapOrchestrator<BSName> {
-  eventEmitter: TypedEmitter<TSwapOrchestratorEvents<BSName>>
+export class SimpleSwapOrchestrator<N extends string = string> implements ISwapOrchestrator<N> {
+  eventEmitter: TypedEmitter<TSwapOrchestratorEvents<N>>
 
-  #api: SimpleSwapApi<BSName>
-  #blockchainServicesByName: Record<BSName, BlockchainService<BSName>>
-  #chainsByServiceName: Partial<Record<BSName, string[]>>
+  #api: SimpleSwapApi<N>
+  #blockchainServicesByName: Record<N, IBlockchainService<N>>
+  #chainsByServiceName: Partial<Record<N, string[]>>
   #amountToUseTimeout: NodeJS.Timeout | null = null
 
-  #internalAvailableTokensToUse: TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>[]> = {
+  #internalAvailableTokensToUse: TSwapLoadableValue<TSimpleSwapApiCurrency<N>[]> = {
     loading: false,
     value: null,
   }
-  #internalTokenToUse: TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>> = { loading: false, value: null }
-  #internalAccountToUse: TSwapValidateValue<Account<BSName>> = { loading: false, value: null, valid: null }
+  #internalTokenToUse: TSwapLoadableValue<TSimpleSwapApiCurrency<N>> = { loading: false, value: null }
+  #internalAccountToUse: TSwapValidateValue<Account<N>> = { loading: false, value: null, valid: null }
   #internalAmountToUse: TSwapLoadableValue<string> = { loading: false, value: null }
   #internalAmountToUseMinMax: TSwapLoadableValue<TSwapMinMaxAmount> = { loading: false, value: null }
-  #internalAvailableTokensToReceive: TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>[]> = {
+  #internalAvailableTokensToReceive: TSwapLoadableValue<TSimpleSwapApiCurrency<N>[]> = {
     loading: false,
     value: null,
   }
-  #internalTokenToReceive: TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>> = { loading: false, value: null }
+  #internalTokenToReceive: TSwapLoadableValue<TSimpleSwapApiCurrency<N>> = { loading: false, value: null }
   #internalAddressToReceive: TSwapValidateValue<string> = { loading: false, value: null, valid: null }
   #internalExtraIdToReceive: TSwapValidateValue<string> = { loading: false, value: null, valid: null }
   #internalAmountToReceive: TSwapLoadableValue<string> = { loading: false, value: null }
 
-  constructor(params: TSimpleSwapOrchestratorInitParams<BSName>) {
+  constructor(params: TSimpleSwapOrchestratorInitParams<N>) {
     this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents>
     this.#api = new SimpleSwapApi()
     this.#blockchainServicesByName = params.blockchainServicesByName
     this.#chainsByServiceName = params.chainsByServiceName
   }
 
-  #createSwapToken(token: TSimpleSwapApiCurrency<BSName>): TSwapToken<BSName> {
+  #createSwapToken(token: TSimpleSwapApiCurrency<N>): TSwapToken<N> {
     return {
       id: token.id,
       blockchain: token.blockchain,
@@ -66,10 +66,10 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     }
   }
 
-  get #availableTokensToUse(): TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>[]> {
+  get #availableTokensToUse(): TSwapLoadableValue<TSimpleSwapApiCurrency<N>[]> {
     return this.#internalAvailableTokensToUse
   }
-  set #availableTokensToUse(availableTokens: Partial<TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>[]>>) {
+  set #availableTokensToUse(availableTokens: Partial<TSwapLoadableValue<TSimpleSwapApiCurrency<N>[]>>) {
     this.#internalAvailableTokensToUse = { ...this.#internalAvailableTokensToUse, ...availableTokens }
 
     this.eventEmitter.emit('availableTokensToUse', {
@@ -80,10 +80,10 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     })
   }
 
-  get #tokenToUse(): TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>> {
+  get #tokenToUse(): TSwapLoadableValue<TSimpleSwapApiCurrency<N>> {
     return this.#internalTokenToUse
   }
-  set #tokenToUse(tokenToUse: Partial<TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>>>) {
+  set #tokenToUse(tokenToUse: Partial<TSwapLoadableValue<TSimpleSwapApiCurrency<N>>>) {
     this.#internalTokenToUse = { ...this.#internalTokenToUse, ...tokenToUse }
 
     this.eventEmitter.emit('tokenToUse', {
@@ -94,10 +94,10 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     })
   }
 
-  get #accountToUse(): TSwapValidateValue<Account<BSName>> {
+  get #accountToUse(): TSwapValidateValue<Account<N>> {
     return this.#internalAccountToUse
   }
-  set #accountToUse(accountToUse: Partial<TSwapValidateValue<Account<BSName>>>) {
+  set #accountToUse(accountToUse: Partial<TSwapValidateValue<Account<N>>>) {
     this.#internalAccountToUse = { ...this.#internalAccountToUse, ...accountToUse }
     this.eventEmitter.emit('accountToUse', this.#internalAccountToUse)
   }
@@ -118,10 +118,10 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     this.eventEmitter.emit('amountToUseMinMax', this.#internalAmountToUseMinMax)
   }
 
-  get #availableTokensToReceive(): TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>[]> {
+  get #availableTokensToReceive(): TSwapLoadableValue<TSimpleSwapApiCurrency<N>[]> {
     return this.#internalAvailableTokensToReceive
   }
-  set #availableTokensToReceive(availableTokens: Partial<TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>[]>>) {
+  set #availableTokensToReceive(availableTokens: Partial<TSwapLoadableValue<TSimpleSwapApiCurrency<N>[]>>) {
     this.#internalAvailableTokensToReceive = { ...this.#internalAvailableTokensToReceive, ...availableTokens }
 
     this.eventEmitter.emit('availableTokensToReceive', {
@@ -132,10 +132,10 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     })
   }
 
-  get #tokenToReceive(): TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>> {
+  get #tokenToReceive(): TSwapLoadableValue<TSimpleSwapApiCurrency<N>> {
     return this.#internalTokenToReceive
   }
-  set #tokenToReceive(tokenToReceive: Partial<TSwapLoadableValue<TSimpleSwapApiCurrency<BSName>>>) {
+  set #tokenToReceive(tokenToReceive: Partial<TSwapLoadableValue<TSimpleSwapApiCurrency<N>>>) {
     this.#internalTokenToReceive = { ...this.#internalTokenToReceive, ...tokenToReceive }
 
     this.eventEmitter.emit('tokenToReceive', {
@@ -174,7 +174,7 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     this.eventEmitter.emit('amountToReceive', this.#internalAmountToReceive)
   }
 
-  async #recalculateValues(fieldsToRecalculate: TRecalculateValuesParam<BSName>) {
+  async #recalculateValues(fieldsToRecalculate: TRecalculateValuesParam<N>) {
     try {
       if (this.#tokenToUse.value === null) {
         return
@@ -319,14 +319,14 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     }
   }
 
-  async setTokenToUse(token: TSwapToken<BSName> | null): Promise<void> {
+  async setTokenToUse(token: TSwapToken<N> | null): Promise<void> {
     this.#amountToReceive = { loading: false, value: null }
     this.#amountToUseMinMax = { loading: false, value: null }
     this.#tokenToUse = { loading: true }
 
     if (!this.#availableTokensToUse.value) throw new Error('Available tokens to use is not set')
 
-    let simpleSwapCurrency: TSimpleSwapApiCurrency<BSName> | null = null
+    let simpleSwapCurrency: TSimpleSwapApiCurrency<N> | null = null
 
     if (token) {
       simpleSwapCurrency = this.#availableTokensToUse.value.find(item => item.id === token.id) ?? null
@@ -344,7 +344,7 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     await this.#recalculateValues(['amountToReceive', 'availableTokensToReceive', 'amountToUseMinMax', 'amountToUse'])
   }
 
-  async setAccountToUse(account: Account<BSName> | null): Promise<void> {
+  async setAccountToUse(account: Account<N> | null): Promise<void> {
     this.#accountToUse = { value: account }
     await this.#recalculateValues([])
   }
@@ -368,14 +368,14 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     }, 1500)
   }
 
-  async setTokenToReceive(token: TSwapToken<BSName> | null): Promise<void> {
+  async setTokenToReceive(token: TSwapToken<N> | null): Promise<void> {
     this.#extraIdToReceive = { value: null, valid: null }
     this.#amountToReceive = { loading: false, value: null }
     this.#amountToUseMinMax = { loading: false, value: null }
 
     if (!this.#availableTokensToReceive.value) throw new Error('Available tokens to receive is not set')
 
-    let simpleSwapCurrency: TSimpleSwapApiCurrency<BSName> | null = null
+    let simpleSwapCurrency: TSimpleSwapApiCurrency<N> | null = null
 
     if (token) {
       simpleSwapCurrency = this.#availableTokensToReceive.value.find(item => item.id === token.id) ?? null

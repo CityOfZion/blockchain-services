@@ -34,4 +34,32 @@ export class BSUtilsHelper {
       return reject(new BSError('Timeout: ' + errorMessage, 'TIMEOUT'))
     })
   }
+
+  static parseBip44Path(bip44Path: string) {
+    const pathParts = bip44Path.replace(/^m\//, '').split('/')
+
+    const indices = pathParts.map(part => {
+      const isHardened = part.endsWith("'")
+      const value = parseInt(part.replace("'", ''), 10)
+
+      if (isNaN(value)) {
+        throw new BSError(`Invalid BIP44 path component: ${part}`, 'INVALID_PATH')
+      }
+
+      // Apply hardened derivation mask (0x80000000) if needed
+      return isHardened ? value | 0x80000000 : value
+    })
+
+    if (indices.length !== 5) {
+      throw new BSError(`Invalid BIP44 path: expected 5 components, got ${indices.length}`, 'INVALID_PATH')
+    }
+
+    return {
+      purpose: indices[0],
+      coinType: indices[1],
+      account: indices[2],
+      change: indices[3],
+      addressIndex: indices[4],
+    }
+  }
 }
