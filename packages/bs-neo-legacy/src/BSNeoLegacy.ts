@@ -13,17 +13,19 @@ import {
   BSWithLedger,
   GetLedgerTransport,
   BalanceResponse,
-  BSTokenHelper,
   BSBigNumberHelper,
+  BSWithEncryption,
+  ITokenService,
 } from '@cityofzion/blockchain-service'
 import { api, sc, tx, u, wallet } from '@cityofzion/neon-js'
 import { keychain } from '@cityofzion/bs-asteroid-sdk'
-import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
-import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
-import { CryptoCompareEDSNeoLegacy } from './exchange-data/CryptoCompareEDSNeoLegacy'
-import { DoraBDSNeoLegacy } from './blockchain-data/DoraBDSNeoLegacy'
-import { NeoTubeESNeoLegacy } from './explorer/NeoTubeESNeoLegacy'
-import { NeonJsLedgerServiceNeoLegacy } from './ledger/NeonJsLedgerServiceNeoLegacy'
+import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from './constants/BSNeoLegacyConstants'
+import { BSNeoLegacyHelper } from './helpers/BSNeoLegacyHelper'
+import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
+import { DoraBDSNeoLegacy } from './services/blockchain-data/DoraBDSNeoLegacy'
+import { NeoTubeESNeoLegacy } from './services/explorer/NeoTubeESNeoLegacy'
+import { NeonJsLedgerServiceNeoLegacy } from './services/ledger/NeonJsLedgerServiceNeoLegacy'
+import { TokenServiceNeoLegacy } from './services/token/TokenServiceNeoLegacy'
 
 export type MigrateParams<BSName extends string = string> = {
   account: Account<BSName>
@@ -50,7 +52,8 @@ export class BSNeoLegacy<BSName extends string = string>
     BlockchainService<BSName, BSNeoLegacyNetworkId>,
     BSClaimable<BSName>,
     BSWithExplorerService,
-    BSWithLedger<BSName>
+    BSWithLedger<BSName>,
+    BSWithEncryption<BSName>
 {
   NATIVE_ASSETS = BSNeoLegacyConstants.NATIVE_ASSETS
 
@@ -67,6 +70,8 @@ export class BSNeoLegacy<BSName extends string = string>
   exchangeDataService!: ExchangeDataService
   ledgerService: NeonJsLedgerServiceNeoLegacy<BSName>
   explorerService!: ExplorerService
+  tokenService!: ITokenService
+
   tokens!: Token[]
   network!: Network<BSNeoLegacyNetworkId>
   legacyNetwork: string
@@ -132,7 +137,7 @@ export class BSNeoLegacy<BSName extends string = string>
     config.fees = BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION
 
     const gasIntent = config.intents
-      ?.filter((intent: any) => BSTokenHelper.normalizeHash(intent.assetId) === BSNeoLegacyConstants.GAS_ASSET.hash)
+      ?.filter((intent: any) => this.tokenService.normalizeHash(intent.assetId) === BSNeoLegacyConstants.GAS_ASSET.hash)
       ?.sort((a: any, b: any) => b.value.comparedTo(a.value) ?? 0)?.[0]
 
     if (gasIntent?.value) {
@@ -198,7 +203,8 @@ export class BSNeoLegacy<BSName extends string = string>
       this.feeToken,
       this.claimToken,
       this.tokens,
-      this.explorerService
+      this.explorerService,
+      this.tokenService
     )
 
     await blockchainDataServiceClone.getBlockHeight()
@@ -210,13 +216,16 @@ export class BSNeoLegacy<BSName extends string = string>
     this.#setTokens(network)
 
     this.network = network
-    this.explorerService = new NeoTubeESNeoLegacy(network)
+    this.tokenService = new TokenServiceNeoLegacy()
+    this.explorerService = new NeoTubeESNeoLegacy(network, this.tokenService)
+
     this.blockchainDataService = new DoraBDSNeoLegacy(
       network,
       this.feeToken,
       this.claimToken,
       this.tokens,
-      this.explorerService
+      this.explorerService,
+      this.tokenService
     )
     this.exchangeDataService = new CryptoCompareEDSNeoLegacy(network)
   }
@@ -283,9 +292,9 @@ export class BSNeoLegacy<BSName extends string = string>
     const concatIntents = [...intents, ...(tipIntent ? [tipIntent] : [])]
 
     for (const intent of concatIntents) {
-      const normalizeTokenHash = BSTokenHelper.normalizeHash(intent.tokenHash)
+      const normalizeTokenHash = this.tokenService.normalizeHash(intent.tokenHash)
 
-      const nativeAsset = this.NATIVE_ASSETS.find(BSTokenHelper.predicateByHash(normalizeTokenHash))
+      const nativeAsset = this.NATIVE_ASSETS.find(this.tokenService.predicateByHash(normalizeTokenHash))
 
       if (nativeAsset) {
         nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
@@ -443,8 +452,12 @@ export class BSNeoLegacy<BSName extends string = string>
   }
 
   calculateNeoLegacyMigrationAmounts(balance: BalanceResponse[]): CalculateNeoLegacyMigrationAmountsResponse {
-    const gasBalance = balance.find(({ token }) => BSTokenHelper.predicateByHash(BSNeoLegacyConstants.GAS_ASSET)(token))
-    const neoBalance = balance.find(({ token }) => BSTokenHelper.predicateByHash(BSNeoLegacyConstants.NEO_ASSET)(token))
+    const gasBalance = balance.find(({ token }) =>
+      this.tokenService.predicateByHash(BSNeoLegacyConstants.GAS_ASSET)(token)
+    )
+    const neoBalance = balance.find(({ token }) =>
+      this.tokenService.predicateByHash(BSNeoLegacyConstants.NEO_ASSET)(token)
+    )
 
     let hasEnoughGasBalance = false
     let hasEnoughNeoBalance = false

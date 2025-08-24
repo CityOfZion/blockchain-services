@@ -188,7 +188,6 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
 
       if (this.#extraIdToReceive.value && this.#tokenToReceive.value) {
         const extraIdToReceive = this.#extraIdToReceive.value.trim()
-
         this.#extraIdToReceive = {
           valid:
             !extraIdToReceive || !this.#tokenToReceive.value.validationExtra
@@ -332,22 +331,8 @@ export class SimpleSwapOrchestrator<BSName extends string = string> implements I
     if (token) {
       simpleSwapCurrency = this.#availableTokensToUse.value.find(item => item.id === token.id) ?? null
       if (!simpleSwapCurrency) throw new Error('You are trying to use a token that is not available')
-    }
 
-    if (simpleSwapCurrency && simpleSwapCurrency.decimals === undefined) {
       if (!simpleSwapCurrency?.blockchain || !simpleSwapCurrency.hash) throw new Error('Token is not valid')
-
-      let decimals = 6
-
-      try {
-        const service = this.#blockchainServicesByName[simpleSwapCurrency.blockchain]
-        const tokenInfo = await service.blockchainDataService.getTokenInfo(simpleSwapCurrency.hash)
-        decimals = tokenInfo.decimals
-      } catch {
-        /* empty */
-      }
-
-      simpleSwapCurrency.decimals = decimals
     }
 
     this.#tokenToUse = { loading: false, value: simpleSwapCurrency }

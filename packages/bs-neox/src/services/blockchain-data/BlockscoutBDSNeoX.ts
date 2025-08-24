@@ -17,6 +17,7 @@ import {
   NftDataService,
   NftResponse,
   Token,
+  TokenService,
   TransactionBridgeNeo3NeoXResponse,
   TransactionResponse,
   TransactionsByAddressParams,
@@ -27,13 +28,7 @@ import {
 import axios from 'axios'
 import { ethers } from 'ethers'
 import { api } from '@cityofzion/dora-ts'
-import {
-  BSEthereumConstants,
-  BSEthereumHelper,
-  BSEthereumTokenHelper,
-  DoraBDSEthereum,
-  ERC20_ABI,
-} from '@cityofzion/bs-ethereum'
+import { BSEthereumConstants, BSEthereumHelper, DoraBDSEthereum, ERC20_ABI } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants, BSNeoXNetworkId } from '../../constants/BSNeoXConstants'
 import { BRIDGE_ABI } from '../../assets/abis/bridge'
 import { Neo3NeoXBridgeService } from '../neo3neoXBridge/Neo3NeoXBridgeService'
@@ -136,8 +131,13 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
     })
   }
 
-  constructor(network: Network<BSNeoXNetworkId>, nftDataService: NftDataService, explorerService: ExplorerService) {
-    super(network, BSNeoXConstants.ALL_NETWORK_IDS)
+  constructor(
+    network: Network<BSNeoXNetworkId>,
+    nftDataService: NftDataService,
+    explorerService: ExplorerService,
+    tokenService: TokenService
+  ) {
+    super(network, BSNeoXConstants.ALL_NETWORK_IDS, tokenService)
 
     this.#nftDataService = nftDataService
     this.#explorerService = explorerService
@@ -179,7 +179,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
             to: tokenTransfer.to.hash,
             type: 'token',
             contractHash: tokenTransfer.token.address,
-            token: BSEthereumTokenHelper.normalizeToken({
+            token: this._tokenService.normalizeToken({
               symbol: tokenTransfer.token.symbol,
               name: tokenTransfer.token.name,
               hash: tokenTransfer.token.address,
@@ -192,11 +192,11 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
 
         if (tokenTransfer.token.type === 'ERC-721') {
           transfers.push({
-            tokenId: tokenTransfer.total.token_id,
+            tokenHash: tokenTransfer.total.token_id,
             from: tokenTransfer.from.hash,
             to: tokenTransfer.to.hash,
             type: 'nft',
-            contractHash: tokenTransfer.token.address,
+            collectionHash: tokenTransfer.token.address,
           })
         }
       }
@@ -365,24 +365,26 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
         let nftEvent: FullTransactionNftEvent
         let assetEvent: FullTransactionAssetEvent
 
-        const { methodName, tokenID: tokenId, contractHash: hash } = event
+        const { methodName, tokenID: tokenHash, contractHash } = event
         const from = event.from ?? undefined
         const to = event.to ?? undefined
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isErc1155 = this._supportedErc1155Standards.includes(standard)
         const isErc721 = this._supportedErc721Standards.includes(standard)
         const isErc20 = this._supportedErc20Standards.includes(standard)
-        const isNft = (isErc1155 || isErc721) && !!tokenId
+        const isNft = (isErc1155 || isErc721) && !!tokenHash
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
+        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
 
         if (isNft) {
           const [nft] = await BSPromisesHelper.tryCatch<NftResponse>(() =>
-            this.#nftDataService.getNft({ contractHash: hash, tokenId })
+            this.#nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
 
-          const nftUrl = hash ? nftTemplateUrl?.replace('{hash}', hash).replace('{tokenId}', tokenId) : undefined
+          const nftUrl = contractHash
+            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
+            : undefined
 
           nftEvent = {
             eventType: 'nft',
@@ -392,17 +394,17 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
             fromUrl,
             to,
             toUrl,
-            hash,
-            hashUrl,
-            tokenId,
+            collectionHash: contractHash,
+            collectionHashUrl: contractHashUrl,
+            tokenHash,
             tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
             nftImageUrl: nft?.image,
             nftUrl,
             name: nft?.name,
-            collectionName: nft?.collectionName,
+            collectionName: nft?.collection?.name,
           }
         } else {
-          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
+          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(contractHash))
 
           assetEvent = {
             eventType: 'token',
@@ -414,8 +416,8 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
             fromUrl,
             to,
             toUrl,
-            hash,
-            hashUrl,
+            contractHash,
+            contractHashUrl,
             token: token ?? undefined,
             tokenType: isErc20 ? 'erc-20' : 'generic',
           }
@@ -492,7 +494,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const normalizedHash = BSEthereumTokenHelper.normalizeHash(tokenHash)
+    const normalizedHash = this._tokenService.normalizeHash(tokenHash)
     const nativeAsset = BSNeoXConstants.NATIVE_ASSET
 
     if (nativeAsset.hash === normalizedHash) {
@@ -515,7 +517,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
       throw new Error('Token is not an ERC-20 token')
     }
 
-    const token = BSEthereumTokenHelper.normalizeToken({
+    const token = this._tokenService.normalizeToken({
       decimals: data.decimals ? parseInt(data.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
       hash: tokenHash,
       name: data.name,
@@ -557,7 +559,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
           return
         }
 
-        const token: Token = BSEthereumTokenHelper.normalizeToken({
+        const token: Token = this._tokenService.normalizeToken({
           decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
           hash: balance.token.address,
           name: balance.token.symbol,

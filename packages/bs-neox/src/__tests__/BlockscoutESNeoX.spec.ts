@@ -1,17 +1,20 @@
 import { Network } from '@cityofzion/blockchain-service'
 import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
+import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 
 describe('BlockscoutESNeoX', () => {
   const INVALID_NETWORK: Network = { id: '99999999', name: '', url: '' }
   let blockscoutESEthereum: BlockscoutESNeoX
+  let tokenService: TokenServiceEthereum
 
   beforeEach(() => {
-    blockscoutESEthereum = new BlockscoutESNeoX(BSNeoXConstants.DEFAULT_NETWORK)
+    tokenService = new TokenServiceEthereum()
+    blockscoutESEthereum = new BlockscoutESNeoX(BSNeoXConstants.DEFAULT_NETWORK, tokenService)
   })
 
   it('Should return undefined when call the getAddressTemplateUrl method with an invalid network', () => {
-    blockscoutESEthereum = new BlockscoutESNeoX(INVALID_NETWORK)
+    blockscoutESEthereum = new BlockscoutESNeoX(INVALID_NETWORK, tokenService)
 
     const templateUrl = blockscoutESEthereum.getAddressTemplateUrl()
 
@@ -19,7 +22,7 @@ describe('BlockscoutESNeoX', () => {
   })
 
   it('Should return undefined when call the getTxTemplateUrl method with an invalid network', () => {
-    blockscoutESEthereum = new BlockscoutESNeoX(INVALID_NETWORK)
+    blockscoutESEthereum = new BlockscoutESNeoX(INVALID_NETWORK, tokenService)
 
     const templateUrl = blockscoutESEthereum.getTxTemplateUrl()
 
@@ -39,7 +42,7 @@ describe('BlockscoutESNeoX', () => {
   })
 
   it('Should return undefined when call the getNftTemplateUrl method with an invalid network', () => {
-    blockscoutESEthereum = new BlockscoutESNeoX(INVALID_NETWORK)
+    blockscoutESEthereum = new BlockscoutESNeoX(INVALID_NETWORK, tokenService)
 
     const templateUrl = blockscoutESEthereum.getNftTemplateUrl()
 
@@ -47,7 +50,7 @@ describe('BlockscoutESNeoX', () => {
   })
 
   it('Should return undefined when call the getContractTemplateUrl method with an invalid network', () => {
-    blockscoutESEthereum = new BlockscoutESNeoX(INVALID_NETWORK)
+    blockscoutESEthereum = new BlockscoutESNeoX(INVALID_NETWORK, tokenService)
 
     const templateUrl = blockscoutESEthereum.getContractTemplateUrl()
 
@@ -57,7 +60,7 @@ describe('BlockscoutESNeoX', () => {
   it('Should return an address template URL (Mainnet) when call the getNftTemplateUrl method with a Mainnet network', () => {
     const templateUrl = blockscoutESEthereum.getNftTemplateUrl()
 
-    expect(templateUrl).toBe('https://xexplorer.neo.org/token/{hash}/instance/{tokenId}')
+    expect(templateUrl).toBe('https://xexplorer.neo.org/token/{collectionHash}/instance/{tokenHash}')
   })
 
   it('Should return a transaction template URL (Mainnet) when call the getContractTemplateUrl method with a Mainnet network', () => {

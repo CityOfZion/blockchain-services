@@ -2,7 +2,6 @@ import {
   BalanceResponse,
   BDSClaimable,
   BlockchainDataService,
-  BSTokenHelper,
   ContractMethod,
   ContractParameter,
   ContractResponse,
@@ -12,6 +11,7 @@ import {
   Network,
   RpcResponse,
   Token,
+  TokenService,
   TransactionResponse,
   TransactionsByAddressParams,
   TransactionsByAddressResponse,
@@ -27,14 +27,22 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
   readonly _claimToken: Token
   readonly _network: Network<BSNeo3NetworkId>
   readonly _tokens: Token[] = []
+  readonly _tokenService: TokenService
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
 
-  constructor(network: Network<BSNeo3NetworkId>, feeToken: Token, claimToken: Token, tokens: Token[]) {
+  constructor(
+    network: Network<BSNeo3NetworkId>,
+    feeToken: Token,
+    claimToken: Token,
+    tokens: Token[],
+    tokenService: TokenService
+  ) {
     this._network = network
     this._feeToken = feeToken
     this._claimToken = claimToken
     this._tokens = tokens
+    this._tokenService = tokenService
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -102,7 +110,7 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
         return cachedToken
       }
 
-      let token = this._tokens.find(BSTokenHelper.predicateByHash(tokenHash))
+      let token = this._tokens.find(this._tokenService.predicateByHash(tokenHash))
 
       if (!token) {
         const rpcClient = new rpc.RPCClient(this._network.url)
@@ -127,7 +135,7 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
         if (!TypeChecker.isStackTypeByteString(response.stack[1])) throw new Error('Invalid symbol')
         const decimals = Number(response.stack[0].value)
         const symbol = u.base642utf8(response.stack[1].value)
-        token = BSTokenHelper.normalizeToken({
+        token = this._tokenService.normalizeToken({
           name: contractState.manifest.name,
           symbol,
           hash: contractState.hash,

@@ -3,7 +3,6 @@ import {
   BalanceResponse,
   BSBigNumberHelper,
   BSError,
-  BSTokenHelper,
   BSUtilsHelper,
   TBridgeToken,
   TBridgeValidateValue,
@@ -389,7 +388,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.init()
 
     const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens.find(
-      BSTokenHelper.predicateBySymbol('NEO')
+      neo3NeoXBridgeOrchestrator.fromService.tokenService.predicateBySymbol('NEO')
     )!
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)

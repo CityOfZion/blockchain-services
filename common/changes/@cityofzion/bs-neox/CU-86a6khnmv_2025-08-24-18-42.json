@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Add Solana initial implementation",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

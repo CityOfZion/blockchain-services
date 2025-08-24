@@ -3,7 +3,7 @@ import {
   BSCommonConstants,
   ExplorerService,
   Network,
-  BSTokenHelper,
+  TokenService,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
@@ -11,27 +11,29 @@ import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 export class DoraESNeo3 implements ExplorerService {
   readonly #BASE_URL = BSCommonConstants.DORA_URL
   readonly #network: Network<BSNeo3NetworkId>
+  readonly #tokenService: TokenService
 
-  constructor(network: Network<BSNeo3NetworkId>) {
+  constructor(network: Network<BSNeo3NetworkId>, tokenService: TokenService) {
     this.#network = network
+    this.#tokenService = tokenService
   }
 
   buildTransactionUrl(hash: string): string {
     if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/transaction/neo3/${this.#network.id}/${BSTokenHelper.normalizeHash(hash)}`
+    return `${this.#BASE_URL}/transaction/neo3/${this.#network.id}/${this.#tokenService.normalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string {
     if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/contract/neo3/${this.#network.id}/${BSTokenHelper.normalizeHash(contractHash)}`
+    return `${this.#BASE_URL}/contract/neo3/${this.#network.id}/${this.#tokenService.normalizeHash(contractHash)}`
   }
 
-  buildNftUrl({ contractHash, tokenId }: BuildNftUrlParams): string {
+  buildNftUrl({ collectionHash, tokenHash }: BuildNftUrlParams): string {
     if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/${BSTokenHelper.normalizeHash(contractHash)}/${tokenId}`
+    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/${collectionHash}/${tokenHash}`
   }
 
   getAddressTemplateUrl() {
@@ -49,7 +51,7 @@ export class DoraESNeo3 implements ExplorerService {
   getNftTemplateUrl() {
     if (BSNeo3Helper.isCustomNet(this.#network)) return undefined
 
-    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/{hash}/{tokenId}`
+    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/{collectionHash}/{tokenHash}`
   }
 
   getContractTemplateUrl() {

@@ -4,6 +4,7 @@ import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
 import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
 import { TransactionBridgeNeo3NeoXResponse, TransactionResponse } from '@cityofzion/blockchain-service'
+import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
 
 describe('DoraBDSNeo3', () => {
   const mainnetNetwork = BSNeo3Constants.MAINNET_NETWORKS[0]
@@ -13,6 +14,8 @@ describe('DoraBDSNeo3', () => {
   const network = BSNeo3Constants.TESTNET_NETWORKS[0]
   const tokens = BSNeo3Helper.getTokens(network)
   const GAS = tokens.find(token => token.symbol === 'GAS')!
+
+  const tokenService = new TokenServiceNeo3()
 
   let mainnetDoraBDSNeo3: DoraBDSNeo3
   let doraBDSNeo3: DoraBDSNeo3
@@ -24,10 +27,19 @@ describe('DoraBDSNeo3', () => {
       MAINNET_GAS_TOKEN,
       mainnetTokens,
       new GhostMarketNDSNeo3(mainnetNetwork),
-      new DoraESNeo3(mainnetNetwork)
+      new DoraESNeo3(mainnetNetwork, tokenService),
+      tokenService
     )
 
-    doraBDSNeo3 = new DoraBDSNeo3(network, GAS, GAS, tokens, new GhostMarketNDSNeo3(network), new DoraESNeo3(network))
+    doraBDSNeo3 = new DoraBDSNeo3(
+      network,
+      GAS,
+      GAS,
+      tokens,
+      new GhostMarketNDSNeo3(network),
+      new DoraESNeo3(network, tokenService),
+      tokenService
+    )
   })
 
   it('Should be able to get transaction', async () => {

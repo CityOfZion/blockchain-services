@@ -11,6 +11,7 @@ import {
 import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 import { isLeapYear } from 'date-fns'
 import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
+import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
 
 describe('DoraBDSNeo3FullTransactionsByAddress', () => {
   const network = BSNeo3Constants.MAINNET_NETWORKS[0]
@@ -25,19 +26,22 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
 
   const initDoraBDSNeo3 = (network: Network) => {
     const nftDataService = new GhostMarketNDSNeo3(network) as jest.Mocked<GhostMarketNDSNeo3>
+    const tokenService = new TokenServiceNeo3()
 
-    nftDataService.getNft = jest
-      .fn()
-      .mockReturnValue({ image: 'nftImage', name: 'nftName', collectionName: 'nftCollectionName' })
+    nftDataService.getNft = jest.fn().mockReturnValue({
+      image: 'nftImage',
+      name: 'nftName',
+      collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+    })
 
-    const explorerService = new DoraESNeo3(network) as jest.Mocked<DoraESNeo3>
+    const explorerService = new DoraESNeo3(network, tokenService) as jest.Mocked<DoraESNeo3>
 
     explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
     explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
     explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
     explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
 
-    doraBDSNeo3 = new DoraBDSNeo3(network, gasToken, gasToken, tokens, nftDataService, explorerService)
+    doraBDSNeo3 = new DoraBDSNeo3(network, gasToken, gasToken, tokens, nftDataService, explorerService, tokenService)
   }
 
   beforeEach(() => {
@@ -174,11 +178,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
                 amount: expect.anything(),
                 methodName: expect.any(String),
                 from: expect.anything(),
-                fromUrl: expect.anything(),
                 to: expect.anything(),
-                toUrl: expect.anything(),
-                hash: expect.any(String),
-                hashUrl: expect.any(String),
                 tokenType: expect.any(String),
               }),
             ]),
@@ -216,8 +216,8 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                hash: expect.any(String),
-                hashUrl: expect.any(String),
+                contractHash: expect.any(String),
+                contractHashUrl: expect.any(String),
                 token: expect.objectContaining({
                   decimals: expect.any(Number),
                   symbol: expect.any(String),
@@ -255,9 +255,10 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
     it('Should be able to get transactions with NFTs when it was called', async () => {
       const response = await doraBDSNeo3.getFullTransactionsByAddress({
         ...params,
-        dateFrom: new Date('2024-05-22T03:00:00').toJSON(),
-        dateTo: new Date('2025-01-22T03:00:00').toJSON(),
+        dateFrom: new Date('2024-04-22T03:00:00').toJSON(),
+        dateTo: new Date('2025-03-22T03:00:00').toJSON(),
         address: 'Nc18TvxNomHdbizZxcW5znbYWsDSr4C2XR',
+        nextCursor: 'NTcyNTEwOA==',
       })
 
       const nftEvents = response.data
@@ -274,9 +275,9 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            hash: expect.any(String),
-            hashUrl: expect.any(String),
-            tokenId: expect.any(String),
+            collectionHash: expect.any(String),
+            collectionHashUrl: expect.any(String),
+            tokenHash: expect.any(String),
             tokenType: 'nep-11',
             nftImageUrl: 'nftImage',
             nftUrl: expect.any(String),

@@ -4,6 +4,7 @@ import {
   FullTransactionsByAddressParams,
   Network,
   NetworkId,
+  TokenService,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
@@ -14,8 +15,12 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
   readonly _supportedErc20Standards = ['erc20', 'erc-20']
   readonly _supportedFullTransactionsByAddressNetworks: BSNetworkId[]
 
-  constructor(network: Network<BSNetworkId>, supportedFullTransactionsByAddressNetworks: BSNetworkId[]) {
-    super(network)
+  constructor(
+    network: Network<BSNetworkId>,
+    supportedFullTransactionsByAddressNetworks: BSNetworkId[],
+    tokenService: TokenService
+  ) {
+    super(network, tokenService)
 
     this._supportedFullTransactionsByAddressNetworks = supportedFullTransactionsByAddressNetworks
   }

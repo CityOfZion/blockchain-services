@@ -1,6 +1,7 @@
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from '../../../services/blockchain-data/RpcBDSNeo3'
+import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
 
 const network = BSNeo3Constants.TESTNET_NETWORKS[0]
 const tokens = BSNeo3Helper.getTokens(network)
@@ -11,7 +12,8 @@ let rpcBDSNeo3: RpcBDSNeo3
 
 describe('RpcBDSNeo3', () => {
   beforeEach(() => {
-    rpcBDSNeo3 = new RpcBDSNeo3(network, GAS, GAS, tokens)
+    const tokenService = new TokenServiceNeo3()
+    rpcBDSNeo3 = new RpcBDSNeo3(network, GAS, GAS, tokens, tokenService)
   })
 
   it('Should be able to get transaction', async () => {

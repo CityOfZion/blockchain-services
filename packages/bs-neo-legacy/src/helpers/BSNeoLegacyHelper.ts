@@ -1,12 +1,6 @@
-import {
-  BlockchainService,
-  BSTokenHelper,
-  BSUtilsHelper,
-  Network,
-  TransactionResponse,
-} from '@cityofzion/blockchain-service'
-import nativeTokens from '../assets/tokens/native.json'
+import { BlockchainService, BSUtilsHelper, Network, TransactionResponse } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
+import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
 
 export type WaitForMigrationParams = {
   transactionHash: string
@@ -16,6 +10,8 @@ export type WaitForMigrationParams = {
 }
 
 export class BSNeoLegacyHelper {
+  static #tokenService = new TokenServiceNeoLegacy()
+
   static getLegacyNetwork(network: Network<BSNeoLegacyNetworkId>) {
     const legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
     if (!legacyNetwork) throw new Error('Unsupported network')
@@ -24,7 +20,9 @@ export class BSNeoLegacyHelper {
 
   static getTokens(network: Network<BSNeoLegacyNetworkId>) {
     const extraTokens = BSNeoLegacyConstants.EXTRA_TOKENS_BY_NETWORK_ID[network.id] ?? []
-    return BSTokenHelper.normalizeToken([...extraTokens, ...nativeTokens])
+    const nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
+
+    return nativeTokens.concat(extraTokens)
   }
 
   static getRpcList(network: Network<BSNeoLegacyNetworkId>) {

@@ -10,17 +10,19 @@ describe.skip('GhostMarketNDSEthereum', () => {
 
   it('Get NFT', async () => {
     const nft = await ghostMarketNDSEthereum.getNft({
-      contractHash: '0xeb3a9a839dfeeaf71db1b4ed6a8ae0ccb171b227',
-      tokenId: '379',
+      collectionHash: '0xeb3a9a839dfeeaf71db1b4ed6a8ae0ccb171b227',
+      tokenHash: '379',
     })
 
     expect(nft).toEqual(
       expect.objectContaining({
-        id: '379',
-        contractHash: '0xeb3a9a839dfeeaf71db1b4ed6a8ae0ccb171b227',
+        hash: '379',
+        collection: {
+          hash: '0xeb3a9a839dfeeaf71db1b4ed6a8ae0ccb171b227',
+          name: '"MOAR" by Joan Cornella',
+          image: expect.any(String),
+        },
         symbol: 'MOAR',
-        collectionImage: expect.any(String),
-        collectionName: '"MOAR" by Joan Cornella',
         image: expect.any(String),
         isSVG: expect.any(Boolean),
         name: 'MOAR #379',
@@ -41,8 +43,7 @@ describe.skip('GhostMarketNDSEthereum', () => {
       expect(nft).toEqual(
         expect.objectContaining({
           symbol: expect.any(String),
-          id: expect.any(String),
-          contractHash: expect.any(String),
+          hash: expect.any(String),
         })
       )
     })
@@ -53,10 +54,10 @@ describe.skip('GhostMarketNDSEthereum', () => {
     const nfts = await ghostMarketNDSEthereum.getNftsByAddress({
       address: address,
     })
-    for (const { contractHash } of nfts.items) {
+    for (const { collection } of nfts.items) {
       const hasToken: boolean = await ghostMarketNDSEthereum.hasToken({
         address,
-        contractHash,
+        collectionHash: collection.hash,
       })
       expect(hasToken).toBeTruthy()
     }

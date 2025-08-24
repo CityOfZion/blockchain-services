@@ -21,6 +21,7 @@ import {
   FullTransactionAssetEvent,
   BSPromisesHelper,
   NftResponse,
+  TokenService,
 } from '@cityofzion/blockchain-service'
 import axios from 'axios'
 import { ethers } from 'ethers'
@@ -29,7 +30,6 @@ import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import { api } from '@cityofzion/dora-ts'
 import { DoraBDSEthereum } from './DoraBDSEthereum'
-import { BSEthereumTokenHelper } from '../../helpers/BSEthereumTokenHelper'
 
 type MoralisNativeBalanceResponse = {
   balance: string
@@ -168,13 +168,23 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
     return MoralisBDSEthereum.SUPPORTED_CHAINS.includes(network.id)
   }
 
-  constructor(network: Network<BSEthereumNetworkId>, nftDataService: NftDataService, explorerService: ExplorerService) {
-    super(network, [
-      BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID,
-      BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
-      BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
-      BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
-    ])
+  constructor(
+    network: Network<BSEthereumNetworkId>,
+
+    nftDataService: NftDataService,
+    explorerService: ExplorerService,
+    tokenService: TokenService
+  ) {
+    super(
+      network,
+      [
+        BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID,
+        BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
+        BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
+        BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
+      ],
+      tokenService
+    )
 
     this.#nftDataService = nftDataService
     this.#explorerService = explorerService
@@ -207,7 +217,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
       balances.push({
         amount: ethers.utils.formatUnits(balance.balance, balance.decimals),
-        token: BSEthereumTokenHelper.normalizeToken({
+        token: this._tokenService.normalizeToken({
           decimals: balance.decimals,
           hash: balance.token_address,
           name: balance.name ?? '',
@@ -226,7 +236,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
 
-    if (BSEthereumTokenHelper.predicateByHash(nativeAsset)({ hash })) return nativeAsset
+    if (this._tokenService.predicateByHash(nativeAsset)({ hash })) return nativeAsset
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!
@@ -241,7 +251,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
     const data = response.data[0]
 
-    const token = BSEthereumTokenHelper.normalizeToken({
+    const token = this._tokenService.normalizeToken({
       decimals: Number(data.decimals),
       symbol: data.symbol,
       hash,
@@ -300,12 +310,12 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
           })
         }
 
-        const tokenId = log.decoded_event.params.find((param: any) => param.name === 'tokenId')?.value
-        if (!tokenId) return
+        const tokenHash = log.decoded_event.params.find((param: any) => param.name === 'tokenId')?.value
+        if (!tokenHash) return
 
         transfers.push({
-          contractHash,
-          tokenId,
+          collectionHash: contractHash,
+          tokenHash,
           from,
           to,
           type: 'nft',
@@ -366,7 +376,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
           from: transfer.from_address,
           to: transfer.to_address,
           type: 'token',
-          token: BSEthereumTokenHelper.normalizeToken({
+          token: this._tokenService.normalizeToken({
             decimals: Number(transfer.token_decimals),
             hash: transfer.address,
             name: transfer.token_name,
@@ -378,8 +388,8 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
 
       item.nft_transfers.forEach(transfer => {
         transfers.push({
-          contractHash: transfer.token_address,
-          tokenId: transfer.token_id,
+          collectionHash: transfer.token_address,
+          tokenHash: transfer.token_id,
           from: transfer.from_address,
           to: transfer.to_address,
           type: 'nft',
@@ -454,24 +464,26 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
         let nftEvent: FullTransactionNftEvent
         let assetEvent: FullTransactionAssetEvent
 
-        const { methodName, tokenID: tokenId, contractHash: hash } = event
+        const { methodName, tokenID: tokenHash, contractHash } = event
         const from = event.from ?? undefined
         const to = event.to ?? undefined
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isErc1155 = this._supportedErc1155Standards.includes(standard)
         const isErc721 = this._supportedErc721Standards.includes(standard)
         const isErc20 = this._supportedErc20Standards.includes(standard)
-        const isNft = (isErc1155 || isErc721) && !!tokenId
+        const isNft = (isErc1155 || isErc721) && !!tokenHash
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
+        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
 
         if (isNft) {
           const [nft] = await BSPromisesHelper.tryCatch<NftResponse>(() =>
-            this.#nftDataService.getNft({ contractHash: hash, tokenId })
+            this.#nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
 
-          const nftUrl = hash ? nftTemplateUrl?.replace('{hash}', hash).replace('{tokenId}', tokenId) : undefined
+          const nftUrl = contractHash
+            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
+            : undefined
 
           nftEvent = {
             eventType: 'nft',
@@ -481,17 +493,17 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
             fromUrl,
             to,
             toUrl,
-            hash,
-            hashUrl,
-            tokenId,
+            collectionHash: contractHash,
+            collectionHashUrl: contractHashUrl,
+            tokenHash,
             tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
             nftImageUrl: nft?.image,
             nftUrl,
             name: nft?.name,
-            collectionName: nft?.collectionName,
+            collectionName: nft?.collection?.name,
           }
         } else {
-          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
+          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(contractHash))
 
           assetEvent = {
             eventType: 'token',
@@ -503,8 +515,8 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
             fromUrl,
             to,
             toUrl,
-            hash,
-            hashUrl,
+            contractHash,
+            contractHashUrl,
             token: token ?? undefined,
             tokenType: isErc20 ? 'erc-20' : 'generic',
           }

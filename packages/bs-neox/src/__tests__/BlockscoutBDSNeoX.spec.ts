@@ -11,6 +11,7 @@ import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { GhostMarketNDSNeoX } from '../services/nft-data/GhostMarketNDSNeoX'
 import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
+import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 
 const neoxTestnetNetwork = BSNeoXConstants.MAINNET_NETWORKS[0]
 let nftDataService: NftDataService
@@ -19,9 +20,10 @@ let blockscoutBDSNeoX: BlockscoutBDSNeoX
 
 describe('BlockscoutBDSNeoX', () => {
   beforeEach(() => {
+    const tokenService = new TokenServiceEthereum()
     nftDataService = new GhostMarketNDSNeoX(neoxTestnetNetwork)
-    explorerService = new BlockscoutESNeoX(neoxTestnetNetwork)
-    blockscoutBDSNeoX = new BlockscoutBDSNeoX(neoxTestnetNetwork, nftDataService, explorerService)
+    explorerService = new BlockscoutESNeoX(neoxTestnetNetwork, tokenService)
+    blockscoutBDSNeoX = new BlockscoutBDSNeoX(neoxTestnetNetwork, nftDataService, explorerService, tokenService)
   })
 
   it('Should return transaction details for native assets (GAS)', async () => {
@@ -51,7 +53,7 @@ describe('BlockscoutBDSNeoX', () => {
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
-  }, 10000)
+  })
 
   it('Should return transaction details for ERC-20 assets (Ethereum assets)', async () => {
     const txId = '0x055a176ae9f0c950584bac1ebc93abb0e52160914e40f9288c69f90e47bd8cee'
@@ -85,7 +87,7 @@ describe('BlockscoutBDSNeoX', () => {
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
-  }, 10000)
+  })
 
   it('Should return a bridge transaction details (GAS)', async () => {
     const transaction = (await blockscoutBDSNeoX.getTransaction(
@@ -196,5 +198,5 @@ describe('BlockscoutBDSNeoX', () => {
     const blockHeight = await blockscoutBDSNeoX.getBlockHeight()
 
     expect(blockHeight).toBeGreaterThan(0)
-  }, 10000)
+  })
 })

@@ -2,8 +2,6 @@ import {
   BalanceResponse,
   ContractResponse,
   BSCommonConstants,
-  FullTransactionAssetEvent,
-  FullTransactionNftEvent,
   FullTransactionsByAddressParams,
   FullTransactionsByAddressResponse,
   FullTransactionsItem,
@@ -22,9 +20,11 @@ import {
   ExplorerService,
   ExportTransactionsByAddressParams,
   BSBigNumberHelper,
-  BSTokenHelper,
   FullTransactionsItemBridgeNeo3NeoX,
   TransactionBridgeNeo3NeoXResponse,
+  FullTransactionNftEvent,
+  FullTransactionAssetEvent,
+  TokenService,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { u, wallet } from '@cityofzion/neon-js'
@@ -50,9 +50,10 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     claimToken: Token,
     tokens: Token[],
     nftDataService: NftDataService,
-    explorerService: ExplorerService
+    explorerService: ExplorerService,
+    tokenService: TokenService
   ) {
-    super(network, feeToken, claimToken, tokens)
+    super(network, feeToken, claimToken, tokens, tokenService)
 
     this.#nftDataService = nftDataService
     this.#explorerService = explorerService
@@ -97,15 +98,15 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       const transferPromises: Promise<TransactionTransferAsset | TransactionTransferNft>[] = []
       const notifications = item.notifications ?? []
 
-      notifications.forEach(({ contract: contractHash, state, event_name: eventName }) => {
-        const properties = Array.isArray(state) ? state : state?.value ?? []
+      item.notifications.forEach(({ contract: contractHash, state, event_name: eventName }) => {
+        const properties = (Array.isArray(state) ? state : state?.value ?? []) as StateResponse[]
 
         if (eventName !== 'Transfer' || (properties.length !== 3 && properties.length !== 4)) return
 
         const promise = async (): Promise<TransactionTransferAsset | TransactionTransferNft> => {
           const isAsset = properties.length === 3
-          const from = (properties[0] as StateResponse).value as string
-          const to = (properties[1] as StateResponse).value as string
+          const from = properties[0].value as string
+          const to = properties[1].value as string
           const convertedFrom = from ? this.convertByteStringToAddress(from) : 'Mint'
           const convertedTo = to ? this.convertByteStringToAddress(to) : 'Burn'
 
@@ -126,8 +127,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
           return {
             from: convertedFrom,
             to: convertedTo,
-            tokenId: (properties[3] as StateResponse).value as string,
-            contractHash,
+            tokenHash: properties[3].value as string,
+            collectionHash: contractHash,
             type: 'nft',
           }
         }
@@ -215,26 +216,28 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
-        let nftEvent: FullTransactionNftEvent
-        let assetEvent: FullTransactionAssetEvent
+        let nftEvent: FullTransactionNftEvent | undefined
+        let assetEvent: FullTransactionAssetEvent | undefined
 
-        const { methodName, tokenID: tokenId, contractHash: hash, contractName } = event
+        const { methodName, tokenID: tokenHash, contractHash, contractName } = event
         const from = event.from ?? undefined
         const to = event.to ?? undefined
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
+        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
-        const isNft = this.#supportedNep11Standards.includes(standard) && !!tokenId
+        const isNft = this.#supportedNep11Standards.includes(standard) && !!tokenHash
 
         if (isNft) {
           const [nft] = await BSPromisesHelper.tryCatch<NftResponse>(() =>
-            this.#nftDataService.getNft({ contractHash: hash, tokenId })
+            this.#nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
 
-          const nftUrl = hash ? nftTemplateUrl?.replace('{hash}', hash).replace('{tokenId}', tokenId) : undefined
+          const nftUrl = contractHash
+            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
+            : undefined
 
-          nftEvent = {
+          newItem.events.push({
             eventType: 'nft',
             amount: undefined,
             methodName,
@@ -242,17 +245,19 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
             fromUrl,
             to,
             toUrl,
-            hash,
-            hashUrl,
-            tokenId,
+            collectionHash: contractHash,
+            collectionHashUrl: contractHashUrl,
+            tokenHash,
             tokenType: 'nep-11',
             nftImageUrl: nft?.image,
             nftUrl,
             name: nft?.name,
-            collectionName: nft?.collectionName,
-          }
+            collectionName: nft?.collection?.name,
+          })
+
+          return
         } else {
-          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
+          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(contractHash))
 
           assetEvent = {
             eventType: 'token',
@@ -264,8 +269,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
             fromUrl,
             to,
             toUrl,
-            hash,
-            hashUrl,
+            contractHash,
+            contractHashUrl,
             token: token ?? undefined,
             tokenType: 'nep-17',
           }
@@ -333,11 +338,11 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         return cachedToken
       }
 
-      let token = this._tokens.find(BSTokenHelper.predicateByHash(tokenHash))
+      let token = this._tokens.find(this._tokenService.predicateByHash(tokenHash))
 
       if (!token) {
         const { decimals, symbol, name, scripthash } = await DoraNeoRest.asset(tokenHash, this._network.id)
-        token = BSTokenHelper.normalizeToken({
+        token = this._tokenService.normalizeToken({
           decimals: Number(decimals),
           symbol,
           name,

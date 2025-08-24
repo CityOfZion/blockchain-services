@@ -1,7 +1,7 @@
-import { BSNeoLegacy, CalculateNeoLegacyMigrationAmountsResponse } from '../services/BSNeoLegacy'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { Account, BalanceResponse } from '@cityofzion/blockchain-service'
+import { BSNeoLegacy, CalculateNeoLegacyMigrationAmountsResponse } from '../BSNeoLegacy'
 
 const testnetNetwork = BSNeoLegacyConstants.TESTNET_NETWORKS[0]
 

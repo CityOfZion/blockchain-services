@@ -1,12 +1,18 @@
-import { Token } from '../interfaces'
+import {
+  ITokenService,
+  Token,
+  TTokenServicePredicateByHashParams,
+  TTokenServicePredicateBySymbolParams,
+  TTokenServicePredicateParams,
+} from '../../interfaces'
 
 export type TBSTokenHelperPredicateParams = {
   hash: string
   symbol?: string
 }
 
-export class BSTokenHelper {
-  static predicate({ hash, symbol }: TBSTokenHelperPredicateParams) {
+export abstract class TokenService implements ITokenService {
+  predicate({ hash, symbol }: TTokenServicePredicateParams): (params: TTokenServicePredicateParams) => boolean {
     const normalizedHash = this.normalizeHash(hash)
 
     return (params: TBSTokenHelperPredicateParams) => {
@@ -18,15 +24,18 @@ export class BSTokenHelper {
     }
   }
 
-  static predicateByHash(tokenOrHash: string | { hash: string }) {
+  predicateByHash(
+    tokenOrHash: TTokenServicePredicateByHashParams
+  ): (params: TTokenServicePredicateByHashParams) => boolean {
     const hash = typeof tokenOrHash === 'string' ? tokenOrHash : tokenOrHash.hash
     const normalizedHash = this.normalizeHash(hash)
-
     return (params: string | { hash: string }) =>
       normalizedHash === this.normalizeHash(typeof params === 'string' ? params : params.hash)
   }
 
-  static predicateBySymbol(tokenOrSymbol: string | { symbol: string }) {
+  predicateBySymbol(
+    tokenOrSymbol: TTokenServicePredicateBySymbolParams
+  ): (params: TTokenServicePredicateBySymbolParams) => boolean {
     const symbol = typeof tokenOrSymbol === 'string' ? tokenOrSymbol : tokenOrSymbol.symbol
     const lowercaseSymbol = symbol.toLowerCase()
 
@@ -38,7 +47,7 @@ export class BSTokenHelper {
     }
   }
 
-  static normalizeToken<T extends Token | Token[]>(token: T): T {
+  normalizeToken<T extends Token | Token[]>(token: T): T {
     if (Array.isArray(token)) {
       return token.map(item => ({
         ...item,
@@ -52,8 +61,5 @@ export class BSTokenHelper {
     }
   }
 
-  static normalizeHash(hash: string): string {
-    const fixed = hash.startsWith('0x') ? hash : `0x${hash}`
-    return fixed.toLowerCase()
-  }
+  abstract normalizeHash(hash: string): string
 }

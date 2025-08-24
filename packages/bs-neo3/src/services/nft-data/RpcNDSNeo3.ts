@@ -21,14 +21,14 @@ export abstract class RpcNDSNeo3 implements NftDataService {
 
   abstract getNft(params: GetNftParam): Promise<NftResponse>
 
-  async hasToken({ contractHash, address }: HasTokenParam): Promise<boolean> {
+  async hasToken({ collectionHash, address }: HasTokenParam): Promise<boolean> {
     const parser = NeonParser
     const invoker = await NeonInvoker.init({ rpcAddress: this.#network.url })
     try {
       const result = await invoker.testInvoke({
         invocations: [
           {
-            scriptHash: contractHash,
+            scriptHash: collectionHash,
             operation: 'balanceOf',
             args: [
               {
@@ -42,7 +42,7 @@ export abstract class RpcNDSNeo3 implements NftDataService {
 
       return parser.parseRpcResponse(result.stack[0], { type: 'Integer' }) > 0
     } catch {
-      throw new Error(`Token not found: ${contractHash}`)
+      throw new Error(`Token not found: ${collectionHash}`)
     }
   }
 }

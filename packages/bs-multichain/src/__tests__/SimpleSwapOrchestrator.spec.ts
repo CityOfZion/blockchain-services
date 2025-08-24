@@ -26,7 +26,7 @@ let accountToUse: TSwapValidateValue<Account<'neo3' | 'ethereum'>>
 let error: string | undefined
 
 describe('SimpleSwapService', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks()
 
     error = undefined
@@ -97,6 +97,8 @@ describe('SimpleSwapService', () => {
     simpleSwapOrchestrator.eventEmitter.on('error', value => {
       error = value
     })
+
+    await BSUtilsHelper.wait(5000)
   })
 
   it('Should not be able to set the token to use if available tokens to use is not set', async () => {
@@ -329,7 +331,7 @@ describe('SimpleSwapService', () => {
     expect(availableTokensToUse).toEqual({ loading: false, value: expect.any(Array) })
     expect(availableTokensToReceive).toEqual({ loading: false, value: expect.any(Array) })
     expect(tokenToReceive).toEqual({ loading: false, value: tokenReceive })
-    expect(amountToUse).toEqual({ loading: false, value: amountToUseMinMax.value?.min })
+    expect(amountToUse).toEqual({ loading: false, value: amountToUseMinMax.value!.min })
     expect(amountToReceive).toEqual({ loading: false, value: expect.any(String) })
     expect(addressToReceive).toEqual({ loading: false, value: null, valid: null })
     expect(extraIdToReceive).toEqual({ loading: false, value: null, valid: null })
@@ -400,7 +402,7 @@ describe('SimpleSwapService', () => {
     expect(availableTokensToUse).toEqual({ loading: false, value: expect.any(Array) })
     expect(availableTokensToReceive).toEqual({ loading: false, value: expect.any(Array) })
     expect(tokenToReceive).toEqual({ loading: false, value: tokenReceive })
-    expect(amountToUse).toEqual({ loading: false, value: amountToUseMinMax.value?.min })
+    expect(amountToUse).toEqual({ loading: false, value: amountToUseMinMax.value!.min })
     expect(amountToReceive).toEqual({ loading: false, value: expect.any(String) })
     expect(addressToReceive).toEqual({ loading: false, value: 'INVALID', valid: false })
     expect(extraIdToReceive).toEqual({ loading: false, value: null, valid: null })
@@ -472,6 +474,8 @@ describe('SimpleSwapService', () => {
     await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_XRP_ADDRESS_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setExtraIdToReceive(extraId)
 
+    await BSUtilsHelper.wait(1000)
+
     expect(extraIdToReceive).toEqual({ loading: false, value: extraId, valid: true })
   }, 10000)
 
@@ -512,6 +516,8 @@ describe('SimpleSwapService', () => {
     await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setExtraIdToReceive(extraId)
 
+    await BSUtilsHelper.wait(1000)
+
     expect(extraIdToReceive).toEqual({ loading: false, value: extraId, valid: true })
   }, 10000)
 
@@ -524,12 +530,12 @@ describe('SimpleSwapService', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse('89')
-
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
     const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
 
     await simpleSwapOrchestrator.setTokenToReceive(xrpToken)
+
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
 
     const extraId = process.env.TEST_XRP_EXTRA_ID_TO_SWAP_TOKEN
 
@@ -555,8 +561,10 @@ describe('SimpleSwapService', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse('89')
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
+
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
+
     await simpleSwapOrchestrator.setAddressToReceive(account.address)
 
     expect(amountToReceive).toEqual({ loading: false, value: expect.any(String) })
@@ -581,8 +589,10 @@ describe('SimpleSwapService', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse('89')
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
+
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
+
     await simpleSwapOrchestrator.setAddressToReceive(account.address)
 
     expect(amountToReceive).toEqual({ loading: false, value: expect.any(String) })
@@ -690,7 +700,7 @@ describe('SimpleSwapService', () => {
     expect(availableTokensToUse).toEqual({ loading: false, value: expect.any(Array) })
     expect(availableTokensToReceive).toEqual({ loading: false, value: expect.any(Array) })
     expect(tokenToReceive).toEqual({ loading: false, value: tokenReceive })
-    expect(amountToUse).toEqual({ loading: false, value: amountToUseMinMax.value?.min })
+    expect(amountToUse).toEqual({ loading: false, value: amountToUseMinMax.value!.min })
     expect(amountToReceive).toEqual({ loading: false, value: null })
     expect(addressToReceive).toEqual({ loading: false, value: null, valid: null })
     expect(extraIdToReceive).toEqual({ loading: false, value: null, valid: null })
@@ -709,7 +719,7 @@ describe('SimpleSwapService', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse('89')
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
     await simpleSwapOrchestrator.setAddressToReceive(account.address)
 
@@ -735,10 +745,10 @@ describe('SimpleSwapService', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse('89')
-
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
     await simpleSwapOrchestrator.setTokenToReceive(xrpToken)
+
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
 
     await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_XRP_ADDRESS_TO_SWAP_TOKEN)
 
@@ -760,7 +770,7 @@ describe('SimpleSwapService', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse('89')
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
 
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
     await simpleSwapOrchestrator.setTokenToReceive(xrpToken)
@@ -791,10 +801,10 @@ describe('SimpleSwapService', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse('89')
-
     const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
     await simpleSwapOrchestrator.setTokenToReceive(notcoinToken)
+
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
 
     await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN)
 
@@ -816,7 +826,7 @@ describe('SimpleSwapService', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse('89')
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
 
     const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
     await simpleSwapOrchestrator.setTokenToReceive(notcoinToken)

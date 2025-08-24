@@ -5,14 +5,15 @@ import {
   GetTokenPricesParams,
   Network,
   TokenPricesResponse,
+  TokenService,
 } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants, BSNeoXNetworkId } from '../../constants/BSNeoXConstants'
 
 export class FlamingoForthewinEDSNeoX extends FlamingoForthewinEDS implements ExchangeDataService {
   readonly #network: Network<BSNeoXNetworkId>
 
-  constructor(network: Network<BSNeoXNetworkId>) {
-    super()
+  constructor(network: Network<BSNeoXNetworkId>, tokenService: TokenService) {
+    super(tokenService)
 
     this.#network = network
   }

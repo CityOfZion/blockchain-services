@@ -15,6 +15,8 @@ import {
   Token,
   TransferParam,
   GetLedgerTransport,
+  BSWithEncryption,
+  ITokenService,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
@@ -28,7 +30,7 @@ import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
 import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { RpcBDSEthereum } from './services/blockchain-data/RpcBDSEthereum'
-import { BSEthereumTokenHelper } from './helpers/BSEthereumTokenHelper'
+import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
 
 export class BSEthereum<BSName extends string = string, NetworkId extends string = BSEthereumNetworkId>
   implements
@@ -37,7 +39,8 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
     BSWithNameService,
     BSCalculableFee<BSName>,
     BSWithLedger<BSName>,
-    BSWithExplorerService
+    BSWithExplorerService,
+    BSWithEncryption<BSName>
 {
   readonly name: BSName
   readonly bip44DerivationPath: string
@@ -51,6 +54,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
   nftDataService!: NftDataService
   network!: Network<NetworkId>
   explorerService!: ExplorerService
+  tokenService!: ITokenService
 
   constructor(name: BSName, network?: Network<NetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
     network = network ?? (BSEthereumConstants.DEFAULT_NETWORK as Network<NetworkId>)
@@ -99,7 +103,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
       type: 2,
     }
 
-    const isNative = BSEthereumTokenHelper.predicateByHash(this.feeToken)(intent.tokenHash)
+    const isNative = this.tokenService.predicateByHash(this.feeToken)(intent.tokenHash)
 
     if (isNative) {
       transactionParams.to = intent.receiverAddress
@@ -129,7 +133,9 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
   }
 
   async testNetwork(network: Network<NetworkId>) {
-    const blockchainDataServiceClone = new RpcBDSEthereum(network)
+    this.tokenService = new TokenServiceEthereum()
+
+    const blockchainDataServiceClone = new RpcBDSEthereum(network, this.tokenService)
 
     await blockchainDataServiceClone.getBlockHeight()
   }
@@ -139,9 +145,15 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
 
     this.network = network
     this.nftDataService = new GhostMarketNDSEthereum(network)
-    this.explorerService = new BlockscoutESEthereum(network)
-    this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService)
-    this.blockchainDataService = new MoralisBDSEthereum(network, this.nftDataService, this.explorerService)
+    this.explorerService = new BlockscoutESEthereum(network, this.tokenService)
+    this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService, this.tokenService)
+    this.tokenService = new TokenServiceEthereum()
+    this.blockchainDataService = new MoralisBDSEthereum(
+      network,
+      this.nftDataService,
+      this.explorerService,
+      this.tokenService
+    )
   }
 
   validateAddress(address: string): boolean {

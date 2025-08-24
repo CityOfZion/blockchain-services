@@ -9,6 +9,7 @@ import {
   NetworkId,
   RpcResponse,
   Token,
+  TokenService,
   TransactionResponse,
   TransactionsByAddressParams,
   TransactionsByAddressResponse,
@@ -17,16 +18,17 @@ import { ethers } from 'ethers'
 import { BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
-import { BSEthereumTokenHelper } from '../../helpers/BSEthereumTokenHelper'
 
 export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId> implements BlockchainDataService {
-  _network: Network<BSNetworkId>
+  readonly _network: Network<BSNetworkId>
+  readonly _tokenService: TokenService
   _tokenCache: Map<string, Token> = new Map()
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
 
-  constructor(network: Network<BSNetworkId>) {
+  constructor(network: Network<BSNetworkId>, tokenService: TokenService) {
     this._network = network
+    this._tokenService = tokenService
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -80,7 +82,7 @@ export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId>
   async getTokenInfo(hash: string): Promise<Token> {
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
 
-    if (BSEthereumTokenHelper.predicateByHash(nativeAsset)({ hash })) return nativeAsset
+    if (this._tokenService.predicateByHash(nativeAsset)({ hash })) return nativeAsset
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!
@@ -92,7 +94,7 @@ export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId>
     const decimals = await contract.decimals()
     const symbol = await contract.symbol()
 
-    const token = BSEthereumTokenHelper.normalizeToken({
+    const token = this._tokenService.normalizeToken({
       decimals,
       symbol,
       hash,
