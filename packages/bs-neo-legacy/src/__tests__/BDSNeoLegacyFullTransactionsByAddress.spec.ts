@@ -173,8 +173,8 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                hash: expect.any(String),
-                hashUrl: expect.any(String),
+                contractHash: expect.any(String),
+                contractHashUrl: expect.any(String),
                 token: expect.objectContaining({
                   decimals: expect.any(Number),
                   symbol: expect.any(String),

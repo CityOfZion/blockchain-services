@@ -14,6 +14,7 @@ import {
   NftDataService,
   NftResponse,
   Token,
+  TokenService,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { GetFullTransactionsByAddressResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
@@ -32,9 +33,10 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
     network: Network<BSNetworkId>,
     supportedFullTransactionsByAddressNetworks: BSNetworkId[],
     nftDataService: NftDataService,
-    explorerService: ExplorerService
+    explorerService: ExplorerService,
+    tokenService: TokenService
   ) {
-    super(network)
+    super(network, tokenService)
 
     this.#supportedFullTransactionsByAddressNetworks = supportedFullTransactionsByAddressNetworks
     this.#nftDataService = nftDataService
@@ -78,24 +80,26 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
         let nftEvent: FullTransactionNftEvent
         let assetEvent: FullTransactionAssetEvent
 
-        const { methodName, tokenID: tokenId, contractHash: hash } = event
+        const { methodName, tokenID: tokenHash, contractHash } = event
         const from = event.from ?? undefined
         const to = event.to ?? undefined
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isErc1155 = this.#supportedErc1155Standards.includes(standard)
         const isErc721 = this.#supportedErc721Standards.includes(standard)
         const isErc20 = this.#supportedErc20Standards.includes(standard)
-        const isNft = (isErc1155 || isErc721) && !!tokenId
+        const isNft = (isErc1155 || isErc721) && !!tokenHash
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
+        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
 
         if (isNft) {
           const [nft] = await BSPromisesHelper.tryCatch<NftResponse>(() =>
-            this.#nftDataService.getNft({ contractHash: hash, tokenId })
+            this.#nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
 
-          const nftUrl = hash ? nftTemplateUrl?.replace('{hash}', hash).replace('{tokenId}', tokenId) : undefined
+          const nftUrl = contractHash
+            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
+            : undefined
 
           nftEvent = {
             eventType: 'nft',
@@ -105,17 +109,17 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
             fromUrl,
             to,
             toUrl,
-            hash,
-            hashUrl,
-            tokenId,
+            collectionHash: contractHash,
+            collectionHashUrl: contractHashUrl,
+            tokenHash,
             tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
             nftImageUrl: nft?.image,
             nftUrl,
             name: nft?.name,
-            collectionName: nft?.collectionName,
+            collectionName: nft?.collection.name,
           }
         } else {
-          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
+          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(contractHash))
 
           assetEvent = {
             eventType: 'token',
@@ -127,8 +131,8 @@ export class DoraBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId
             fromUrl,
             to,
             toUrl,
-            hash,
-            hashUrl,
+            contractHash,
+            contractHashUrl,
             token: token ?? undefined,
             tokenType: isErc20 ? 'erc-20' : 'generic',
           }

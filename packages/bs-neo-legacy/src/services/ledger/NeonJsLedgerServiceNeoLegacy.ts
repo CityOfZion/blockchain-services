@@ -6,7 +6,7 @@ import {
   LedgerServiceEmitter,
   UntilIndexRecord,
 } from '@cityofzion/blockchain-service'
-import { BSNeoLegacy } from '../BSNeoLegacy'
+import { BSNeoLegacy } from '../../BSNeoLegacy'
 import EventEmitter from 'events'
 import Transport from '@ledgerhq/hw-transport'
 import { wallet, u, tx } from '@cityofzion/neon-js'

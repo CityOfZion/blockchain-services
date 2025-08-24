@@ -1,7 +1,6 @@
 export * from './BSEthereum'
 
 export * from './helpers/BSEthereumHelper'
-export * from './helpers/BSEthereumTokenHelper'
 
 export * from './constants/BSEthereumConstants'
 
@@ -17,6 +16,8 @@ export * from './services/ledger/EthersLedgerServiceEthereum'
 
 export * from './services/nft-data/GhostMarketNDSEthereum'
 export * from './services/nft-data/RpcNDSEthereum'
+
+export * from './services/token/TokenServiceEthereum'
 
 export * from './assets/abis/ERC20'
 export * from './assets/abis/ERC721'

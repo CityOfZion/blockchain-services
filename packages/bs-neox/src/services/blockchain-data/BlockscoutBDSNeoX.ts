@@ -10,6 +10,7 @@ import {
   Network,
   NftDataService,
   Token,
+  TokenService,
   TransactionResponse,
   TransactionsByAddressParams,
   TransactionsByAddressResponse,
@@ -19,7 +20,7 @@ import {
 import axios from 'axios'
 import { ethers } from 'ethers'
 import { api } from '@cityofzion/dora-ts'
-import { BSEthereumConstants, BSEthereumTokenHelper, DoraBDSEthereum, ERC20_ABI } from '@cityofzion/bs-ethereum'
+import { BSEthereumConstants, DoraBDSEthereum, ERC20_ABI } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants, BSNeoXNetworkId } from '../../constants/BSNeoXConstants'
 
 interface BlockscoutTransactionResponse {
@@ -116,8 +117,13 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
     })
   }
 
-  constructor(network: Network<BSNeoXNetworkId>, nftDataService: NftDataService, explorerService: ExplorerService) {
-    super(network, BSNeoXConstants.ALL_NETWORK_IDS, nftDataService, explorerService)
+  constructor(
+    network: Network<BSNeoXNetworkId>,
+    nftDataService: NftDataService,
+    explorerService: ExplorerService,
+    tokenService: TokenService
+  ) {
+    super(network, BSNeoXConstants.ALL_NETWORK_IDS, nftDataService, explorerService, tokenService)
   }
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
@@ -156,7 +162,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
             to: tokenTransfer.to.hash,
             type: 'token',
             contractHash: tokenTransfer.token.address,
-            token: BSEthereumTokenHelper.normalizeToken({
+            token: this._tokenService.normalizeToken({
               symbol: tokenTransfer.token.symbol,
               name: tokenTransfer.token.name,
               hash: tokenTransfer.token.address,
@@ -169,11 +175,11 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
 
         if (tokenTransfer.token.type === 'ERC-721') {
           transfers.push({
-            tokenId: tokenTransfer.total.token_id,
+            tokenHash: tokenTransfer.total.token_id,
             from: tokenTransfer.from.hash,
             to: tokenTransfer.to.hash,
             type: 'nft',
-            contractHash: tokenTransfer.token.address,
+            collectionHash: tokenTransfer.token.address,
           })
         }
       }
@@ -334,7 +340,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
   }
 
   async getTokenInfo(tokenHash: string): Promise<Token> {
-    const normalizedHash = BSEthereumTokenHelper.normalizeHash(tokenHash)
+    const normalizedHash = this._tokenService.normalizeHash(tokenHash)
     const nativeAsset = BSNeoXConstants.NATIVE_ASSET
 
     if (nativeAsset.hash === normalizedHash) {
@@ -357,7 +363,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
       throw new Error('Token is not an ERC-20 token')
     }
 
-    const token = BSEthereumTokenHelper.normalizeToken({
+    const token = this._tokenService.normalizeToken({
       decimals: data.decimals ? parseInt(data.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
       hash: tokenHash,
       name: data.name,
@@ -399,7 +405,7 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
           return
         }
 
-        const token: Token = BSEthereumTokenHelper.normalizeToken({
+        const token: Token = this._tokenService.normalizeToken({
           decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
           hash: balance.token.address,
           name: balance.token.symbol,

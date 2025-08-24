@@ -46,6 +46,11 @@
       "packageName": "@cityofzion/bs-neox",
       "projectFolder": "packages/bs-neox",
       "shouldPublish": true
+    },
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "projectFolder": "packages/bs-solana",
+      "shouldPublish": true
     }
   ]
 }

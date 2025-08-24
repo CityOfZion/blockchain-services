@@ -1,15 +1,18 @@
-import { BSTokenHelper, Network, NetworkId, Token } from '@cityofzion/blockchain-service'
+import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
 import mainnetTokens from '../assets/tokens/mainnet.json'
 import nativeTokens from '../assets/tokens/native.json'
+import { TokenServiceNeo3 } from '../services/token/TokenServiceNeo3'
 
 export type BSNeo3NetworkId = NetworkId<'mainnet' | 'testnet'>
 
 export class BSNeo3Constants {
+  static #tokenService = new TokenServiceNeo3()
+
   static EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<BSNeo3NetworkId, Token[]>> = {
-    mainnet: BSTokenHelper.normalizeToken(mainnetTokens),
+    mainnet: this.#tokenService.normalizeToken(mainnetTokens),
   }
 
-  static NATIVE_ASSETS: Token[] = BSTokenHelper.normalizeToken(nativeTokens)
+  static NATIVE_ASSETS: Token[] = this.#tokenService.normalizeToken(nativeTokens)
 
   static GAS_TOKEN: Token = this.NATIVE_ASSETS.find(token => token.name === 'GAS')!
   static NEO_TOKEN: Token = this.NATIVE_ASSETS.find(token => token.name === 'NEO')!

@@ -10,22 +10,24 @@ describe('Neo X Blockchain', () => {
   })
 
   describe('NEONAUTS', () => {
-    const contractHash = '0x337015aaa325c684b175591bfed6ea3d3c351bb3'
-    const tokenId = '101'
+    const collectionHash = '0x337015aaa325c684b175591bfed6ea3d3c351bb3'
+    const tokenHash = '101'
     const address = '0x2ee6a88f62e8645f671a1f889021b423b763f62c'
 
     it('Should get NFT by contract hash and token id', async () => {
-      const nft = await ghostMarketNDSEthereum.getNft({ contractHash, tokenId })
+      const nft = await ghostMarketNDSEthereum.getNft({ collectionHash, tokenHash })
 
       expect(nft).toEqual({
-        collectionImage: undefined,
-        id: tokenId,
-        contractHash,
+        hash: tokenHash,
+        collection: {
+          hash: collectionHash,
+          name: 'NEONAUTS',
+          image: undefined,
+        },
         symbol: 'XNAUTS',
-        collectionName: 'NEONAUTS',
         image: expect.any(String),
         isSVG: expect.any(Boolean),
-        name: `NEONAUTS #${tokenId}`,
+        name: `NEONAUTS #${tokenHash}`,
         creator: {
           address,
           name: undefined,
@@ -38,11 +40,13 @@ describe('Neo X Blockchain', () => {
 
       items.forEach(nft => {
         expect(nft).toMatchObject({
-          collectionImage: undefined,
-          id: expect.any(String),
-          contractHash: expect.any(String),
+          hash: expect.any(String),
+          collection: {
+            image: undefined,
+            hash: expect.any(String),
+            name: expect.any(String),
+          },
           symbol: expect.any(String),
-          collectionName: expect.any(String),
           image: expect.any(String),
           isSVG: expect.any(Boolean),
           name: expect.any(String),
@@ -60,8 +64,8 @@ describe('Neo X Blockchain', () => {
     it('Should check if address has specific token when get by address', async () => {
       const { items } = await ghostMarketNDSEthereum.getNftsByAddress({ address })
 
-      for (const { contractHash } of items) {
-        const hasToken = await ghostMarketNDSEthereum.hasToken({ address, contractHash })
+      for (const { collection } of items) {
+        const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection.hash })
 
         expect(hasToken).toBeTruthy()
       }
@@ -69,19 +73,21 @@ describe('Neo X Blockchain', () => {
   })
 
   describe('GHOST', () => {
-    const contractHash = '0x0b53b5da7d0f275c31a6a182622bdf02474af253'
-    const tokenId = '6'
+    const collectionHash = '0x0b53b5da7d0f275c31a6a182622bdf02474af253'
+    const tokenHash = '6'
     const address = '0x65541cf682dfd1b113a675204e24772c159bde60'
     const creatorName = 'bettyboop'
 
     it('Should get NFT by contract hash and token id', async () => {
-      const nft = await ghostMarketNDSEthereum.getNft({ contractHash, tokenId })
+      const nft = await ghostMarketNDSEthereum.getNft({ collectionHash, tokenHash })
 
       expect(nft).toMatchObject({
-        id: tokenId,
-        contractHash,
+        hash: tokenHash,
+        collection: expect.objectContaining({
+          hash: collectionHash,
+          name: 'GHOST',
+        }),
         symbol: 'GHOST',
-        collectionName: 'GHOST',
         image: expect.any(String),
         isSVG: expect.any(Boolean),
         name: 'BeTTyBooP',
@@ -97,10 +103,12 @@ describe('Neo X Blockchain', () => {
 
       items.forEach(nft => {
         expect(nft).toMatchObject({
-          id: expect.any(String),
-          contractHash: expect.any(String),
+          hash: expect.any(String),
+          collection: expect.objectContaining({
+            hash: expect.any(String),
+            name: expect.any(String),
+          }),
           symbol: expect.any(String),
-          collectionName: expect.any(String),
           image: expect.any(String),
           isSVG: expect.any(Boolean),
           name: expect.any(String),
@@ -118,10 +126,10 @@ describe('Neo X Blockchain', () => {
     it('Should check if address has specific token when get by address', async () => {
       const { items } = await ghostMarketNDSEthereum.getNftsByAddress({ address })
 
-      for (const { contractHash } of items) {
+      for (const { collection } of items) {
         // Try and catch to ignore ERC1155 error in hasToken
         try {
-          const hasToken = await ghostMarketNDSEthereum.hasToken({ address, contractHash })
+          const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection.hash })
 
           expect(hasToken).toBeTruthy()
         } catch {

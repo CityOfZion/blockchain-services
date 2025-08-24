@@ -1,4 +1,4 @@
-import { BSEthereum } from '@cityofzion/bs-ethereum'
+import { BSEthereum, TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants, BSNeoXNetworkId } from './constants/BSNeoXConstants'
 import {
   GetLedgerTransport,
@@ -30,10 +30,16 @@ export class BSNeoX<BSName extends string = string>
   setNetwork(network: Network<BSNeoXNetworkId>) {
     this.network = network
 
+    this.tokenService = new TokenServiceEthereum()
     this.nftDataService = new GhostMarketNDSNeoX(network)
-    this.explorerService = new BlockscoutESNeoX(network)
-    this.exchangeDataService = new FlamingoForthewinEDSNeoX(network)
-    this.blockchainDataService = new BlockscoutBDSNeoX(network, this.nftDataService, this.explorerService)
+    this.explorerService = new BlockscoutESNeoX(network, this.tokenService)
+    this.exchangeDataService = new FlamingoForthewinEDSNeoX(network, this.tokenService)
+    this.blockchainDataService = new BlockscoutBDSNeoX(
+      network,
+      this.nftDataService,
+      this.explorerService,
+      this.tokenService
+    )
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
   }
 }

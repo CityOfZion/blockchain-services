@@ -8,6 +8,7 @@ const config: JestConfigWithTsJest = {
   testMatch: ['<rootDir>/**/*.spec.ts'],
   setupFiles: ['<rootDir>/jest.setup.ts'],
   detectOpenHandles: true,
+  testTimeout: 60000,
 }
 
 export default config

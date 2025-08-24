@@ -24,81 +24,68 @@ describe('BlockscoutBDSNeoX', () => {
   })
 
   it('Should return transaction details for native assets (GAS)', async () => {
-    const txId = '0x2d0ba54c93927a190f8b867c117738c3f577a4e2d9c115292818c39a31c0b166'
+    const txId = '0x31c4c688c4e41e9213cdcbb7870be49d146ee7b89e3f9d39e91a0a268fc22ac8'
 
     const expectedTransfer: TransactionTransferAsset[] = [
       {
-        amount: '0.000001',
+        amount: '0.05',
         contractHash: BSNeoXConstants.NATIVE_ASSET.hash,
-        from: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5',
-        to: '0x3A2fF99807d6ae553eBB72456ACE0BcE0eCe7174',
+        from: '0xD1D6634415Be11A54664298373C57c131aA828d5',
+        to: '0x07ca54b301dECA9C8Bc9AF4e4Cd6A87531018031',
         type: 'token',
         token: BSNeoXConstants.NATIVE_ASSET,
       },
     ]
 
     const expectedResponse: TransactionResponse = {
-      block: 207518,
+      block: 3449529,
       hash: txId,
       notifications: [],
-      time: 1723050418,
+      time: 1755720556,
       transfers: expectedTransfer,
-      fee: '0.00084',
+      fee: '0.000924',
     }
 
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
-  }, 10000)
+  })
 
   it('Should return transaction details for ERC-20 assets (Ethereum assets)', async () => {
-    const txId = '0x8ff7f8d3ec44f35242a9e077658c63db595bf4023b3075df5b2b4fea54fd6861'
+    const txId = '0xe0ed57295686a30f72352bdd178d72eb84071d1f4b654df2e4241fb5ba2eb76d'
 
     const expectedTransfer: TransactionTransferAsset[] = [
       {
-        amount: '37.0',
-        contractHash: '0xEe576DAEe3A7a8d3773295525516086a527A9C8B',
-        from: '0xe1db37AE18852C647257E30c6f276f0DbaFC6D47',
-        to: '0x0000000000000000000000000000000000000000',
+        amount: '1.0',
+        contractHash: '0xc28736dc83f4fd43d6fb832Fd93c3eE7bB26828f',
+        from: '0x1212000000000000000000000000000000000004',
+        to: '0xe94bea1d8BB8BCC13CD6974E6941f4D1896d56da',
         token: {
           decimals: 18,
-          hash: '0xEe576DAEe3A7a8d3773295525516086a527A9C8B',
-          name: 'Aave Ethereum Variable Debt DAI',
-          symbol: 'variableDebtEthDAI',
+          hash: '0xc28736dc83f4fd43d6fb832Fd93c3eE7bB26828f',
+          name: 'NeoToken',
+          symbol: 'NEO',
         },
         type: 'token',
-      },
-      {
-        amount: '37.000009918050911441',
-        contractHash: '0xfd49bEe9a0015743f4f1ce493804b203eca76f29',
-        from: '0xe1db37AE18852C647257E30c6f276f0DbaFC6D47',
-        to: '0x5Ddc109b3e30D8E90b5c59221D5Cc214149c46fB',
-        type: 'token',
-        token: {
-          decimals: 18,
-          hash: '0xfd49bEe9a0015743f4f1ce493804b203eca76f29',
-          name: 'DAI',
-          symbol: 'DAI',
-        },
       },
     ]
 
     const expectedResponse: TransactionResponse = {
-      block: 208007,
+      block: 3387699,
       hash: txId,
       notifications: [],
-      time: 1723055774,
+      time: 1755100060,
       transfers: expectedTransfer,
-      fee: '0.00748844',
+      fee: '0.0064436',
     }
 
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(expectedResponse)
-  }, 10000)
+  })
 
   it('Should return transactions by address', async () => {
-    const address = '0x5E1BE25D4A2De0083012f1B5A8030a7023fFA5bc'
+    const address = '0x1212000000000000000000000000000000000004'
 
     const expectedResponse: TransactionsByAddressResponse = {
       transactions: expect.arrayContaining([
@@ -120,13 +107,13 @@ describe('BlockscoutBDSNeoX', () => {
   })
 
   it('Should return token info', async () => {
-    const tokenHash = '0x0F02E6BE5c77bD641A2138c988913900DD5f9A94'
+    const tokenHash = '0xc28736dc83f4fd43d6fb832Fd93c3eE7bB26828f'
 
     const expectedToken = {
       decimals: 18,
       hash: tokenHash,
-      name: 'USDT',
-      symbol: 'USDT',
+      name: 'NeoToken',
+      symbol: 'NEO',
     }
 
     const token = await blockscoutBDSNeoX.getTokenInfo(tokenHash)
@@ -135,7 +122,7 @@ describe('BlockscoutBDSNeoX', () => {
   })
 
   it('Should return balance', async () => {
-    const address = '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5'
+    const address = '0xd1d6634415be11a54664298373c57c131aa828d5'
 
     const expectedBalance: BalanceResponse[] = [
       {
@@ -153,5 +140,5 @@ describe('BlockscoutBDSNeoX', () => {
     const blockHeight = await blockscoutBDSNeoX.getBlockHeight()
 
     expect(blockHeight).toBeGreaterThan(0)
-  }, 10000)
+  })
 })
