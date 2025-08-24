@@ -37,9 +37,11 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
     nftDataService = new GhostMarketNDSNeoX(mainnetNetwork) as jest.Mocked<GhostMarketNDSNeoX>
 
-    nftDataService.getNft = jest
-      .fn()
-      .mockReturnValue({ image: 'nftImage', name: 'nftName', collectionName: 'nftCollectionName' })
+    nftDataService.getNft = jest.fn().mockReturnValue({
+      image: 'nftImage',
+      name: 'nftName',
+      collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+    })
 
     explorerService = new BlockscoutESNeoX(mainnetNetwork) as jest.Mocked<BlockscoutESNeoX>
 
@@ -187,7 +189,6 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                hash: expect.any(String),
                 tokenType: expect.any(String),
               }),
             ]),
@@ -223,7 +224,6 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                hash: expect.any(String),
                 tokenType: 'generic',
               }),
             ]),
@@ -274,8 +274,6 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            hash: expect.any(String),
-            hashUrl: expect.any(String),
             tokenId: expect.any(String),
             tokenType: 'generic',
             nftImageUrl: 'nftImage',

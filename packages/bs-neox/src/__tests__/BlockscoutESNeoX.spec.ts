@@ -57,7 +57,7 @@ describe('BlockscoutESNeoX', () => {
   it('Should return an address template URL (Mainnet) when call the getNftTemplateUrl method with a Mainnet network', () => {
     const templateUrl = blockscoutESEthereum.getNftTemplateUrl()
 
-    expect(templateUrl).toBe('https://xexplorer.neo.org/token/{hash}/instance/{tokenId}')
+    expect(templateUrl).toBe('https://xexplorer.neo.org/token/{collectionHash}/instance/{tokenHash}')
   })
 
   it('Should return a transaction template URL (Mainnet) when call the getContractTemplateUrl method with a Mainnet network', () => {

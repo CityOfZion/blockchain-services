@@ -1,17 +1,19 @@
 import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
-import { BSEthereumTokenHelper } from '@cityofzion/bs-ethereum'
+import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 
 export type BSNeoXNetworkId = NetworkId<'47763' | '12227332'>
 
 export class BSNeoXConstants {
-  static NATIVE_ASSET: Token = BSEthereumTokenHelper.normalizeToken({
+  static #tokenService = new TokenServiceEthereum()
+
+  static NATIVE_ASSET: Token = this.#tokenService.normalizeToken({
     symbol: 'GAS',
     name: 'GAS',
     decimals: 18,
     hash: '0x',
   })
 
-  static NEO_TOKEN: Token = BSEthereumTokenHelper.normalizeToken({
+  static NEO_TOKEN: Token = this.#tokenService.normalizeToken({
     name: 'NEO',
     symbol: 'NEO',
     decimals: 18,
@@ -41,7 +43,6 @@ export class BSNeoXConstants {
       url: this.RPC_LIST_BY_NETWORK_ID['12227332'][0],
     },
   ]
-
   static ALL_NETWORK: Network<BSNeoXNetworkId>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
 
   // If tou change this, make sure to update the tests accordingly

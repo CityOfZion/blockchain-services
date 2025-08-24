@@ -15,6 +15,7 @@ complexity of each one with a single interface.
 | @cityofzion/bs-neo-legacy      | Implementation of interfaces and methods for the NEO Legacy (NEO 2) blockchain                                                                                 |
 | @cityofzion/bs-multichain            | Implementation of interfaces and methods for multichain features                                                                                                        |
 | @cityofzion/bs-neox            | Implementation of interfaces and methods for the Neo X blockchain                                                                                              |
+| @cityofzion/bs-solana          | Implementation of interfaces and methods for the Solana blockchain                                                                                             |
 
 
 ## Technologies Used

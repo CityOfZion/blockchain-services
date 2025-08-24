@@ -13,7 +13,7 @@ import { isLeapYear } from 'date-fns'
 import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
 
 describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
-  const address = '0xe688b84b23f322a994A53dbF8E15FA82CDB71127'
+  const address = '0xd1d6634415be11a54664298373c57c131aa828d5'
   const polygonAddress = '0x019d0706d65c4768ec8081ed7ce41f59eef9b86c'
   const baseAddress = '0x36d7a1ef48bb241f1e31ec5c4b9bf78e553f422a'
   const arbitrumAddress = '0x009905bf008CcA637185EEaFE8F51BB56dD2ACa7'
@@ -71,7 +71,6 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            hash: expect.any(String),
             tokenType: expect.any(String),
           }),
         ]),
@@ -82,9 +81,11 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
   const initMoralisBDSEthereum = (network: Network) => {
     nftDataService = new GhostMarketNDSEthereum(network) as jest.Mocked<GhostMarketNDSEthereum>
 
-    nftDataService.getNft = jest
-      .fn()
-      .mockReturnValue({ image: 'nftImage', name: 'nftName', collectionName: 'nftCollectionName' })
+    nftDataService.getNft = jest.fn().mockReturnValue({
+      image: 'nftImage',
+      name: 'nftName',
+      collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+    })
 
     explorerService = new BlockscoutESEthereum(network) as jest.Mocked<BlockscoutESEthereum>
 
@@ -217,7 +218,7 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
     it('Should be able to get transactions when is using a Ethereum Mainnet network', async () => {
       const response = await moralisBDSEthereum.getFullTransactionsByAddress({
         ...params,
-        dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
+        dateFrom: new Date('2025-01-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       })
 
@@ -408,9 +409,9 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            hash: expect.any(String),
-            hashUrl: expect.any(String),
-            tokenId: expect.any(String),
+            collectionHash: expect.any(String),
+            collectionHashUrl: expect.any(String),
+            tokenHash: expect.any(String),
             tokenType: expect.any(String),
             nftImageUrl: 'nftImage',
             nftUrl: expect.any(String),

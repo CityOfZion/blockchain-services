@@ -1,19 +1,22 @@
 import mainnetTokens from '../assets/tokens/mainnet.json'
 import nativeTokens from '../assets/tokens/native.json'
 
-import { BSTokenHelper, Network, NetworkId, Token } from '@cityofzion/blockchain-service'
+import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
+import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
 
 export type BSNeoLegacyNetworkId = NetworkId<'mainnet' | 'testnet'>
 
 export class BSNeoLegacyConstants {
+  static #tokenService = new TokenServiceNeoLegacy()
+
   static EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<BSNeoLegacyNetworkId, Token[]>> = {
-    mainnet: mainnetTokens,
+    mainnet: this.#tokenService.normalizeToken(mainnetTokens),
   }
 
-  static NATIVE_ASSETS = BSTokenHelper.normalizeToken(nativeTokens)
+  static NATIVE_ASSETS = this.#tokenService.normalizeToken(nativeTokens)
 
-  static GAS_ASSET = this.NATIVE_ASSETS.find(BSTokenHelper.predicateBySymbol('GAS'))!
-  static NEO_ASSET = this.NATIVE_ASSETS.find(BSTokenHelper.predicateBySymbol('NEO'))!
+  static GAS_ASSET = this.NATIVE_ASSETS.find(this.#tokenService.predicateBySymbol('GAS'))!
+  static NEO_ASSET = this.NATIVE_ASSETS.find(this.#tokenService.predicateBySymbol('NEO'))!
 
   static RPC_LIST_BY_NETWORK_ID: Record<BSNeoLegacyNetworkId, string[]> = {
     mainnet: [

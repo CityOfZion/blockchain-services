@@ -80,10 +80,10 @@ export class GhostMarketNDSEthereum<BSNetworkId extends NetworkId = BSEthereumNe
     return { nextCursor: request.data.next, items: nfts.map(this.parse.bind(this)) }
   }
 
-  async getNft({ contractHash, tokenId }: GetNftParam): Promise<NftResponse> {
+  async getNft({ collectionHash, tokenHash }: GetNftParam): Promise<NftResponse> {
     const url = this.getUrlWithParams({
-      contract: contractHash,
-      tokenIds: [tokenId],
+      contract: collectionHash,
+      tokenIds: [tokenHash],
     })
 
     const request = await axios.get<GhostMarketAssets>(url)
@@ -124,11 +124,13 @@ export class GhostMarketNDSEthereum<BSNetworkId extends NetworkId = BSEthereumNe
 
   private parse(data: GhostMarketNFT) {
     const nftResponse: NftResponse = {
-      collectionImage: this.treatGhostMarketImage(data.collection?.logoUrl),
-      id: data.tokenId,
-      contractHash: data.contract.hash,
+      hash: data.tokenId,
+      collection: {
+        hash: data.contract.hash,
+        name: data.collection?.name,
+        image: this.treatGhostMarketImage(data.collection?.logoUrl),
+      },
       symbol: data.contract.symbol,
-      collectionName: data.collection?.name,
       image: this.treatGhostMarketImage(data.metadata.mediaUri),
       isSVG: String(data.metadata.mediaType).includes('svg+xml'),
       name: data.metadata.name,

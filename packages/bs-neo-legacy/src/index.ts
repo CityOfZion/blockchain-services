@@ -1,4 +1,4 @@
-export * from './services/BSNeoLegacy'
+export * from './BSNeoLegacy'
 
 export * from './constants/BSNeoLegacyConstants'
 
@@ -11,3 +11,5 @@ export * from './services/exchange-data/CryptoCompareEDSNeoLegacy'
 export * from './services/explorer/NeoTubeESNeoLegacy'
 
 export * from './services/ledger/NeonJsLedgerServiceNeoLegacy'
+
+export * from './services/token/TokenServiceNeoLegacy'

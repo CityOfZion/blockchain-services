@@ -18,11 +18,11 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return a nft url', async () => {
-    const contractHash = '0x577a51f7d39162c9de1db12a6b319c848e4c54e5'
-    const tokenId = 'rAI='
-    const url = doraESNeo3.buildNftUrl({ contractHash, tokenId })
+    const collectionHash = '0x577a51f7d39162c9de1db12a6b319c848e4c54e5'
+    const tokenHash = 'rAI='
+    const url = doraESNeo3.buildNftUrl({ collectionHash, tokenHash })
 
-    expect(url).toEqual(`${BSCommonConstants.DORA_URL}/nft/neo3/mainnet/${contractHash}/${tokenId}`)
+    expect(url).toEqual(`https://dora.coz.io/nft/neo3/mainnet/${collectionHash}/${tokenHash}`)
   })
 
   it('Should return undefined when call the getAddressTemplateUrl method with an invalid network', () => {
@@ -88,7 +88,7 @@ describe('DoraESNeo3', () => {
   it('Should return an address template URL (Mainnet) when call the getNftTemplateUrl method with a Mainnet network', () => {
     const templateUrl = doraESNeo3.getNftTemplateUrl()
 
-    expect(templateUrl).toBe(`${BSCommonConstants.DORA_URL}/nft/neo3/mainnet/{hash}/{tokenId}`)
+    expect(templateUrl).toBe(`${BSCommonConstants.DORA_URL}/nft/neo3/mainnet/{collectionHash}/{tokenHash}`)
   })
 
   it('Should return a transaction template URL (Mainnet) when call the getContractTemplateUrl method with a Mainnet network', () => {
@@ -102,7 +102,7 @@ describe('DoraESNeo3', () => {
 
     const templateUrl = doraESNeo3.getNftTemplateUrl()
 
-    expect(templateUrl).toBe(`${BSCommonConstants.DORA_URL}/nft/neo3/testnet/{hash}/{tokenId}`)
+    expect(templateUrl).toBe(`${BSCommonConstants.DORA_URL}/nft/neo3/testnet/{collectionHash}/{tokenHash}`)
   })
 
   it('Should return a transaction template URL (Testnet) when call the getContractTemplateUrl method with a Testnet network', () => {
