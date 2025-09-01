@@ -2,6 +2,8 @@ import {
   ExplorerService,
   FullTransactionNftEvent,
   FullTransactionsByAddressParams,
+  FullTransactionsItem,
+  FullTransactionsItemBridgeNeo3NeoX,
   Network,
   NftDataService,
 } from '@cityofzion/blockchain-service'
@@ -178,6 +180,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
             invocationCount: expect.any(Number),
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
+            type: expect.any(String),
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
@@ -214,6 +217,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
             invocationCount: expect.any(Number),
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
+            type: expect.any(String),
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
@@ -299,6 +303,46 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBe(50)
+    }, 60000)
+
+    it('Should be able to get transactions that are marked as bridge (GAS)', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2025-08-18T10:00:00').toJSON(),
+        dateTo: new Date('2025-08-18T22:00:00').toJSON(),
+        address: '0xe3abc0b2a74fd2ef662b1c25c9769398f53b4304',
+      }
+
+      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress(newParams)
+
+      const transaction = response.data.find(
+        ({ txId }) => txId === '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
+      ) as FullTransactionsItem & FullTransactionsItemBridgeNeo3NeoX
+
+      expect(transaction.type).toBe('bridgeNeo3NeoX')
+      expect(transaction.data.amount).toBe('1.1')
+      expect(transaction.data.token).toEqual(BSNeoXConstants.NATIVE_ASSET)
+      expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
+    }, 60000)
+
+    it('Should be able to get transactions that are marked as bridge (NEO)', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2025-06-03T10:00:00').toJSON(),
+        dateTo: new Date('2025-06-05T10:00:00').toJSON(),
+        address: '0x5c2b22ecc2660187bee0a4b737e4d93283270dea',
+      }
+
+      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress(newParams)
+
+      const transaction = response.data.find(
+        ({ txId }) => txId === '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
+      ) as FullTransactionsItem & FullTransactionsItemBridgeNeo3NeoX
+
+      expect(transaction.type).toBe('bridgeNeo3NeoX')
+      expect(transaction.data.amount).toBe('1')
+      expect(transaction.data.token).toEqual(BSNeoXConstants.NEO_TOKEN)
+      expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
     }, 60000)
   })
 

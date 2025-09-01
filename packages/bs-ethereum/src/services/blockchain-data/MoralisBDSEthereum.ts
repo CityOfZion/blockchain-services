@@ -15,6 +15,12 @@ import {
   NftDataService,
   ExplorerService,
   ExportTransactionsByAddressParams,
+  FullTransactionsItem,
+  BSBigNumberHelper,
+  FullTransactionNftEvent,
+  FullTransactionAssetEvent,
+  BSPromisesHelper,
+  NftResponse,
 } from '@cityofzion/blockchain-service'
 import axios from 'axios'
 import { ethers } from 'ethers'
@@ -102,6 +108,9 @@ interface MoralisTokenMetadataResponse {
 }
 
 export class MoralisBDSEthereum extends DoraBDSEthereum {
+  readonly #nftDataService: NftDataService
+  readonly #explorerService: ExplorerService
+
   static BASE_URL = `${BSCommonConstants.DORA_URL}/api/v2/meta`
 
   static SUPPORTED_CHAINS = [
@@ -160,17 +169,15 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
   }
 
   constructor(network: Network<BSEthereumNetworkId>, nftDataService: NftDataService, explorerService: ExplorerService) {
-    super(
-      network,
-      [
-        BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID,
-        BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
-        BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
-        BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
-      ],
-      nftDataService,
-      explorerService
-    )
+    super(network, [
+      BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID,
+      BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID,
+      BSEthereumConstants.BASE_MAINNET_NETWORK_ID,
+      BSEthereumConstants.ARBITRUM_MAINNET_NETWORK_ID,
+    ])
+
+    this.#nftDataService = nftDataService
+    this.#explorerService = explorerService
   }
 
   async getBalance(address: string): Promise<BalanceResponse[]> {
@@ -315,6 +322,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
       time: new Date(data.block_timestamp).getTime() / 1000,
       transfers,
       fee: data.transaction_fee,
+      type: 'default',
     }
   }
 
@@ -385,6 +393,7 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
         time: new Date(item.block_timestamp).getTime() / 1000,
         transfers,
         fee: item.transaction_fee,
+        type: 'default',
       })
     })
 
@@ -402,6 +411,8 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
   }: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse> {
     this._validateGetFullTransactionsByAddressParams(params)
 
+    const data: FullTransactionsItem[] = []
+
     const response = await api.EthereumREST.getFullTransactionsByAddress({
       address: params.address,
       timestampFrom: params.dateFrom,
@@ -411,7 +422,105 @@ export class MoralisBDSEthereum extends DoraBDSEthereum {
       pageLimit: params.pageSize ?? 50,
     })
 
-    return await this._transformFullTransactionsByAddressResponse(response)
+    const items = response.data ?? []
+
+    const nativeToken = BSEthereumHelper.getNativeAsset(this._network)
+
+    const addressTemplateUrl = this.#explorerService.getAddressTemplateUrl()
+    const txTemplateUrl = this.#explorerService.getTxTemplateUrl()
+    const nftTemplateUrl = this.#explorerService.getNftTemplateUrl()
+    const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
+
+    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
+      const txId = item.transactionID
+      const newItem: FullTransactionsItem = {
+        txId,
+        txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
+        block: item.block,
+        date: item.date,
+        invocationCount: item.invocationCount,
+        notificationCount: item.notificationCount,
+        networkFeeAmount: networkFeeAmount
+          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: nativeToken.decimals })
+          : undefined,
+        systemFeeAmount: systemFeeAmount
+          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: nativeToken.decimals })
+          : undefined,
+        events: [],
+        type: 'default',
+      }
+
+      const eventPromises = item.events.map(async (event, eventIndex) => {
+        let nftEvent: FullTransactionNftEvent
+        let assetEvent: FullTransactionAssetEvent
+
+        const { methodName, tokenID: tokenId, contractHash: hash } = event
+        const from = event.from ?? undefined
+        const to = event.to ?? undefined
+        const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
+        const isErc1155 = this._supportedErc1155Standards.includes(standard)
+        const isErc721 = this._supportedErc721Standards.includes(standard)
+        const isErc20 = this._supportedErc20Standards.includes(standard)
+        const isNft = (isErc1155 || isErc721) && !!tokenId
+        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
+        const hashUrl = hash ? contractTemplateUrl?.replace('{hash}', hash) : undefined
+
+        if (isNft) {
+          const [nft] = await BSPromisesHelper.tryCatch<NftResponse>(() =>
+            this.#nftDataService.getNft({ contractHash: hash, tokenId })
+          )
+
+          const nftUrl = hash ? nftTemplateUrl?.replace('{hash}', hash).replace('{tokenId}', tokenId) : undefined
+
+          nftEvent = {
+            eventType: 'nft',
+            amount: undefined,
+            methodName,
+            from,
+            fromUrl,
+            to,
+            toUrl,
+            hash,
+            hashUrl,
+            tokenId,
+            tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
+            nftImageUrl: nft?.image,
+            nftUrl,
+            name: nft?.name,
+            collectionName: nft?.collectionName,
+          }
+        } else {
+          const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
+
+          assetEvent = {
+            eventType: 'token',
+            amount: event.amount
+              ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
+              : undefined,
+            methodName,
+            from,
+            fromUrl,
+            to,
+            toUrl,
+            hash,
+            hashUrl,
+            token: token ?? undefined,
+            tokenType: isErc20 ? 'erc-20' : 'generic',
+          }
+        }
+
+        newItem.events.splice(eventIndex, 0, isNft ? nftEvent! : assetEvent!)
+      })
+
+      await Promise.allSettled(eventPromises)
+
+      data.splice(index, 0, newItem)
+    })
+
+    await Promise.allSettled(itemPromises)
+
+    return { nextCursor: response.nextCursor, data }
   }
 
   async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {

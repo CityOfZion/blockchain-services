@@ -24,6 +24,7 @@ describe('MoralisBDSEthereum', () => {
         hash,
         notifications: [],
         time: expect.any(Number),
+        type: expect.any(String),
       })
     )
     transaction.transfers.forEach(transfer => {
@@ -51,6 +52,7 @@ describe('MoralisBDSEthereum', () => {
           notifications: [],
           time: expect.any(Number),
           fee: expect.any(String),
+          type: expect.any(String),
         })
       )
 

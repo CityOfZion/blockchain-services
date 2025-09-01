@@ -27,6 +27,7 @@ describe('DoraBDSNeoLegacy', () => {
         ]),
         time: expect.any(Number),
         fee: expect.any(String),
+        type: 'default',
       })
     )
   })
@@ -50,6 +51,7 @@ describe('DoraBDSNeoLegacy', () => {
             }),
           ]),
           time: expect.any(Number),
+          type: 'default',
         })
       )
     })
