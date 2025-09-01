@@ -120,6 +120,20 @@ export type TransactionTransferNft = {
   type: 'nft'
   contractHash: string
 }
+
+type TransactionDefaultResponse = {
+  type: 'default'
+}
+
+export type TransactionBridgeNeo3NeoXResponse = {
+  type: 'bridgeNeo3NeoX'
+  data: {
+    amount: string
+    token: Token
+    receiverAddress: string
+  }
+}
+
 export type TransactionResponse = {
   hash: string
   block: number
@@ -127,7 +141,8 @@ export type TransactionResponse = {
   transfers: (TransactionTransferAsset | TransactionTransferNft)[]
   fee?: string
   notifications: TransactionNotifications[]
-}
+} & (TransactionDefaultResponse | TransactionBridgeNeo3NeoXResponse)
+
 export type ContractParameter = {
   name: string
   type: string
@@ -187,6 +202,19 @@ export type FullTransactionAssetEvent = {
   tokenType: 'generic' | (string & NonNullable<unknown>)
 }
 
+type FullTransactionsItemDefault = {
+  type: 'default'
+}
+
+export type FullTransactionsItemBridgeNeo3NeoX = {
+  type: 'bridgeNeo3NeoX'
+  data: {
+    amount: string
+    token: Token
+    receiverAddress: string
+  }
+}
+
 export type FullTransactionsItem = {
   txId: string
   txIdUrl?: string
@@ -197,7 +225,7 @@ export type FullTransactionsItem = {
   networkFeeAmount?: string
   systemFeeAmount?: string
   events: (FullTransactionAssetEvent | FullTransactionNftEvent)[]
-}
+} & (FullTransactionsItemDefault | FullTransactionsItemBridgeNeo3NeoX)
 
 export type FullTransactionsByAddressResponse = {
   nextCursor?: string

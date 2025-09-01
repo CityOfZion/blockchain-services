@@ -23,7 +23,8 @@ import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
 type TBlockscoutTransactionLogResponse = { items: { data: string; topics: any[] }[] }
 
 export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBridgeService<BSName> {
-  readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
+  static readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
+
   readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
 
   readonly #service: BSNeoX<BSName>
@@ -43,7 +44,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
     const erc20Contract = new ethers.Contract(params.token.hash, ERC20_ABI, provider)
 
-    const allowance = await erc20Contract.allowance(params.account.address, this.BRIDGE_SCRIPT_HASH)
+    const allowance = await erc20Contract.allowance(params.account.address, Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH)
     const allowanceNumber = BSBigNumberHelper.fromDecimals(allowance.toString(), BSNeoXConstants.NEO_TOKEN.decimals)
 
     // We are using 0 as the decimals because the NEO token in Neo3 has 0 decimals
@@ -54,15 +55,14 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     }
 
     const amount = ethers.utils.parseUnits(fixedAmount, params.token.decimals)
-    const populatedApproveTransaction = await erc20Contract.populateTransaction.approve(this.BRIDGE_SCRIPT_HASH, amount)
 
-    return populatedApproveTransaction
+    return await erc20Contract.populateTransaction.approve(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, amount)
   }
 
   async getBridgeConstants(token: TBridgeToken<BSName>): Promise<TNeo3NeoXBridgeServiceConstants> {
     try {
       const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
-      const bridgeContract = new ethers.Contract(this.BRIDGE_SCRIPT_HASH, BRIDGE_ABI, provider)
+      const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI, provider)
 
       const isNativeToken = BSTokenHelper.predicateByHash(token)(BSNeoXConstants.NATIVE_ASSET)
 
@@ -127,7 +127,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
 
     const signer = await this.#service.generateSigner(account)
 
-    const bridgeContract = new ethers.Contract(this.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
+    const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
 
     const to = '0x' + wallet.getScriptHashFromAddress(params.receiverAddress)
     const bridgeFee = ethers.utils.parseUnits(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals)

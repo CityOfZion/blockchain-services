@@ -62,6 +62,7 @@ describe('MoralisBDSEthereumFullTransactionsByAddress', () => {
         invocationCount: expect.any(Number),
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
+        type: expect.any(String),
         events: expect.arrayContaining([
           expect.objectContaining({
             eventType: expect.any(String),

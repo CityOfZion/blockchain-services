@@ -164,6 +164,7 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
+            type: expect.any(String),
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),

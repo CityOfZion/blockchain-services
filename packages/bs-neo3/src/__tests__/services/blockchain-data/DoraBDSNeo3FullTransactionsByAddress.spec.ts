@@ -1,7 +1,13 @@
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
-import { FullTransactionNftEvent, FullTransactionsByAddressParams, Network } from '@cityofzion/blockchain-service'
+import {
+  FullTransactionNftEvent,
+  FullTransactionsByAddressParams,
+  FullTransactionsItem,
+  FullTransactionsItemBridgeNeo3NeoX,
+  Network,
+} from '@cityofzion/blockchain-service'
 import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 import { isLeapYear } from 'date-fns'
 import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
@@ -161,6 +167,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
+            type: expect.any(String),
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
@@ -199,6 +206,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
+            type: expect.any(String),
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
@@ -292,6 +300,48 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBe(50)
     }, 360000)
+
+    it('Should be able to get transactions that are marked as bridge (GAS)', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2025-08-27T10:00:00').toJSON(),
+        dateTo: new Date('2025-08-28T10:00:00').toJSON(),
+        address: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+      }
+
+      const response = await doraBDSNeo3.getFullTransactionsByAddress(newParams)
+
+      const transaction = response.data.find(
+        ({ txId }) => txId === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
+      ) as FullTransactionsItem & FullTransactionsItemBridgeNeo3NeoX
+
+      expect(transaction.type).toBe('bridgeNeo3NeoX')
+      expect(transaction.events.find(event => event.methodName === 'depositNative')).toBeTruthy()
+      expect(transaction.data.amount).toBe('1')
+      expect(transaction.data.token).toEqual(BSNeo3Constants.GAS_TOKEN)
+      expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
+    }, 60000)
+
+    it('Should be able to get transactions that are marked as bridge (NEO)', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2025-08-12T06:00:00').toJSON(),
+        dateTo: new Date('2025-08-14T20:00:00').toJSON(),
+        address: 'NcTRyXXr2viSowk913dMTvws6sDNbmt8tj',
+      }
+
+      const response = await doraBDSNeo3.getFullTransactionsByAddress(newParams)
+
+      const transaction = response.data.find(
+        ({ txId }) => txId === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
+      ) as FullTransactionsItem & FullTransactionsItemBridgeNeo3NeoX
+
+      expect(transaction.type).toBe('bridgeNeo3NeoX')
+      expect(transaction.events.find(event => event.methodName === 'depositToken')).toBeTruthy()
+      expect(transaction.data.amount).toBe('1')
+      expect(transaction.data.token).toEqual(BSNeo3Constants.NEO_TOKEN)
+      expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
+    }, 60000)
   })
 
   describe('exportFullTransactionsByAddress', () => {

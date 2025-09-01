@@ -77,6 +77,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
       time: Number(data.time),
       notifications: [], //neoLegacy doesn't have notifications
       transfers,
+      type: 'default',
     }
   }
 
@@ -111,6 +112,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
         time: entry.time,
         transfers: [transfer],
         notifications: [],
+        type: 'default',
       })
     })
     await Promise.all(promises)
@@ -146,7 +148,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     const txTemplateUrl = this.#explorerService.getTxTemplateUrl()
     const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
 
-    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }) => {
+    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
 
       const newItem: FullTransactionsItem = {
@@ -163,9 +165,10 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
           ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#feeToken.decimals })
           : undefined,
         events: [],
+        type: 'default',
       }
 
-      const eventPromises = item.events.map(async event => {
+      const eventPromises = item.events.map(async (event, eventIndex) => {
         const { contractHash: hash, amount, from, to } = event
         const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(hash))
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
@@ -190,12 +193,12 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
           tokenType: isNep5 ? 'nep-5' : 'generic',
         }
 
-        newItem.events.push(assetEvent)
+        newItem.events.splice(eventIndex, 0, assetEvent)
       })
 
       await Promise.allSettled(eventPromises)
 
-      data.push(newItem)
+      data.splice(index, 0, newItem)
     })
 
     await Promise.allSettled(itemPromises)

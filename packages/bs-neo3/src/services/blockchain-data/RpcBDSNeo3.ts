@@ -51,6 +51,7 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
         notifications: [],
         transfers: [],
         time: response.blocktime,
+        type: 'default', // It's not possible to set the correct type because we don't have notifications here
       }
     } catch {
       throw new Error(`Transaction not found: ${hash}`)

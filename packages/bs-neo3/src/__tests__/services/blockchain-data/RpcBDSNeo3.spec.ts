@@ -26,6 +26,7 @@ describe('RpcBDSNeo3', () => {
         transfers: [],
         time: expect.any(Number),
         fee: expect.any(String),
+        type: 'default',
       })
     )
   })

@@ -55,6 +55,7 @@ export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId>
         },
       ],
       notifications: [],
+      type: 'default',
     }
   }
 

@@ -3,15 +3,30 @@ import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
 import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
+import { TransactionBridgeNeo3NeoXResponse, TransactionResponse } from '@cityofzion/blockchain-service'
 
 describe('DoraBDSNeo3', () => {
+  const mainnetNetwork = BSNeo3Constants.MAINNET_NETWORKS[0]
+  const mainnetTokens = BSNeo3Helper.getTokens(mainnetNetwork)
+  const MAINNET_GAS_TOKEN = mainnetTokens.find(token => token.symbol === 'GAS')!
+
   const network = BSNeo3Constants.TESTNET_NETWORKS[0]
   const tokens = BSNeo3Helper.getTokens(network)
   const GAS = tokens.find(token => token.symbol === 'GAS')!
 
+  let mainnetDoraBDSNeo3: DoraBDSNeo3
   let doraBDSNeo3: DoraBDSNeo3
 
   beforeEach(() => {
+    mainnetDoraBDSNeo3 = new DoraBDSNeo3(
+      mainnetNetwork,
+      MAINNET_GAS_TOKEN,
+      MAINNET_GAS_TOKEN,
+      mainnetTokens,
+      new GhostMarketNDSNeo3(mainnetNetwork),
+      new DoraESNeo3(mainnetNetwork)
+    )
+
     doraBDSNeo3 = new DoraBDSNeo3(network, GAS, GAS, tokens, new GhostMarketNDSNeo3(network), new DoraESNeo3(network))
   })
 
@@ -27,6 +42,7 @@ describe('DoraBDSNeo3', () => {
         transfers: [],
         time: expect.any(Number),
         fee: expect.any(String),
+        type: 'default',
       })
     )
   })
@@ -78,6 +94,34 @@ describe('DoraBDSNeo3', () => {
       )
     })
   })
+
+  it.skip('Should be able to get transactions that are marked as bridge (GAS)', async () => {
+    const address = 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD'
+    const response = await mainnetDoraBDSNeo3.getTransactionsByAddress({ address })
+
+    const transaction = response.transactions.find(
+      ({ hash }) => hash === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
+    ) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+
+    expect(transaction.type).toBe('bridgeNeo3NeoX')
+    expect(transaction.data.amount).toBe('1')
+    expect(transaction.data.token).toEqual(BSNeo3Constants.GAS_TOKEN)
+    expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
+  }, 10000)
+
+  it.skip('Should be able to get transactions that are marked as bridge (NEO)', async () => {
+    const address = 'NcTRyXXr2viSowk913dMTvws6sDNbmt8tj'
+    const response = await mainnetDoraBDSNeo3.getTransactionsByAddress({ address })
+
+    const transaction = response.transactions.find(
+      ({ hash }) => hash === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
+    ) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+
+    expect(transaction.type).toBe('bridgeNeo3NeoX')
+    expect(transaction.data.amount).toBe('1')
+    expect(transaction.data.token).toEqual(BSNeo3Constants.NEO_TOKEN)
+    expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
+  }, 10000)
 
   it('Should be able to get contract', async () => {
     const hash = '0xd2a4cff31913016155e38e474a2c06d08be276cf'

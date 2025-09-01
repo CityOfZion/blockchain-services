@@ -23,13 +23,16 @@ import {
   ExportTransactionsByAddressParams,
   BSBigNumberHelper,
   BSTokenHelper,
+  FullTransactionsItemBridgeNeo3NeoX,
+  TransactionBridgeNeo3NeoXResponse,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { u, wallet } from '@cityofzion/neon-js'
-import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
+import { BSNeo3Constants, BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
 import { StateResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
+import { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 
 export const DoraNeoRest = new api.NeoRESTApi({
   doraUrl: BSCommonConstants.DORA_URL,
@@ -62,7 +65,6 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
     try {
       const data = await DoraNeoRest.transaction(hash, this._network.id)
-
       const systemFeeNumber = BSBigNumberHelper.fromNumber(data.sysfee ?? 0)
       const networkFeeNumber = BSBigNumberHelper.fromNumber(data.netfee ?? 0)
       const totalFee = systemFeeNumber.plus(networkFeeNumber)
@@ -74,6 +76,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         fee: BSBigNumberHelper.format(totalFee, { decimals: this._feeToken.decimals }),
         notifications: [],
         transfers: [],
+        type: 'default', // It's not possible to set the correct type because we don't have notifications here
       }
     } catch {
       throw new Error(`Transaction not found: ${hash}`)
@@ -92,8 +95,9 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
     const promises = data.items.map(async (item): Promise<TransactionResponse> => {
       const transferPromises: Promise<TransactionTransferAsset | TransactionTransferNft>[] = []
+      const notifications = item.notifications ?? []
 
-      item.notifications.forEach(({ contract: contractHash, state, event_name: eventName }) => {
+      notifications.forEach(({ contract: contractHash, state, event_name: eventName }) => {
         const properties = Array.isArray(state) ? state : state?.value ?? []
 
         if (eventName !== 'Transfer' || (properties.length !== 3 && properties.length !== 4)) return
@@ -132,28 +136,31 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       })
 
       const transfers = await Promise.all(transferPromises)
-
-      const notifications = item.notifications.map<TransactionNotifications>(notification => ({
-        eventName: notification.event_name,
-        state: notification.state,
-      }))
-
       const systemFeeNumber = BSBigNumberHelper.fromNumber(item.sysfee ?? 0)
       const networkFeeNumber = BSBigNumberHelper.fromNumber(item.netfee ?? 0)
       const totalFee = systemFeeNumber.plus(networkFeeNumber)
 
-      return {
+      let transaction: TransactionResponse = {
         block: item.block,
         time: Number(item.time),
         hash: item.hash,
         fee: BSBigNumberHelper.format(totalFee, { decimals: this._feeToken.decimals }),
         transfers,
-        notifications,
+        notifications: notifications.map<TransactionNotifications>(notification => ({
+          eventName: notification.event_name,
+          state: notification.state,
+        })),
+        type: 'default',
       }
+
+      const bridgeNeo3NeoXData = this.#getBridgeNeo3NeoXDataByNotifications(notifications)
+
+      if (bridgeNeo3NeoXData) transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
+
+      return transaction
     })
 
     const transactions = await Promise.all(promises)
-
     const limit = 15
     const totalPages = Math.ceil(data.totalCount / limit)
 
@@ -187,9 +194,10 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     const nftTemplateUrl = this.#explorerService.getNftTemplateUrl()
     const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
 
-    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }) => {
+    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
-      const newItem: FullTransactionsItem = {
+
+      let newItem: FullTransactionsItem = {
         txId,
         txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
         block: item.block,
@@ -203,14 +211,14 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
           ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this._feeToken.decimals })
           : undefined,
         events: [],
+        type: 'default',
       }
 
-      const eventPromises = item.events.map(async event => {
+      const eventPromises = item.events.map(async (event, eventIndex) => {
         let nftEvent: FullTransactionNftEvent
         let assetEvent: FullTransactionAssetEvent
 
-        const { methodName, tokenID: tokenId, contractHash: hash } = event
-
+        const { methodName, tokenID: tokenId, contractHash: hash, contractName } = event
         const from = event.from ?? undefined
         const to = event.to ?? undefined
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
@@ -263,12 +271,22 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
           }
         }
 
-        newItem.events.push(isNft ? nftEvent! : assetEvent!)
+        if (newItem.type === 'default' && contractName === 'NeoXBridge') {
+          const [log] = await BSPromisesHelper.tryCatch(() => DoraNeoRest.log(txId, this._network.id))
+
+          if (!!log && log.vmstate === 'HALT') {
+            const data = this.#getBridgeNeo3NeoXDataByNotifications(log.notifications || [])
+
+            if (data) newItem = { ...newItem, type: 'bridgeNeo3NeoX', data }
+          }
+        }
+
+        newItem.events.splice(eventIndex, 0, isNft ? nftEvent! : assetEvent!)
       })
 
       await Promise.allSettled(eventPromises)
 
-      data.push(newItem)
+      data.splice(index, 0, newItem)
     })
 
     await Promise.allSettled(itemPromises)
@@ -386,5 +404,39 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       throw new Error('Page size should be between 1 and 500')
 
     this.#validateFullTransactionsByAddressParams(params)
+  }
+
+  #getBridgeNeo3NeoXDataByNotifications(
+    notifications: Notification[]
+  ): FullTransactionsItemBridgeNeo3NeoX['data'] | TransactionBridgeNeo3NeoXResponse['data'] | undefined {
+    const gasNotification = notifications.find(({ event_name }) => event_name === 'NativeDeposit')
+    const isNativeToken = !!gasNotification
+
+    const neoNotification = !isNativeToken
+      ? notifications.find(({ event_name }) => event_name === 'TokenDeposit')
+      : undefined
+
+    const notification = isNativeToken ? gasNotification : neoNotification
+    const notificationStateValue = (notification?.state as StateResponse)?.value as StateResponse[]
+
+    if (!notificationStateValue) return undefined
+
+    const decimals = isNativeToken ? BSNeo3Constants.GAS_TOKEN.decimals : BSNeo3Constants.NEO_TOKEN.decimals
+    const amountIndex = isNativeToken ? 2 : 4
+    const amountWithDecimals = (notificationStateValue?.[amountIndex]?.value as string) || 0
+
+    const amount = BSBigNumberHelper.format(u.BigInteger.fromNumber(amountWithDecimals).toDecimal(decimals), {
+      decimals,
+    })
+
+    const receiverAddressIndex = isNativeToken ? 1 : 3
+    const byteStringReceiverAddress = (notificationStateValue?.[receiverAddressIndex]?.value as string) || ''
+
+    if (!byteStringReceiverAddress) return undefined
+
+    const receiverAddress = `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`
+    const token = isNativeToken ? BSNeo3Constants.GAS_TOKEN : BSNeo3Constants.NEO_TOKEN
+
+    return { amount, token, receiverAddress }
   }
 }

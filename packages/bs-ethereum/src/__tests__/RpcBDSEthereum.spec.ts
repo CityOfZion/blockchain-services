@@ -19,6 +19,7 @@ describe('RpcBDSEthereum', () => {
         hash,
         notifications: [],
         time: expect.any(Number),
+        type: expect.any(String),
       })
     )
     transaction.transfers.forEach(transfer => {

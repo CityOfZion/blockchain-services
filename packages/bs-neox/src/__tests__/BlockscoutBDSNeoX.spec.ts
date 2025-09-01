@@ -2,6 +2,7 @@ import {
   BalanceResponse,
   ExplorerService,
   NftDataService,
+  TransactionBridgeNeo3NeoXResponse,
   TransactionResponse,
   TransactionsByAddressResponse,
   TransactionTransferAsset,
@@ -24,26 +25,27 @@ describe('BlockscoutBDSNeoX', () => {
   })
 
   it('Should return transaction details for native assets (GAS)', async () => {
-    const txId = '0x2d0ba54c93927a190f8b867c117738c3f577a4e2d9c115292818c39a31c0b166'
+    const txId = '0xbc669a1084f69a69f0b7bf10ee160265fbd548c15b05b41d9de386c8cb51290a'
 
     const expectedTransfer: TransactionTransferAsset[] = [
       {
-        amount: '0.000001',
+        amount: '3.045',
         contractHash: BSNeoXConstants.NATIVE_ASSET.hash,
-        from: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5',
-        to: '0x3A2fF99807d6ae553eBB72456ACE0BcE0eCe7174',
+        from: '0x11c5fE402fd39698d1144AD027A2fF2471d723af',
+        to: '0xc17f96Dba5358a86659de53F7F1ab6D9227C8174',
         type: 'token',
         token: BSNeoXConstants.NATIVE_ASSET,
       },
     ]
 
     const expectedResponse: TransactionResponse = {
-      block: 207518,
+      block: 3561140,
       hash: txId,
       notifications: [],
-      time: 1723050418,
+      time: 1756725438,
       transfers: expectedTransfer,
       fee: '0.00084',
+      type: 'default',
     }
 
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
@@ -52,44 +54,32 @@ describe('BlockscoutBDSNeoX', () => {
   }, 10000)
 
   it('Should return transaction details for ERC-20 assets (Ethereum assets)', async () => {
-    const txId = '0x8ff7f8d3ec44f35242a9e077658c63db595bf4023b3075df5b2b4fea54fd6861'
+    const txId = '0x055a176ae9f0c950584bac1ebc93abb0e52160914e40f9288c69f90e47bd8cee'
 
     const expectedTransfer: TransactionTransferAsset[] = [
       {
-        amount: '37.0',
-        contractHash: '0xEe576DAEe3A7a8d3773295525516086a527A9C8B',
-        from: '0xe1db37AE18852C647257E30c6f276f0DbaFC6D47',
-        to: '0x0000000000000000000000000000000000000000',
+        amount: '500000.0',
+        contractHash: '0xE816deE05cf6D0F2a57EB4C489241D8326B5d106',
+        from: '0x1C3ac630a715Aa8fFbb5e182716196F0153C372D',
+        to: '0xE78FD95780d54E63cC4c1D0Df7DbC4487a6C72D4',
         token: {
           decimals: 18,
-          hash: '0xEe576DAEe3A7a8d3773295525516086a527A9C8B',
-          name: 'Aave Ethereum Variable Debt DAI',
-          symbol: 'variableDebtEthDAI',
+          hash: '0xE816deE05cf6D0F2a57EB4C489241D8326B5d106',
+          name: 'NeoDashboard MemeCoin',
+          symbol: 'NDMEME',
         },
         type: 'token',
-      },
-      {
-        amount: '37.000009918050911441',
-        contractHash: '0xfd49bEe9a0015743f4f1ce493804b203eca76f29',
-        from: '0xe1db37AE18852C647257E30c6f276f0DbaFC6D47',
-        to: '0x5Ddc109b3e30D8E90b5c59221D5Cc214149c46fB',
-        type: 'token',
-        token: {
-          decimals: 18,
-          hash: '0xfd49bEe9a0015743f4f1ce493804b203eca76f29',
-          name: 'DAI',
-          symbol: 'DAI',
-        },
       },
     ]
 
     const expectedResponse: TransactionResponse = {
-      block: 208007,
+      block: 3415495,
       hash: txId,
       notifications: [],
-      time: 1723055774,
+      time: 1755425592,
       transfers: expectedTransfer,
-      fee: '0.00748844',
+      fee: '0.00218104',
+      type: 'default',
     }
 
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
@@ -97,8 +87,30 @@ describe('BlockscoutBDSNeoX', () => {
     expect(transaction).toEqual(expectedResponse)
   }, 10000)
 
+  it('Should return a bridge transaction details (GAS)', async () => {
+    const transaction = (await blockscoutBDSNeoX.getTransaction(
+      '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
+    )) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+
+    expect(transaction.type).toBe('bridgeNeo3NeoX')
+    expect(transaction.data.amount).toBe('1.1')
+    expect(transaction.data.token).toEqual(BSNeoXConstants.NATIVE_ASSET)
+    expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
+  }, 10000)
+
+  it('Should return a bridge transaction details (NEO)', async () => {
+    const transaction = (await blockscoutBDSNeoX.getTransaction(
+      '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
+    )) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+
+    expect(transaction.type).toBe('bridgeNeo3NeoX')
+    expect(transaction.data.amount).toBe('1')
+    expect(transaction.data.token).toEqual(BSNeoXConstants.NEO_TOKEN)
+    expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
+  }, 10000)
+
   it('Should return transactions by address', async () => {
-    const address = '0x5E1BE25D4A2De0083012f1B5A8030a7023fFA5bc'
+    const address = '0x1241f44BFA102ab7386C784959BAe3D0fB923734'
 
     const expectedResponse: TransactionsByAddressResponse = {
       transactions: expect.arrayContaining([
@@ -109,6 +121,7 @@ describe('BlockscoutBDSNeoX', () => {
           notifications: expect.any(Array),
           time: expect.any(Number),
           transfers: expect.any(Array),
+          type: expect.any(String),
         }),
       ]),
       nextPageParams: expect.any(Object),
@@ -119,14 +132,44 @@ describe('BlockscoutBDSNeoX', () => {
     expect(transactions).toEqual(expectedResponse)
   })
 
+  it.skip('Should return transactions by address that are marked as bridge (GAS)', async () => {
+    const response = await blockscoutBDSNeoX.getTransactionsByAddress({
+      address: '0xe3abc0b2a74fd2ef662b1c25c9769398f53b4304',
+    })
+
+    const transaction = response.transactions.find(
+      ({ hash }) => hash === '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
+    ) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+
+    expect(transaction.type).toBe('bridgeNeo3NeoX')
+    expect(transaction.data.amount).toBe('1.1')
+    expect(transaction.data.token).toEqual(BSNeoXConstants.NATIVE_ASSET)
+    expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
+  })
+
+  it.skip('Should return transactions by address that are marked as bridge (NEO)', async () => {
+    const response = await blockscoutBDSNeoX.getTransactionsByAddress({
+      address: '0x5c2b22ecc2660187bee0a4b737e4d93283270dea',
+    })
+
+    const transaction = response.transactions.find(
+      ({ hash }) => hash === '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
+    ) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+
+    expect(transaction.type).toBe('bridgeNeo3NeoX')
+    expect(transaction.data.amount).toBe('1')
+    expect(transaction.data.token).toEqual(BSNeoXConstants.NEO_TOKEN)
+    expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
+  })
+
   it('Should return token info', async () => {
-    const tokenHash = '0x0F02E6BE5c77bD641A2138c988913900DD5f9A94'
+    const tokenHash = '0xE816deE05cf6D0F2a57EB4C489241D8326B5d106'
 
     const expectedToken = {
       decimals: 18,
       hash: tokenHash,
-      name: 'USDT',
-      symbol: 'USDT',
+      name: 'NeoDashboard MemeCoin',
+      symbol: 'NDMEME',
     }
 
     const token = await blockscoutBDSNeoX.getTokenInfo(tokenHash)
@@ -135,7 +178,7 @@ describe('BlockscoutBDSNeoX', () => {
   })
 
   it('Should return balance', async () => {
-    const address = '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5'
+    const address = '0xa911a7FA0901Cfc3f1da55A05593823E32e2f1a9'
 
     const expectedBalance: BalanceResponse[] = [
       {
