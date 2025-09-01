@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Tue, 19 Aug 2025 15:03:33 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Sep 2025 18:24:15 GMT and should not be manually modified.
+
+## 1.16.0
+Mon, 01 Sep 2025 18:24:15 GMT
+
+### Minor changes
+
+- Identify bridge type in transactions
 
 ## 1.15.4
 Tue, 19 Aug 2025 15:03:33 GMT

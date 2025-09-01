@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Tue, 19 Aug 2025 17:17:33 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Sep 2025 18:24:15 GMT and should not be manually modified.
+
+## 1.13.0
+Mon, 01 Sep 2025 18:24:15 GMT
+
+### Minor changes
+
+- Add type in transactions
 
 ## 1.12.8
 Tue, 19 Aug 2025 17:17:33 GMT

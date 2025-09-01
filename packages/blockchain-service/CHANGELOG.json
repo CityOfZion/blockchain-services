@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.20.0",
+      "tag": "@cityofzion/blockchain-service_v1.20.0",
+      "date": "Mon, 01 Sep 2025 18:24:15 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add bridge type property in transaction types"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.19.3",
       "tag": "@cityofzion/blockchain-service_v1.19.3",
       "date": "Tue, 19 Aug 2025 15:03:33 GMT",
