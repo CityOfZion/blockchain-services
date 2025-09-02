@@ -133,7 +133,7 @@ export type TransactionBridgeNeo3NeoXResponse = {
   type: 'bridgeNeo3NeoX'
   data: {
     amount: string
-    token: Token
+    token: TBridgeToken
     receiverAddress: string
   }
 }
@@ -214,7 +214,7 @@ export type FullTransactionsItemBridgeNeo3NeoX = {
   type: 'bridgeNeo3NeoX'
   data: {
     amount: string
-    token: Token
+    token: TBridgeToken
     receiverAddress: string
   }
 }

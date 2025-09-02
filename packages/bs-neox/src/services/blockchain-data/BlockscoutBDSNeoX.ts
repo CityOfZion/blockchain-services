@@ -13,6 +13,7 @@ import {
   FullTransactionsByAddressResponse,
   FullTransactionsItem,
   FullTransactionsItemBridgeNeo3NeoX,
+  INeo3NeoXBridgeService,
   Network,
   NftDataService,
   NftResponse,
@@ -113,6 +114,7 @@ interface BlockscoutSmartContractResponse {
 export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
   readonly #nftDataService: NftDataService
   readonly #explorerService: ExplorerService
+  readonly #neo3NeoXBridgeService: INeo3NeoXBridgeService
 
   static BASE_URL_BY_CHAIN_ID: Partial<Record<BSNeoXNetworkId, string>> = {
     '47763': `${BSCommonConstants.DORA_URL}/api/neox/mainnet`,
@@ -135,12 +137,14 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
     network: Network<BSNeoXNetworkId>,
     nftDataService: NftDataService,
     explorerService: ExplorerService,
-    tokenService: TokenService
+    tokenService: TokenService,
+    neo3NeoXBridgeService: INeo3NeoXBridgeService
   ) {
     super(network, BSNeoXConstants.ALL_NETWORK_IDS, tokenService)
 
     this.#nftDataService = nftDataService
     this.#explorerService = explorerService
+    this.#neo3NeoXBridgeService = neo3NeoXBridgeService
   }
 
   maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5
@@ -598,7 +602,12 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
     const receiverAddress = wallet.getAddressFromScriptHash(to.startsWith('0x') ? to.slice(2) : to)
 
     if (input.name === 'withdrawNative') {
-      const token = BSNeoXConstants.NATIVE_ASSET
+      const token = this.#neo3NeoXBridgeService.tokens.find(
+        this._tokenService.predicateByHash(BSNeoXConstants.NATIVE_ASSET)
+      )
+
+      if (!token) return undefined
+
       const amount = BSBigNumberHelper.format(ethers.utils.formatUnits(blockscoutTransaction.value, token.decimals), {
         decimals: token.decimals,
       })
@@ -607,7 +616,12 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
     }
 
     if (input.name === 'withdrawToken') {
-      const token = BSNeoXConstants.NEO_TOKEN
+      const token = this.#neo3NeoXBridgeService.tokens.find(
+        this._tokenService.predicateByHash(BSNeoXConstants.NEO_TOKEN)
+      )
+
+      if (!token) return undefined
+
       const amount = BSBigNumberHelper.format(ethers.utils.formatUnits(input.args._amount, token.decimals), {
         decimals: token.decimals,
       })

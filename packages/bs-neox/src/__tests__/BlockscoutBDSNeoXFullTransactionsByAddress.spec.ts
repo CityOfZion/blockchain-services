@@ -6,6 +6,7 @@ import {
   FullTransactionsItemBridgeNeo3NeoX,
   Network,
   NftDataService,
+  TBridgeToken,
 } from '@cityofzion/blockchain-service'
 
 import { isLeapYear } from 'date-fns'
@@ -14,11 +15,21 @@ import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
 import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
+import { Neo3NeoXBridgeService } from '../services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { BSNeoX } from '../BSNeoX'
 
 const mainnetNetwork = BSNeoXConstants.DEFAULT_NETWORK
 const testnetNetwork = BSNeoXConstants.TESTNET_NETWORKS[0]
 const otherNetwork: Network = { id: 'other-network', name: 'Other network', url: 'https://other-network.com' }
 const address = '0x889D02c0df966Ea5BE11dd8E3Eb0d5E4BD0500dD'
+
+const bridgeGasToken: TBridgeToken<'neox'> = {
+  ...BSNeoXConstants.NATIVE_ASSET,
+  multichainId: 'gas',
+  blockchain: 'neox',
+}
+
+const bridgeNeoToken: TBridgeToken<'neox'> = { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: 'neox' }
 
 let dateFrom: Date
 let dateTo: Date
@@ -27,6 +38,7 @@ let nftDataService: NftDataService
 let explorerService: ExplorerService
 let blockscoutBDSNeoX: BlockscoutBDSNeoX
 let tokenService: TokenServiceEthereum
+let neo3NeoXBridgeService: Neo3NeoXBridgeService<'neox'>
 
 describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
   beforeEach(() => {
@@ -49,6 +61,8 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
     tokenService = new TokenServiceEthereum()
 
+    neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeoX('neox', mainnetNetwork))
+
     explorerService = new BlockscoutESNeoX(mainnetNetwork, tokenService) as jest.Mocked<BlockscoutESNeoX>
 
     explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
@@ -56,13 +70,27 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
     explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
     explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
 
-    blockscoutBDSNeoX = new BlockscoutBDSNeoX(mainnetNetwork, nftDataService, explorerService, tokenService)
+    blockscoutBDSNeoX = new BlockscoutBDSNeoX(
+      mainnetNetwork,
+      nftDataService,
+      explorerService,
+      tokenService,
+      neo3NeoXBridgeService
+    )
   })
 
   describe('getFullTransactionsByAddress', () => {
     it("Shouldn't be able to get transactions when is using a different network (Custom) from Neo X Mainnet and Neo X Testnet", async () => {
       nftDataService = new GhostMarketNDSNeoX(otherNetwork)
-      blockscoutBDSNeoX = new BlockscoutBDSNeoX(otherNetwork, nftDataService, explorerService, tokenService)
+      neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeoX('neox', otherNetwork))
+
+      blockscoutBDSNeoX = new BlockscoutBDSNeoX(
+        otherNetwork,
+        nftDataService,
+        explorerService,
+        tokenService,
+        neo3NeoXBridgeService
+      )
 
       await expect(blockscoutBDSNeoX.getFullTransactionsByAddress(params)).rejects.toThrow(
         'This network is not supported'
@@ -167,7 +195,15 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
     it('Should be able to get transactions when is using a Neo X Testnet network', async () => {
       nftDataService = new GhostMarketNDSNeoX(testnetNetwork)
-      blockscoutBDSNeoX = new BlockscoutBDSNeoX(testnetNetwork, nftDataService, explorerService, tokenService)
+      neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeoX('neox', testnetNetwork))
+
+      blockscoutBDSNeoX = new BlockscoutBDSNeoX(
+        testnetNetwork,
+        nftDataService,
+        explorerService,
+        tokenService,
+        neo3NeoXBridgeService
+      )
 
       const response = await blockscoutBDSNeoX.getFullTransactionsByAddress({
         ...params,
@@ -323,7 +359,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.data.amount).toBe('1.1')
-      expect(transaction.data.token).toEqual(BSNeoXConstants.NATIVE_ASSET)
+      expect(transaction.data.token).toEqual(bridgeGasToken)
       expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
     }, 60000)
 
@@ -343,7 +379,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(BSNeoXConstants.NEO_TOKEN)
+      expect(transaction.data.token).toEqual(bridgeNeoToken)
       expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
     }, 60000)
   })
@@ -351,7 +387,15 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Neo X Testnet network', async () => {
       nftDataService = new GhostMarketNDSNeoX(testnetNetwork)
-      blockscoutBDSNeoX = new BlockscoutBDSNeoX(testnetNetwork, nftDataService, explorerService, tokenService)
+      neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeoX('neox', testnetNetwork))
+
+      blockscoutBDSNeoX = new BlockscoutBDSNeoX(
+        testnetNetwork,
+        nftDataService,
+        explorerService,
+        tokenService,
+        neo3NeoXBridgeService
+      )
 
       const response = await blockscoutBDSNeoX.exportFullTransactionsByAddress({
         address: params.address,

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Change Token to BridgeToken type",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

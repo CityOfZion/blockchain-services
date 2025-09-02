@@ -3,17 +3,24 @@ import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
 import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
-import { TransactionBridgeNeo3NeoXResponse, TransactionResponse } from '@cityofzion/blockchain-service'
+import { TBridgeToken, TransactionBridgeNeo3NeoXResponse, TransactionResponse } from '@cityofzion/blockchain-service'
 import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
+import { Neo3NeoXBridgeService } from '../../../services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { BSNeo3 } from '../../../BSNeo3'
 
 describe('DoraBDSNeo3', () => {
+  const bridgeGasToken: TBridgeToken<'neo3'> = { ...BSNeo3Constants.GAS_TOKEN, multichainId: 'gas', blockchain: 'neo3' }
+  const bridgeNeoToken: TBridgeToken<'neo3'> = { ...BSNeo3Constants.NEO_TOKEN, multichainId: 'neo', blockchain: 'neo3' }
+
   const mainnetNetwork = BSNeo3Constants.MAINNET_NETWORKS[0]
   const mainnetTokens = BSNeo3Helper.getTokens(mainnetNetwork)
   const MAINNET_GAS_TOKEN = mainnetTokens.find(token => token.symbol === 'GAS')!
+  const mainnetNeo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeo3('neo3', mainnetNetwork))
 
   const network = BSNeo3Constants.TESTNET_NETWORKS[0]
   const tokens = BSNeo3Helper.getTokens(network)
   const GAS = tokens.find(token => token.symbol === 'GAS')!
+  const neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeo3('neo3', network))
 
   const tokenService = new TokenServiceNeo3()
 
@@ -28,7 +35,8 @@ describe('DoraBDSNeo3', () => {
       mainnetTokens,
       new GhostMarketNDSNeo3(mainnetNetwork),
       new DoraESNeo3(mainnetNetwork, tokenService),
-      tokenService
+      tokenService,
+      mainnetNeo3NeoXBridgeService
     )
 
     doraBDSNeo3 = new DoraBDSNeo3(
@@ -38,7 +46,8 @@ describe('DoraBDSNeo3', () => {
       tokens,
       new GhostMarketNDSNeo3(network),
       new DoraESNeo3(network, tokenService),
-      tokenService
+      tokenService,
+      neo3NeoXBridgeService
     )
   })
 
@@ -117,7 +126,7 @@ describe('DoraBDSNeo3', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(BSNeo3Constants.GAS_TOKEN)
+    expect(transaction.data.token).toEqual(bridgeGasToken)
     expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
   }, 10000)
 
@@ -131,7 +140,7 @@ describe('DoraBDSNeo3', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(BSNeo3Constants.NEO_TOKEN)
+    expect(transaction.data.token).toEqual(bridgeNeoToken)
     expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
   }, 10000)
 
