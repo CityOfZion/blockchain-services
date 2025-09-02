@@ -1,6 +1,7 @@
 import { GetTokenPricesParams } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { FlamingoForthewinEDSNeoX } from '../services/exchange-data/FlamingoForthewinEDSNeoX'
+import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 
 const network = BSNeoXConstants.DEFAULT_NETWORK
 
@@ -24,7 +25,7 @@ describe('FlamingoForthewinEDSNeox', () => {
       ],
     }
 
-    const response = await new FlamingoForthewinEDSNeoX(network).getTokenPrices(params)
+    const response = await new FlamingoForthewinEDSNeoX(network, new TokenServiceEthereum()).getTokenPrices(params)
 
     expect(response).toEqual(
       expect.arrayContaining([

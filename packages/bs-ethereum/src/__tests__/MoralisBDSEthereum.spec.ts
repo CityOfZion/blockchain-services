@@ -3,13 +3,15 @@ import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthere
 import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
+import { TokenServiceEthereum } from '../services/token/TokenServiceEthereum'
 
 const network = BSEthereumConstants.DEFAULT_NETWORK
-
+const tokenService = new TokenServiceEthereum()
 const moralisBDSEthereum = new MoralisBDSEthereum(
   network,
   new GhostMarketNDSEthereum(network),
-  new BlockscoutESEthereum(network)
+  new BlockscoutESEthereum(network, tokenService),
+  tokenService
 )
 
 describe('MoralisBDSEthereum', () => {

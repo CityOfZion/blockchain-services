@@ -1,8 +1,8 @@
 import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
-import { BSNeoLegacy } from '../services/BSNeoLegacy'
 import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
 import { Network } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import { BSNeoLegacy } from '../BSNeoLegacy'
 
 let bsNeoLegacy: BSNeoLegacy<'neoLegacy'>
 

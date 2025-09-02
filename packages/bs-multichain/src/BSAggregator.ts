@@ -2,6 +2,7 @@ import {
   Account,
   BlockchainService,
   generateAccountForBlockchainService,
+  hasEncryption,
   UntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 
@@ -26,7 +27,9 @@ export class BSAggregator<BSName extends string> {
 
   validateTextAllBlockchains(text: string) {
     return this.#blockchainServices.some(bs =>
-      [bs.validateAddress(text), bs.validateEncrypted(text), bs.validateKey(text)].some(it => it === true)
+      [bs.validateAddress(text), hasEncryption(bs) && bs.validateEncrypted(text), bs.validateKey(text)].some(
+        it => it === true
+      )
     )
   }
 
@@ -35,7 +38,7 @@ export class BSAggregator<BSName extends string> {
   }
 
   validateEncryptedAllBlockchains(keyOrJson: string) {
-    return this.#blockchainServices.some(bs => bs.validateEncrypted(keyOrJson))
+    return this.#blockchainServices.some(bs => hasEncryption(bs) && bs.validateEncrypted(keyOrJson))
   }
 
   getBlockchainNameByAddress(address: string): BSName[] {
@@ -47,7 +50,9 @@ export class BSAggregator<BSName extends string> {
   }
 
   getBlockchainNameByEncrypted(keyOrJson: string): BSName[] {
-    return this.#blockchainServices.filter(bs => bs.validateEncrypted(keyOrJson)).map(bs => bs.name)
+    return this.#blockchainServices
+      .filter(bs => hasEncryption(bs) && bs.validateEncrypted(keyOrJson))
+      .map(bs => bs.name)
   }
 
   async generateAccountsFromMnemonic(

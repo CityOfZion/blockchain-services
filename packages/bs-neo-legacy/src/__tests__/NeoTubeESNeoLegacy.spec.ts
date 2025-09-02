@@ -1,15 +1,17 @@
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
 import { Network } from '@cityofzion/blockchain-service'
+import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
 
 let neoTubeESNeoLegacy: NeoTubeESNeoLegacy
 const INVALID_NETWORK: Network = { id: '12345678', name: 'INVALID_NAME', url: 'INVALID_URL' }
+const tokenService = new TokenServiceNeoLegacy()
 
 describe('NeoTubeESNeoLegacy', () => {
   beforeEach(() => {
     const network = BSNeoLegacyConstants.DEFAULT_NETWORK
 
-    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(network)
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(network, tokenService)
   })
 
   it('Should return a transaction url by hash when call the buildTransactionUrl method', async () => {
@@ -27,7 +29,7 @@ describe('NeoTubeESNeoLegacy', () => {
   })
 
   it('Should return undefined when call the getAddressTemplateUrl method with an invalid network', () => {
-    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK)
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK, tokenService)
 
     const templateUrl = neoTubeESNeoLegacy.getAddressTemplateUrl()
 
@@ -35,7 +37,7 @@ describe('NeoTubeESNeoLegacy', () => {
   })
 
   it('Should return undefined when call the getTxTemplateUrl method with an invalid network', () => {
-    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK)
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK, tokenService)
 
     const templateUrl = neoTubeESNeoLegacy.getTxTemplateUrl()
 
@@ -55,7 +57,7 @@ describe('NeoTubeESNeoLegacy', () => {
   })
 
   it('Should return undefined when call the getNftTemplateUrl method with an invalid network', () => {
-    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK)
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK, tokenService)
 
     const templateUrl = neoTubeESNeoLegacy.getNftTemplateUrl()
 
@@ -63,7 +65,7 @@ describe('NeoTubeESNeoLegacy', () => {
   })
 
   it('Should return undefined when call the getContractTemplateUrl method with an invalid network', () => {
-    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK)
+    neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(INVALID_NETWORK, tokenService)
 
     const templateUrl = neoTubeESNeoLegacy.getContractTemplateUrl()
 

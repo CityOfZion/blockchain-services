@@ -4,6 +4,7 @@ import {
   BlockchainService,
   BSCalculableFee,
   BSClaimable,
+  BSWithEncryption,
   BSWithExplorerService,
   BSWithLedger,
   BSWithNameService,
@@ -52,6 +53,12 @@ export function hasNeo3NeoXBridge<BSName extends string = string>(
   service: BlockchainService<BSName>
 ): service is BlockchainService<BSName> & IBSWithNeo3NeoXBridge<BSName> {
   return 'neo3NeoXBridgeService' in service
+}
+
+export function hasEncryption<BSName extends string = string>(
+  service: BlockchainService<BSName>
+): service is BlockchainService<BSName> & BSWithEncryption<BSName> {
+  return 'encrypt' in service && 'decrypt' in service
 }
 
 /**

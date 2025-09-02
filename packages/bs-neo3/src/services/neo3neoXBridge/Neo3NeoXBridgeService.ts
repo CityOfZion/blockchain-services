@@ -1,7 +1,6 @@
 import {
   BSBigNumberHelper,
   BSError,
-  BSTokenHelper,
   INeo3NeoXBridgeService,
   TBridgeToken,
   TNeo3NeoXBridgeServiceBridgeParam,
@@ -45,7 +44,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
       rpcAddress: this.#service.network.url,
     })
 
-    const isNativeToken = BSTokenHelper.predicateByHash(token)(BSNeo3Constants.GAS_TOKEN)
+    const isNativeToken = this.#service.tokenService.predicateByHash(token)(BSNeo3Constants.GAS_TOKEN)
 
     let invocations: ContractInvocation[]
 
@@ -145,7 +144,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
       allowedContracts: [this.BRIDGE_SCRIPT_HASH, BSNeo3Constants.GAS_TOKEN.hash],
     }
 
-    const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
+    const isNativeToken = this.#service.tokenService.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
 
     if (!isNativeToken) {
       contractInvocation.args?.unshift({ type: 'Hash160', value: BSNeo3Constants.NEO_TOKEN.hash })
@@ -172,7 +171,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
       throw new BSError('Transaction invalid', 'INVALID_TRANSACTION')
     }
 
-    const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
+    const isNativeToken = this.#service.tokenService.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
 
     let nonce: string | null = null
 
@@ -196,7 +195,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
   ): Promise<string> {
     let data: TGetBridgeTxByNonceResponse | undefined
     try {
-      const isNativeToken = BSTokenHelper.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
+      const isNativeToken = this.#service.tokenService.predicateByHash(params.token)(BSNeo3Constants.GAS_TOKEN)
 
       const response = await axios.post<TGetBridgeTxByNonceResponse>('https://neofura.ngd.network', {
         jsonrpc: '2.0',

@@ -21,16 +21,16 @@ export abstract class RpcNDSEthereum implements NftDataService {
 
   abstract getNft(params: GetNftParam): Promise<NftResponse>
 
-  async hasToken({ contractHash, address }: HasTokenParam): Promise<boolean> {
+  async hasToken({ collectionHash, address }: HasTokenParam): Promise<boolean> {
     try {
       const provider = new ethers.providers.JsonRpcProvider(this.#network.url)
-      const contract = new ethers.Contract(contractHash, ERC20_ABI, provider)
+      const contract = new ethers.Contract(collectionHash, ERC20_ABI, provider)
       const response = await contract.balanceOf(address)
       if (!response) throw new Error()
       const parsedResponse = response as BigNumber
       return parsedResponse.gt(0)
     } catch {
-      throw new Error(`Token not found: ${contractHash}`)
+      throw new Error(`Token not found: ${collectionHash}`)
     }
   }
 }

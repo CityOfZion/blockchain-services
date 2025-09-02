@@ -6,6 +6,7 @@ import {
   Network,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
+  TokenService,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
@@ -13,8 +14,8 @@ import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 export class FlamingoForthewinEDSNeo3 extends FlamingoForthewinEDS implements ExchangeDataService {
   readonly #network: Network<BSNeo3NetworkId>
 
-  constructor(network: Network<BSNeo3NetworkId>) {
-    super()
+  constructor(network: Network<BSNeo3NetworkId>, tokenService: TokenService) {
+    super(tokenService)
 
     this.#network = network
   }

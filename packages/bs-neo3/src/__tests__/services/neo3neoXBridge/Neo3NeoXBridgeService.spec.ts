@@ -1,4 +1,4 @@
-import { Account, BSBigNumberHelper, BSError, BSTokenHelper, TBridgeToken } from '@cityofzion/blockchain-service'
+import { Account, BSBigNumberHelper, BSError, TBridgeToken } from '@cityofzion/blockchain-service'
 
 import { BSNeo3 } from '../../../BSNeo3'
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
@@ -6,6 +6,7 @@ import { Neo3NeoXBridgeService } from '../../../services/neo3neoXBridge/Neo3NeoX
 import { NeonInvoker } from '@cityofzion/neon-dappkit'
 import { DoraNeoRest } from '../../../services/blockchain-data/DoraBDSNeo3'
 import axios from 'axios'
+import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
 
 let neo3NeoXBridgeService: Neo3NeoXBridgeService<'neo3'>
 let bsNeo3Service: BSNeo3<'neo3'>
@@ -15,6 +16,7 @@ let gasToken: TBridgeToken<'neo3'>
 let neoToken: TBridgeToken<'neo3'>
 
 const network = BSNeo3Constants.DEFAULT_NETWORK
+const tokenService = new TokenServiceNeo3()
 
 describe('Neo3NeoXBridgeService', () => {
   beforeAll(async () => {
@@ -24,8 +26,8 @@ describe('Neo3NeoXBridgeService', () => {
 
     account = bsNeo3Service.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
 
-    gasToken = neo3NeoXBridgeService.tokens.find(BSTokenHelper.predicateByHash(BSNeo3Constants.GAS_TOKEN))!
-    neoToken = neo3NeoXBridgeService.tokens.find(BSTokenHelper.predicateByHash(BSNeo3Constants.NEO_TOKEN))!
+    gasToken = neo3NeoXBridgeService.tokens.find(tokenService.predicateByHash(BSNeo3Constants.GAS_TOKEN))!
+    neoToken = neo3NeoXBridgeService.tokens.find(tokenService.predicateByHash(BSNeo3Constants.NEO_TOKEN))!
   }, 60000)
 
   afterEach(() => {
@@ -159,7 +161,7 @@ describe('Neo3NeoXBridgeService', () => {
 
     const balances = await bsNeo3Service.blockchainDataService.getBalance(account.address)
 
-    const gasBalance = balances.find(balance => BSTokenHelper.predicateByHash(gasToken)(balance.token))
+    const gasBalance = balances.find(balance => tokenService.predicateByHash(gasToken)(balance.token))
     if (!gasBalance) {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
@@ -182,7 +184,7 @@ describe('Neo3NeoXBridgeService', () => {
 
     const balances = await bsNeo3Service.blockchainDataService.getBalance(account.address)
 
-    const neoBalance = balances.find(balance => BSTokenHelper.predicateByHash(neoToken)(balance.token))
+    const neoBalance = balances.find(balance => tokenService.predicateByHash(neoToken)(balance.token))
     if (!neoBalance) {
       throw new Error('It seems you do not have GAS balance to bridge')
     }

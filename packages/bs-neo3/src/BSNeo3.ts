@@ -6,6 +6,7 @@ import {
   BSBigNumberHelper,
   BSCalculableFee,
   BSClaimable,
+  BSWithEncryption,
   BSWithExplorerService,
   BSWithLedger,
   BSWithNameService,
@@ -15,6 +16,7 @@ import {
   GetLedgerTransport,
   IBSWithNeo3NeoXBridge,
   INeo3NeoXBridgeService,
+  ITokenService,
   Network,
   NftDataService,
   Token,
@@ -37,6 +39,7 @@ import { Neo3NeoXBridgeService } from './services/neo3neoXBridge/Neo3NeoXBridgeS
 
 import { DoraVoteServiceNeo3 } from './services/vote/DoraVoteServiceNeo3'
 import { GenerateSigningCallbackResponse, VoteService } from './interfaces'
+import { TokenServiceNeo3 } from './services/token/TokenServiceNeo3'
 
 export class BSNeo3<BSName extends string = string>
   implements
@@ -47,7 +50,8 @@ export class BSNeo3<BSName extends string = string>
     BSWithNft,
     BSWithExplorerService,
     BSWithLedger<BSName>,
-    IBSWithNeo3NeoXBridge<BSName>
+    IBSWithNeo3NeoXBridge<BSName>,
+    BSWithEncryption<BSName>
 {
   name: BSName
   bip44DerivationPath: string
@@ -65,6 +69,7 @@ export class BSNeo3<BSName extends string = string>
   explorerService!: ExplorerService
   voteService!: VoteService<BSName>
   neo3NeoXBridgeService!: INeo3NeoXBridgeService<BSName>
+  tokenService!: ITokenService
 
   network!: Network<BSNeo3NetworkId>
 
@@ -86,29 +91,6 @@ export class BSNeo3<BSName extends string = string>
     this.feeToken = tokens.find(token => token.symbol === 'GAS')!
     this.burnToken = tokens.find(token => token.symbol === 'NEO')!
     this.claimToken = tokens.find(token => token.symbol === 'GAS')!
-  }
-
-  async generateSigningCallback(account: Account<BSName>): Promise<GenerateSigningCallbackResponse> {
-    const neonJsAccount = new wallet.Account(account.key)
-
-    if (account.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide a getLedgerTransport function to use Ledger')
-
-      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
-
-      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
-
-      return {
-        neonJsAccount,
-        signingCallback: this.ledgerService.getSigningCallback(ledgerTransport, account),
-      }
-    }
-
-    return {
-      neonJsAccount,
-      signingCallback: api.signWithAccount(neonJsAccount),
-    }
   }
 
   async #buildTransferInvocation(
@@ -148,18 +130,37 @@ export class BSNeo3<BSName extends string = string>
     return invocations
   }
 
-  async testNetwork(network: Network<BSNeo3NetworkId>) {
-    const blockchainDataServiceClone = new RpcBDSNeo3(network, this.feeToken, this.claimToken, this.tokens)
+  async generateSigningCallback(account: Account<BSName>): Promise<GenerateSigningCallbackResponse> {
+    const neonJsAccount = new wallet.Account(account.key)
 
-    await blockchainDataServiceClone.getBlockHeight()
+    if (account.isHardware) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+
+      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+
+      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+
+      return {
+        neonJsAccount,
+        signingCallback: this.ledgerService.getSigningCallback(ledgerTransport, account),
+      }
+    }
+
+    return {
+      neonJsAccount,
+      signingCallback: api.signWithAccount(neonJsAccount),
+    }
   }
 
   setNetwork(network: Network<BSNeo3NetworkId>) {
     this.#setTokens(network)
 
     this.network = network
+
+    this.tokenService = new TokenServiceNeo3()
     this.nftDataService = new GhostMarketNDSNeo3(network)
-    this.explorerService = new DoraESNeo3(network)
+    this.explorerService = new DoraESNeo3(network, this.tokenService)
     this.voteService = new DoraVoteServiceNeo3(this)
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
 
@@ -169,10 +170,23 @@ export class BSNeo3<BSName extends string = string>
       this.claimToken,
       this.tokens,
       this.nftDataService,
-      this.explorerService
+      this.explorerService,
+      this.tokenService
     )
 
-    this.exchangeDataService = new FlamingoForthewinEDSNeo3(network)
+    this.exchangeDataService = new FlamingoForthewinEDSNeo3(network, this.tokenService)
+  }
+
+  async testNetwork(network: Network<BSNeo3NetworkId>) {
+    const blockchainDataServiceClone = new RpcBDSNeo3(
+      network,
+      this.feeToken,
+      this.claimToken,
+      this.tokens,
+      this.tokenService
+    )
+
+    await blockchainDataServiceClone.getBlockHeight()
   }
 
   validateAddress(address: string): boolean {

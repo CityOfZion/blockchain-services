@@ -49,6 +49,7 @@ export interface BlockchainService<BSName extends string = string, BSAvailableNe
   readonly feeToken: Token
   exchangeDataService: ExchangeDataService
   blockchainDataService: BlockchainDataService
+  tokenService: ITokenService
   tokens: Token[]
   nativeTokens: Token[]
   network: Network<BSAvailableNetworks>
@@ -56,16 +57,19 @@ export interface BlockchainService<BSName extends string = string, BSAvailableNe
   setNetwork: (partialNetwork: Network<BSAvailableNetworks>) => void
   generateAccountFromMnemonic(mnemonic: string, index: number): Account<BSName>
   generateAccountFromKey(key: string): Account<BSName>
-  decrypt(keyOrJson: string, password: string): Promise<Account<BSName>>
-  encrypt(key: string, password: string): Promise<string>
   validateAddress(address: string): boolean
-  validateEncrypted(keyOrJson: string): boolean
   validateKey(key: string): boolean
   transfer(param: TransferParam<BSName>): Promise<string[]>
 }
 
+export interface BSWithEncryption<BSName extends string = string> {
+  decrypt(keyOrJson: string, password: string): Promise<Account<BSName>>
+  encrypt(key: string, password: string): Promise<string>
+  validateEncrypted(keyOrJson: string): boolean
+}
+
 export interface BSCalculableFee<BSName extends string = string> {
-  calculateTransferFee(param: TransferParam<BSName>, details?: boolean): Promise<string>
+  calculateTransferFee(param: TransferParam<BSName>): Promise<string>
 }
 export interface BSClaimable<BSName extends string = string> {
   readonly claimToken: Token
@@ -114,11 +118,11 @@ export type TransactionTransferAsset = {
   token?: Token
 }
 export type TransactionTransferNft = {
-  tokenId: string
+  tokenHash: string
   to: string
   from: string
   type: 'nft'
-  contractHash: string
+  collectionHash: string
 }
 
 type TransactionDefaultResponse = {
@@ -174,14 +178,14 @@ export type FullTransactionNftEvent = {
   eventType: 'nft'
   amount?: string
   methodName: string
-  hash: string
-  hashUrl?: string
+  collectionHash: string
+  collectionHashUrl?: string
   to?: string
   toUrl?: string
   from?: string
   fromUrl?: string
   tokenType: 'generic' | (string & NonNullable<unknown>)
-  tokenId?: string
+  tokenHash?: string
   nftImageUrl?: string
   nftUrl?: string
   name?: string
@@ -192,8 +196,8 @@ export type FullTransactionAssetEvent = {
   eventType: 'token'
   amount?: string
   methodName: string
-  hash: string
-  hashUrl?: string
+  contractHash: string
+  contractHashUrl?: string
   to?: string
   toUrl?: string
   from?: string
@@ -291,14 +295,16 @@ export interface ExchangeDataService {
   getCurrencyRatio(currency: string): Promise<number>
 }
 export interface NftResponse {
-  id: string
-  contractHash: string
-  collectionName?: string
+  hash: string
+  collection: {
+    name?: string
+    image?: string
+    hash: string
+  }
   creator: {
     address: string
     name?: string
   }
-  collectionImage?: string
   symbol: string
   image?: string
   name?: string
@@ -317,12 +323,12 @@ export type GetNftsByAddressParams = {
   size?: number
 }
 export type GetNftParam = {
-  tokenId: string
-  contractHash: string
+  tokenHash: string
+  collectionHash: string
 }
 export type HasTokenParam = {
   address: string
-  contractHash: string
+  collectionHash: string
 }
 export interface NftDataService {
   getNftsByAddress(params: GetNftsByAddressParams): Promise<NftsResponse>
@@ -331,8 +337,8 @@ export interface NftDataService {
 }
 
 export type BuildNftUrlParams = {
-  contractHash: string
-  tokenId: string
+  collectionHash: string
+  tokenHash: string
 }
 export interface ExplorerService {
   buildTransactionUrl(hash: string): string
@@ -498,4 +504,25 @@ export interface INeo3NeoXBridgeService<BSName extends string = string> {
   bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string>
   getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string>
   getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<BSName>): Promise<string>
+}
+
+export type TTokenServicePredicateParams = {
+  hash: string
+  symbol?: string
+}
+
+export type TTokenServicePredicateByHashParams = string | { hash: string }
+
+export type TTokenServicePredicateBySymbolParams = string | { symbol: string }
+
+export interface ITokenService {
+  predicate({ hash, symbol }: TTokenServicePredicateParams): (params: TTokenServicePredicateParams) => boolean
+  predicateByHash(
+    tokenOrHash: TTokenServicePredicateByHashParams
+  ): (params: TTokenServicePredicateByHashParams) => boolean
+  predicateBySymbol(
+    tokenOrSymbol: TTokenServicePredicateBySymbolParams
+  ): (params: TTokenServicePredicateBySymbolParams) => boolean
+  normalizeToken<T extends Token | Token[]>(token: T): T
+  normalizeHash(hash: string): string
 }

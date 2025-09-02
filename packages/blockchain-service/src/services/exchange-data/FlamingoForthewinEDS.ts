@@ -1,7 +1,6 @@
-import { ExchangeDataService, GetTokenPricesParams, TokenPricesResponse } from '../../interfaces'
+import { ExchangeDataService, GetTokenPricesParams, ITokenService, TokenPricesResponse } from '../../interfaces'
 import axios from 'axios'
 import { CryptoCompareEDS } from './CryptoCompareEDS'
-import { BSTokenHelper } from '../../helpers/BSTokenHelper'
 
 type FlamingoTokenInfoPricesResponse = {
   symbol: string
@@ -16,9 +15,12 @@ type ForthewinTokenInfoPricesResponse = {
 export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDataService {
   readonly #flamingoAxiosInstance = axios.create({ baseURL: 'https://neo-api.b-cdn.net/flamingo' })
   readonly #forthewinAxiosInstance = axios.create({ baseURL: 'https://api.forthewin.network' })
+  readonly #tokenService: ITokenService
 
-  constructor() {
+  constructor(tokenService: ITokenService) {
     super()
+
+    this.#tokenService = tokenService
   }
 
   async getTokenPrices({ tokens }: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
@@ -28,13 +30,13 @@ export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDa
     const prices: TokenPricesResponse[] = []
     const neoToken = tokens.find(({ symbol }) => symbol === 'NEO')
 
-    if (neoToken && !flamingoData.find(BSTokenHelper.predicate(neoToken)))
+    if (neoToken && !flamingoData.find(this.#tokenService.predicate(neoToken)))
       flamingoData.forEach(item => {
         if (item.symbol === 'bNEO') flamingoData.push({ ...item, symbol: neoToken.symbol, hash: neoToken.hash })
       })
 
     flamingoData.forEach(item => {
-      const token = tokens.find(BSTokenHelper.predicate(item))
+      const token = tokens.find(this.#tokenService.predicate(item))
 
       if (!token) return
 
@@ -46,11 +48,11 @@ export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDa
         await this.#forthewinAxiosInstance.get<ForthewinTokenInfoPricesResponse>('/mainnet/prices')
 
       Object.entries(forthewinData).forEach(([hash, usdPrice]) => {
-        const hasPrice = !!prices.find(({ token }) => BSTokenHelper.predicate({ hash })(token))
+        const hasPrice = !!prices.find(({ token }) => this.#tokenService.predicate({ hash })(token))
 
         if (hasPrice) return
 
-        const foundToken = tokens.find(BSTokenHelper.predicate({ hash }))
+        const foundToken = tokens.find(this.#tokenService.predicate({ hash }))
 
         if (!foundToken) return
 

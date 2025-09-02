@@ -5,6 +5,7 @@ import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthere
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
+import { TokenServiceEthereum } from '../services/token/TokenServiceEthereum'
 
 let moralisEDSEthereum: MoralisEDSEthereum
 let network: Network<BSEthereumNetworkId>
@@ -12,12 +13,12 @@ let network: Network<BSEthereumNetworkId>
 describe('MoralisEDSEthereum', () => {
   beforeAll(() => {
     network = BSEthereumConstants.DEFAULT_NETWORK
-
+    const tokenService = new TokenServiceEthereum()
     const nftDataService = new GhostMarketNDSEthereum(network)
-    const explorerService = new BlockscoutESEthereum(network)
-    const moralisBDSEthereum = new MoralisBDSEthereum(network, nftDataService, explorerService)
+    const explorerService = new BlockscoutESEthereum(network, tokenService)
+    const moralisBDSEthereum = new MoralisBDSEthereum(network, nftDataService, explorerService, tokenService)
 
-    moralisEDSEthereum = new MoralisEDSEthereum(network, moralisBDSEthereum)
+    moralisEDSEthereum = new MoralisEDSEthereum(network, moralisBDSEthereum, tokenService)
   })
 
   it('Should return the ETH price in USD', async () => {

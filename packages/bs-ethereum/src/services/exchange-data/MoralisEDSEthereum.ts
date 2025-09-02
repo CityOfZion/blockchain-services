@@ -8,11 +8,11 @@ import {
   Token,
   TokenPricesHistoryResponse,
   TokenPricesResponse,
+  TokenService,
 } from '@cityofzion/blockchain-service'
 import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from '../blockchain-data/MoralisBDSEthereum'
-import { BSEthereumTokenHelper } from '../../helpers/BSEthereumTokenHelper'
 
 type MoralisERC20PriceResponse = {
   tokenName: string
@@ -29,12 +29,18 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
   readonly #numberOfBlockByHour = (15 / 60) * 60
   readonly #numberOfBlockByDay = this.#numberOfBlockByHour * 24
   readonly #maxTokenPricesPerCall = 24
+  readonly #tokenService: TokenService
 
-  constructor(network: Network<BSEthereumNetworkId>, blockchainDataService: BlockchainDataService) {
+  constructor(
+    network: Network<BSEthereumNetworkId>,
+    blockchainDataService: BlockchainDataService,
+    tokenService: TokenService
+  ) {
     super()
 
     this.#network = network
     this.#blockchainDataService = blockchainDataService
+    this.#tokenService = tokenService
   }
 
   async #getWrappedNativeToken(): Promise<Token> {
@@ -43,7 +49,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     const localWrappedHash = BSEthereumConstants.NATIVE_WRAPPED_HASH_BY_NETWORK_ID[this.#network.id]
     if (!localWrappedHash) throw new Error('Wrapper token not found')
 
-    return BSEthereumTokenHelper.normalizeToken({
+    return this.#tokenService.normalizeToken({
       ...nativeToken,
       symbol: wrappedSymbol,
       hash: localWrappedHash,
@@ -94,7 +100,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
 
         data.forEach(item => {
           let token: Token
-          if (wrappedNativeToken && BSEthereumTokenHelper.predicateByHash(wrappedNativeToken)(item.tokenAddress)) {
+          if (wrappedNativeToken && this.#tokenService.predicateByHash(wrappedNativeToken)(item.tokenAddress)) {
             token = nativeToken
           } else {
             token = {
@@ -123,7 +129,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#network)
 
     let token: Token
-    if (BSEthereumTokenHelper.predicateByHash(nativeToken)(params.token)) {
+    if (this.#tokenService.predicateByHash(nativeToken)(params.token)) {
       token = await this.#getWrappedNativeToken()
     } else {
       token = params.token

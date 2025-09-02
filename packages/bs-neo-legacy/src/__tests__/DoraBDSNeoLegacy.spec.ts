@@ -2,11 +2,19 @@ import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
 import { DoraBDSNeoLegacy } from '../services/blockchain-data/DoraBDSNeoLegacy'
 import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
+import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
 
 const network = BSNeoLegacyConstants.MAINNET_NETWORKS[0]
 const tokens = BSNeoLegacyHelper.getTokens(network)
 const gasToken = tokens.find(token => token.symbol === 'GAS')!
-const doraBDSNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens, new NeoTubeESNeoLegacy(network))
+const doraBDSNeoLegacy = new DoraBDSNeoLegacy(
+  network,
+  gasToken,
+  gasToken,
+  tokens,
+  new NeoTubeESNeoLegacy(network, new TokenServiceNeoLegacy()),
+  new TokenServiceNeoLegacy()
+)
 
 describe('DoraBDSNeoLegacy', () => {
   it('Should be able to get transaction - %s', async () => {

@@ -2,14 +2,16 @@ import { Network } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants, BSNeo3NetworkId } from '../../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { FlamingoForthewinEDSNeo3 } from '../../../services/exchange-data/FlamingoForthewinEDSNeo3'
+import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
 
 let flamingoForthewinEDSNeo3: FlamingoForthewinEDSNeo3
 let network: Network<BSNeo3NetworkId>
 
 describe('FlamingoForthewinEDSNeo3', () => {
   beforeAll(() => {
+    const tokenService = new TokenServiceNeo3()
     network = BSNeo3Constants.DEFAULT_NETWORK
-    flamingoForthewinEDSNeo3 = new FlamingoForthewinEDSNeo3(network)
+    flamingoForthewinEDSNeo3 = new FlamingoForthewinEDSNeo3(network, tokenService)
   })
 
   it('Should return a list with prices of tokens using USD', async () => {

@@ -4,6 +4,7 @@ import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
 import { DoraBDSNeoLegacy } from '../services/blockchain-data/DoraBDSNeoLegacy'
 import { isLeapYear } from 'date-fns'
 import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
+import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
 
 describe('BDSNeoLegacyFullTransactionsByAddress', () => {
   const address = 'AFnH8Cv7qzuxWZdeLqK9QqTrfPWCq5f8A3'
@@ -15,14 +16,15 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
   const initBDSNeoLegacy = (network: Network) => {
     const tokens = BSNeoLegacyHelper.getTokens(network)
     const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')!
-    const explorerService = new NeoTubeESNeoLegacy(network) as jest.Mocked<NeoTubeESNeoLegacy>
+    const tokenService = new TokenServiceNeoLegacy()
+    const explorerService = new NeoTubeESNeoLegacy(network, tokenService) as jest.Mocked<NeoTubeESNeoLegacy>
 
     explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
     explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
     explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
     explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
 
-    bdsNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens, explorerService)
+    bdsNeoLegacy = new DoraBDSNeoLegacy(network, gasToken, gasToken, tokens, explorerService, tokenService)
   }
 
   beforeEach(() => {
@@ -174,8 +176,8 @@ describe('BDSNeoLegacyFullTransactionsByAddress', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                hash: expect.any(String),
-                hashUrl: expect.any(String),
+                contractHash: expect.any(String),
+                contractHashUrl: expect.any(String),
                 token: expect.objectContaining({
                   decimals: expect.any(Number),
                   symbol: expect.any(String),
