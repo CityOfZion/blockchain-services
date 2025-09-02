@@ -1,7 +1,9 @@
 import {
   BalanceResponse,
   ExplorerService,
+  INeo3NeoXBridgeService,
   NftDataService,
+  TBridgeToken,
   TransactionBridgeNeo3NeoXResponse,
   TransactionResponse,
   TransactionsByAddressResponse,
@@ -12,18 +14,38 @@ import { GhostMarketNDSNeoX } from '../services/nft-data/GhostMarketNDSNeoX'
 import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
 import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
+import { Neo3NeoXBridgeService } from '../services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { BSNeoX } from '../BSNeoX'
 
-const neoxTestnetNetwork = BSNeoXConstants.MAINNET_NETWORKS[0]
+const neoxMainnetNetwork = BSNeoXConstants.MAINNET_NETWORKS[0]
 let nftDataService: NftDataService
 let explorerService: ExplorerService
 let blockscoutBDSNeoX: BlockscoutBDSNeoX
+let neo3NeoXBridgeService: INeo3NeoXBridgeService
 
 describe('BlockscoutBDSNeoX', () => {
+  const bridgeGasToken: TBridgeToken<'neox'> = {
+    ...BSNeoXConstants.NATIVE_ASSET,
+    multichainId: 'gas',
+    blockchain: 'neox',
+  }
+
+  const bridgeNeoToken: TBridgeToken<'neox'> = { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: 'neox' }
+
   beforeEach(() => {
     const tokenService = new TokenServiceEthereum()
-    nftDataService = new GhostMarketNDSNeoX(neoxTestnetNetwork)
-    explorerService = new BlockscoutESNeoX(neoxTestnetNetwork, tokenService)
-    blockscoutBDSNeoX = new BlockscoutBDSNeoX(neoxTestnetNetwork, nftDataService, explorerService, tokenService)
+
+    nftDataService = new GhostMarketNDSNeoX(neoxMainnetNetwork)
+    explorerService = new BlockscoutESNeoX(neoxMainnetNetwork, tokenService)
+    neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeoX('neox', neoxMainnetNetwork))
+
+    blockscoutBDSNeoX = new BlockscoutBDSNeoX(
+      neoxMainnetNetwork,
+      nftDataService,
+      explorerService,
+      tokenService,
+      neo3NeoXBridgeService
+    )
   })
 
   it('Should return transaction details for native assets (GAS)', async () => {
@@ -96,7 +118,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1.1')
-    expect(transaction.data.token).toEqual(BSNeoXConstants.NATIVE_ASSET)
+    expect(transaction.data.token).toEqual(bridgeGasToken)
     expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
   }, 10000)
 
@@ -107,7 +129,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(BSNeoXConstants.NEO_TOKEN)
+    expect(transaction.data.token).toEqual(bridgeNeoToken)
     expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
   }, 10000)
 
@@ -145,7 +167,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1.1')
-    expect(transaction.data.token).toEqual(BSNeoXConstants.NATIVE_ASSET)
+    expect(transaction.data.token).toEqual(bridgeGasToken)
     expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
   })
 
@@ -160,7 +182,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(BSNeoXConstants.NEO_TOKEN)
+    expect(transaction.data.token).toEqual(bridgeNeoToken)
     expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
   })
 

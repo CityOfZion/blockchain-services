@@ -7,13 +7,18 @@ import {
   FullTransactionsItem,
   FullTransactionsItemBridgeNeo3NeoX,
   Network,
+  TBridgeToken,
 } from '@cityofzion/blockchain-service'
 import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 import { isLeapYear } from 'date-fns'
 import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
 import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
+import { Neo3NeoXBridgeService } from '../../../services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { BSNeo3 } from '../../../BSNeo3'
 
 describe('DoraBDSNeo3FullTransactionsByAddress', () => {
+  const bridgeGasToken: TBridgeToken<'neo3'> = { ...BSNeo3Constants.GAS_TOKEN, multichainId: 'gas', blockchain: 'neo3' }
+  const bridgeNeoToken: TBridgeToken<'neo3'> = { ...BSNeo3Constants.NEO_TOKEN, multichainId: 'neo', blockchain: 'neo3' }
   const network = BSNeo3Constants.MAINNET_NETWORKS[0]
   const tokens = BSNeo3Helper.getTokens(network)
   const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')!
@@ -27,6 +32,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
   const initDoraBDSNeo3 = (network: Network) => {
     const nftDataService = new GhostMarketNDSNeo3(network) as jest.Mocked<GhostMarketNDSNeo3>
     const tokenService = new TokenServiceNeo3()
+    const neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeo3('neo3', network))
 
     nftDataService.getNft = jest.fn().mockReturnValue({
       image: 'nftImage',
@@ -41,7 +47,16 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
     explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
     explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
 
-    doraBDSNeo3 = new DoraBDSNeo3(network, gasToken, gasToken, tokens, nftDataService, explorerService, tokenService)
+    doraBDSNeo3 = new DoraBDSNeo3(
+      network,
+      gasToken,
+      gasToken,
+      tokens,
+      nftDataService,
+      explorerService,
+      tokenService,
+      neo3NeoXBridgeService
+    )
   }
 
   beforeEach(() => {
@@ -319,7 +334,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.events.find(event => event.methodName === 'depositNative')).toBeTruthy()
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(BSNeo3Constants.GAS_TOKEN)
+      expect(transaction.data.token).toEqual(bridgeGasToken)
       expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
     }, 60000)
 
@@ -340,7 +355,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.events.find(event => event.methodName === 'depositToken')).toBeTruthy()
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(BSNeo3Constants.NEO_TOKEN)
+      expect(transaction.data.token).toEqual(bridgeNeoToken)
       expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
     }, 60000)
   })

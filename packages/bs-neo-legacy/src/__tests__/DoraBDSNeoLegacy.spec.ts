@@ -7,13 +7,16 @@ import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
 const network = BSNeoLegacyConstants.MAINNET_NETWORKS[0]
 const tokens = BSNeoLegacyHelper.getTokens(network)
 const gasToken = tokens.find(token => token.symbol === 'GAS')!
+
+const tokenServiceNeoLegacy = new TokenServiceNeoLegacy()
+
 const doraBDSNeoLegacy = new DoraBDSNeoLegacy(
   network,
   gasToken,
   gasToken,
   tokens,
-  new NeoTubeESNeoLegacy(network, new TokenServiceNeoLegacy()),
-  new TokenServiceNeoLegacy()
+  new NeoTubeESNeoLegacy(network, tokenServiceNeoLegacy),
+  tokenServiceNeoLegacy
 )
 
 describe('DoraBDSNeoLegacy', () => {

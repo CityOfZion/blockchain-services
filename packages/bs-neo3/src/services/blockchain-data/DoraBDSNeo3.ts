@@ -25,6 +25,7 @@ import {
   FullTransactionNftEvent,
   FullTransactionAssetEvent,
   TokenService,
+  INeo3NeoXBridgeService,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { u, wallet } from '@cityofzion/neon-js'
@@ -43,6 +44,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   readonly #supportedNep11Standards = ['nep11', 'nep-11']
   readonly #nftDataService: NftDataService
   readonly #explorerService: ExplorerService
+  readonly #neo3NeoXBridgeService: INeo3NeoXBridgeService
 
   constructor(
     network: Network<BSNeo3NetworkId>,
@@ -51,12 +53,14 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     tokens: Token[],
     nftDataService: NftDataService,
     explorerService: ExplorerService,
-    tokenService: TokenService
+    tokenService: TokenService,
+    neo3NeoXBridgeService: INeo3NeoXBridgeService
   ) {
     super(network, feeToken, claimToken, tokens, tokenService)
 
     this.#nftDataService = nftDataService
     this.#explorerService = explorerService
+    this.#neo3NeoXBridgeService = neo3NeoXBridgeService
   }
 
   async getTransaction(hash: string): Promise<TransactionResponse> {
@@ -216,9 +220,6 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
-        let nftEvent: FullTransactionNftEvent | undefined
-        let assetEvent: FullTransactionAssetEvent | undefined
-
         const { methodName, tokenID: tokenHash, contractHash, contractName } = event
         const from = event.from ?? undefined
         const to = event.to ?? undefined
@@ -237,7 +238,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
             ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
             : undefined
 
-          newItem.events.push({
+          const nftEvent: FullTransactionNftEvent = {
             eventType: 'nft',
             amount: undefined,
             methodName,
@@ -253,13 +254,15 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
             nftUrl,
             name: nft?.name,
             collectionName: nft?.collection?.name,
-          })
+          }
+
+          newItem.events.splice(eventIndex, 0, nftEvent)
 
           return
         } else {
           const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(contractHash))
 
-          assetEvent = {
+          const assetEvent: FullTransactionAssetEvent = {
             eventType: 'token',
             amount: event.amount
               ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
@@ -274,6 +277,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
             token: token ?? undefined,
             tokenType: 'nep-17',
           }
+
+          newItem.events.splice(eventIndex, 0, assetEvent)
         }
 
         if (newItem.type === 'default' && contractName === 'NeoXBridge') {
@@ -285,8 +290,6 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
             if (data) newItem = { ...newItem, type: 'bridgeNeo3NeoX', data }
           }
         }
-
-        newItem.events.splice(eventIndex, 0, isNft ? nftEvent! : assetEvent!)
       })
 
       await Promise.allSettled(eventPromises)
@@ -440,7 +443,12 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     if (!byteStringReceiverAddress) return undefined
 
     const receiverAddress = `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`
-    const token = isNativeToken ? BSNeo3Constants.GAS_TOKEN : BSNeo3Constants.NEO_TOKEN
+
+    const token = this.#neo3NeoXBridgeService.tokens.find(
+      this._tokenService.predicateByHash(isNativeToken ? BSNeo3Constants.GAS_TOKEN : BSNeo3Constants.NEO_TOKEN)
+    )
+
+    if (!token) return undefined
 
     return { amount, token, receiverAddress }
   }

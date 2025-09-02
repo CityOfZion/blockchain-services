@@ -171,7 +171,8 @@ export class BSNeo3<BSName extends string = string>
       this.tokens,
       this.nftDataService,
       this.explorerService,
-      this.tokenService
+      this.tokenService,
+      this.neo3NeoXBridgeService
     )
 
     this.exchangeDataService = new FlamingoForthewinEDSNeo3(network, this.tokenService)

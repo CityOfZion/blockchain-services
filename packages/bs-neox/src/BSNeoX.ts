@@ -34,12 +34,14 @@ export class BSNeoX<BSName extends string = string>
     this.nftDataService = new GhostMarketNDSNeoX(network)
     this.explorerService = new BlockscoutESNeoX(network, this.tokenService)
     this.exchangeDataService = new FlamingoForthewinEDSNeoX(network, this.tokenService)
+    this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
+
     this.blockchainDataService = new BlockscoutBDSNeoX(
       network,
       this.nftDataService,
       this.explorerService,
-      this.tokenService
+      this.tokenService,
+      this.neo3NeoXBridgeService
     )
-    this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
   }
 }
