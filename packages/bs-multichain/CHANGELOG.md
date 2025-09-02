@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Mon, 01 Sep 2025 18:24:16 GMT and should not be manually modified.
+This log was last generated on Tue, 02 Sep 2025 22:47:47 GMT and should not be manually modified.
+
+## 1.0.8
+Tue, 02 Sep 2025 22:47:47 GMT
+
+### Patches
+
+- Add Solana initial implementation
 
 ## 1.0.7
 Mon, 01 Sep 2025 18:24:16 GMT

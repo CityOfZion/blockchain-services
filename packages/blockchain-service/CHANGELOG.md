@@ -1,6 +1,17 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 01 Sep 2025 18:24:15 GMT and should not be manually modified.
+This log was last generated on Tue, 02 Sep 2025 22:47:47 GMT and should not be manually modified.
+
+## 1.21.0
+Tue, 02 Sep 2025 22:47:47 GMT
+
+### Minor changes
+
+- Add Solana initial implementation
+
+### Patches
+
+- Change Token to BridgeToken type
 
 ## 1.20.0
 Mon, 01 Sep 2025 18:24:15 GMT

@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.16.1",
+      "tag": "@cityofzion/bs-neo3_v1.16.1",
+      "date": "Tue, 02 Sep 2025 22:47:47 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add Solana initial implementation"
+          },
+          {
+            "comment": "Change Token to BridgeToken type"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.21.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.16.0",
       "tag": "@cityofzion/bs-neo3_v1.16.0",
       "date": "Mon, 01 Sep 2025 18:24:15 GMT",

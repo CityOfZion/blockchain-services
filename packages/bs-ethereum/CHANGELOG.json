@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.13.1",
+      "tag": "@cityofzion/bs-ethereum_v2.13.1",
+      "date": "Tue, 02 Sep 2025 22:47:47 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add Solana initial implementation"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.21.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.13.0",
       "tag": "@cityofzion/bs-ethereum_v2.13.0",
       "date": "Mon, 01 Sep 2025 18:24:15 GMT",

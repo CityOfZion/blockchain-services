@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 01 Sep 2025 18:24:15 GMT and should not be manually modified.
+This log was last generated on Tue, 02 Sep 2025 22:47:47 GMT and should not be manually modified.
+
+## 2.13.1
+Tue, 02 Sep 2025 22:47:47 GMT
+
+### Patches
+
+- Add Solana initial implementation
 
 ## 2.13.0
 Mon, 01 Sep 2025 18:24:15 GMT

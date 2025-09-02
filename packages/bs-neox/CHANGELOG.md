@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Mon, 01 Sep 2025 18:24:15 GMT and should not be manually modified.
+This log was last generated on Tue, 02 Sep 2025 22:47:47 GMT and should not be manually modified.
+
+## 1.3.1
+Tue, 02 Sep 2025 22:47:47 GMT
+
+### Patches
+
+- Add Solana initial implementation
+- Change Token to BridgeToken type
 
 ## 1.3.0
 Mon, 01 Sep 2025 18:24:15 GMT
