@@ -23,6 +23,7 @@ type TBlockscoutTransactionLogResponse = { items: { data: string; topics: any[] 
 
 export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBridgeService<BSName> {
   static readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
+  static readonly BRIDGE_FEE = 0.1
 
   readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
 

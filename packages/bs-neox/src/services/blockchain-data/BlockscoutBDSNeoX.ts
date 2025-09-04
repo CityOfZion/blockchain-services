@@ -608,9 +608,12 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
 
       if (!token) return undefined
 
-      const amount = BSBigNumberHelper.format(ethers.utils.formatUnits(blockscoutTransaction.value, token.decimals), {
-        decimals: token.decimals,
-      })
+      const amount = BSBigNumberHelper.format(
+        BSBigNumberHelper.fromNumber(ethers.utils.formatUnits(blockscoutTransaction.value, token.decimals)).minus(
+          Neo3NeoXBridgeService.BRIDGE_FEE
+        ),
+        { decimals: token.decimals }
+      )
 
       return { amount, token, receiverAddress }
     }

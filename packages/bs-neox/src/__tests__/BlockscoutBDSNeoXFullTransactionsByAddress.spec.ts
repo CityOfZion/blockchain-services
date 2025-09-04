@@ -358,7 +358,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       ) as FullTransactionsItem & FullTransactionsItemBridgeNeo3NeoX
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
-      expect(transaction.data.amount).toBe('1.1')
+      expect(transaction.data.amount).toBe('1')
       expect(transaction.data.token).toEqual(bridgeGasToken)
       expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
     }, 60000)
