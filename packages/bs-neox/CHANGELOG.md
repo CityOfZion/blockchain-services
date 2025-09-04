@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Tue, 02 Sep 2025 22:47:47 GMT and should not be manually modified.
+This log was last generated on Thu, 04 Sep 2025 17:32:30 GMT and should not be manually modified.
+
+## 1.3.2
+Thu, 04 Sep 2025 17:32:30 GMT
+
+### Patches
+
+- Calculate bridge value minus fee
 
 ## 1.3.1
 Tue, 02 Sep 2025 22:47:47 GMT
