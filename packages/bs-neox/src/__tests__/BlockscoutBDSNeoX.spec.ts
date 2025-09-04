@@ -117,7 +117,7 @@ describe('BlockscoutBDSNeoX', () => {
     )) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
-    expect(transaction.data.amount).toBe('1.1')
+    expect(transaction.data.amount).toBe('1')
     expect(transaction.data.token).toEqual(bridgeGasToken)
     expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
   }, 10000)
@@ -166,7 +166,7 @@ describe('BlockscoutBDSNeoX', () => {
     ) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
-    expect(transaction.data.amount).toBe('1.1')
+    expect(transaction.data.amount).toBe('1')
     expect(transaction.data.token).toEqual(bridgeGasToken)
     expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
   })
