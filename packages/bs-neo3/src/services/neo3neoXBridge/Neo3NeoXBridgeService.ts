@@ -44,7 +44,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
       rpcAddress: this.#service.network.url,
     })
 
-    const isNativeToken = this.#service.tokenService.predicateByHash(token, BSNeo3Constants.GAS_TOKEN)
+    const isNativeToken = this.#service.tokenService.predicateByHash(token.hash, BSNeo3Constants.GAS_TOKEN.hash)
 
     let invocations: ContractInvocation[]
 
@@ -144,7 +144,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
       allowedContracts: [this.BRIDGE_SCRIPT_HASH, BSNeo3Constants.GAS_TOKEN.hash],
     }
 
-    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
+    const isNativeToken = this.#service.tokenService.predicateByHash(params.token.hash, BSNeo3Constants.GAS_TOKEN.hash)
 
     if (!isNativeToken) {
       contractInvocation.args?.unshift({ type: 'Hash160', value: BSNeo3Constants.NEO_TOKEN.hash })
@@ -169,7 +169,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
       throw new BSError('Transaction invalid', 'INVALID_TRANSACTION')
     }
 
-    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
+    const isNativeToken = this.#service.tokenService.predicateByHash(params.token.hash, BSNeo3Constants.GAS_TOKEN.hash)
 
     let nonce: string | null = null
 
@@ -193,7 +193,10 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
   ): Promise<string> {
     let data: TGetBridgeTxByNonceResponse | undefined
     try {
-      const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
+      const isNativeToken = this.#service.tokenService.predicateByHash(
+        params.token.hash,
+        BSNeo3Constants.GAS_TOKEN.hash
+      )
 
       const response = await axios.post<TGetBridgeTxByNonceResponse>('https://neofura.ngd.network', {
         jsonrpc: '2.0',

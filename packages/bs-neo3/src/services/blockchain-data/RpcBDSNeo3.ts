@@ -110,7 +110,7 @@ export class RpcBDSNeo3 implements BlockchainDataService, BDSClaimable {
         return cachedToken
       }
 
-      let token = this._tokens.find(currentToken => this._tokenService.predicateByHash(tokenHash, currentToken))
+      let token = this._tokens.find(currentToken => this._tokenService.predicateByHash(tokenHash, currentToken.hash))
 
       if (!token) {
         const rpcClient = new rpc.RPCClient(this._network.url)

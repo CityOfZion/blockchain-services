@@ -48,11 +48,11 @@ export class FlamingoForthewinEDS extends CryptoCompareEDS implements ExchangeDa
         await this.#forthewinAxiosInstance.get<ForthewinTokenInfoPricesResponse>('/mainnet/prices')
 
       Object.entries(forthewinData).forEach(([hash, usdPrice]) => {
-        const hasPrice = !!prices.find(({ token }) => this.#tokenService.predicateByHash(hash, token))
+        const hasPrice = !!prices.find(({ token }) => this.#tokenService.predicateByHash(hash, token.hash))
 
         if (hasPrice) return
 
-        const foundToken = tokens.find(token => this.#tokenService.predicateByHash(hash, token))
+        const foundToken = tokens.find(token => this.#tokenService.predicateByHash(hash, token.hash))
 
         if (!foundToken) return
 

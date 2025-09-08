@@ -238,7 +238,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
       return cachedToken
     }
 
-    let token = this.#tokens.find(currentToken => this.#tokenService.predicateByHash(tokenHash, currentToken))
+    let token = this.#tokens.find(currentToken => this.#tokenService.predicateByHash(tokenHash, currentToken.hash))
 
     if (!token) {
       const data = await api.NeoLegacyREST.asset(tokenHash, this.#network.id)

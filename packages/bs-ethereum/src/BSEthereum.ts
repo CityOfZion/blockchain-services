@@ -103,7 +103,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
       type: 2,
     }
 
-    const isNative = this.tokenService.predicateByHash(this.feeToken, intent.tokenHash)
+    const isNative = this.tokenService.predicateByHash(this.feeToken.hash, intent.tokenHash)
 
     if (isNative) {
       transactionParams.to = intent.receiverAddress

@@ -292,7 +292,9 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
 
     const tokenToUseBalance =
       this.#tokenToUse.value && balances
-        ? balances?.find(item => this.fromService.tokenService.predicateByHash(this.#tokenToUse.value!, item.token))
+        ? balances?.find(item =>
+            this.fromService.tokenService.predicateByHash(this.#tokenToUse.value!.hash, item.token.hash)
+          )
         : null
 
     this.#tokenToUseBalance = {
@@ -300,7 +302,9 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
     }
 
     this.#feeTokenBalance = balances
-      ? balances?.find(item => this.fromService.tokenService.predicateByHash(this.fromService.feeToken, item.token))
+      ? balances?.find(item =>
+          this.fromService.tokenService.predicateByHash(this.fromService.feeToken.hash, item.token.hash)
+        )
       : null
 
     if (tokenToUseBalance === null || !this.#tokenToUse.value) {
@@ -320,8 +324,8 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
       const tokenBalanceAmountBn = BSBigNumberHelper.fromNumber(tokenToUseBalance?.amount ?? 0)
 
       const isFeeToken = this.fromService.tokenService.predicateByHash(
-        this.fromService.feeToken,
-        this.#tokenToUse.value
+        this.fromService.feeToken.hash,
+        this.#tokenToUse.value.hash
       )
 
       const maxTokenBalanceAmountBn = isFeeToken
@@ -404,8 +408,8 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
         }
 
         const isFeeToken = this.fromService.tokenService.predicateByHash(
-          this.fromService.feeToken,
-          this.#tokenToUse.value
+          this.fromService.feeToken.hash,
+          this.#tokenToUse.value.hash
         )
 
         if (newBridgeFee.plus(isFeeToken ? amountToUseBn : 0).isGreaterThan(this.#feeTokenBalance?.amount ?? 0)) {

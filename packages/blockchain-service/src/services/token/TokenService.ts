@@ -1,10 +1,4 @@
-import {
-  ITokenService,
-  Token,
-  TTokenServicePredicateByHashParams,
-  TTokenServicePredicateBySymbolParams,
-  TTokenServicePredicateParams,
-} from '../../interfaces'
+import { ITokenService, Token, TTokenServicePredicateParams } from '../../interfaces'
 
 export type TBSTokenHelperPredicateParams = {
   hash: string
@@ -21,24 +15,12 @@ export abstract class TokenService implements ITokenService {
     return false
   }
 
-  predicateByHash(compareFrom: TTokenServicePredicateByHashParams, compareTo: TTokenServicePredicateByHashParams) {
-    return (
-      this.normalizeHash(typeof compareFrom === 'string' ? compareFrom : compareFrom.hash) ===
-      this.normalizeHash(typeof compareTo === 'string' ? compareTo : compareTo.hash)
-    )
+  predicateByHash(hashFrom: string, hashTo: string) {
+    return this.normalizeHash(hashFrom) === this.normalizeHash(hashTo)
   }
 
-  predicateBySymbol(
-    compareFrom: TTokenServicePredicateBySymbolParams,
-    compareTo: TTokenServicePredicateBySymbolParams
-  ) {
-    const symbol = typeof compareFrom === 'string' ? compareFrom : compareFrom.symbol
-    const lowercaseSymbol = symbol.toLowerCase()
-
-    const symbolToPredicate = typeof compareTo === 'string' ? compareTo : compareTo.symbol
-    const lowercaseSymbolToPredicate = symbolToPredicate.toLowerCase()
-
-    return lowercaseSymbol === lowercaseSymbolToPredicate
+  predicateBySymbol(symbolFrom: string, symbolTo: string) {
+    return symbolFrom.toLowerCase() === symbolTo.toLowerCase()
   }
 
   normalizeToken<T extends Token | Token[]>(token: T): T {

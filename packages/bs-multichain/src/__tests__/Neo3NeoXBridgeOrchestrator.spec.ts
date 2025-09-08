@@ -388,7 +388,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.init()
 
     const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens.find(currentToken =>
-      neo3NeoXBridgeOrchestrator.fromService.tokenService.predicateBySymbol('NEO', currentToken)
+      neo3NeoXBridgeOrchestrator.fromService.tokenService.predicateBySymbol('NEO', currentToken.symbol)
     )!
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)

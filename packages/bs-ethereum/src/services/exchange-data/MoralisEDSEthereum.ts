@@ -101,7 +101,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
         data.forEach(item => {
           let token: Token
 
-          if (wrappedNativeToken && this.#tokenService.predicateByHash(wrappedNativeToken, item.tokenAddress)) {
+          if (wrappedNativeToken && this.#tokenService.predicateByHash(wrappedNativeToken.hash, item.tokenAddress)) {
             token = nativeToken
           } else {
             token = {
@@ -131,7 +131,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
 
     let token: Token
 
-    if (this.#tokenService.predicateByHash(nativeToken, params.token)) {
+    if (this.#tokenService.predicateByHash(nativeToken.hash, params.token.hash)) {
       token = await this.#getWrappedNativeToken()
     } else {
       token = params.token
