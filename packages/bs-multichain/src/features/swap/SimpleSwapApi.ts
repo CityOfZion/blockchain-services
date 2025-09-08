@@ -89,7 +89,7 @@ export class SimpleSwapApi<BSName extends string = string> {
       const normalizedHash = hash && blockchainService ? blockchainService.tokenService.normalizeHash(hash) : ''
 
       const token = blockchainService.tokens.find(item => {
-        if (normalizedHash && blockchainService && blockchainService.tokenService.predicateByHash(item)(normalizedHash))
+        if (normalizedHash && blockchainService && blockchainService.tokenService.predicateByHash(item, normalizedHash))
           return true
 
         const currentLowerCaseSymbol = item.symbol.toLowerCase()

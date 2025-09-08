@@ -602,8 +602,8 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
     const receiverAddress = wallet.getAddressFromScriptHash(to.startsWith('0x') ? to.slice(2) : to)
 
     if (input.name === 'withdrawNative') {
-      const token = this.#neo3NeoXBridgeService.tokens.find(
-        this._tokenService.predicateByHash(BSNeoXConstants.NATIVE_ASSET)
+      const token = this.#neo3NeoXBridgeService.tokens.find(currentToken =>
+        this._tokenService.predicateByHash(BSNeoXConstants.NATIVE_ASSET, currentToken)
       )
 
       if (!token) return undefined
@@ -619,8 +619,8 @@ export class BlockscoutBDSNeoX extends DoraBDSEthereum<BSNeoXNetworkId> {
     }
 
     if (input.name === 'withdrawToken') {
-      const token = this.#neo3NeoXBridgeService.tokens.find(
-        this._tokenService.predicateByHash(BSNeoXConstants.NEO_TOKEN)
+      const token = this.#neo3NeoXBridgeService.tokens.find(currentToken =>
+        this._tokenService.predicateByHash(BSNeoXConstants.NEO_TOKEN, currentToken)
       )
 
       if (!token) return undefined

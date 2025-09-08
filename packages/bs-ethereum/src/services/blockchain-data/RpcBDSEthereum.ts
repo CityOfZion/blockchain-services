@@ -82,7 +82,7 @@ export class RpcBDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId>
   async getTokenInfo(hash: string): Promise<Token> {
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._network)
 
-    if (this._tokenService.predicateByHash(nativeAsset)({ hash })) return nativeAsset
+    if (this._tokenService.predicateByHash(nativeAsset, hash)) return nativeAsset
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!

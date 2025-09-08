@@ -294,7 +294,7 @@ export class BSNeoLegacy<BSName extends string = string>
     for (const intent of concatIntents) {
       const normalizeTokenHash = this.tokenService.normalizeHash(intent.tokenHash)
 
-      const nativeAsset = this.NATIVE_ASSETS.find(this.tokenService.predicateByHash(normalizeTokenHash))
+      const nativeAsset = this.NATIVE_ASSETS.find(token => this.tokenService.predicateByHash(normalizeTokenHash, token))
 
       if (nativeAsset) {
         nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
@@ -453,10 +453,11 @@ export class BSNeoLegacy<BSName extends string = string>
 
   calculateNeoLegacyMigrationAmounts(balance: BalanceResponse[]): CalculateNeoLegacyMigrationAmountsResponse {
     const gasBalance = balance.find(({ token }) =>
-      this.tokenService.predicateByHash(BSNeoLegacyConstants.GAS_ASSET)(token)
+      this.tokenService.predicateByHash(BSNeoLegacyConstants.GAS_ASSET, token)
     )
+
     const neoBalance = balance.find(({ token }) =>
-      this.tokenService.predicateByHash(BSNeoLegacyConstants.NEO_ASSET)(token)
+      this.tokenService.predicateByHash(BSNeoLegacyConstants.NEO_ASSET, token)
     )
 
     let hasEnoughGasBalance = false

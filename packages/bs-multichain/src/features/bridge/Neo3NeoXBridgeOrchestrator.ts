@@ -214,9 +214,13 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
       if (!this.#availableTokensToUse.value) throw new BSError('No available tokens to use', 'NO_AVAILABLE_TOKENS')
 
       if (token) {
-        if (this.#tokenToUse.value && this.fromService.tokenService.predicate(this.#tokenToUse.value)(token)) return
+        if (this.#tokenToUse.value && this.fromService.tokenService.predicate(this.#tokenToUse.value, token)) return
 
-        if (!this.#availableTokensToUse.value.some(this.fromService.tokenService.predicate(token)))
+        if (
+          !this.#availableTokensToUse.value.some(currentToken =>
+            this.fromService.tokenService.predicate(token, currentToken)
+          )
+        )
           throw new BSError('You are trying to use a token that is not available', 'TOKEN_NOT_AVAILABLE')
 
         tokenToReceive = this.toService.neo3NeoXBridgeService.tokens.find(
@@ -288,17 +292,16 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
 
     const tokenToUseBalance =
       this.#tokenToUse.value && balances
-        ? balances?.find(item => this.fromService.tokenService.predicateByHash(this.#tokenToUse.value!)(item.token))
+        ? balances?.find(item => this.fromService.tokenService.predicateByHash(this.#tokenToUse.value!, item.token))
         : null
 
     this.#tokenToUseBalance = {
       value: tokenToUseBalance,
     }
 
-    const feeTokenBalance = balances
-      ? balances?.find(item => this.fromService.tokenService.predicateByHash(this.fromService.feeToken)(item.token))
+    this.#feeTokenBalance = balances
+      ? balances?.find(item => this.fromService.tokenService.predicateByHash(this.fromService.feeToken, item.token))
       : null
-    this.#feeTokenBalance = feeTokenBalance
 
     if (tokenToUseBalance === null || !this.#tokenToUse.value) {
       return
@@ -316,9 +319,11 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
       const bridgeMaxAmountBn = BSBigNumberHelper.fromNumber(constants.bridgeMaxAmount)
       const tokenBalanceAmountBn = BSBigNumberHelper.fromNumber(tokenToUseBalance?.amount ?? 0)
 
-      const isFeeToken = this.fromService.tokenService.predicateByHash(this.fromService.feeToken)(
+      const isFeeToken = this.fromService.tokenService.predicateByHash(
+        this.fromService.feeToken,
         this.#tokenToUse.value
       )
+
       const maxTokenBalanceAmountBn = isFeeToken
         ? tokenBalanceAmountBn.minus(constants.bridgeFee)
         : tokenBalanceAmountBn
@@ -398,7 +403,8 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
           value: BSBigNumberHelper.format(newBridgeFee, { decimals: this.fromService.feeToken.decimals }),
         }
 
-        const isFeeToken = this.fromService.tokenService.predicateByHash(this.fromService.feeToken)(
+        const isFeeToken = this.fromService.tokenService.predicateByHash(
+          this.fromService.feeToken,
           this.#tokenToUse.value
         )
 
@@ -435,15 +441,13 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
       throw new BSError('Required parameters are not set for bridging', 'BRIDGE_NOT_READY')
     }
 
-    const transaction = await this.fromService.neo3NeoXBridgeService.bridge({
+    return await this.fromService.neo3NeoXBridgeService.bridge({
       account: this.#accountToUse.value,
       token: this.#tokenToUse.value,
       amount: this.#amountToUse.value,
       receiverAddress: this.#addressToReceive.value,
       bridgeFee: this.#bridgeFee.value,
     })
-
-    return transaction
   }
 
   static async wait<BSName extends string = string>({

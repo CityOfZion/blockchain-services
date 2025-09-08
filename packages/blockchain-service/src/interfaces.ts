@@ -516,13 +516,15 @@ export type TTokenServicePredicateByHashParams = string | { hash: string }
 export type TTokenServicePredicateBySymbolParams = string | { symbol: string }
 
 export interface ITokenService {
-  predicate({ hash, symbol }: TTokenServicePredicateParams): (params: TTokenServicePredicateParams) => boolean
+  predicate(compareFrom: TTokenServicePredicateParams, compareTo: TTokenServicePredicateParams): boolean
   predicateByHash(
-    tokenOrHash: TTokenServicePredicateByHashParams
-  ): (params: TTokenServicePredicateByHashParams) => boolean
+    compareFrom: TTokenServicePredicateByHashParams,
+    compareTo: TTokenServicePredicateByHashParams
+  ): boolean
   predicateBySymbol(
-    tokenOrSymbol: TTokenServicePredicateBySymbolParams
-  ): (params: TTokenServicePredicateBySymbolParams) => boolean
+    compareFrom: TTokenServicePredicateBySymbolParams,
+    compareTo: TTokenServicePredicateBySymbolParams
+  ): boolean
   normalizeToken<T extends Token | Token[]>(token: T): T
   normalizeHash(hash: string): string
 }

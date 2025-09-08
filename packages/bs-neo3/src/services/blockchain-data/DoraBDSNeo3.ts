@@ -341,7 +341,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         return cachedToken
       }
 
-      let token = this._tokens.find(this._tokenService.predicateByHash(tokenHash))
+      let token = this._tokens.find(currentToken => this._tokenService.predicateByHash(tokenHash, currentToken))
 
       if (!token) {
         const { decimals, symbol, name, scripthash } = await DoraNeoRest.asset(tokenHash, this._network.id)
@@ -444,8 +444,11 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
     const receiverAddress = `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`
 
-    const token = this.#neo3NeoXBridgeService.tokens.find(
-      this._tokenService.predicateByHash(isNativeToken ? BSNeo3Constants.GAS_TOKEN : BSNeo3Constants.NEO_TOKEN)
+    const token = this.#neo3NeoXBridgeService.tokens.find(currentToken =>
+      this._tokenService.predicateByHash(
+        isNativeToken ? BSNeo3Constants.GAS_TOKEN : BSNeo3Constants.NEO_TOKEN,
+        currentToken
+      )
     )
 
     if (!token) return undefined

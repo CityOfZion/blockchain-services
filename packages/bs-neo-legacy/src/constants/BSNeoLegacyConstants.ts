@@ -15,8 +15,8 @@ export class BSNeoLegacyConstants {
 
   static NATIVE_ASSETS = this.#tokenService.normalizeToken(nativeTokens)
 
-  static GAS_ASSET = this.NATIVE_ASSETS.find(this.#tokenService.predicateBySymbol('GAS'))!
-  static NEO_ASSET = this.NATIVE_ASSETS.find(this.#tokenService.predicateBySymbol('NEO'))!
+  static GAS_ASSET = this.NATIVE_ASSETS.find(token => this.#tokenService.predicateBySymbol('GAS', token))!
+  static NEO_ASSET = this.NATIVE_ASSETS.find(token => this.#tokenService.predicateBySymbol('NEO', token))!
 
   static RPC_LIST_BY_NETWORK_ID: Record<BSNeoLegacyNetworkId, string[]> = {
     mainnet: [
