@@ -12,39 +12,33 @@ export type TBSTokenHelperPredicateParams = {
 }
 
 export abstract class TokenService implements ITokenService {
-  predicate({ hash, symbol }: TTokenServicePredicateParams): (params: TTokenServicePredicateParams) => boolean {
-    const normalizedHash = this.normalizeHash(hash)
+  predicate(compareFrom: TTokenServicePredicateParams, compareTo: TBSTokenHelperPredicateParams) {
+    if (this.normalizeHash(compareFrom.hash) === this.normalizeHash(compareTo.hash)) return true
 
-    return (params: TBSTokenHelperPredicateParams) => {
-      if (normalizedHash === this.normalizeHash(params.hash)) return true
+    if (compareFrom.symbol && compareTo.symbol && compareFrom.symbol.toLowerCase() === compareTo.symbol.toLowerCase())
+      return true
 
-      if (symbol && params.symbol && symbol.toLowerCase() === params.symbol.toLowerCase()) return true
-
-      return false
-    }
+    return false
   }
 
-  predicateByHash(
-    tokenOrHash: TTokenServicePredicateByHashParams
-  ): (params: TTokenServicePredicateByHashParams) => boolean {
-    const hash = typeof tokenOrHash === 'string' ? tokenOrHash : tokenOrHash.hash
-    const normalizedHash = this.normalizeHash(hash)
-    return (params: string | { hash: string }) =>
-      normalizedHash === this.normalizeHash(typeof params === 'string' ? params : params.hash)
+  predicateByHash(compareFrom: TTokenServicePredicateByHashParams, compareTo: TTokenServicePredicateByHashParams) {
+    return (
+      this.normalizeHash(typeof compareFrom === 'string' ? compareFrom : compareFrom.hash) ===
+      this.normalizeHash(typeof compareTo === 'string' ? compareTo : compareTo.hash)
+    )
   }
 
   predicateBySymbol(
-    tokenOrSymbol: TTokenServicePredicateBySymbolParams
-  ): (params: TTokenServicePredicateBySymbolParams) => boolean {
-    const symbol = typeof tokenOrSymbol === 'string' ? tokenOrSymbol : tokenOrSymbol.symbol
+    compareFrom: TTokenServicePredicateBySymbolParams,
+    compareTo: TTokenServicePredicateBySymbolParams
+  ) {
+    const symbol = typeof compareFrom === 'string' ? compareFrom : compareFrom.symbol
     const lowercaseSymbol = symbol.toLowerCase()
 
-    return (params: string | { symbol: string }) => {
-      const tokenSymbol = typeof params === 'string' ? params : params.symbol
-      const lowercaseTokenSymbol = tokenSymbol.toLowerCase()
+    const symbolToPredicate = typeof compareTo === 'string' ? compareTo : compareTo.symbol
+    const lowercaseSymbolToPredicate = symbolToPredicate.toLowerCase()
 
-      return lowercaseSymbol === lowercaseTokenSymbol
-    }
+    return lowercaseSymbol === lowercaseSymbolToPredicate
   }
 
   normalizeToken<T extends Token | Token[]>(token: T): T {

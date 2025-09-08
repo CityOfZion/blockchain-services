@@ -21,8 +21,8 @@ export class BSNeoXConstants {
   })
 
   static RPC_LIST_BY_NETWORK_ID: Record<BSNeoXNetworkId, string[]> = {
-    '47763': ['https://mainnet-1.rpc.banelabs.org'],
-    '12227332': ['https://neoxt4seed1.ngd.network'],
+    '47763': ['https://mainnet-1.rpc.banelabs.org', 'https://mainnet-2.rpc.banelabs.org'],
+    '12227332': ['https://testnet.rpc.banelabs.org', 'https://neoxt4seed1.ngd.network'],
   }
 
   static MAINNET_NETWORK_IDS: BSNeoXNetworkId[] = ['47763']

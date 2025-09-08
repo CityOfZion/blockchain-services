@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Predicates should return a boolean",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

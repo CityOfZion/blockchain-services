@@ -387,8 +387,8 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should not be able to set amount to use if balance is not sufficient to pay fee', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens.find(
-      neo3NeoXBridgeOrchestrator.fromService.tokenService.predicateBySymbol('NEO')
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens.find(currentToken =>
+      neo3NeoXBridgeOrchestrator.fromService.tokenService.predicateBySymbol('NEO', currentToken)
     )!
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)

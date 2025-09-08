@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Predicates should return a boolean",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

@@ -64,7 +64,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
       const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
       const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI, provider)
 
-      const isNativeToken = this.#service.tokenService.predicateByHash(token)(BSNeoXConstants.NATIVE_ASSET)
+      const isNativeToken = this.#service.tokenService.predicateByHash(token, BSNeoXConstants.NATIVE_ASSET)
 
       const response = isNativeToken
         ? await bridgeContract.nativeBridge()
@@ -93,7 +93,8 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
 
   async getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam<BSName>): Promise<string> {
     try {
-      const isNativeToken = this.#service.tokenService.predicateByHash(params.token)(BSNeoXConstants.NATIVE_ASSET)
+      const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
+
       if (isNativeToken) {
         throw new BSError('No allowance fee for native token', 'NO_ALLOWANCE_FEE')
       }
@@ -132,7 +133,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     const to = '0x' + wallet.getScriptHashFromAddress(params.receiverAddress)
     const bridgeFee = ethers.utils.parseUnits(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals)
 
-    const isNativeToken = this.#service.tokenService.predicateByHash(params.token)(BSNeoXConstants.NATIVE_ASSET)
+    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
 
     let bridgeTransactionParam: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
       type: 2,
@@ -201,7 +202,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     try {
       const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
 
-      const isNativeToken = this.#service.tokenService.predicateByHash(params.token)(BSNeoXConstants.NATIVE_ASSET)
+      const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
 
       let nonce: string | undefined
 
@@ -232,7 +233,8 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     try {
       let url: string
 
-      const isNativeToken = this.#service.tokenService.predicateByHash(params.token)(BSNeoXConstants.NATIVE_ASSET)
+      const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
+
       if (isNativeToken) {
         url = `${this.BRIDGE_BASE_CONFIRMATION_URL}/${params.nonce}`
       } else {
