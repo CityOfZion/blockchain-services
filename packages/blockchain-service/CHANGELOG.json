@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.21.1",
+      "tag": "@cityofzion/blockchain-service_v1.21.1",
+      "date": "Mon, 08 Sep 2025 19:38:54 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Predicates should return a boolean"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.21.0",
       "tag": "@cityofzion/blockchain-service_v1.21.0",
       "date": "Tue, 02 Sep 2025 22:47:47 GMT",

@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 02 Sep 2025 22:47:47 GMT and should not be manually modified.
+This log was last generated on Mon, 08 Sep 2025 19:38:54 GMT and should not be manually modified.
+
+## 1.21.1
+Mon, 08 Sep 2025 19:38:54 GMT
+
+### Patches
+
+- Predicates should return a boolean
 
 ## 1.21.0
 Tue, 02 Sep 2025 22:47:47 GMT

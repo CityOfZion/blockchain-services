@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Thu, 04 Sep 2025 17:32:30 GMT and should not be manually modified.
+This log was last generated on Mon, 08 Sep 2025 19:38:54 GMT and should not be manually modified.
+
+## 1.3.3
+Mon, 08 Sep 2025 19:38:54 GMT
+
+### Patches
+
+- Predicates should return a boolean
 
 ## 1.3.2
 Thu, 04 Sep 2025 17:32:30 GMT

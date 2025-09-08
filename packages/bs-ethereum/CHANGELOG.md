@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Tue, 02 Sep 2025 22:47:47 GMT and should not be manually modified.
+This log was last generated on Mon, 08 Sep 2025 19:38:54 GMT and should not be manually modified.
+
+## 2.13.2
+Mon, 08 Sep 2025 19:38:54 GMT
+
+### Patches
+
+- Predicates should return a boolean
 
 ## 2.13.1
 Tue, 02 Sep 2025 22:47:47 GMT
