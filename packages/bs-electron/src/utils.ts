@@ -80,3 +80,54 @@ export function populateObjectFromPath(obj: any, path: string, value: PropertyDe
 export function buildIpcChannelName<T>(apiName: string, methodOrProperty: keyof T) {
   return `${CHANNEL_PREFIX}:${apiName}:${String(methodOrProperty)}`
 }
+
+export function toPlainObject(obj: any): any {
+  if (obj === null || typeof obj !== 'object') {
+    return obj
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(toPlainObject)
+  }
+
+  const plain: any = {}
+  const allKeys = new Set<string>()
+
+  // Walk through the prototype chain to get all properties
+  let currentObj = obj
+  while (currentObj && currentObj !== Object.prototype) {
+    Object.getOwnPropertyNames(currentObj).forEach(key => {
+      if (key !== 'constructor') {
+        allKeys.add(key)
+      }
+    })
+    currentObj = Object.getPrototypeOf(currentObj)
+  }
+
+  for (const key of allKeys) {
+    try {
+      // Get the property descriptor to check if it's a getter
+      const descriptor =
+        Object.getOwnPropertyDescriptor(obj, key) || Object.getOwnPropertyDescriptor(Object.getPrototypeOf(obj), key)
+
+      if (descriptor) {
+        if (descriptor.get) {
+          // It's a getter, call it to get the value
+          const value = obj[key]
+          plain[key] = toPlainObject(value)
+        } else if (descriptor.value !== undefined) {
+          // It's a regular property
+          plain[key] = toPlainObject(descriptor.value)
+        }
+      } else if (obj[key] !== undefined) {
+        // Fallback for edge cases
+        plain[key] = toPlainObject(obj[key])
+      }
+    } catch {
+      // Skip properties that can't be accessed
+      continue
+    }
+  }
+
+  return plain
+}
