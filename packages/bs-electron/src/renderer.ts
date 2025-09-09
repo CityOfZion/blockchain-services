@@ -1,4 +1,11 @@
-import { GET_EXPOSED_API_CHANNEL, TApi, TExposedApi, buildIpcChannelName, populateObjectFromPath } from './utils'
+import {
+  GET_EXPOSED_API_CHANNEL,
+  TApi,
+  TExposedApi,
+  buildIpcChannelName,
+  populateObjectFromPath,
+  toPlainObject,
+} from './utils'
 
 const boundApis: Map<string, TApi> = new Map()
 
@@ -33,7 +40,9 @@ export function bindApiFromMain<T extends TApi = any>(apiName: string) {
   exposedApi.syncMethods.forEach(method => {
     populateObjectFromPath(api, String(method), {
       value: (...args: any[]) => {
-        const result = window.ipcBsElectron.sendSync(buildIpcChannelName(apiName, method), ...args)
+        const plainArgs = toPlainObject(args)
+
+        const result = window.ipcBsElectron.sendSync(buildIpcChannelName(apiName, method), ...plainArgs)
         if (result.error) {
           throw new Error(result.error)
         }
@@ -46,7 +55,9 @@ export function bindApiFromMain<T extends TApi = any>(apiName: string) {
   exposedApi.asyncMethods.forEach(method => {
     populateObjectFromPath(api, String(method), {
       value: async (...args: any[]) => {
-        const result = await window.ipcBsElectron.invoke(buildIpcChannelName(apiName, method), ...args)
+        const plainArgs = toPlainObject(args)
+
+        const result = await window.ipcBsElectron.invoke(buildIpcChannelName(apiName, method), ...plainArgs)
         if (result.error) {
           throw new Error(result.error)
         }
