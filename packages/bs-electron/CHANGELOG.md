@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-electron
 
-This log was last generated on Mon, 08 Sep 2025 19:38:54 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Sep 2025 18:08:54 GMT and should not be manually modified.
+
+## 0.1.51
+Tue, 09 Sep 2025 18:08:54 GMT
+
+### Patches
+
+- Transform parameters to plain object to avoid it be empty when it uses getters
 
 ## 0.1.50
 Mon, 08 Sep 2025 19:38:54 GMT

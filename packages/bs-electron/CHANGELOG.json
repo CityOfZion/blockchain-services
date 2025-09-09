@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-electron",
   "entries": [
     {
+      "version": "0.1.51",
+      "tag": "@cityofzion/bs-electron_v0.1.51",
+      "date": "Tue, 09 Sep 2025 18:08:54 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Transform parameters to plain object to avoid it be empty when it uses getters"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.1.50",
       "tag": "@cityofzion/bs-electron_v0.1.50",
       "date": "Mon, 08 Sep 2025 19:38:54 GMT",
