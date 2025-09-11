@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Mon, 08 Sep 2025 19:38:54 GMT and should not be manually modified.
+This log was last generated on Thu, 11 Sep 2025 16:10:40 GMT and should not be manually modified.
+
+## 1.13.3
+Thu, 11 Sep 2025 16:10:40 GMT
+
+### Patches
+
+- Increase transaction fee when over max transaction size
 
 ## 1.13.2
 Mon, 08 Sep 2025 19:38:54 GMT

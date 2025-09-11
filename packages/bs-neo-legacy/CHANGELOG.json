@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.13.3",
+      "tag": "@cityofzion/bs-neo-legacy_v1.13.3",
+      "date": "Thu, 11 Sep 2025 16:10:40 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Increase transaction fee when over max transaction size"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.13.2",
       "tag": "@cityofzion/bs-neo-legacy_v1.13.2",
       "date": "Mon, 08 Sep 2025 19:38:54 GMT",
