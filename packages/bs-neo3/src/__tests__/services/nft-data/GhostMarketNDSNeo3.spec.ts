@@ -1,11 +1,13 @@
+import { BSNeo3 } from '../../../BSNeo3'
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 
-let ghostMarketNDSNeo3: GhostMarketNDSNeo3
+let ghostMarketNDSNeo3: GhostMarketNDSNeo3<'test'>
 
 describe('GhostMarketNDSNeo3', () => {
   beforeAll(() => {
-    ghostMarketNDSNeo3 = new GhostMarketNDSNeo3(BSNeo3Constants.DEFAULT_NETWORK)
+    const service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    ghostMarketNDSNeo3 = new GhostMarketNDSNeo3(service)
   })
 
   it('Should get TTM NFT by contract hash and token id', async () => {
@@ -90,5 +92,5 @@ describe('GhostMarketNDSNeo3', () => {
     })
 
     expect(hasToken).toBeTruthy()
-  }, 60000)
+  })
 })

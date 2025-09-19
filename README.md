@@ -20,6 +20,3 @@ complexity of each one with a single interface.
 
 ## Technologies Used
 - **TypeScript**
-- **React Native**
-- **Java** (for Android native code)
-- **Swift** (for iOS native code)

@@ -1,12 +1,13 @@
+import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import { MoralisEDSSolana } from '../services/exchange/MoralisEDSSolana'
 
-let moralisEDSSolana: MoralisEDSSolana
-const network = BSSolanaConstants.MAINNET_NETWORKS[0]
+let moralisEDSSolana: MoralisEDSSolana<'test'>
 
 describe('MoralisEDSEthereum', () => {
   beforeAll(() => {
-    moralisEDSSolana = new MoralisEDSSolana(network, process.env.MORALIS_API_KEY!)
+    const service = new BSSolana('test')
+    moralisEDSSolana = new MoralisEDSSolana(service)
   })
 
   it('Should return the ETH price in USD', async () => {

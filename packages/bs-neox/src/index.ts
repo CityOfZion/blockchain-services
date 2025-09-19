@@ -9,3 +9,5 @@ export * from './services/exchange-data/FlamingoForthewinEDSNeoX'
 export * from './services/explorer/BlockscoutESNeoX'
 
 export * from './services/nft-data/GhostMarketNDSNeoX'
+
+export * from './types'

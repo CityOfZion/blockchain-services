@@ -13,3 +13,5 @@ export * from './services/explorer/NeoTubeESNeoLegacy'
 export * from './services/ledger/NeonJsLedgerServiceNeoLegacy'
 
 export * from './services/token/TokenServiceNeoLegacy'
+
+export * from './types'

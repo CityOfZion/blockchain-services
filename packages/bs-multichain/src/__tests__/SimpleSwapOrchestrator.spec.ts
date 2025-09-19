@@ -1,5 +1,5 @@
 import {
-  Account,
+  TBSAccount,
   BSUtilsHelper,
   TSwapLoadableValue,
   TSwapMinMaxAmount,
@@ -22,7 +22,7 @@ let amountToUseMinMax: TSwapLoadableValue<TSwapMinMaxAmount>
 let amountToReceive: TSwapLoadableValue<string>
 let addressToReceive: TSwapValidateValue<string>
 let extraIdToReceive: TSwapValidateValue<string>
-let accountToUse: TSwapValidateValue<Account<'neo3' | 'ethereum'>>
+let accountToUse: TSwapValidateValue<TBSAccount<'neo3' | 'ethereum'>>
 let error: string | undefined
 
 describe('SimpleSwapService', () => {

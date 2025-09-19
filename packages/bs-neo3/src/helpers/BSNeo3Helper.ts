@@ -1,22 +1,23 @@
-import { Network } from '@cityofzion/blockchain-service'
-
-import { BSNeo3Constants, BSNeo3NetworkId } from '../constants/BSNeo3Constants'
+import { TBSNetwork } from '@cityofzion/blockchain-service'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
+import { TBSNeo3NetworkId } from '../types'
 
 export class BSNeo3Helper {
-  static getTokens(network: Network<BSNeo3NetworkId>) {
+  static getTokens(network: TBSNetwork<TBSNeo3NetworkId>) {
     const extraTokens = BSNeo3Constants.EXTRA_TOKENS_BY_NETWORK_ID[network.id] ?? []
     return [...extraTokens, ...BSNeo3Constants.NATIVE_ASSETS]
   }
 
-  static getRpcList(network: Network<BSNeo3NetworkId>) {
-    return BSNeo3Constants.RPC_LIST_BY_NETWORK_ID[network.id] ?? []
+  static isCustomNetwork(network: TBSNetwork<TBSNeo3NetworkId>) {
+    if (network.type === 'custom') return true
+
+    const knownNetwork = BSNeo3Constants.ALL_NETWORKS.find(n => n.id === network.id)
+    if (!knownNetwork) return true
+
+    return false
   }
 
-  static isMainnet(network: Network<BSNeo3NetworkId>) {
-    return BSNeo3Constants.MAINNET_NETWORK_IDS.includes(network.id)
-  }
-
-  static isCustomNet(network: Network<BSNeo3NetworkId>) {
-    return !BSNeo3Constants.ALL_NETWORK_IDS.includes(network.id)
+  static isMainnetNetwork(network: TBSNetwork<TBSNeo3NetworkId>) {
+    return network.id === BSNeo3Constants.MAINNET_NETWORK.id && network.type === 'mainnet'
   }
 }

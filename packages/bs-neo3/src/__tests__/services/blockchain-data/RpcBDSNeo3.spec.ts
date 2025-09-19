@@ -1,19 +1,15 @@
+import { BSNeo3 } from '../../../BSNeo3'
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
-import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { RpcBDSNeo3 } from '../../../services/blockchain-data/RpcBDSNeo3'
-import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
 
-const network = BSNeo3Constants.TESTNET_NETWORKS[0]
-const tokens = BSNeo3Helper.getTokens(network)
+const network = BSNeo3Constants.TESTNET_NETWORK
 
-const GAS = tokens.find(token => token.symbol === 'GAS')!
-
-let rpcBDSNeo3: RpcBDSNeo3
+let rpcBDSNeo3: RpcBDSNeo3<'test'>
 
 describe('RpcBDSNeo3', () => {
   beforeEach(() => {
-    const tokenService = new TokenServiceNeo3()
-    rpcBDSNeo3 = new RpcBDSNeo3(network, GAS, GAS, tokens, tokenService)
+    const service = new BSNeo3('test', network)
+    rpcBDSNeo3 = new RpcBDSNeo3(service)
   })
 
   it('Should be able to get transaction', async () => {
@@ -78,13 +74,6 @@ describe('RpcBDSNeo3', () => {
         },
       })
     })
-  })
-
-  it('Should be able to get unclaimed', async () => {
-    const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
-    const unclaimed = await rpcBDSNeo3.getUnclaimed(address)
-
-    expect(unclaimed).toEqual(expect.any(String))
   })
 
   it('Should be able to get a list of rpc', async () => {

@@ -1,62 +1,60 @@
-import {
-  BuildNftUrlParams,
-  BSCommonConstants,
-  ExplorerService,
-  Network,
-  TokenService,
-} from '@cityofzion/blockchain-service'
-import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
+import { TBuildNftUrlParams, BSCommonConstants, IExplorerService } from '@cityofzion/blockchain-service'
+import { IBSNeo3 } from '../../types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 
-export class DoraESNeo3 implements ExplorerService {
-  readonly #BASE_URL = BSCommonConstants.DORA_URL
-  readonly #network: Network<BSNeo3NetworkId>
-  readonly #tokenService: TokenService
+export class DoraESNeo3<N extends string> implements IExplorerService {
+  readonly #service: IBSNeo3<N>
 
-  constructor(network: Network<BSNeo3NetworkId>, tokenService: TokenService) {
-    this.#network = network
-    this.#tokenService = tokenService
+  constructor(service: IBSNeo3<N>) {
+    this.#service = service
   }
 
   buildTransactionUrl(hash: string): string {
-    if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+    if (BSNeo3Helper.isCustomNetwork(this.#service.network))
+      throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/transaction/neo3/${this.#network.id}/${this.#tokenService.normalizeHash(hash)}`
+    return `${BSCommonConstants.DORA_URL}/transaction/neo3/${
+      this.#service.network.id
+    }/${this.#service.tokenService.normalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string {
-    if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+    if (BSNeo3Helper.isCustomNetwork(this.#service.network))
+      throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/contract/neo3/${this.#network.id}/${this.#tokenService.normalizeHash(contractHash)}`
+    return `${BSCommonConstants.DORA_URL}/contract/neo3/${
+      this.#service.network.id
+    }/${this.#service.tokenService.normalizeHash(contractHash)}`
   }
 
-  buildNftUrl({ collectionHash, tokenHash }: BuildNftUrlParams): string {
-    if (BSNeo3Helper.isCustomNet(this.#network)) throw new Error('DoraESNeo3 is only available on mainnet and testnet')
+  buildNftUrl({ collectionHash, tokenHash }: TBuildNftUrlParams): string {
+    if (BSNeo3Helper.isCustomNetwork(this.#service.network))
+      throw new Error('DoraESNeo3 is only available on mainnet and testnet')
 
-    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/${collectionHash}/${tokenHash}`
+    return `${BSCommonConstants.DORA_URL}/nft/neo3/${this.#service.network.id}/${collectionHash}/${tokenHash}`
   }
 
   getAddressTemplateUrl() {
-    if (BSNeo3Helper.isCustomNet(this.#network)) return undefined
+    if (BSNeo3Helper.isCustomNetwork(this.#service.network)) return undefined
 
-    return `${this.#BASE_URL}/address/neo3/${this.#network.id}/{address}`
+    return `${BSCommonConstants.DORA_URL}/address/neo3/${this.#service.network.id}/{address}`
   }
 
   getTxTemplateUrl() {
-    if (BSNeo3Helper.isCustomNet(this.#network)) return undefined
+    if (BSNeo3Helper.isCustomNetwork(this.#service.network)) return undefined
 
-    return `${this.#BASE_URL}/transaction/neo3/${this.#network.id}/{txId}`
+    return `${BSCommonConstants.DORA_URL}/transaction/neo3/${this.#service.network.id}/{txId}`
   }
 
   getNftTemplateUrl() {
-    if (BSNeo3Helper.isCustomNet(this.#network)) return undefined
+    if (BSNeo3Helper.isCustomNetwork(this.#service.network)) return undefined
 
-    return `${this.#BASE_URL}/nft/neo3/${this.#network.id}/{collectionHash}/{tokenHash}`
+    return `${BSCommonConstants.DORA_URL}/nft/neo3/${this.#service.network.id}/{collectionHash}/{tokenHash}`
   }
 
   getContractTemplateUrl() {
-    if (BSNeo3Helper.isCustomNet(this.#network)) return undefined
+    if (BSNeo3Helper.isCustomNetwork(this.#service.network)) return undefined
 
-    return `${this.#BASE_URL}/contract/neo3/${this.#network.id}/{hash}`
+    return `${BSCommonConstants.DORA_URL}/contract/neo3/${this.#service.network.id}/{hash}`
   }
 }

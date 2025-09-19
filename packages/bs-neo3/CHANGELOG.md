@@ -231,7 +231,7 @@ Sat, 14 Dec 2024 02:56:00 GMT
 
 ### Patches
 
-- Fix error when trying to send a value with more decimal places than the token supports 
+- Fix error when trying to send a value with more decimal places than the token supports
 
 ## 1.8.6
 Sat, 14 Dec 2024 02:14:48 GMT
@@ -499,7 +499,7 @@ Tue, 11 Jun 2024 19:22:55 GMT
 ### Patches
 
 - Extend new CryptoCompareEDS class to get support to token price history
-- Added Has Token method
+- Added Has TBSToken method
 
 ## 0.11.3
 Thu, 06 Jun 2024 14:55:18 GMT

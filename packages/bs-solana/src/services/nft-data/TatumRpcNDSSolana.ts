@@ -1,34 +1,27 @@
 import {
-  GetNftParam,
-  GetNftsByAddressParams,
-  HasTokenParam,
-  Network,
-  NftDataService,
-  NftResponse,
-  NftsResponse,
+  TGetNftParam,
+  TGetNftsByAddressParams,
+  THasTokenParam,
+  INftDataService,
+  TNftResponse,
+  TNftsResponse,
 } from '@cityofzion/blockchain-service'
-import { BSSolanaNetworkId } from '../../constants/BSSolanaConstants'
 import solanaSDK, { PublicKey } from '@solana/web3.js'
 import { Metaplex } from '@metaplex-foundation/js'
 import { BSSolanaCachedMethodsHelper } from '../../helpers/BSSolanaCachedMethodsHelper'
 import { TatumRpcBDSSolana } from '../blockchain-data/TatumRpcBDSSolana'
-import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
+import { IBSSolana } from '../../types'
 
-export class TatumRpcNDSSolana implements NftDataService {
-  #network: Network<BSSolanaNetworkId>
-  #connection: solanaSDK.Connection
-  #metaplex: Metaplex
+export class TatumRpcNDSSolana<N extends string> implements INftDataService {
+  readonly #connection: solanaSDK.Connection
+  readonly #metaplex: Metaplex
 
-  constructor(network: Network<BSSolanaNetworkId>, mainnetApiKey: string, testnetApiKey: string) {
-    this.#network = network
-    this.#connection = TatumRpcBDSSolana.getTatumConnection(
-      this.#network,
-      BSSolanaHelper.isMainnet(network) ? mainnetApiKey : testnetApiKey
-    )
+  constructor(service: IBSSolana<N>) {
+    this.#connection = TatumRpcBDSSolana.getConnection(service.network)
     this.#metaplex = Metaplex.make(this.#connection)
   }
 
-  async getNft(params: GetNftParam): Promise<NftResponse> {
+  async getNft(params: TGetNftParam): Promise<TNftResponse> {
     try {
       const nftFromMetaplex = await BSSolanaCachedMethodsHelper.getMetaplexMetadata(params.tokenHash, this.#connection)
 
@@ -54,7 +47,7 @@ export class TatumRpcNDSSolana implements NftDataService {
         /* empty */
       }
 
-      const nft: NftResponse = {
+      const nft: TNftResponse = {
         hash: params.tokenHash,
         collection: {
           hash: collectionHash,
@@ -75,12 +68,12 @@ export class TatumRpcNDSSolana implements NftDataService {
     }
   }
 
-  async getNftsByAddress({ address }: GetNftsByAddressParams): Promise<NftsResponse> {
+  async getNftsByAddress({ address }: TGetNftsByAddressParams): Promise<TNftsResponse> {
     const nftsFromMetaplex = await this.#metaplex.nfts().findAllByOwner({
       owner: new PublicKey(address),
     })
 
-    const items: NftResponse[] = []
+    const items: TNftResponse[] = []
 
     const promises = nftsFromMetaplex.map(async nftFromMetaplex => {
       if (nftFromMetaplex.model === 'sft') return
@@ -111,7 +104,7 @@ export class TatumRpcNDSSolana implements NftDataService {
     }
   }
 
-  async hasToken({ address, collectionHash }: HasTokenParam): Promise<boolean> {
+  async hasToken({ address, collectionHash }: THasTokenParam): Promise<boolean> {
     const nftsFromMetaplex = await this.#metaplex.nfts().findAllByOwner({
       owner: new PublicKey(address),
     })
