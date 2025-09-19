@@ -1,29 +1,29 @@
-import { BuildNftUrlParams, ExplorerService, Network, TokenService } from '@cityofzion/blockchain-service'
-import { BSSolanaNetworkId } from '../../constants/BSSolanaConstants'
+import { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
 import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
+import { IBSSolana } from '../../types'
 
-export class SolScanESSolana implements ExplorerService {
+export class SolScanESSolana<N extends string> implements IExplorerService {
   readonly #baseUrl = 'https://solscan.io'
   readonly #queryParams: string = ''
-  readonly #tokenService: TokenService
+  readonly #service: IBSSolana<N>
 
-  constructor(network: Network<BSSolanaNetworkId>, tokenService: TokenService) {
-    if (!BSSolanaHelper.isMainnet(network)) {
-      this.#queryParams = `?cluster=${network.id}`
+  constructor(service: IBSSolana<N>) {
+    if (!BSSolanaHelper.isMainnetNetwork(service.network)) {
+      this.#queryParams = `?cluster=${service.network.id}`
     }
 
-    this.#tokenService = tokenService
+    this.#service = service
   }
 
   buildTransactionUrl(hash: string): string {
-    return `${this.#baseUrl}/tx/${this.#tokenService.normalizeHash(hash)}${this.#queryParams}`
+    return `${this.#baseUrl}/tx/${this.#service.tokenService.normalizeHash(hash)}${this.#queryParams}`
   }
 
   buildContractUrl(contractHash: string): string {
-    return `${this.#baseUrl}/token/${this.#tokenService.normalizeHash(contractHash)}${this.#queryParams}`
+    return `${this.#baseUrl}/token/${this.#service.tokenService.normalizeHash(contractHash)}${this.#queryParams}`
   }
 
-  buildNftUrl({ tokenHash }: BuildNftUrlParams): string {
+  buildNftUrl({ tokenHash }: TBuildNftUrlParams): string {
     return this.buildContractUrl(tokenHash)
   }
 

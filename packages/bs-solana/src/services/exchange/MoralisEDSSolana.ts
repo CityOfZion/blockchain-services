@@ -1,16 +1,15 @@
 import {
   CryptoCompareEDS,
-  ExchangeDataService,
-  GetTokenPriceHistoryParams,
-  GetTokenPricesParams,
-  Network,
-  TokenPricesHistoryResponse,
-  TokenPricesResponse,
+  TGetTokenPriceHistoryParams,
+  TGetTokenPricesParams,
+  TTokenPricesHistoryResponse,
+  TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
 import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
-import { BSSolanaConstants, BSSolanaNetworkId } from '../../constants/BSSolanaConstants'
+import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import axios, { AxiosInstance } from 'axios'
 import dayjs from 'dayjs'
+import { IBSSolana } from '../../types'
 
 type MoralisGetPriceResponse = {
   usdPrice: number
@@ -24,26 +23,27 @@ type MoralisGetPriceHistoryResponse = {
   }[]
 }
 
-export class MoralisEDSSolana extends CryptoCompareEDS implements ExchangeDataService {
-  readonly #network: Network<BSSolanaNetworkId>
+export class MoralisEDSSolana<N extends string> extends CryptoCompareEDS {
   readonly #client: AxiosInstance
+  readonly #service: IBSSolana<N>
 
   #pairAddressCache: Map<string, string> = new Map()
 
-  constructor(network: Network<BSSolanaNetworkId>, apiKey: string) {
+  constructor(service: IBSSolana<N>) {
     super()
 
-    this.#network = network
+    this.#service = service
     this.#client = axios.create({
       baseURL: 'https://solana-gateway.moralis.io',
       headers: {
-        'X-API-Key': apiKey,
+        'X-API-Key': process.env.MORALIS_API_KEY,
       },
     })
   }
 
-  async getTokenPrices({ tokens }: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
-    if (!BSSolanaHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
+  async getTokenPrices({ tokens }: TGetTokenPricesParams): Promise<TTokenPricesResponse[]> {
+    if (!BSSolanaHelper.isMainnetNetwork(this.#service.network))
+      throw new Error('Exchange is only available on mainnet')
 
     const promises = tokens.map(async token => {
       const hash =
@@ -67,8 +67,9 @@ export class MoralisEDSSolana extends CryptoCompareEDS implements ExchangeDataSe
     return await Promise.all(promises)
   }
 
-  async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
-    if (!BSSolanaHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
+  async getTokenPriceHistory(params: TGetTokenPriceHistoryParams): Promise<TTokenPricesHistoryResponse[]> {
+    if (!BSSolanaHelper.isMainnetNetwork(this.#service.network))
+      throw new Error('Exchange is only available on mainnet')
 
     const tokenHash =
       params.token.hash === BSSolanaConstants.NATIVE_TOKEN.hash
@@ -99,7 +100,7 @@ export class MoralisEDSSolana extends CryptoCompareEDS implements ExchangeDataSe
       }
     )
 
-    const pricesHistory = pricesHistoryResponse.data.result.map<TokenPricesHistoryResponse>(price => ({
+    const pricesHistory = pricesHistoryResponse.data.result.map<TTokenPricesHistoryResponse>(price => ({
       timestamp: dayjs(price.timestamp).unix(),
       token: params.token,
       usdPrice: price.close,

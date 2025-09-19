@@ -1,25 +1,15 @@
+import { BSNeoLegacy } from '../BSNeoLegacy'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
-import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
 import { DoraBDSNeoLegacy } from '../services/blockchain-data/DoraBDSNeoLegacy'
-import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
-import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
 
-const network = BSNeoLegacyConstants.MAINNET_NETWORKS[0]
-const tokens = BSNeoLegacyHelper.getTokens(network)
-const gasToken = tokens.find(token => token.symbol === 'GAS')!
-
-const tokenServiceNeoLegacy = new TokenServiceNeoLegacy()
-
-const doraBDSNeoLegacy = new DoraBDSNeoLegacy(
-  network,
-  gasToken,
-  gasToken,
-  tokens,
-  new NeoTubeESNeoLegacy(network, tokenServiceNeoLegacy),
-  tokenServiceNeoLegacy
-)
+let doraBDSNeoLegacy: DoraBDSNeoLegacy<'test'>
 
 describe('DoraBDSNeoLegacy', () => {
+  beforeEach(() => {
+    const service = new BSNeoLegacy('test', BSNeoLegacyConstants.MAINNET_NETWORK)
+    doraBDSNeoLegacy = new DoraBDSNeoLegacy(service)
+  })
+
   it('Should be able to get transaction - %s', async () => {
     const hash = '0xa7517641bf2d6e9683d66c0d58221e3d1b46b616a2231cd7c7d4a611ce825cc8'
     const transaction = await doraBDSNeoLegacy.getTransaction(hash)
@@ -106,13 +96,6 @@ describe('DoraBDSNeoLegacy', () => {
     })
   })
 
-  it('Should be able to get unclaimed - %s', async () => {
-    const address = 'AQB8KjskTmRghCS3kMzxBNxKwT6b9kKM4v'
-    const unclaimed = await doraBDSNeoLegacy.getUnclaimed(address)
-
-    expect(unclaimed).toEqual(expect.any(String))
-  })
-
   it('Should be able to get a list of rpc - %s', async () => {
     const list = await doraBDSNeoLegacy.getRpcList()
     expect(list.length).toBeGreaterThan(0)
@@ -123,5 +106,5 @@ describe('DoraBDSNeoLegacy', () => {
         url: expect.any(String),
       })
     })
-  }, 60000)
+  })
 })

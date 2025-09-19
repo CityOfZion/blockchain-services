@@ -1,23 +1,22 @@
-import { Network, NetworkId, Token } from '@cityofzion/blockchain-service'
+import { TNetwork, TBSToken } from '@cityofzion/blockchain-service'
 import mainnetTokens from '../assets/tokens/mainnet.json'
 import nativeTokens from '../assets/tokens/native.json'
 import { TokenServiceNeo3 } from '../services/token/TokenServiceNeo3'
-
-export type BSNeo3NetworkId = NetworkId<'mainnet' | 'testnet'>
+import { TBSNeo3NetworkId } from '../types'
 
 export class BSNeo3Constants {
-  static #tokenService = new TokenServiceNeo3()
+  static readonly #tokenService = new TokenServiceNeo3()
 
-  static EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<BSNeo3NetworkId, Token[]>> = {
+  static readonly EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<TBSNeo3NetworkId, TBSToken[]>> = {
     mainnet: this.#tokenService.normalizeToken(mainnetTokens),
   }
 
-  static NATIVE_ASSETS: Token[] = this.#tokenService.normalizeToken(nativeTokens)
+  static readonly NATIVE_ASSETS: TBSToken[] = this.#tokenService.normalizeToken(nativeTokens)
 
-  static GAS_TOKEN: Token = this.NATIVE_ASSETS.find(token => token.name === 'GAS')!
-  static NEO_TOKEN: Token = this.NATIVE_ASSETS.find(token => token.name === 'NEO')!
+  static readonly GAS_TOKEN: TBSToken = this.NATIVE_ASSETS.find(token => token.name === 'GAS')!
+  static readonly NEO_TOKEN: TBSToken = this.NATIVE_ASSETS.find(token => token.name === 'NEO')!
 
-  static RPC_LIST_BY_NETWORK_ID: Partial<Record<BSNeo3NetworkId, string[]>> = {
+  static readonly RPC_LIST_BY_NETWORK_ID: Partial<Record<TBSNeo3NetworkId, string[]>> = {
     mainnet: [
       'https://mainnet1.neo.coz.io:443',
       'https://mainnet4.neo.coz.io:443',
@@ -41,30 +40,21 @@ export class BSNeo3Constants {
     ],
   }
 
-  static MAINNET_NETWORK_IDS: BSNeo3NetworkId[] = ['mainnet']
-  static TESTNET_NETWORK_IDS: BSNeo3NetworkId[] = ['testnet']
-  static ALL_NETWORK_IDS: BSNeo3NetworkId[] = [...this.MAINNET_NETWORK_IDS, ...this.TESTNET_NETWORK_IDS]
+  static readonly MAINNET_NETWORK: TNetwork<TBSNeo3NetworkId> = {
+    id: 'mainnet',
+    name: 'Mainnet',
+    url: this.RPC_LIST_BY_NETWORK_ID['mainnet']![0],
+    type: 'mainnet',
+  }
+  static readonly TESTNET_NETWORK: TNetwork<TBSNeo3NetworkId> = {
+    id: 'testnet',
+    name: 'Testnet',
+    url: this.RPC_LIST_BY_NETWORK_ID['testnet']![0],
+    type: 'testnet',
+  }
+  static readonly ALL_NETWORKS = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 
-  static MAINNET_NETWORKS: Network<BSNeo3NetworkId>[] = [
-    {
-      id: 'mainnet',
-      name: 'Mainnet',
-      url: this.RPC_LIST_BY_NETWORK_ID['mainnet']![0],
-    },
-  ]
-  static TESTNET_NETWORKS: Network<BSNeo3NetworkId>[] = [
-    {
-      id: 'testnet',
-      name: 'Testnet',
-      url: this.RPC_LIST_BY_NETWORK_ID['testnet']![0],
-    },
-  ]
-  static ALL_NETWORKS: Network<BSNeo3NetworkId>[] = [...this.MAINNET_NETWORKS, ...this.TESTNET_NETWORKS]
+  static readonly NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
 
-  // If tou change this, make sure to update the tests accordingly
-  static DEFAULT_NETWORK = this.MAINNET_NETWORKS[0]
-
-  static NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
-
-  static DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
+  static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
 }

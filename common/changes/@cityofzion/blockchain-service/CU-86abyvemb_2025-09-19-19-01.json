@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "General improvements",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

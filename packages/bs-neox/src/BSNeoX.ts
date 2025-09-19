@@ -1,47 +1,53 @@
 import { BSEthereum, TokenServiceEthereum } from '@cityofzion/bs-ethereum'
-import { BSNeoXConstants, BSNeoXNetworkId } from './constants/BSNeoXConstants'
-import {
-  GetLedgerTransport,
-  IBSWithNeo3NeoXBridge,
-  INeo3NeoXBridgeService,
-  Network,
-} from '@cityofzion/blockchain-service'
+import { BSNeoXConstants } from './constants/BSNeoXConstants'
+import { BSUtilsHelper, TGetLedgerTransport, INeo3NeoXBridgeService, TNetwork } from '@cityofzion/blockchain-service'
 import { BlockscoutBDSNeoX } from './services/blockchain-data/BlockscoutBDSNeoX'
 import { FlamingoForthewinEDSNeoX } from './services/exchange-data/FlamingoForthewinEDSNeoX'
 import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
 import { GhostMarketNDSNeoX } from './services/nft-data/GhostMarketNDSNeoX'
 import { Neo3NeoXBridgeService } from './services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { IBSNeoX, TBSNeoXNetworkId } from './types'
 
-export class BSNeoX<BSName extends string = string>
-  extends BSEthereum<BSName, BSNeoXNetworkId>
-  implements IBSWithNeo3NeoXBridge<BSName>
-{
-  neo3NeoXBridgeService!: INeo3NeoXBridgeService<BSName>
+export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetworkId> implements IBSNeoX<N> {
+  neo3NeoXBridgeService!: INeo3NeoXBridgeService<N>
 
-  constructor(name: BSName, network?: Network<BSNeoXNetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
-    network = network ?? BSNeoXConstants.DEFAULT_NETWORK
-    super(name, network, getLedgerTransport)
+  readonly defaultNetwork: TNetwork<TBSNeoXNetworkId>
+  readonly availableNetworks: TNetwork<TBSNeoXNetworkId>[]
+
+  constructor(name: N, network?: TNetwork<TBSNeoXNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
+    super(name, 'ethereum', network, getLedgerTransport)
 
     this.tokens = [BSNeoXConstants.NATIVE_ASSET]
     this.nativeTokens = [BSNeoXConstants.NATIVE_ASSET]
     this.feeToken = BSNeoXConstants.NATIVE_ASSET
+
+    this.availableNetworks = BSNeoXConstants.ALL_NETWORKS
+    this.defaultNetwork = BSNeoXConstants.MAINNET_NETWORK
+
+    this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  setNetwork(network: Network<BSNeoXNetworkId>) {
+  setNetwork(network: TNetwork<TBSNeoXNetworkId>) {
+    const isValidNetwork = this.availableNetworks.some(networkItem => BSUtilsHelper.isEqual(networkItem, network))
+    if (!isValidNetwork) {
+      throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+    }
+
     this.network = network
 
-    this.tokenService = new TokenServiceEthereum()
-    this.nftDataService = new GhostMarketNDSNeoX(network)
-    this.explorerService = new BlockscoutESNeoX(network, this.tokenService)
-    this.exchangeDataService = new FlamingoForthewinEDSNeoX(network, this.tokenService)
+    this.nftDataService = new GhostMarketNDSNeoX(this)
+    this.explorerService = new BlockscoutESNeoX(this)
+    this.exchangeDataService = new FlamingoForthewinEDSNeoX(this)
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
+    this.blockchainDataService = new BlockscoutBDSNeoX(this)
+    this.tokenService = new TokenServiceEthereum()
+  }
 
-    this.blockchainDataService = new BlockscoutBDSNeoX(
-      network,
-      this.nftDataService,
-      this.explorerService,
-      this.tokenService,
-      this.neo3NeoXBridgeService
-    )
+  async testNetwork(network: TNetwork<TBSNeoXNetworkId>) {
+    this.tokenService = new TokenServiceEthereum()
+    const service = new BSNeoX(this.name, network, this.ledgerService.getLedgerTransport)
+    const blockchainDataServiceClone = new BlockscoutBDSNeoX(service)
+
+    await blockchainDataServiceClone.getBlockHeight()
   }
 }

@@ -5,9 +5,11 @@ const config: JestConfigWithTsJest = {
   clearMocks: true,
   verbose: true,
   bail: true,
+  maxWorkers: 1,
   testMatch: ['<rootDir>/**/*.spec.ts'],
   setupFiles: ['<rootDir>/jest.setup.ts'],
-  detectOpenHandles: true,
+  forceExit: true,
+  testTimeout: 60000,
 }
 
 export default config

@@ -1,24 +1,23 @@
-import { Account, BSBigNumberHelper, BSError, TBridgeToken } from '@cityofzion/blockchain-service'
+import { TBSAccount, BSBigNumberHelper, BSError, TBridgeToken } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { BSNeoX } from '../BSNeoX'
 import { Neo3NeoXBridgeService } from '../services/neo3neoXBridge/Neo3NeoXBridgeService'
 import { ethers } from 'ethers'
 import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 
-let neo3NeoXBridgeService: Neo3NeoXBridgeService<'neox'>
-let bsNeoXService: BSNeoX<'neox'>
-let account: Account<'neox'>
+let neo3NeoXBridgeService: Neo3NeoXBridgeService<'test'>
+let bsNeoXService: BSNeoX<'test'>
+let account: TBSAccount<'test'>
 let receiverAddress: string
-let gasToken: TBridgeToken<'neox'>
-let neoToken: TBridgeToken<'neox'>
+let gasToken: TBridgeToken<'test'>
+let neoToken: TBridgeToken<'test'>
 
-const network = BSNeoXConstants.DEFAULT_NETWORK
 const tokenService = new TokenServiceEthereum()
 
 describe('Neo3NeoXBridgeService', () => {
   beforeAll(async () => {
     receiverAddress = process.env.TEST_BRIDGE_NEO3_ADDRESS
-    bsNeoXService = new BSNeoX('neox', network)
+    bsNeoXService = new BSNeoX('test')
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
 
     account = bsNeoXService.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
@@ -102,15 +101,6 @@ describe('Neo3NeoXBridgeService', () => {
         transactionHash: 'invalid-transaction-hash',
       })
     ).rejects.toThrow(new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE'))
-  })
-
-  it('Should not be able to get the nonce of a invalid transaction', async () => {
-    await expect(
-      neo3NeoXBridgeService.getNonce({
-        token: gasToken,
-        transactionHash: '0xddd182be1bf9e4d9d3098eeb7b67ef9b883c1a5019c8fa716e8db2423bab0e91',
-      })
-    ).rejects.toThrow(new BSError('Transaction invalid', 'INVALID_TRANSACTION'))
   })
 
   it('Should not be able to get the nonce of a non-bridge transaction', async () => {

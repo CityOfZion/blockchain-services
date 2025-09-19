@@ -1,20 +1,20 @@
-import { Network } from '@cityofzion/blockchain-service'
 import { CryptoCompareEDSNeoLegacy } from '../services/exchange-data/CryptoCompareEDSNeoLegacy'
-import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
-import { BSNeoLegacyHelper } from '../helpers/BSNeoLegacyHelper'
+import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
+import { BSNeoLegacy } from '../BSNeoLegacy'
+import { IBSNeoLegacy } from '../types'
 
-let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
-let network: Network<BSNeoLegacyNetworkId>
+let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy<'test'>
+let service: IBSNeoLegacy<'test'>
 
 describe('CryptoCompareEDSNeoLegacy', () => {
   beforeAll(() => {
-    network = BSNeoLegacyConstants.DEFAULT_NETWORK
-    cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(network)
+    service = new BSNeoLegacy('test', BSNeoLegacyConstants.MAINNET_NETWORK)
+    cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(service)
   })
 
   it('Should return a list with prices of tokens using USD', async () => {
     const tokenPriceList = await cryptoCompareEDSNeoLegacy.getTokenPrices({
-      tokens: BSNeoLegacyHelper.getTokens(network),
+      tokens: service.tokens,
     })
 
     tokenPriceList.forEach(tokenPrice => {
@@ -28,7 +28,7 @@ describe('CryptoCompareEDSNeoLegacy', () => {
         }),
       })
     })
-  }, 10000)
+  })
 
   it('Should return the BRL currency ratio', async () => {
     const ratio = await cryptoCompareEDSNeoLegacy.getCurrencyRatio('BRL')
@@ -43,7 +43,7 @@ describe('CryptoCompareEDSNeoLegacy', () => {
   })
 
   it("Should return the token's price history", async () => {
-    const token = BSNeoLegacyHelper.getTokens(network).find(token => token.symbol === 'GAS')!
+    const token = BSNeoLegacyConstants.GAS_ASSET
     const tokenPriceHistory = await cryptoCompareEDSNeoLegacy.getTokenPriceHistory({
       token,
       limit: 24,

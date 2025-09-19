@@ -7,20 +7,14 @@ import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import solanaSDK from '@solana/web3.js'
 import { BSSolanaHelper } from '../helpers/BSSolanaHelper'
 
-let ledgerService: Web3LedgerServiceSolana<'solana'>
+let ledgerService: Web3LedgerServiceSolana<'test'>
 let transport: Transport
-let bsSolana: BSSolana<'solana'>
-const network = BSSolanaConstants.TESTNET_NETWORKS[0]
-
-const keys = {
-  moralisApiKey: process.env.MORALIS_API_KEY!,
-  tatumMainnetApiKey: process.env.TATUM_MAINNET_API_KEY!,
-  tatumTestnetApiKey: process.env.TATUM_TESTNET_API_KEY!,
-}
+let bsSolana: BSSolana<'test'>
+const network = BSSolanaConstants.TESTNET_NETWORK
 
 describe.skip('NeonDappKitLedgerServiceNeo3', () => {
   beforeAll(async () => {
-    bsSolana = new BSSolana('solana', keys, network)
+    bsSolana = new BSSolana('test', network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new Web3LedgerServiceSolana(bsSolana, async () => transport)

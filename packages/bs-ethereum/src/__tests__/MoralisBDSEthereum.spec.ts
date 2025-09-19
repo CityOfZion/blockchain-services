@@ -1,20 +1,17 @@
-import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
-import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
-import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
-import { TokenServiceEthereum } from '../services/token/TokenServiceEthereum'
+import { TNetworkId } from '@cityofzion/blockchain-service'
+import { BSEthereum } from '../BSEthereum'
 
-const network = BSEthereumConstants.DEFAULT_NETWORK
-const tokenService = new TokenServiceEthereum()
-const moralisBDSEthereum = new MoralisBDSEthereum(
-  network,
-  new GhostMarketNDSEthereum(network),
-  new BlockscoutESEthereum(network, tokenService),
-  tokenService
-)
+let service: BSEthereum<'test', TNetworkId>
+let moralisBDSEthereum: MoralisBDSEthereum<'test', TNetworkId>
 
 describe('MoralisBDSEthereum', () => {
+  beforeEach(() => {
+    service = new BSEthereum('test', 'ethereum')
+    moralisBDSEthereum = new MoralisBDSEthereum(service)
+  })
+
   it('Should be able to get transaction - %s', async () => {
     const hash = '0x12f994e6cecbe4495b4fdef08a2db8551943813b21f3434aa5c2356f8686fa8b'
 
@@ -40,7 +37,7 @@ describe('MoralisBDSEthereum', () => {
         })
       )
     })
-  }, 10000)
+  })
 
   it('Should be able to get transactions of address - %s', async () => {
     const address = '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89'
@@ -70,10 +67,10 @@ describe('MoralisBDSEthereum', () => {
         )
       })
     })
-  }, 60000)
+  })
 
   it('Should be able to get eth info - %s', async () => {
-    const nativeToken = BSEthereumHelper.getNativeAsset(network)
+    const nativeToken = BSEthereumHelper.getNativeAsset(service.network)
     const token = await moralisBDSEthereum.getTokenInfo(nativeToken.hash)
 
     expect(token).toEqual(nativeToken)
@@ -120,5 +117,5 @@ describe('MoralisBDSEthereum', () => {
         url: expect.any(String),
       })
     })
-  }, 50000)
+  })
 })

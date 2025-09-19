@@ -1,57 +1,37 @@
 import {
-  BalanceResponse,
-  ExplorerService,
-  INeo3NeoXBridgeService,
-  NftDataService,
+  TBalanceResponse,
   TBridgeToken,
   TransactionBridgeNeo3NeoXResponse,
-  TransactionResponse,
-  TransactionsByAddressResponse,
-  TransactionTransferAsset,
+  TTransactionResponse,
+  TTransactionsByAddressResponse,
+  TTransactionTransferAsset,
 } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
-import { GhostMarketNDSNeoX } from '../services/nft-data/GhostMarketNDSNeoX'
-import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
+
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
-import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
-import { Neo3NeoXBridgeService } from '../services/neo3neoXBridge/Neo3NeoXBridgeService'
+
 import { BSNeoX } from '../BSNeoX'
 
-const neoxMainnetNetwork = BSNeoXConstants.MAINNET_NETWORKS[0]
-let nftDataService: NftDataService
-let explorerService: ExplorerService
-let blockscoutBDSNeoX: BlockscoutBDSNeoX
-let neo3NeoXBridgeService: INeo3NeoXBridgeService
+let blockscoutBDSNeoX: BlockscoutBDSNeoX<'test'>
 
 describe('BlockscoutBDSNeoX', () => {
-  const bridgeGasToken: TBridgeToken<'neox'> = {
+  const bridgeGasToken: TBridgeToken<'test'> = {
     ...BSNeoXConstants.NATIVE_ASSET,
     multichainId: 'gas',
-    blockchain: 'neox',
+    blockchain: 'test',
   }
 
-  const bridgeNeoToken: TBridgeToken<'neox'> = { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: 'neox' }
+  const bridgeNeoToken: TBridgeToken<'test'> = { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: 'test' }
 
   beforeEach(() => {
-    const tokenService = new TokenServiceEthereum()
-
-    nftDataService = new GhostMarketNDSNeoX(neoxMainnetNetwork)
-    explorerService = new BlockscoutESNeoX(neoxMainnetNetwork, tokenService)
-    neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeoX('neox', neoxMainnetNetwork))
-
-    blockscoutBDSNeoX = new BlockscoutBDSNeoX(
-      neoxMainnetNetwork,
-      nftDataService,
-      explorerService,
-      tokenService,
-      neo3NeoXBridgeService
-    )
+    const service = new BSNeoX('test')
+    blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
   })
 
   it('Should return transaction details for native assets (GAS)', async () => {
     const txId = '0xbc669a1084f69a69f0b7bf10ee160265fbd548c15b05b41d9de386c8cb51290a'
 
-    const expectedTransfer: TransactionTransferAsset[] = [
+    const expectedTransfer: TTransactionTransferAsset[] = [
       {
         amount: '3.045',
         contractHash: BSNeoXConstants.NATIVE_ASSET.hash,
@@ -62,7 +42,7 @@ describe('BlockscoutBDSNeoX', () => {
       },
     ]
 
-    const expectedResponse: TransactionResponse = {
+    const expectedResponse: TTransactionResponse = {
       block: 3561140,
       hash: txId,
       notifications: [],
@@ -80,7 +60,7 @@ describe('BlockscoutBDSNeoX', () => {
   it('Should return transaction details for ERC-20 assets (Ethereum assets)', async () => {
     const txId = '0x055a176ae9f0c950584bac1ebc93abb0e52160914e40f9288c69f90e47bd8cee'
 
-    const expectedTransfer: TransactionTransferAsset[] = [
+    const expectedTransfer: TTransactionTransferAsset[] = [
       {
         amount: '500000.0',
         contractHash: '0xE816deE05cf6D0F2a57EB4C489241D8326B5d106',
@@ -96,7 +76,7 @@ describe('BlockscoutBDSNeoX', () => {
       },
     ]
 
-    const expectedResponse: TransactionResponse = {
+    const expectedResponse: TTransactionResponse = {
       block: 3415495,
       hash: txId,
       notifications: [],
@@ -114,7 +94,7 @@ describe('BlockscoutBDSNeoX', () => {
   it('Should return a bridge transaction details (GAS)', async () => {
     const transaction = (await blockscoutBDSNeoX.getTransaction(
       '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-    )) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+    )) as TTransactionResponse & TransactionBridgeNeo3NeoXResponse
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -125,7 +105,7 @@ describe('BlockscoutBDSNeoX', () => {
   it('Should return a bridge transaction details (NEO)', async () => {
     const transaction = (await blockscoutBDSNeoX.getTransaction(
       '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-    )) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+    )) as TTransactionResponse & TransactionBridgeNeo3NeoXResponse
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -136,7 +116,7 @@ describe('BlockscoutBDSNeoX', () => {
   it('Should return transactions by address', async () => {
     const address = '0x1241f44BFA102ab7386C784959BAe3D0fB923734'
 
-    const expectedResponse: TransactionsByAddressResponse = {
+    const expectedResponse: TTransactionsByAddressResponse = {
       transactions: expect.arrayContaining([
         expect.objectContaining({
           block: expect.any(Number),
@@ -163,7 +143,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     const transaction = response.transactions.find(
       ({ hash }) => hash === '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-    ) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+    ) as TTransactionResponse & TransactionBridgeNeo3NeoXResponse
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -178,7 +158,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     const transaction = response.transactions.find(
       ({ hash }) => hash === '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-    ) as TransactionResponse & TransactionBridgeNeo3NeoXResponse
+    ) as TTransactionResponse & TransactionBridgeNeo3NeoXResponse
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -204,7 +184,7 @@ describe('BlockscoutBDSNeoX', () => {
   it('Should return balance', async () => {
     const address = '0xa911a7FA0901Cfc3f1da55A05593823E32e2f1a9'
 
-    const expectedBalance: BalanceResponse[] = [
+    const expectedBalance: TBalanceResponse[] = [
       {
         amount: expect.any(String),
         token: BSNeoXConstants.NATIVE_ASSET,

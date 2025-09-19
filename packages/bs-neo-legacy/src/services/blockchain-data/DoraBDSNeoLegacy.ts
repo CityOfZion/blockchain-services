@@ -1,66 +1,46 @@
 import {
-  BalanceResponse,
-  BDSClaimable,
-  BlockchainDataService,
+  TBalanceResponse,
   BSBigNumberHelper,
   BSFullTransactionsByAddressHelper,
   BSPromisesHelper,
   ContractResponse,
-  ExplorerService,
-  ExportTransactionsByAddressParams,
-  FullTransactionAssetEvent,
-  FullTransactionsByAddressParams,
-  FullTransactionsByAddressResponse,
-  FullTransactionsItem,
-  Network,
-  RpcResponse,
-  Token,
-  TokenService,
-  TransactionResponse,
-  TransactionsByAddressParams,
-  TransactionsByAddressResponse,
-  TransactionTransferAsset,
+  TExportTransactionsByAddressParams,
+  TFullTransactionAssetEvent,
+  TFullTransactionsByAddressParams,
+  TFullTransactionsByAddressResponse,
+  TFullTransactionsItem,
+  IBlockchainDataService,
+  TRpcResponse,
+  TBSToken,
+  TTransactionResponse,
+  TTransactionsByAddressParams,
+  TTransactionsByAddressResponse,
+  TTransactionTransferAsset,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { rpc, wallet } from '@cityofzion/neon-js'
-import { BSNeoLegacyNetworkId } from '../../constants/BSNeoLegacyConstants'
+import { rpc } from '@cityofzion/neon-js'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
+import { IBSNeoLegacy, TBSNeoLegacyNetworkId } from '../../types'
 
-export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
-  readonly #supportedNep5Standards = ['nep5', 'nep-5']
-  readonly #network: Network<BSNeoLegacyNetworkId>
-  readonly #claimToken: Token
-  readonly #feeToken: Token
-  readonly #tokens: Token[]
-  readonly #tokenCache: Map<string, Token> = new Map()
-  readonly #explorerService: ExplorerService
-  readonly #tokenService: TokenService
+export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataService {
+  static readonly SUPPORTED_NEP5_STANDARDS: string[] = ['nep5', 'nep-5']
+  static readonly FULL_TRANSACTIONS_API_SUPPORTED_NETWORKS_IDS: TBSNeoLegacyNetworkId[] = ['mainnet']
 
-  maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2
+  readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
+  readonly #tokenCache: Map<string, TBSToken> = new Map()
+  readonly #service: IBSNeoLegacy<N>
 
-  constructor(
-    network: Network<BSNeoLegacyNetworkId>,
-    feeToken: Token,
-    claimToken: Token,
-    tokens: Token[],
-    explorerService: ExplorerService,
-    tokenService: TokenService
-  ) {
-    this.#network = network
-    this.#claimToken = claimToken
-    this.#feeToken = feeToken
-    this.#tokens = tokens
-    this.#explorerService = explorerService
-    this.#tokenService = tokenService
+  constructor(service: IBSNeoLegacy<N>) {
+    this.#service = service
   }
 
-  async getTransaction(hash: string): Promise<TransactionResponse> {
-    const data = await api.NeoLegacyREST.transaction(hash, this.#network.id)
+  async getTransaction(hash: string): Promise<TTransactionResponse> {
+    const data = await api.NeoLegacyREST.transaction(hash, this.#service.network.id)
     if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
 
     const vout: any[] = data.vout ?? []
 
-    const promises = vout.map<Promise<TransactionTransferAsset>>(async (transfer, _index, array) => {
+    const promises = vout.map<Promise<TTransactionTransferAsset>>(async (transfer, _index, array) => {
       const token = await this.getTokenInfo(transfer.asset)
       return {
         amount: String(transfer.value),
@@ -76,7 +56,10 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     return {
       hash: data.txid,
       block: data.block,
-      fee: (Number(data.sys_fee ?? 0) + Number(data.net_fee ?? 0)).toFixed(this.#feeToken.decimals),
+      fee: BSBigNumberHelper.toNumber(
+        BSBigNumberHelper.fromNumber(data.sys_fee ?? 0).plus(data.net_fee ?? 0),
+        this.#service.feeToken.decimals
+      ),
       time: Number(data.time),
       notifications: [], //neoLegacy doesn't have notifications
       transfers,
@@ -87,15 +70,15 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
-    const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#network.id)
-    const transactions = new Map<string, TransactionResponse>()
+  }: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse> {
+    const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#service.network.id)
+    const transactions = new Map<string, TTransactionResponse>()
 
     const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return
 
       const token = await this.getTokenInfo(entry.asset)
-      const transfer: TransactionTransferAsset = {
+      const transfer: TTransactionTransferAsset = {
         amount: String(entry.amount),
         from: entry.address_from ?? 'Mint',
         to: entry.address_to ?? 'Burn',
@@ -131,10 +114,15 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   async getFullTransactionsByAddress({
     nextCursor,
     ...params
-  }: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse> {
-    this.#validateGetFullTransactionsByAddressParams(params)
+  }: TFullTransactionsByAddressParams): Promise<TFullTransactionsByAddressResponse> {
+    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
+      ...params,
+      service: this.#service,
+      supportedNetworksIds: DoraBDSNeoLegacy.FULL_TRANSACTIONS_API_SUPPORTED_NETWORKS_IDS,
+      maxPageSize: 30,
+    })
 
-    const data: FullTransactionsItem[] = []
+    const data: TFullTransactionsItem[] = []
 
     const response = await api.NeoLegacyREST.getFullTransactionsByAddress({
       address: params.address,
@@ -147,14 +135,14 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
     const items = response.data ?? []
 
-    const addressTemplateUrl = this.#explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this.#explorerService.getTxTemplateUrl()
-    const contractTemplateUrl = this.#explorerService.getContractTemplateUrl()
+    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
+    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
+    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
 
-      const newItem: FullTransactionsItem = {
+      const newItem: TFullTransactionsItem = {
         txId,
         txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
         block: item.block,
@@ -162,10 +150,10 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
         invocationCount: item.invocationCount,
         notificationCount: item.notificationCount,
         networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#feeToken.decimals })
+          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#service.feeToken.decimals })
           : undefined,
         systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#feeToken.decimals })
+          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
           : undefined,
         events: [],
         type: 'default',
@@ -173,14 +161,14 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
         const { contractHash, amount, from, to } = event
-        const [token] = await BSPromisesHelper.tryCatch<Token>(() => this.getTokenInfo(contractHash))
+        const [token] = await BSPromisesHelper.tryCatch<TBSToken>(() => this.getTokenInfo(contractHash))
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
-        const isNep5 = this.#supportedNep5Standards.includes(standard)
+        const isNep5 = DoraBDSNeoLegacy.SUPPORTED_NEP5_STANDARDS.includes(standard)
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
         const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
 
-        const assetEvent: FullTransactionAssetEvent = {
+        const assetEvent: TFullTransactionAssetEvent = {
           eventType: 'token',
           amount: amount
             ? BSBigNumberHelper.format(amount, { decimals: token?.decimals ?? event.tokenDecimals })
@@ -209,8 +197,13 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     return { nextCursor: response.nextCursor, data }
   }
 
-  async exportFullTransactionsByAddress(params: ExportTransactionsByAddressParams): Promise<string> {
-    this.#validateFullTransactionsByAddressParams(params)
+  async exportFullTransactionsByAddress(params: TExportTransactionsByAddressParams): Promise<string> {
+    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
+      ...params,
+      service: this.#service,
+      supportedNetworksIds: DoraBDSNeoLegacy.FULL_TRANSACTIONS_API_SUPPORTED_NETWORKS_IDS,
+      maxPageSize: 30,
+    })
 
     return await api.NeoLegacyREST.exportFullTransactionsByAddress({
       address: params.address,
@@ -221,7 +214,7 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getContract(contractHash: string): Promise<ContractResponse> {
-    const response = await api.NeoLegacyREST.contract(contractHash, this.#network.id)
+    const response = await api.NeoLegacyREST.contract(contractHash, this.#service.network.id)
     if (!response || 'error' in response) throw new Error(`Contract ${contractHash} not found`)
 
     return {
@@ -231,17 +224,17 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     }
   }
 
-  async getTokenInfo(tokenHash: string): Promise<Token> {
+  async getTokenInfo(tokenHash: string): Promise<TBSToken> {
     const cachedToken = this.#tokenCache.get(tokenHash)
 
     if (cachedToken) {
       return cachedToken
     }
 
-    let token = this.#tokens.find(currentToken => this.#tokenService.predicateByHash(tokenHash, currentToken))
+    let token = this.#service.tokens.find(token => this.#service.tokenService.predicateByHash(tokenHash, token))
 
     if (!token) {
-      const data = await api.NeoLegacyREST.asset(tokenHash, this.#network.id)
+      const data = await api.NeoLegacyREST.asset(tokenHash, this.#service.network.id)
       if (!data || 'error' in data) throw new Error(`Token ${tokenHash} not found`)
 
       token = {
@@ -252,16 +245,16 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
       }
     }
 
-    this.#tokenCache.set(tokenHash, this.#tokenService.normalizeToken(token))
+    this.#tokenCache.set(tokenHash, this.#service.tokenService.normalizeToken(token))
 
     return token
   }
 
-  async getBalance(address: string): Promise<BalanceResponse[]> {
-    const data = await api.NeoLegacyREST.balance(address, this.#network.id)
+  async getBalance(address: string): Promise<TBalanceResponse[]> {
+    const data = await api.NeoLegacyREST.balance(address, this.#service.network.id)
 
-    const promises = data.map<Promise<BalanceResponse>>(async balance => {
-      let token: Token = this.#tokenService.normalizeToken({
+    const promises = data.map<Promise<TBalanceResponse>>(async balance => {
+      let token: TBSToken = this.#service.tokenService.normalizeToken({
         hash: balance.asset,
         name: balance.asset_name,
         symbol: balance.symbol,
@@ -284,20 +277,20 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
   }
 
   async getUnclaimed(address: string): Promise<string> {
-    const rpcClient = new rpc.RPCClient(this.#network.url)
+    const rpcClient = new rpc.RPCClient(this.#service.network.url)
     const response = await rpcClient.getUnclaimed(address)
 
-    return (response?.unclaimed ?? 0).toFixed(this.#claimToken.decimals)
+    return (response?.unclaimed ?? 0).toFixed(this.#service.claimToken.decimals)
   }
 
   async getBlockHeight(): Promise<number> {
-    const rpcClient = new rpc.RPCClient(this.#network.url)
+    const rpcClient = new rpc.RPCClient(this.#service.network.url)
     return await rpcClient.getBlockCount()
   }
 
-  async getRpcList(): Promise<RpcResponse[]> {
-    const list: RpcResponse[] = []
-    const urls = BSNeoLegacyHelper.getRpcList(this.#network)
+  async getRpcList(): Promise<TRpcResponse[]> {
+    const list: TRpcResponse[] = []
+    const urls = BSNeoLegacyHelper.getRpcList(this.#service.network)
 
     const promises = urls.map(url => {
       // eslint-disable-next-line no-async-promise-executor
@@ -324,25 +317,5 @@ export class DoraBDSNeoLegacy implements BlockchainDataService, BDSClaimable {
     await Promise.allSettled(promises)
 
     return list
-  }
-
-  #validateFullTransactionsByAddressParams(
-    params: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo'>
-  ) {
-    if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('Only Mainnet is supported')
-
-    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams(params)
-
-    if (!wallet.isAddress(params.address)) throw new Error('Invalid address param')
-  }
-
-  #validateGetFullTransactionsByAddressParams({
-    pageSize,
-    ...params
-  }: Pick<FullTransactionsByAddressParams, 'address' | 'dateFrom' | 'dateTo' | 'pageSize'>) {
-    if (typeof pageSize === 'number' && (isNaN(pageSize) || pageSize < 1 || pageSize > 30))
-      throw new Error('Page size should be between 1 and 30')
-
-    this.#validateFullTransactionsByAddressParams(params)
   }
 }

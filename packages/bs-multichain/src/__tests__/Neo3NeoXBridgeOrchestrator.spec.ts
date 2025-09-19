@@ -1,6 +1,6 @@
 import {
-  Account,
-  BalanceResponse,
+  TBSAccount,
+  TBalanceResponse,
   BSBigNumberHelper,
   BSError,
   BSUtilsHelper,
@@ -18,14 +18,14 @@ let neo3Service: BSNeo3<TBridgeBlockchains>
 let neoXService: BSNeoX<TBridgeBlockchains>
 let neo3NeoXBridgeOrchestrator: Neo3NeoXBridgeOrchestrator<TBridgeBlockchains>
 let tokenToUse: TBridgeValue<TBridgeToken<TBridgeBlockchains>>
-let accountToUse: TBridgeValue<Account<TBridgeBlockchains>>
+let accountToUse: TBridgeValue<TBSAccount<TBridgeBlockchains>>
 let amountToUse: TBridgeValidateValue<string>
 let amountToUseMin: TBridgeValue<string>
 let amountToUseMax: TBridgeValue<string>
 let tokenToReceive: TBridgeValue<TBridgeToken<TBridgeBlockchains>>
 let addressToReceive: TBridgeValidateValue<string>
 let amountToReceive: TBridgeValue<string>
-let tokenToUseBalance: TBridgeValue<BalanceResponse | undefined>
+let tokenToUseBalance: TBridgeValue<TBalanceResponse | undefined>
 let bridgeFee: TBridgeValue<string>
 
 describe('Neo3NeoXBridgeOrchestrator', () => {
@@ -288,7 +288,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const balances: BalanceResponse[] = []
+    const balances: TBalanceResponse[] = []
 
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
@@ -304,7 +304,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
+    const balances: TBalanceResponse[] = [{ amount: '5', token }]
 
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
@@ -343,7 +343,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
+    const balances: TBalanceResponse[] = [{ amount: '5', token }]
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = '0'
@@ -369,7 +369,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
+    const balances: TBalanceResponse[] = [{ amount: '5', token }]
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = '10'
@@ -398,7 +398,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
+    const balances: TBalanceResponse[] = [{ amount: '5', token }]
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = amountToUseMax.value!
@@ -429,7 +429,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
+    const balances: TBalanceResponse[] = [{ amount: '5', token }]
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = amountToUseMax.value!
@@ -454,7 +454,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
+    const balances: TBalanceResponse[] = [{ amount: '5', token }]
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = amountToUseMax.value!
@@ -485,7 +485,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
+    const balances: TBalanceResponse[] = [{ amount: '5', token }]
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = amountToUseMax.value!
@@ -566,7 +566,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: BalanceResponse[] = [{ amount: '5', token }]
+    const balances: TBalanceResponse[] = [{ amount: '5', token }]
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
     const amount = amountToUseMax.value!

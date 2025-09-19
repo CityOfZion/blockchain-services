@@ -1,64 +1,57 @@
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
-import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
 import {
-  FullTransactionNftEvent,
-  FullTransactionsByAddressParams,
-  FullTransactionsItem,
-  FullTransactionsItemBridgeNeo3NeoX,
-  Network,
+  TFullTransactionNftEvent,
+  TFullTransactionsByAddressParams,
+  TFullTransactionsItem,
+  TFullTransactionsItemBridgeNeo3NeoX,
   TBridgeToken,
+  TNetwork,
 } from '@cityofzion/blockchain-service'
-import { GhostMarketNDSNeo3 } from '../../../services/nft-data/GhostMarketNDSNeo3'
 import { isLeapYear } from 'date-fns'
-import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
-import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
-import { Neo3NeoXBridgeService } from '../../../services/neo3neoXBridge/Neo3NeoXBridgeService'
 import { BSNeo3 } from '../../../BSNeo3'
 
-describe('DoraBDSNeo3FullTransactionsByAddress', () => {
-  const bridgeGasToken: TBridgeToken<'neo3'> = { ...BSNeo3Constants.GAS_TOKEN, multichainId: 'gas', blockchain: 'neo3' }
-  const bridgeNeoToken: TBridgeToken<'neo3'> = { ...BSNeo3Constants.NEO_TOKEN, multichainId: 'neo', blockchain: 'neo3' }
-  const network = BSNeo3Constants.MAINNET_NETWORKS[0]
-  const tokens = BSNeo3Helper.getTokens(network)
-  const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')!
-  const address = 'NYnfAZTcVfSfNgk4RnP2DBNgosq2tUN3U2'
+const invalidNetwork = {
+  id: 'other-network',
+  name: 'Other network',
+  url: 'https://other-network.com',
+  type: 'custom',
+} as TNetwork
+const address = 'NYnfAZTcVfSfNgk4RnP2DBNgosq2tUN3U2'
 
-  let dateFrom: Date
-  let dateTo: Date
-  let params: FullTransactionsByAddressParams
-  let doraBDSNeo3: DoraBDSNeo3
+let dateFrom: Date
+let dateTo: Date
+let params: TFullTransactionsByAddressParams
+let doraBDSNeo3: DoraBDSNeo3<'test'>
 
-  const initDoraBDSNeo3 = (network: Network) => {
-    const nftDataService = new GhostMarketNDSNeo3(network) as jest.Mocked<GhostMarketNDSNeo3>
-    const tokenService = new TokenServiceNeo3()
-    const neo3NeoXBridgeService = new Neo3NeoXBridgeService(new BSNeo3('neo3', network))
-
-    nftDataService.getNft = jest.fn().mockReturnValue({
-      image: 'nftImage',
-      name: 'nftName',
-      collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
-    })
-
-    const explorerService = new DoraESNeo3(network, tokenService) as jest.Mocked<DoraESNeo3>
-
-    explorerService.getAddressTemplateUrl = jest.fn().mockReturnValue('addressTemplateUrl')
-    explorerService.getTxTemplateUrl = jest.fn().mockReturnValue('txTemplateUrl')
-    explorerService.getNftTemplateUrl = jest.fn().mockReturnValue('nftTemplateUrl')
-    explorerService.getContractTemplateUrl = jest.fn().mockReturnValue('contractTemplateUrl')
-
-    doraBDSNeo3 = new DoraBDSNeo3(
-      network,
-      gasToken,
-      gasToken,
-      tokens,
-      nftDataService,
-      explorerService,
-      tokenService,
-      neo3NeoXBridgeService
-    )
+jest.mock('../../../services/nft-data/GhostMarketNDSNeo3', () => {
+  return {
+    GhostMarketNDSNeo3: jest.fn().mockImplementation(() => {
+      return {
+        getNft: jest.fn().mockReturnValue({
+          image: 'nftImage',
+          name: 'nftName',
+          collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+        }),
+      }
+    }),
   }
+})
 
+jest.mock('../../../services/explorer/DoraESNeo3', () => {
+  return {
+    DoraESNeo3: jest.fn().mockImplementation(() => {
+      return {
+        getAddressTemplateUrl: jest.fn().mockReturnValue('addressTemplateUrl'),
+        getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
+        getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
+        getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
+      }
+    }),
+  }
+})
+
+describe('DoraBDSNeo3 - fullTransactionsByAddress', () => {
   beforeEach(() => {
     dateFrom = new Date()
     dateTo = new Date()
@@ -69,16 +62,16 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
 
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
-    initDoraBDSNeo3(network)
+    const service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    doraBDSNeo3 = new DoraBDSNeo3(service)
   })
 
   describe('getFullTransactionsByAddress', () => {
     it("Shouldn't be able to get transactions when is using a different network (Custom) from Mainnet and Testnet", async () => {
-      initDoraBDSNeo3({ id: 'other-network', name: 'Other network', url: 'https://other-network.com' })
+      const service = new BSNeo3('test', invalidNetwork)
+      doraBDSNeo3 = new DoraBDSNeo3(service)
 
-      await expect(doraBDSNeo3.getFullTransactionsByAddress(params)).rejects.toThrow(
-        'Only Mainnet and Testnet are supported'
-      )
+      await expect(doraBDSNeo3.getFullTransactionsByAddress(params)).rejects.toThrow('Network not supported')
     })
 
     it("Shouldn't be able to get transactions when missing one of the dates", async () => {
@@ -165,7 +158,8 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
     })
 
     it('Should be able to get transactions when is using a Testnet network', async () => {
-      initDoraBDSNeo3(BSNeo3Constants.TESTNET_NETWORKS[0])
+      const service = new BSNeo3('test', BSNeo3Constants.TESTNET_NETWORK)
+      doraBDSNeo3 = new DoraBDSNeo3(service)
 
       const response = await doraBDSNeo3.getFullTransactionsByAddress({
         ...params,
@@ -278,7 +272,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
 
       const nftEvents = response.data
         .flatMap(({ events }) => events)
-        .filter(({ eventType }) => eventType === 'nft') as FullTransactionNftEvent[]
+        .filter(({ eventType }) => eventType === 'nft') as TFullTransactionNftEvent[]
 
       expect(nftEvents).toEqual(
         expect.arrayContaining([
@@ -301,7 +295,7 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
           }),
         ])
       )
-    }, 30000)
+    })
 
     it('Should be able to get transactions with default pageSize param', async () => {
       const newParams = {
@@ -318,6 +312,12 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
     }, 360000)
 
     it('Should be able to get transactions that are marked as bridge (GAS)', async () => {
+      const bridgeGasToken: TBridgeToken<'test'> = {
+        ...BSNeo3Constants.GAS_TOKEN,
+        multichainId: 'gas',
+        blockchain: 'test',
+      }
+
       const newParams = {
         ...params,
         dateFrom: new Date('2025-08-27T10:00:00').toJSON(),
@@ -329,16 +329,22 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
 
       const transaction = response.data.find(
         ({ txId }) => txId === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
-      ) as FullTransactionsItem & FullTransactionsItemBridgeNeo3NeoX
+      ) as TFullTransactionsItem & TFullTransactionsItemBridgeNeo3NeoX
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.events.find(event => event.methodName === 'depositNative')).toBeTruthy()
       expect(transaction.data.amount).toBe('1')
       expect(transaction.data.token).toEqual(bridgeGasToken)
       expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
-    }, 60000)
+    })
 
     it('Should be able to get transactions that are marked as bridge (NEO)', async () => {
+      const bridgeNeoToken: TBridgeToken<'test'> = {
+        ...BSNeo3Constants.NEO_TOKEN,
+        multichainId: 'neo',
+        blockchain: 'test',
+      }
+
       const newParams = {
         ...params,
         dateFrom: new Date('2025-08-12T06:00:00').toJSON(),
@@ -350,19 +356,20 @@ describe('DoraBDSNeo3FullTransactionsByAddress', () => {
 
       const transaction = response.data.find(
         ({ txId }) => txId === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
-      ) as FullTransactionsItem & FullTransactionsItemBridgeNeo3NeoX
+      ) as TFullTransactionsItem & TFullTransactionsItemBridgeNeo3NeoX
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.events.find(event => event.methodName === 'depositToken')).toBeTruthy()
       expect(transaction.data.amount).toBe('1')
       expect(transaction.data.token).toEqual(bridgeNeoToken)
       expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
-    }, 60000)
+    })
   })
 
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Testnet network', async () => {
-      initDoraBDSNeo3(BSNeo3Constants.TESTNET_NETWORKS[0])
+      const service = new BSNeo3('test', BSNeo3Constants.TESTNET_NETWORK)
+      doraBDSNeo3 = new DoraBDSNeo3(service)
 
       const response = await doraBDSNeo3.exportFullTransactionsByAddress({
         dateFrom: new Date('2025-02-24T20:00:00').toJSON(),

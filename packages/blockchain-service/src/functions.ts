@@ -1,63 +1,63 @@
 import { BSUtilsHelper } from './helpers/BSUtilsHelper'
 import {
-  Account,
-  BlockchainService,
-  BSCalculableFee,
-  BSClaimable,
-  BSWithEncryption,
-  BSWithExplorerService,
-  BSWithLedger,
-  BSWithNameService,
-  BSWithNft,
+  TBSAccount,
+  IBlockchainService,
+  IBSWithClaim,
+  IBSWithEncryption,
+  IBSWithExplorer,
+  IBSWithFee,
+  IBSWithLedger,
+  IBSWithNameService,
   IBSWithNeo3NeoXBridge,
-  UntilIndexRecord,
+  IBSWithNft,
+  TUntilIndexRecord,
 } from './interfaces'
 
 export function hasNameService<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & BSWithNameService {
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithNameService {
   return 'resolveNameServiceDomain' in service && 'validateNameServiceDomainFormat' in service
 }
 
 export function isClaimable<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & BSClaimable<BSName> {
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithClaim<BSName> {
   return 'claim' in service && 'claimToken' in service && 'getUnclaimed' in service.blockchainDataService
 }
 
 export function isCalculableFee<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & BSCalculableFee<BSName> {
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithFee<BSName> {
   return 'calculateTransferFee' in service
 }
 
 export function hasNft<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & BSWithNft {
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithNft {
   return 'nftDataService' in service
 }
 
 export function hasExplorerService<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & BSWithExplorerService {
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithExplorer {
   return 'explorerService' in service
 }
 
 export function hasLedger<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & BSWithLedger<BSName> {
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithLedger<BSName> {
   return 'ledgerService' in service
 }
 
 export function hasNeo3NeoXBridge<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & IBSWithNeo3NeoXBridge<BSName> {
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithNeo3NeoXBridge<BSName> {
   return 'neo3NeoXBridgeService' in service
 }
 
 export function hasEncryption<BSName extends string = string>(
-  service: BlockchainService<BSName>
-): service is BlockchainService<BSName> & BSWithEncryption<BSName> {
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithEncryption<BSName> {
   return 'encrypt' in service && 'decrypt' in service
 }
 
@@ -65,7 +65,7 @@ export function hasEncryption<BSName extends string = string>(
  * @deprecated use `waitForAccountTransaction` instead
  */
 export async function waitForTransaction<BSName extends string = string>(
-  service: BlockchainService<BSName>,
+  service: IBlockchainService<BSName>,
   txId: string
 ): Promise<boolean> {
   const maxAttempts = 30
@@ -88,7 +88,7 @@ export async function waitForTransaction<BSName extends string = string>(
 }
 
 export async function waitForAccountTransaction<BSName extends string = string>(params: {
-  service: BlockchainService<BSName>
+  service: IBlockchainService<BSName>
   txId: string
   address: string
   maxAttempts?: number
@@ -115,11 +115,11 @@ export async function waitForAccountTransaction<BSName extends string = string>(
 }
 
 export async function fetchAccounts<BSName extends string = string>(
-  blockchainServices: BlockchainService<BSName>,
+  blockchainServices: IBlockchainService<BSName>,
   initialIndex: number,
-  getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>
-): Promise<Account<BSName>[]> {
-  const accounts: Account<BSName>[] = []
+  getAccountCallback: (service: IBlockchainService<BSName>, index: number) => Promise<TBSAccount<BSName>>
+): Promise<TBSAccount<BSName>[]> {
+  const accounts: TBSAccount<BSName>[] = []
 
   let index = initialIndex
   let shouldBreak = false
@@ -145,12 +145,12 @@ export async function fetchAccounts<BSName extends string = string>(
 }
 
 export async function generateAccount<BSName extends string = string>(
-  blockchainServices: BlockchainService<BSName>,
+  blockchainServices: IBlockchainService<BSName>,
   initialIndex: number,
   untilIndex: number,
-  getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>
-): Promise<Account<BSName>[]> {
-  const accounts: Account<BSName>[] = []
+  getAccountCallback: (service: IBlockchainService<BSName>, index: number) => Promise<TBSAccount<BSName>>
+): Promise<TBSAccount<BSName>[]> {
+  const accounts: TBSAccount<BSName>[] = []
 
   let index = initialIndex
 
@@ -164,11 +164,11 @@ export async function generateAccount<BSName extends string = string>(
 }
 
 export async function generateAccountForBlockchainService<BSName extends string = string>(
-  blockchainServices: BlockchainService<BSName>[],
-  getAccountCallback: (service: BlockchainService<BSName>, index: number) => Promise<Account<BSName>>,
-  untilIndexByBlockchainService?: UntilIndexRecord<BSName>
-): Promise<Map<BSName, Account<BSName>[]>> {
-  const accountsByBlockchainService = new Map<BSName, Account<BSName>[]>()
+  blockchainServices: IBlockchainService<BSName>[],
+  getAccountCallback: (service: IBlockchainService<BSName>, index: number) => Promise<TBSAccount<BSName>>,
+  untilIndexByBlockchainService?: TUntilIndexRecord<BSName>
+): Promise<Map<BSName, TBSAccount<BSName>[]>> {
+  const accountsByBlockchainService = new Map<BSName, TBSAccount<BSName>[]>()
 
   const promises = blockchainServices.map(async service => {
     const firstAccount = await getAccountCallback(service, 0)

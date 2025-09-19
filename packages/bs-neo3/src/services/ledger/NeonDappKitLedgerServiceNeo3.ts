@@ -1,40 +1,31 @@
 import {
-  Account,
+  TBSAccount,
   generateAccountForBlockchainService,
-  GetLedgerTransport,
-  LedgerService,
-  LedgerServiceEmitter,
-  UntilIndexRecord,
+  TGetLedgerTransport,
+  ILedgerService,
+  TLedgerServiceEmitter,
+  TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 import { NeonParser } from '@cityofzion/neon-dappkit'
 import { api, u, wallet } from '@cityofzion/neon-js'
 import Transport from '@ledgerhq/hw-transport'
 import EventEmitter from 'events'
 import { BSNeo3 } from '../../BSNeo3'
+import {
+  ENeonDappKitLedgerServiceNeo3Command,
+  ENeonDappKitLedgerServiceNeo3SecondParameter,
+  ENeonDappKitLedgerServiceNeo3Status,
+  IBSNeo3,
+} from '../../types'
 
-enum LedgerStatus {
-  OK = 0x9000,
-}
+export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements ILedgerService<N> {
+  readonly #service: IBSNeo3<N>
+  readonly getLedgerTransport?: TGetLedgerTransport<N>
 
-enum LedgerCommand {
-  GET_APP_NAME = 0x00,
-  GET_PUBLIC_KEY = 0x04,
-  SIGN = 0x02,
-}
+  emitter: TLedgerServiceEmitter = new EventEmitter() as TLedgerServiceEmitter
 
-enum LedgerSecondParameter {
-  MORE_DATA = 0x80,
-  LAST_DATA = 0x00,
-}
-
-export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implements LedgerService<BSName> {
-  #blockchainService: BSNeo3<BSName>
-
-  emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
-  getLedgerTransport?: GetLedgerTransport<BSName>
-
-  constructor(blockchainService: BSNeo3<BSName>, getLedgerTransport?: GetLedgerTransport<BSName>) {
-    this.#blockchainService = blockchainService
+  constructor(blockchainService: IBSNeo3<N>, getLedgerTransport?: TGetLedgerTransport<N>) {
+    this.#service = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
 
@@ -43,9 +34,9 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
     try {
       const response = await this.#sendChunk(
         transport,
-        LedgerCommand.GET_APP_NAME,
+        ENeonDappKitLedgerServiceNeo3Command.GET_APP_NAME,
         0x00,
-        LedgerSecondParameter.LAST_DATA,
+        ENeonDappKitLedgerServiceNeo3SecondParameter.LAST_DATA,
         undefined
       )
       const version = response.toString('ascii')
@@ -59,8 +50,8 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
     }
   }
 
-  async getAccount(transport: Transport, index: number): Promise<Account<BSName>> {
-    const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
+  async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
+    const bip44Path = this.#service.bip44DerivationPath.replace('?', index.toString())
     const bip44PathHex = this.#bip44PathToHex(bip44Path)
 
     const isNeoN3App = await this.verifyAppName(transport)
@@ -68,9 +59,9 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
 
     const result = await this.#sendChunk(
       transport,
-      LedgerCommand.GET_PUBLIC_KEY,
+      ENeonDappKitLedgerServiceNeo3Command.GET_PUBLIC_KEY,
       0x00,
-      LedgerSecondParameter.LAST_DATA,
+      ENeonDappKitLedgerServiceNeo3SecondParameter.LAST_DATA,
       bip44PathHex
     )
 
@@ -82,28 +73,28 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
       key: publicKey,
       type: 'publicKey',
       bip44Path,
-      blockchain: this.#blockchainService.name,
+      blockchain: this.#service.name,
       isHardware: true,
     }
   }
 
   async getAccounts(
     transport: Transport,
-    untilIndexByBlockchainService?: UntilIndexRecord<BSName>
-  ): Promise<Account<BSName>[]> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<N>
+  ): Promise<TBSAccount<N>[]> {
     const accountsByBlockchainService = await generateAccountForBlockchainService(
-      [this.#blockchainService],
+      [this.#service],
       async (_service, index) => {
         return this.getAccount(transport, index)
       },
       untilIndexByBlockchainService
     )
 
-    const accounts = accountsByBlockchainService.get(this.#blockchainService.name)
+    const accounts = accountsByBlockchainService.get(this.#service.name)
     return accounts ?? []
   }
 
-  getSigningCallback(transport: Transport, account: Account): api.SigningFunction {
+  getSigningCallback(transport: Transport, account: TBSAccount): api.SigningFunction {
     return async (transaction, { witnessIndex, network }) => {
       const isNeoN3App = await this.verifyAppName(transport)
       if (!isNeoN3App) throw new Error('App is not NEO N3')
@@ -112,7 +103,7 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
         this.emitter.emit('getSignatureStart')
 
         if (!account.bip44Path) {
-          throw new Error('Account must have a bip 44 path to sign with Ledger')
+          throw new Error('TBSAccount must have a bip 44 path to sign with Ledger')
         }
 
         const neonJsAccount = new wallet.Account(account.key)
@@ -128,14 +119,20 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
         const bip44PathHex = this.#bip44PathToHex(account.bip44Path)
 
         // Send the BIP44 account as first chunk
-        await this.#sendChunk(transport, LedgerCommand.SIGN, 0, LedgerSecondParameter.MORE_DATA, bip44PathHex)
+        await this.#sendChunk(
+          transport,
+          ENeonDappKitLedgerServiceNeo3Command.SIGN,
+          0,
+          ENeonDappKitLedgerServiceNeo3SecondParameter.MORE_DATA,
+          bip44PathHex
+        )
 
         // Send the network magic as second chunk
         await this.#sendChunk(
           transport,
-          LedgerCommand.SIGN,
+          ENeonDappKitLedgerServiceNeo3Command.SIGN,
           1,
-          LedgerSecondParameter.MORE_DATA,
+          ENeonDappKitLedgerServiceNeo3SecondParameter.MORE_DATA,
           NeonParser.numToHex(network, 4, true)
         )
 
@@ -148,7 +145,13 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
         for (let i = 0; i < chunks.length - 1; i++) {
           // We plus 2 because we already sent 2 chunks before
           const commandIndex = 2 + i
-          await this.#sendChunk(transport, LedgerCommand.SIGN, commandIndex, LedgerSecondParameter.MORE_DATA, chunks[i])
+          await this.#sendChunk(
+            transport,
+            ENeonDappKitLedgerServiceNeo3Command.SIGN,
+            commandIndex,
+            ENeonDappKitLedgerServiceNeo3SecondParameter.MORE_DATA,
+            chunks[i]
+          )
         }
 
         // Again, we plus 2 because we already sent 2 chunks before getting the chunks
@@ -157,9 +160,9 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
         // Send the last chunk signaling that it is the last one and get the signature
         const response = await this.#sendChunk(
           transport,
-          LedgerCommand.SIGN,
+          ENeonDappKitLedgerServiceNeo3Command.SIGN,
           lastChunkIndex,
-          LedgerSecondParameter.LAST_DATA,
+          ENeonDappKitLedgerServiceNeo3SecondParameter.LAST_DATA,
           chunks[chunks.length - 1]
         )
 
@@ -176,13 +179,13 @@ export class NeonDappKitLedgerServiceNeo3<BSName extends string = string> implem
 
   #sendChunk(
     transport: Transport,
-    command: LedgerCommand,
+    command: ENeonDappKitLedgerServiceNeo3Command,
     commandIndex: number,
-    secondParameter: LedgerSecondParameter,
+    secondParameter: ENeonDappKitLedgerServiceNeo3SecondParameter,
     chunk?: string
   ) {
     return transport.send(0x80, command, commandIndex, secondParameter, chunk ? Buffer.from(chunk, 'hex') : undefined, [
-      LedgerStatus.OK,
+      ENeonDappKitLedgerServiceNeo3Status.OK,
     ])
   }
 

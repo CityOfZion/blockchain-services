@@ -1,4 +1,5 @@
 import { BSError } from '../error'
+import isEqual from 'lodash.isequal'
 
 type RetryOptions = {
   retries?: number
@@ -33,5 +34,9 @@ export class BSUtilsHelper {
 
       return reject(new BSError('Timeout: ' + errorMessage, 'TIMEOUT'))
     })
+  }
+
+  static isEqual(a: any, b: any): boolean {
+    return isEqual(a, b)
   }
 }

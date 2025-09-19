@@ -1,16 +1,19 @@
+import { TNetworkId } from '@cityofzion/blockchain-service'
+import { BSEthereum } from '../BSEthereum'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { RpcBDSEthereum } from '../services/blockchain-data/RpcBDSEthereum'
-import { TokenServiceEthereum } from '../services/token/TokenServiceEthereum'
 
-const network = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '11155111')!
-let rpcBDSEthereum: RpcBDSEthereum
+let service: BSEthereum<'test', TNetworkId>
+let rpcBDSEthereum: RpcBDSEthereum<'test', TNetworkId>
 
 describe('RpcBDSEthereum', () => {
   beforeAll(async () => {
-    const tokenService = new TokenServiceEthereum()
-    rpcBDSEthereum = new RpcBDSEthereum(network, tokenService)
+    const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
+    service = new BSEthereum('test', 'ethereum', network)
+    rpcBDSEthereum = new RpcBDSEthereum(service)
   })
+
   it('Should be able to get transaction', async () => {
     const hash = '0x48eac645fac2280d7ac89a319372d7a38d52516f8b3003574bfaaed31b471ff3'
     const transaction = await rpcBDSEthereum.getTransaction(hash)
@@ -35,14 +38,14 @@ describe('RpcBDSEthereum', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get eth info', async () => {
-    const nativeAsset = BSEthereumHelper.getNativeAsset(network)
+    const nativeAsset = BSEthereumHelper.getNativeAsset(service.network)
     const token = await rpcBDSEthereum.getTokenInfo(nativeAsset.hash)
 
     expect(token).toEqual(nativeAsset)
-  }, 60000)
+  })
 
   it('Should be able to get balance', async () => {
     const address = '0xbA65F285D1F9E0bf76Ab01211547979a3b60011A'

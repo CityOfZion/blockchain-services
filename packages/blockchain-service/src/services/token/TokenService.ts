@@ -1,18 +1,13 @@
 import {
   ITokenService,
-  Token,
+  TBSToken,
   TTokenServicePredicateByHashParams,
   TTokenServicePredicateBySymbolParams,
   TTokenServicePredicateParams,
 } from '../../interfaces'
 
-export type TBSTokenHelperPredicateParams = {
-  hash: string
-  symbol?: string
-}
-
 export abstract class TokenService implements ITokenService {
-  predicate(compareFrom: TTokenServicePredicateParams, compareTo: TBSTokenHelperPredicateParams) {
+  predicate(compareFrom: TTokenServicePredicateParams, compareTo: TTokenServicePredicateParams) {
     if (this.normalizeHash(compareFrom.hash) === this.normalizeHash(compareTo.hash)) return true
 
     if (compareFrom.symbol && compareTo.symbol && compareFrom.symbol.toLowerCase() === compareTo.symbol.toLowerCase())
@@ -41,7 +36,7 @@ export abstract class TokenService implements ITokenService {
     return lowercaseSymbol === lowercaseSymbolToPredicate
   }
 
-  normalizeToken<T extends Token | Token[]>(token: T): T {
+  normalizeToken<T extends TBSToken | TBSToken[]>(token: T): T {
     if (Array.isArray(token)) {
       return token.map(item => ({
         ...item,

@@ -4,18 +4,18 @@ import { BSNeo3 } from '../../../BSNeo3'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 
-let ledgerService: NeonDappKitLedgerServiceNeo3<'neo3'>
+let ledgerService: NeonDappKitLedgerServiceNeo3<'test'>
 let transport: Transport
-let bsNeo3: BSNeo3<'neo3'>
+let bsNeo3: BSNeo3<'test'>
 
 describe.skip('NeonDappKitLedgerServiceNeo3', () => {
   beforeAll(async () => {
-    const network = BSNeo3Constants.TESTNET_NETWORKS[0]!
-    bsNeo3 = new BSNeo3('neo3', network)
+    const network = BSNeo3Constants.TESTNET_NETWORK
+    bsNeo3 = new BSNeo3('test', network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new NeonDappKitLedgerServiceNeo3(bsNeo3, async () => transport)
-  }, 60000)
+  })
 
   it('Should be able to get all accounts automatically', async () => {
     const accounts = await ledgerService.getAccounts(transport)
@@ -31,12 +31,12 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get all accounts until index', async () => {
     const firstAccount = await ledgerService.getAccount(transport, 0)
     const accounts = await ledgerService.getAccounts(transport, {
-      neo3: {
+      test: {
         [firstAccount.address]: 6,
       },
     })
@@ -52,7 +52,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get account', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -64,5 +64,5 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         bip44Path: bsNeo3.bip44DerivationPath.replace('?', '0'),
       })
     )
-  }, 60000)
+  })
 })

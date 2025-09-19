@@ -1,88 +1,26 @@
-import { BlockchainService, BSUtilsHelper, Network, TransactionResponse } from '@cityofzion/blockchain-service'
-import { BSNeoLegacyConstants, BSNeoLegacyNetworkId } from '../constants/BSNeoLegacyConstants'
-import { TokenServiceNeoLegacy } from '../services/token/TokenServiceNeoLegacy'
-
-export type WaitForMigrationParams = {
-  transactionHash: string
-  neo3Address: string
-  neo3Service: BlockchainService
-  neoLegacyService: BlockchainService
-}
+import { TNetwork } from '@cityofzion/blockchain-service'
+import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
+import { TBSNeoLegacyNetworkId } from '../types'
 
 export class BSNeoLegacyHelper {
-  static #tokenService = new TokenServiceNeoLegacy()
-
-  static getLegacyNetwork(network: Network<BSNeoLegacyNetworkId>) {
+  static getLegacyNetwork(network: TNetwork<TBSNeoLegacyNetworkId>) {
     const legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
     if (!legacyNetwork) throw new Error('Unsupported network')
     return legacyNetwork
   }
 
-  static getTokens(network: Network<BSNeoLegacyNetworkId>) {
+  static getTokens(network: TNetwork<TBSNeoLegacyNetworkId>) {
     const extraTokens = BSNeoLegacyConstants.EXTRA_TOKENS_BY_NETWORK_ID[network.id] ?? []
     const nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
 
     return nativeTokens.concat(extraTokens)
   }
 
-  static getRpcList(network: Network<BSNeoLegacyNetworkId>) {
+  static getRpcList(network: TNetwork<TBSNeoLegacyNetworkId>) {
     return BSNeoLegacyConstants.RPC_LIST_BY_NETWORK_ID[network.id] ?? []
   }
 
-  static isMainnet(network: Network<BSNeoLegacyNetworkId>) {
-    return BSNeoLegacyConstants.MAINNET_NETWORK_IDS.includes(network.id)
-  }
-
-  static async waitForMigration(params: WaitForMigrationParams) {
-    const { neo3Address, neo3Service, transactionHash, neoLegacyService } = params
-
-    const MAX_ATTEMPTS = 10
-    const NEO3_MAX_ATTEMPTS = 20
-
-    const response = {
-      isTransactionConfirmed: false,
-      isNeo3TransactionConfirmed: false,
-    }
-
-    let transactionResponse: TransactionResponse
-
-    for (let i = 0; i < MAX_ATTEMPTS; i++) {
-      await BSUtilsHelper.wait(30000)
-
-      try {
-        transactionResponse = await neoLegacyService.blockchainDataService.getTransaction(transactionHash)
-        response.isTransactionConfirmed = true
-        break
-      } catch {
-        // Empty block
-      }
-    }
-
-    if (!response.isTransactionConfirmed) return response
-
-    for (let i = 0; i < NEO3_MAX_ATTEMPTS; i++) {
-      await BSUtilsHelper.wait(60000)
-
-      try {
-        const neo3Response = await neo3Service.blockchainDataService.getTransactionsByAddress({
-          address: neo3Address,
-        })
-
-        const isTransactionConfirmed = neo3Response.transactions.some(
-          transaction =>
-            transaction.time > transactionResponse.time &&
-            transaction.transfers.some(transfer => transfer.from === BSNeoLegacyConstants.MIGRATION_COZ_NEO3_ADDRESS)
-        )
-
-        if (isTransactionConfirmed) {
-          response.isNeo3TransactionConfirmed = true
-          break
-        }
-      } catch {
-        // Empty block
-      }
-    }
-
-    return response
+  static isMainnetNetwork(network: TNetwork<TBSNeoLegacyNetworkId>) {
+    return network.id === BSNeoLegacyConstants.MAINNET_NETWORK.id && network.type === 'mainnet'
   }
 }
