@@ -1,4 +1,4 @@
-import { TNetwork, TBSToken } from '@cityofzion/blockchain-service'
+import { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
 import { TBSSolanaNetworkId } from '../types'
 
 export class BSSolanaConstants {
@@ -13,18 +13,18 @@ export class BSSolanaConstants {
     devnet: ['https://api.devnet.solana.com'],
   }
 
-  static readonly MAINNET_NETWORK: TNetwork<TBSSolanaNetworkId> = {
+  static readonly MAINNET_NETWORK: TBSNetwork<TBSSolanaNetworkId> = {
     id: 'mainnet-beta',
     name: 'Mainnet Beta',
     url: this.RPC_LIST_BY_NETWORK_ID['mainnet-beta']![0],
     type: 'mainnet',
   }
 
-  static readonly TESTNET_NETWORK: TNetwork<TBSSolanaNetworkId> = {
+  static readonly TESTNET_NETWORK: TBSNetwork<TBSSolanaNetworkId> = {
     id: 'devnet',
     name: 'Devnet',
     url: this.RPC_LIST_BY_NETWORK_ID['devnet']![0],
     type: 'testnet',
   }
-  static readonly ALL_NETWORKS: TNetwork<TBSSolanaNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
+  static readonly ALL_NETWORKS: TBSNetwork<TBSSolanaNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 }

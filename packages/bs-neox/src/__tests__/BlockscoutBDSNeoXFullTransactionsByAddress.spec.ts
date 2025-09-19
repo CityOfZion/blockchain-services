@@ -3,7 +3,6 @@ import {
   TFullTransactionsByAddressParams,
   TFullTransactionsItem,
   TFullTransactionsItemBridgeNeo3NeoX,
-  TBridgeToken,
 } from '@cityofzion/blockchain-service'
 
 import { isLeapYear } from 'date-fns'
@@ -13,19 +12,12 @@ import { BSNeoX } from '../BSNeoX'
 
 const address = '0x889D02c0df966Ea5BE11dd8E3Eb0d5E4BD0500dD'
 
-const bridgeGasToken: TBridgeToken<'test'> = {
-  ...BSNeoXConstants.NATIVE_ASSET,
-  multichainId: 'gas',
-  blockchain: 'test',
-}
-
-const bridgeNeoToken: TBridgeToken<'test'> = { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: 'test' }
-
 let dateFrom: Date
 let dateTo: Date
 let params: TFullTransactionsByAddressParams
 
 let blockscoutBDSNeoX: BlockscoutBDSNeoX<'test'>
+let service: BSNeoX<'test'>
 
 jest.mock('../services/nft-data/GhostMarketNDSNeoX', () => {
   return {
@@ -65,7 +57,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
-    const service = new BSNeoX('test')
+    service = new BSNeoX('test')
     blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
   })
 
@@ -167,7 +159,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
     })
 
     it('Should be able to get transactions when is using a Neo X Testnet network', async () => {
-      const service = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
+      service = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
       blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
 
       const response = await blockscoutBDSNeoX.getFullTransactionsByAddress({
@@ -203,7 +195,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
           }),
         ]),
       })
-    }, 30000)
+    })
 
     it('Should be able to get transactions when is using a Neo X Mainnet network', async () => {
       const response = await blockscoutBDSNeoX.getFullTransactionsByAddress({
@@ -258,7 +250,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
-    }, 60000)
+    })
 
     // The NFTs on Neo X should be implemented in future in Dora (remove mock to test)
     it.skip('Should be able to get transactions with NFTs when it was called using Neo X Mainnet network', async () => {
@@ -292,7 +284,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
           }),
         ])
       )
-    }, 30000)
+    })
 
     it('Should be able to get transactions with default pageSize param', async () => {
       const newParams = {
@@ -306,7 +298,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
       expect(response.nextCursor).toBeTruthy()
       expect(response.data.length).toBe(50)
-    }, 60000)
+    })
 
     it('Should be able to get transactions that are marked as bridge (GAS)', async () => {
       const newParams = {
@@ -324,9 +316,9 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(bridgeGasToken)
+      expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.gasToken)
       expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
-    }, 60000)
+    })
 
     it('Should be able to get transactions that are marked as bridge (NEO)', async () => {
       const newParams = {
@@ -344,14 +336,14 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(bridgeNeoToken)
+      expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.neoToken)
       expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
-    }, 60000)
+    })
   })
 
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Neo X Testnet network', async () => {
-      const service = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
+      service = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
       blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
 
       const response = await blockscoutBDSNeoX.exportFullTransactionsByAddress({
@@ -361,7 +353,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       })
 
       expect(response.length).toBeGreaterThan(0)
-    }, 30000)
+    })
 
     it('Should be able to export transactions when is using a Neo X Mainnet network', async () => {
       const response = await blockscoutBDSNeoX.exportFullTransactionsByAddress({

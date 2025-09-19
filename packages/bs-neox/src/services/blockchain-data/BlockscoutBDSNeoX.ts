@@ -11,6 +11,8 @@ import {
   TFullTransactionsByAddressResponse,
   TFullTransactionsItem,
   TNftResponse,
+  TBridgeToken,
+  TBSNetwork,
   TBSToken,
   TransactionBridgeNeo3NeoXResponse,
   TTransactionResponse,
@@ -18,16 +20,15 @@ import {
   TTransactionsByAddressResponse,
   TTransactionTransferAsset,
   TTransactionTransferNft,
-  TNetwork,
+  TBigNumber,
 } from '@cityofzion/blockchain-service'
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
 import { api } from '@cityofzion/dora-ts'
 import { BSEthereumConstants, ERC20_ABI, RpcBDSEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import { BRIDGE_ABI } from '../../assets/abis/bridge'
 import { Neo3NeoXBridgeService } from '../neo3neoXBridge/Neo3NeoXBridgeService'
-import { wallet } from '@cityofzion/neon-js'
 import {
   IBSNeoX,
   TBlockscoutBDSNeoXBalanceApiResponse,
@@ -38,6 +39,7 @@ import {
   TBlockscoutBDSNeoXTransactionByAddressApiResponse,
   TBSNeoXNetworkId,
 } from '../../types'
+import { BSNeo3NeonJsSingletonHelper } from '@cityofzion/bs-neo3'
 
 export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNeoXNetworkId, IBSNeoX<N>> {
   static readonly BASE_URL_BY_CHAIN_ID: Partial<Record<TBSNeoXNetworkId, string>> = {
@@ -49,7 +51,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
   static readonly FULL_TRANSACTIONS_ERC1155_STANDARDS = ['erc1155', 'erc-1155']
   static readonly FULL_TRANSACTIONS_ERC20_STANDARDS = ['erc20', 'erc-20']
 
-  static getClient(network: TNetwork<TBSNeoXNetworkId>) {
+  static getClient(network: TBSNetwork<TBSNeoXNetworkId>) {
     const baseURL = BlockscoutBDSNeoX.BASE_URL_BY_CHAIN_ID[network.id]
     if (!baseURL) throw new Error('Unsupported network')
 
@@ -57,14 +59,22 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
   }
 
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5 // 5 minutes
+  readonly #apiInstance?: AxiosInstance
 
   constructor(service: IBSNeoX<N>) {
     super(service)
   }
 
+  get #api() {
+    if (!this.#apiInstance) {
+      return BlockscoutBDSNeoX.getClient(this._service.network)
+    }
+
+    return this.#apiInstance
+  }
+
   async getTransaction(txid: string): Promise<TTransactionResponse> {
-    const client = BlockscoutBDSNeoX.getClient(this._service.network)
-    const { data } = await client.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
+    const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
     if (!data || 'message' in data) {
       throw new Error('Transaction not found')
@@ -140,8 +150,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
   }
 
   async getTransactionsByAddress(params: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse> {
-    const client = BlockscoutBDSNeoX.getClient(this._service.network)
-    const { data } = await client.get<TBlockscoutBDSNeoXTransactionByAddressApiResponse>(
+    const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionByAddressApiResponse>(
       `/addresses/${params.address}/transactions`,
       {
         params: {
@@ -196,7 +205,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             contractHash: token.hash,
             token,
           })
-        } catch (error) {
+        } catch {
           /* empty */
         }
       }
@@ -346,8 +355,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         // Verify if the event is a bridgeNeo3NeoX event
         if (newItem.type === 'default' && to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH) {
           await BSPromisesHelper.tryCatch(async () => {
-            const client = BlockscoutBDSNeoX.getClient(this._service.network)
-            const response = await client.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txId}`)
+            const response = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txId}`)
 
             const bridgeNeo3NeoXData = this.#getBridgeNeo3NeoXDataByBlockscoutTransaction(response.data)
 
@@ -383,9 +391,9 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
   async getContract(contractHash: string): Promise<ContractResponse> {
     try {
-      const client = BlockscoutBDSNeoX.getClient(this._service.network)
-
-      const { data } = await client.get<TBlockscoutBDSNeoXSmartContractApiResponse>(`/smart-contracts/${contractHash}`)
+      const { data } = await this.#api.get<TBlockscoutBDSNeoXSmartContractApiResponse>(
+        `/smart-contracts/${contractHash}`
+      )
 
       if (!data || 'message' in data) {
         throw new Error('Contract not found')
@@ -412,7 +420,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         name: data.name,
         methods,
       }
-    } catch (error) {
+    } catch {
       throw new Error('Contract not found or not supported')
     }
   }
@@ -430,9 +438,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       return cachedToken
     }
 
-    const client = BlockscoutBDSNeoX.getClient(this._service.network)
-
-    const { data } = await client.get<TBlockscoutBDSNeoXTokensApiResponse>(`/tokens/${tokenHash}`)
+    const { data } = await this.#api.get<TBlockscoutBDSNeoXTokensApiResponse>(`/tokens/${tokenHash}`)
     if (!data || 'message' in data) {
       throw new Error('Token not found')
     }
@@ -454,9 +460,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
-    const client = BlockscoutBDSNeoX.getClient(this._service.network)
-
-    const { data: nativeBalance } = await client.get<{ coin_balance: string }>(`/addresses/${address}`)
+    const { data: nativeBalance } = await this.#api.get<{ coin_balance: string }>(`/addresses/${address}`)
     if (!nativeBalance || 'message' in nativeBalance) {
       throw new Error('Native balance not found')
     }
@@ -470,7 +474,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       },
     ]
 
-    const { data: erc20Balances } = await client.get<TBlockscoutBDSNeoXBalanceApiResponse[]>(
+    const { data: erc20Balances } = await this.#api.get<TBlockscoutBDSNeoXBalanceApiResponse[]>(
       `/addresses/${address}/token-balances`
     )
     if (!erc20Balances || 'message' in erc20Balances) {
@@ -503,9 +507,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
   }
 
   async getBlockHeight(): Promise<number> {
-    const client = BlockscoutBDSNeoX.getClient(this._service.network)
-
-    const { data } = await client.get<TBlockscoutBDSNeoXBlocksApiResponse>('/blocks')
+    const { data } = await this.#api.get<TBlockscoutBDSNeoXBlocksApiResponse>('/blocks')
     if (!data || 'message' in data) {
       throw new Error('Block not found')
     }
@@ -519,40 +521,30 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
     const input = BridgeInterface.parseTransaction({ data: transactionResponse.raw_input })
 
+    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+
     const to = input.args._to
     const receiverAddress = wallet.getAddressFromScriptHash(to.startsWith('0x') ? to.slice(2) : to)
 
+    let token: TBridgeToken | undefined
+    let amountBn: TBigNumber | undefined
+
     if (input.name === 'withdrawNative') {
-      const token = this._service.neo3NeoXBridgeService.tokens.find(currentToken =>
-        this._service.tokenService.predicateByHash(BSNeoXConstants.NATIVE_ASSET, currentToken)
+      token = this._service.neo3NeoXBridgeService.gasToken
+      amountBn = BSBigNumberHelper.fromDecimals(transactionResponse.value, token.decimals).minus(
+        Neo3NeoXBridgeService.BRIDGE_FEE
       )
-
-      if (!token) return undefined
-
-      const amount = BSBigNumberHelper.format(
-        BSBigNumberHelper.fromNumber(ethers.utils.formatUnits(transactionResponse.value, token.decimals)).minus(
-          Neo3NeoXBridgeService.BRIDGE_FEE
-        ),
-        { decimals: token.decimals }
-      )
-
-      return { amount, token, receiverAddress }
+    } else if (input.name === 'withdrawToken') {
+      token = this._service.neo3NeoXBridgeService.neoToken
+      amountBn = BSBigNumberHelper.fromDecimals(input.args._amount.toString(), token.decimals)
     }
 
-    if (input.name === 'withdrawToken') {
-      const token = this._service.neo3NeoXBridgeService.tokens.find(currentToken =>
-        this._service.tokenService.predicateByHash(BSNeoXConstants.NEO_TOKEN, currentToken)
-      )
+    if (!token || !amountBn) return undefined
 
-      if (!token) return undefined
-
-      const amount = BSBigNumberHelper.format(ethers.utils.formatUnits(input.args._amount, token.decimals), {
-        decimals: token.decimals,
-      })
-
-      return { amount, token, receiverAddress }
+    return {
+      token,
+      receiverAddress,
+      amount: BSBigNumberHelper.toNumber(amountBn),
     }
-
-    return undefined
   }
 }

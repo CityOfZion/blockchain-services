@@ -6,10 +6,10 @@ import {
   IBSWithEncryption,
   IBSWithExplorer,
   IBSWithLedger,
-  TNetworkId,
+  TBSNetworkId,
 } from '@cityofzion/blockchain-service'
 
-export type TBSNeoLegacyNetworkId = TNetworkId<'mainnet' | 'testnet'>
+export type TBSNeoLegacyNetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
 export type TSigningCallback = (transaction: string, publicKey: string) => Promise<string | string[]>
 

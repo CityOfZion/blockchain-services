@@ -1,6 +1,6 @@
 import { BSEthereum, TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from './constants/BSNeoXConstants'
-import { BSUtilsHelper, TGetLedgerTransport, INeo3NeoXBridgeService, TNetwork } from '@cityofzion/blockchain-service'
+import { BSUtilsHelper, TGetLedgerTransport, INeo3NeoXBridgeService, TBSNetwork } from '@cityofzion/blockchain-service'
 import { BlockscoutBDSNeoX } from './services/blockchain-data/BlockscoutBDSNeoX'
 import { FlamingoForthewinEDSNeoX } from './services/exchange-data/FlamingoForthewinEDSNeoX'
 import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
@@ -11,11 +11,11 @@ import { IBSNeoX, TBSNeoXNetworkId } from './types'
 export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetworkId> implements IBSNeoX<N> {
   neo3NeoXBridgeService!: INeo3NeoXBridgeService<N>
 
-  readonly defaultNetwork: TNetwork<TBSNeoXNetworkId>
-  readonly availableNetworks: TNetwork<TBSNeoXNetworkId>[]
+  readonly defaultNetwork: TBSNetwork<TBSNeoXNetworkId>
+  readonly availableNetworks: TBSNetwork<TBSNeoXNetworkId>[]
 
-  constructor(name: N, network?: TNetwork<TBSNeoXNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
-    super(name, 'ethereum', network, getLedgerTransport)
+  constructor(name: N, network?: TBSNetwork<TBSNeoXNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
+    super(name, undefined, undefined, getLedgerTransport)
 
     this.tokens = [BSNeoXConstants.NATIVE_ASSET]
     this.nativeTokens = [BSNeoXConstants.NATIVE_ASSET]
@@ -27,13 +27,16 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  setNetwork(network: TNetwork<TBSNeoXNetworkId>) {
-    const isValidNetwork = this.availableNetworks.some(networkItem => BSUtilsHelper.isEqual(networkItem, network))
+  setNetwork(network: TBSNetwork<TBSNeoXNetworkId>) {
+    const availableURLs = BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, availableURLs)
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
     this.network = network
+    this.availableNetworkURLs = availableURLs
 
     this.nftDataService = new GhostMarketNDSNeoX(this)
     this.explorerService = new BlockscoutESNeoX(this)
@@ -41,13 +44,5 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
     this.blockchainDataService = new BlockscoutBDSNeoX(this)
     this.tokenService = new TokenServiceEthereum()
-  }
-
-  async testNetwork(network: TNetwork<TBSNeoXNetworkId>) {
-    this.tokenService = new TokenServiceEthereum()
-    const service = new BSNeoX(this.name, network, this.ledgerService.getLedgerTransport)
-    const blockchainDataServiceClone = new BlockscoutBDSNeoX(service)
-
-    await blockchainDataServiceClone.getBlockHeight()
   }
 }

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-electron",
+      "comment": "Bump dependencies version",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-electron"
+}

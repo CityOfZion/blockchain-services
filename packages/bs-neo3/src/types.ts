@@ -9,12 +9,11 @@ import {
   IBSWithNameService,
   IBSWithNeo3NeoXBridge,
   IBSWithNft,
-  TNetworkId,
+  TBSNetworkId,
 } from '@cityofzion/blockchain-service'
-import { wallet } from '@cityofzion/neon-core'
-import { api } from '@cityofzion/neon-js'
+import { wallet, api } from './helpers/BSNeo3NeonJsSingletonHelper'
 
-export type TBSNeo3NetworkId = TNetworkId<'mainnet' | 'testnet'>
+export type TBSNeo3NetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
 export interface IBSNeo3<N extends string = string>
   extends IBlockchainService<N, TBSNeo3NetworkId>,

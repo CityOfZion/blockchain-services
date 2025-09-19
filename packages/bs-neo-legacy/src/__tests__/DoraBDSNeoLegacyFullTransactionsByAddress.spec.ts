@@ -39,7 +39,7 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
   })
 
   describe('getFullTransactionsByAddress', () => {
-    it("Shouldn't be able to get transactions when is using a different network (Testnet or Custom) from Mainnet", async () => {
+    it("Shouldn't be able to get transactions when is using a testnet network", async () => {
       bdsNeoLegacy = new DoraBDSNeoLegacy(new BSNeoLegacy('test', BSNeoLegacyConstants.TESTNET_NETWORK))
 
       await expect(bdsNeoLegacy.getFullTransactionsByAddress(params)).rejects.toThrow('Network not supported')

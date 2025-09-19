@@ -1,6 +1,6 @@
 import { IClaimDataService } from '@cityofzion/blockchain-service'
 import { IBSNeo3 } from '../../types'
-import { rpc, u } from '@cityofzion/neon-core'
+import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 
 export class RpcCDSNeo3<N extends string> implements IClaimDataService {
   readonly _service: IBSNeo3<N>
@@ -10,6 +10,7 @@ export class RpcCDSNeo3<N extends string> implements IClaimDataService {
   }
 
   async getUnclaimed(address: string): Promise<string> {
+    const { rpc, u } = BSNeo3NeonJsSingletonHelper.getInstance()
     const rpcClient = new rpc.RPCClient(this._service.network.url)
     const response = await rpcClient.getUnclaimedGas(address)
     return u.BigInteger.fromNumber(response).toDecimal(this._service.claimToken.decimals)

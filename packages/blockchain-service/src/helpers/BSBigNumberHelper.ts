@@ -40,11 +40,13 @@ export class BSBigNumberHelper {
 
       const formattedValue = bigValue.decimalPlaces(decimals, BigNumber.ROUND_DOWN)
       return formattedValue.toFixed()
-    } catch (error) {
+    } catch {
       console.error('Invalid value provided to format:', value)
       return '0'
     }
   }
 }
+
+export type TBigNumber = BigNumber
 
 export const BSBigNumber = BigNumber

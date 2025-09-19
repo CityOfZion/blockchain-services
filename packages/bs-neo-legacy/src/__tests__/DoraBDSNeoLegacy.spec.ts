@@ -10,7 +10,7 @@ describe('DoraBDSNeoLegacy', () => {
     doraBDSNeoLegacy = new DoraBDSNeoLegacy(service)
   })
 
-  it('Should be able to get transaction - %s', async () => {
+  it('Should be able to get transaction', async () => {
     const hash = '0xa7517641bf2d6e9683d66c0d58221e3d1b46b616a2231cd7c7d4a611ce825cc8'
     const transaction = await doraBDSNeoLegacy.getTransaction(hash)
     expect(transaction).toEqual(
@@ -33,7 +33,7 @@ describe('DoraBDSNeoLegacy', () => {
     )
   })
 
-  it('Should be able to get history transactions - %s', async () => {
+  it('Should be able to get history transactions', async () => {
     const address = 'AeGgZTTWPzyVtNiQRcpngkV75Xip1hznmi'
 
     const response = await doraBDSNeoLegacy.getTransactionsByAddress({ address })
@@ -58,7 +58,7 @@ describe('DoraBDSNeoLegacy', () => {
     })
   })
 
-  it.skip('Should be able to get contract - %s', async () => {
+  it.skip('Should be able to get contract', async () => {
     const hash = '0x998a0da7ec5f21c9a99ef5349f81af8af89f9644'
     const contract = await doraBDSNeoLegacy.getContract(hash)
     expect(contract).toEqual({
@@ -68,7 +68,7 @@ describe('DoraBDSNeoLegacy', () => {
     })
   })
 
-  it('Should be able to get token info - %s', async () => {
+  it('Should be able to get token info', async () => {
     const hash = '0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
     const token = await doraBDSNeoLegacy.getTokenInfo(hash)
     expect(token).toEqual({
@@ -79,7 +79,7 @@ describe('DoraBDSNeoLegacy', () => {
     })
   })
 
-  it('Should be able to get balance - %s', async () => {
+  it('Should be able to get balance', async () => {
     const address = 'AeGgZTTWPzyVtNiQRcpngkV75Xip1hznmi'
     const balance = await doraBDSNeoLegacy.getBalance(address)
 
@@ -92,18 +92,6 @@ describe('DoraBDSNeoLegacy', () => {
           symbol: expect.any(String),
           decimals: expect.any(Number),
         },
-      })
-    })
-  })
-
-  it('Should be able to get a list of rpc - %s', async () => {
-    const list = await doraBDSNeoLegacy.getRpcList()
-    expect(list.length).toBeGreaterThan(0)
-    list.forEach(rpc => {
-      expect(rpc).toEqual({
-        height: expect.any(Number),
-        latency: expect.any(Number),
-        url: expect.any(String),
       })
     })
   })

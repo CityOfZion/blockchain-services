@@ -1,9 +1,9 @@
-name: Publish all Blockchain Services Libs (Blockchain-Service, BS-Asteroid-sdk, BS-Ethereum, BS-Neo-Legacy, BS-Neo3, BS-Multichain, BS-Neox)
+name: Publish all Blockchain Services Libs (Blockchain-Service, BS-Ethereum, BS-Neo-Legacy, BS-Neo3, BS-Multichain, BS-Neox)
 
 on: workflow_dispatch
 
 env:
-  NODE_VERSION: 16.x
+  NODE_VERSION: 22.x
 
 jobs:
   publish:

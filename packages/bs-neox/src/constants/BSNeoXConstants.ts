@@ -1,4 +1,4 @@
-import { TNetwork, TBSToken } from '@cityofzion/blockchain-service'
+import { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
 import { TBSNeoXNetworkId } from '../types'
 
 export class BSNeoXConstants {
@@ -21,17 +21,17 @@ export class BSNeoXConstants {
     '12227332': ['https://testnet.rpc.banelabs.org', 'https://neoxt4seed1.ngd.network'],
   }
 
-  static readonly MAINNET_NETWORK: TNetwork<TBSNeoXNetworkId> = {
+  static readonly MAINNET_NETWORK: TBSNetwork<TBSNeoXNetworkId> = {
     id: '47763',
     name: 'NeoX Mainnet',
     url: this.RPC_LIST_BY_NETWORK_ID['47763'][0],
     type: 'mainnet',
   }
-  static readonly TESTNET_NETWORK: TNetwork<TBSNeoXNetworkId> = {
+  static readonly TESTNET_NETWORK: TBSNetwork<TBSNeoXNetworkId> = {
     id: '12227332',
     name: 'NeoX Testnet',
     url: this.RPC_LIST_BY_NETWORK_ID['12227332'][0],
     type: 'testnet',
   }
-  static readonly ALL_NETWORKS: TNetwork<TBSNeoXNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
+  static readonly ALL_NETWORKS: TBSNetwork<TBSNeoXNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 }

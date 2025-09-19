@@ -1,9 +1,9 @@
 import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
-import { TNetworkId } from '@cityofzion/blockchain-service'
+import { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { IBSEthereum } from '../types'
 import { BSEthereum } from '../BSEthereum'
 
-let blockscoutESEthereum: BlockscoutESEthereum<'test', TNetworkId>
+let blockscoutESEthereum: BlockscoutESEthereum<'test', TBSNetworkId>
 let service: IBSEthereum<'test'>
 
 describe('BlockscoutESEthereum', () => {

@@ -1,7 +1,7 @@
-import { TBuildNftUrlParams, IExplorerService, TNetworkId } from '@cityofzion/blockchain-service'
+import { TBuildNftUrlParams, IExplorerService, TBSNetworkId } from '@cityofzion/blockchain-service'
 import { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 
-export class BlockscoutESEthereum<N extends string, A extends TNetworkId> implements IExplorerService {
+export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> implements IExplorerService {
   static readonly DEFAULT_BASE_URL_BY_NETWORK_ID: Partial<Record<TBSEthereumNetworkId, string>> = {
     '1': 'https://eth.blockscout.com',
     '10': 'https://optimism.blockscout.com',

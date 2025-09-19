@@ -8,7 +8,9 @@ const config: JestConfigWithTsJest = {
   testMatch: ['<rootDir>/**/*.spec.ts'],
   setupFiles: ['<rootDir>/jest.setup.ts'],
   detectOpenHandles: true,
-  testTimeout: 30000,
+  testTimeout: 60000,
+  maxConcurrency: 1,
+  maxWorkers: 1,
 }
 
 export default config

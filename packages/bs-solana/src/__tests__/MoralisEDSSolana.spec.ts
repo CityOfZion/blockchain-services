@@ -19,13 +19,13 @@ describe('MoralisEDSEthereum', () => {
       usdPrice: expect.any(Number),
       token: BSSolanaConstants.NATIVE_TOKEN,
     })
-  }, 60000)
+  })
 
   it('Should return the BRL currency ratio', async () => {
     const ratio = await moralisEDSSolana.getCurrencyRatio('BRL')
 
     expect(ratio).toEqual(expect.any(Number))
-  }, 20000)
+  })
 
   it('Should return EUR currency ratio', async () => {
     const ratio = await moralisEDSSolana.getCurrencyRatio('EUR')
@@ -47,5 +47,5 @@ describe('MoralisEDSEthereum', () => {
         token: BSSolanaConstants.NATIVE_TOKEN,
       })
     })
-  }, 60000)
+  })
 })

@@ -1,13 +1,13 @@
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { DoraESNeo3 } from '../../../services/explorer/DoraESNeo3'
-import { BSCommonConstants, TNetwork } from '@cityofzion/blockchain-service'
+import { BSCommonConstants, TBSNetwork } from '@cityofzion/blockchain-service'
 import { IBSNeo3 } from '../../../types'
 import { BSNeo3 } from '../../../BSNeo3'
 
 let doraESNeo3: DoraESNeo3<'test'>
 let service: IBSNeo3<'test'>
 
-const INVALID_NETWORK: TNetwork = { id: '1234', name: 'name', url: 'INVALID_URL', type: 'custom' }
+const INVALID_NETWORK: TBSNetwork = { id: '1234', name: 'name', url: 'INVALID_URL', type: 'custom' }
 
 describe('DoraESNeo3', () => {
   beforeEach(() => {

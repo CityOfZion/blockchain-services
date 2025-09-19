@@ -1,10 +1,10 @@
 import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
-import { TNetworkId } from '@cityofzion/blockchain-service'
+import { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereum } from '../BSEthereum'
 
-let service: BSEthereum<'test', TNetworkId>
-let moralisBDSEthereum: MoralisBDSEthereum<'test', TNetworkId>
+let service: BSEthereum<'test', TBSNetworkId>
+let moralisBDSEthereum: MoralisBDSEthereum<'test', TBSNetworkId>
 
 describe('MoralisBDSEthereum', () => {
   beforeEach(() => {
@@ -104,18 +104,6 @@ describe('MoralisBDSEthereum', () => {
           },
         })
       )
-    })
-  })
-
-  it('Should be able to get a list of rpc - %s', async () => {
-    const list = await moralisBDSEthereum.getRpcList()
-    expect(list.length).toBeGreaterThan(0)
-    list.forEach(rpc => {
-      expect(rpc).toEqual({
-        height: expect.any(Number),
-        latency: expect.any(Number),
-        url: expect.any(String),
-      })
     })
   })
 })

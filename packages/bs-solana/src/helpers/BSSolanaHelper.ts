@@ -1,4 +1,4 @@
-import { TNetwork } from '@cityofzion/blockchain-service'
+import { TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import { TBSSolanaNetworkId } from '../types'
 
@@ -11,7 +11,7 @@ export class BSSolanaHelper {
     return this.fixBip44Path(path.replace('?', index.toString()))
   }
 
-  static isMainnetNetwork(network: TNetwork<TBSSolanaNetworkId>) {
+  static isMainnetNetwork(network: TBSNetwork<TBSSolanaNetworkId>) {
     return BSSolanaConstants.MAINNET_NETWORK.id === network.id && network.type === 'mainnet'
   }
 }

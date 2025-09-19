@@ -21,18 +21,22 @@ export class SimpleSwapApi<N extends string> {
     },
   }
 
-  #axios: AxiosInstance
+  #apiInstance?: AxiosInstance
   #allCurrenciesMap: Map<string, TSimpleSwapApiCurrency<N>> = new Map()
 
-  constructor() {
-    this.#axios = axios.create({
-      baseURL: `${BSCommonConstants.DORA_URL}/api/v2/swap`,
-      headers: {
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache',
-        Expires: '0',
-      },
-    })
+  get #api() {
+    if (!this.#apiInstance) {
+      this.#apiInstance = axios.create({
+        baseURL: `${BSCommonConstants.DORA_URL}/api/v2/swap`,
+        headers: {
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      })
+    }
+
+    return this.#apiInstance
   }
 
   #createAddressTemplateUrl(
@@ -86,7 +90,6 @@ export class SimpleSwapApi<N extends string> {
     if (chainsByServiceNameEntry) {
       blockchain = chainsByServiceNameEntry[0]
       blockchainService = options.blockchainServicesByName[blockchain]
-
       const normalizedHash = hash && blockchainService ? blockchainService.tokenService.normalizeHash(hash) : ''
 
       const token = blockchainService?.tokens.find(item => {
@@ -136,7 +139,7 @@ export class SimpleSwapApi<N extends string> {
         return Array.from(this.#allCurrenciesMap.values())
       }
 
-      const response = await this.#axios.get<TSimpleSwapApiGetCurrenciesResponse>('/currencies')
+      const response = await this.#api.get<TSimpleSwapApiGetCurrenciesResponse>('/currencies')
 
       const tokens: TSimpleSwapApiCurrency<N>[] = []
 
@@ -163,7 +166,7 @@ export class SimpleSwapApi<N extends string> {
 
   async getPairs(ticker: string, network: string) {
     try {
-      const response = await this.#axios.get<TSimpleSwapApiGetPairsResponse>(`/pairs/${ticker}/${network}`)
+      const response = await this.#api.get<TSimpleSwapApiGetPairsResponse>(`/pairs/${ticker}/${network}`)
       const pairs = response.data.result[`${ticker}:${network}`] ?? []
 
       const tokens: TSimpleSwapApiCurrency<N>[] = []
@@ -185,7 +188,7 @@ export class SimpleSwapApi<N extends string> {
 
   async getRange(currencyFrom: TSimpleSwapApiCurrency, currencyTo: TSimpleSwapApiCurrency) {
     try {
-      const response = await this.#axios.get<TSimpleSwapApiGetRangeResponse>('/ranges', {
+      const response = await this.#api.get<TSimpleSwapApiGetRangeResponse>('/ranges', {
         params: {
           tickerFrom: currencyFrom.ticker,
           tickerTo: currencyTo.ticker,
@@ -205,7 +208,7 @@ export class SimpleSwapApi<N extends string> {
 
   async getEstimate(currencyFrom: TSimpleSwapApiCurrency, currencyTo: TSimpleSwapApiCurrency, amount: string) {
     try {
-      const response = await this.#axios.get<TSimpleSwapApiGetEstimateResponse>('/estimates', {
+      const response = await this.#api.get<TSimpleSwapApiGetEstimateResponse>('/estimates', {
         params: {
           tickerFrom: currencyFrom.ticker,
           tickerTo: currencyTo.ticker,
@@ -236,7 +239,7 @@ export class SimpleSwapApi<N extends string> {
     try {
       const {
         data: { result },
-      } = await this.#axios.post<TSimpleSwapApiCreateExchangeResponse>('/exchanges', {
+      } = await this.#api.post<TSimpleSwapApiCreateExchangeResponse>('/exchanges', {
         tickerFrom: currencyFrom.ticker,
         networkFrom: currencyFrom.network,
         tickerTo: currencyTo.ticker,
@@ -265,7 +268,7 @@ export class SimpleSwapApi<N extends string> {
     try {
       const {
         data: { result },
-      } = await this.#axios.get<TSimpleSwapApiGetExchangeResponse>(`/exchanges/${id}`)
+      } = await this.#api.get<TSimpleSwapApiGetExchangeResponse>(`/exchanges/${id}`)
 
       return {
         status: result.status,

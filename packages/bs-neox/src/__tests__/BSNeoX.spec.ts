@@ -24,5 +24,5 @@ describe('BSNeoX', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 60000)
+  })
 })

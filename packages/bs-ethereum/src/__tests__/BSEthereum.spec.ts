@@ -83,8 +83,14 @@ describe('BSEthereum', () => {
     )
   })
 
-  it('Should be able to test the network', () => {
-    expect(() => bsEthereum.testNetwork(bsEthereum.network)).not.toThrowError()
+  it('Should be able to test the network', async () => {
+    const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(net => net.type === 'mainnet')!
+    const response = await bsEthereum.pingNetwork(network)
+    expect(response).toEqual({
+      latency: expect.any(Number),
+      url: network.url,
+      height: expect.any(Number),
+    })
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {

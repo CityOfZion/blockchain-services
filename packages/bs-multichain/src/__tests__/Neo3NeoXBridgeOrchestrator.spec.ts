@@ -113,27 +113,14 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     ).rejects.toThrow(new BSError('You are trying to use a token that is not available', 'TOKEN_NOT_AVAILABLE'))
   })
 
-  it('Should not be able to set token to use if pair token does not exist', async () => {
-    await neo3NeoXBridgeOrchestrator.init()
-
-    const invalidToken = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
-    invalidToken.multichainId = 'INVALID'
-
-    await expect(neo3NeoXBridgeOrchestrator.setTokenToUse(invalidToken)).rejects.toThrow(
-      new BSError('Pair token not found', 'PAIR_TOKEN_NOT_FOUND')
-    )
-  })
-
   it('Should be able to set token to use', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
     const setBalanceSpy = jest.spyOn(neo3NeoXBridgeOrchestrator, 'setBalances')
     const setAmountToUseSpy = jest.spyOn(neo3NeoXBridgeOrchestrator, 'setAmountToUse')
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
-    const pairToken = neo3NeoXBridgeOrchestrator.toService.neo3NeoXBridgeService.tokens.find(
-      item => item.multichainId === token.multichainId
-    )
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
+    const pairToken = neo3NeoXBridgeOrchestrator.toService.neo3NeoXBridgeService.gasToken
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     expect(tokenToUse.value).toEqual(token)
@@ -148,7 +135,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set token to use to null', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     expect(tokenToUse.value).toEqual(token)
@@ -285,7 +272,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set balances if balance does not exist', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const balances: TBalanceResponse[] = []
@@ -301,7 +288,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set balances', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const balances: TBalanceResponse[] = [{ amount: '5', token }]
@@ -335,7 +322,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should not be able to set amount to use if amount is less than min', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
@@ -361,7 +348,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should not be able to set amount to use if amount is greater than max', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
@@ -387,9 +374,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should not be able to set amount to use if balance is not sufficient to pay fee', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens.find(currentToken =>
-      neo3NeoXBridgeOrchestrator.fromService.tokenService.predicateBySymbol('NEO', currentToken)
-    )!
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.neoToken
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
@@ -420,7 +405,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set amount to use', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
@@ -445,7 +430,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set amount to use to null', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
@@ -476,7 +461,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to switch tokens', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
@@ -495,9 +480,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     expect(amountToUse.value).toEqual(amount)
 
-    const newTokenToUse = neo3NeoXBridgeOrchestrator.toService.neo3NeoXBridgeService.tokens.find(
-      item => item.multichainId === token.multichainId
-    )!
+    const newTokenToUse = neo3NeoXBridgeOrchestrator.toService.neo3NeoXBridgeService.gasToken
 
     await neo3NeoXBridgeOrchestrator.switchTokens()
 
@@ -532,7 +515,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     const balances = await neo3NeoXBridgeOrchestrator.fromService.blockchainDataService.getBalance(account.address)
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
@@ -557,7 +540,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it.skip('Should be able to wait', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.tokens[0]
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 

@@ -1,7 +1,7 @@
-import { IBSWithNeo3NeoXBridge, TNetworkId } from '@cityofzion/blockchain-service'
+import { IBSWithNeo3NeoXBridge, TBSNetworkId } from '@cityofzion/blockchain-service'
 import { ERC20_ABI, IBSEthereum } from '@cityofzion/bs-ethereum'
 
-export type TBSNeoXNetworkId = TNetworkId<'47763' | '12227332'>
+export type TBSNeoXNetworkId = TBSNetworkId<'47763' | '12227332'>
 
 export interface IBSNeoX<N extends string = string>
   extends IBSEthereum<N, TBSNeoXNetworkId>,

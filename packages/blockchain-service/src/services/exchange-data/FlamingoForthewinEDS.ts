@@ -1,5 +1,5 @@
 import { TGetTokenPricesParams, IBlockchainService, IExchangeDataService, TTokenPricesResponse } from '../../interfaces'
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import { CryptoCompareEDS } from './CryptoCompareEDS'
 import {
   TFlamingoForthewinEDSFlamingoPricesApiResponse,
@@ -7,9 +7,10 @@ import {
 } from '../../types'
 
 export class FlamingoForthewinEDS<N extends string> extends CryptoCompareEDS implements IExchangeDataService {
-  readonly #flamingoAxiosInstance = axios.create({ baseURL: 'https://neo-api.b-cdn.net/flamingo' })
-  readonly #forthewinAxiosInstance = axios.create({ baseURL: 'https://api.forthewin.network' })
   readonly _service: IBlockchainService<N>
+
+  #forthewinApiInstance?: AxiosInstance
+  #flamingoApiInstance?: AxiosInstance
 
   constructor(service: IBlockchainService<N>) {
     super()
@@ -17,9 +18,23 @@ export class FlamingoForthewinEDS<N extends string> extends CryptoCompareEDS imp
     this._service = service
   }
 
+  get #forthewinApi() {
+    if (!this.#forthewinApiInstance) {
+      this.#forthewinApiInstance = axios.create({ baseURL: 'https://api.forthewin.network' })
+    }
+    return this.#forthewinApiInstance
+  }
+
+  get #flamingoApi() {
+    if (!this.#flamingoApiInstance) {
+      this.#flamingoApiInstance = axios.create({ baseURL: 'https://neo-api.b-cdn.net/flamingo' })
+    }
+    return this.#flamingoApiInstance
+  }
+
   async getTokenPrices({ tokens }: TGetTokenPricesParams): Promise<TTokenPricesResponse[]> {
     const { data: flamingoData } =
-      await this.#flamingoAxiosInstance.get<TFlamingoForthewinEDSFlamingoPricesApiResponse>('/live-data/prices/latest')
+      await this.#flamingoApi.get<TFlamingoForthewinEDSFlamingoPricesApiResponse>('/live-data/prices/latest')
 
     const prices: TTokenPricesResponse[] = []
     const neoToken = tokens.find(({ symbol }) => symbol === 'NEO')
@@ -39,7 +54,7 @@ export class FlamingoForthewinEDS<N extends string> extends CryptoCompareEDS imp
 
     if (tokens.length > prices.length) {
       const { data: forthewinData } =
-        await this.#forthewinAxiosInstance.get<TFlamingoForthewinEDSForthewinPricesApiResponse>('/mainnet/prices')
+        await this.#forthewinApi.get<TFlamingoForthewinEDSForthewinPricesApiResponse>('/mainnet/prices')
 
       Object.entries(forthewinData).forEach(([hash, usdPrice]) => {
         const hasPrice = !!prices.find(({ token }) => this._service.tokenService.predicate({ hash }, token))
