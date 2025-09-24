@@ -1,25 +1,20 @@
 import {
-  ExchangeDataService,
   FlamingoForthewinEDS,
-  GetTokenPriceHistoryParams,
-  GetTokenPricesParams,
-  Network,
-  TokenPricesResponse,
-  TokenService,
+  TGetTokenPriceHistoryParams,
+  TGetTokenPricesParams,
+  TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { BSNeoXConstants, BSNeoXNetworkId } from '../../constants/BSNeoXConstants'
+import { IBSNeoX } from '../../types'
+import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
 
-export class FlamingoForthewinEDSNeoX extends FlamingoForthewinEDS implements ExchangeDataService {
-  readonly #network: Network<BSNeoXNetworkId>
-
-  constructor(network: Network<BSNeoXNetworkId>, tokenService: TokenService) {
-    super(tokenService)
-
-    this.#network = network
+export class FlamingoForthewinEDSNeoX<N extends string> extends FlamingoForthewinEDS<N> {
+  constructor(service: IBSNeoX<N>) {
+    super(service)
   }
 
-  async getTokenPrices({ tokens }: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
-    this.#validate()
+  async getTokenPrices({ tokens }: TGetTokenPricesParams): Promise<TTokenPricesResponse[]> {
+    if (!BSNeoXHelper.isMainnetNetwork(this._service.network))
+      throw new Error('Exchange is only available on Neo X Mainnet')
 
     const gasToken = tokens.find(({ symbol }) => symbol === 'GAS')
     const neoToken = tokens.find(({ symbol }) => symbol === 'NEO')
@@ -31,18 +26,14 @@ export class FlamingoForthewinEDSNeoX extends FlamingoForthewinEDS implements Ex
     })
   }
 
-  async getTokenPriceHistory(params: GetTokenPriceHistoryParams) {
-    this.#validate()
+  async getTokenPriceHistory(params: TGetTokenPriceHistoryParams) {
+    if (!BSNeoXHelper.isMainnetNetwork(this._service.network))
+      throw new Error('Exchange is only available on Neo X Mainnet')
 
     const { symbol } = params.token
 
     if (symbol !== 'GAS' && symbol !== 'NEO') throw new Error('Invalid token, it should be GAS or NEO')
 
     return await super.getTokenPriceHistory(params)
-  }
-
-  async #validate() {
-    if (!BSNeoXConstants.MAINNET_NETWORK_IDS.includes(this.#network.id))
-      throw new Error('Exchange is only available on Neo X Mainnet')
   }
 }

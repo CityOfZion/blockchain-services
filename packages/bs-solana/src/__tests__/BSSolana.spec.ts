@@ -7,21 +7,13 @@ import bs58 from 'bs58'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSUtilsHelper } from '@cityofzion/blockchain-service'
 
-const network = BSSolanaConstants.TESTNET_NETWORKS.find(network => network.id === 'devnet')!
-
-let bsSolana: BSSolana<'solana'>
+let bsSolana: BSSolana<'test'>
 const mnemonic = process.env.TEST_MNEMONIC as string
 let accountKeypair: { base58Key: string; base58Address: string; bufferKey: string }
 
-const keys = {
-  moralisApiKey: process.env.MORALIS_API_KEY!,
-  tatumMainnetApiKey: process.env.TATUM_MAINNET_API_KEY!,
-  tatumTestnetApiKey: process.env.TATUM_TESTNET_API_KEY!,
-}
-
 describe('BSSolana', () => {
   beforeEach(async () => {
-    bsSolana = new BSSolana('solana', keys, network)
+    bsSolana = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
 
     const bip44Path = bsSolana.bip44DerivationPath.replace('?', '0')
     const seed = bip39.mnemonicToSeedSync(mnemonic)
@@ -81,7 +73,7 @@ describe('BSSolana', () => {
   })
 
   it('Should be able to test the network', () => {
-    expect(() => bsSolana.testNetwork(network)).not.toThrowError()
+    expect(() => bsSolana.testNetwork(bsSolana.network)).not.toThrowError()
   })
 
   it('Should be able to calculate transfer fee of the native token', async () => {
@@ -220,7 +212,7 @@ describe('BSSolana', () => {
   })
 
   it.skip('Should be able to resolve a name service domain', async () => {
-    const newBSSolana = new BSSolana('solana', keys, BSSolanaConstants.MAINNET_NETWORKS[0])
+    const newBSSolana = new BSSolana('test', BSSolanaConstants.MAINNET_NETWORK)
     const address = await newBSSolana.resolveNameServiceDomain('bonfida.sol')
     expect(address).toEqual('HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA')
   }, 50000)
@@ -228,7 +220,7 @@ describe('BSSolana', () => {
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to calculate transfer fee for more than one intent using ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSSolana('solana', keys, network, async () => transport)
+    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
 
@@ -255,7 +247,7 @@ describe('BSSolana', () => {
 
   it.skip('Should be able to transfer the native token using ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSSolana('solana', keys, network, async () => transport)
+    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
 
@@ -277,7 +269,7 @@ describe('BSSolana', () => {
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer a SPL token using ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSSolana('solana', keys, network, async () => transport)
+    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
 
@@ -299,7 +291,7 @@ describe('BSSolana', () => {
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer more than one intent using ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSSolana('solana', keys, network, async () => transport)
+    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
 

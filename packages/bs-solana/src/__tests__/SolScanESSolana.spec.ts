@@ -1,27 +1,26 @@
 import { SolScanESSolana } from '../services/explorer/SolScanESSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
-import { TokenServiceSolana } from '../services/token/TokenServiceSolana'
+import { BSSolana } from '../BSSolana'
 
-let solScanESSolana: SolScanESSolana
-let tokenService: TokenServiceSolana
-const network = BSSolanaConstants.TESTNET_NETWORKS[0]
+let solScanESSolana: SolScanESSolana<'test'>
+let service: BSSolana<'test'>
 
 describe('SolScanESSolana', () => {
   beforeEach(() => {
-    tokenService = new TokenServiceSolana()
-    solScanESSolana = new SolScanESSolana(network, tokenService)
+    service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
+    solScanESSolana = new SolScanESSolana(service)
   })
 
   it('Should return the transaction url', async () => {
     const transactionHash = '000'
     const url = solScanESSolana.buildTransactionUrl(transactionHash)
-    expect(url).toBe(`https://solscan.io/tx/${transactionHash}?cluster=${network.id}`)
+    expect(url).toBe(`https://solscan.io/tx/${transactionHash}?cluster=${service.network.id}`)
   })
 
   it('Should return the contract url', async () => {
     const contractHash = '000'
     const url = solScanESSolana.buildContractUrl(contractHash)
-    expect(url).toBe(`https://solscan.io/token/${contractHash}?cluster=${network.id}`)
+    expect(url).toBe(`https://solscan.io/token/${contractHash}?cluster=${service.network.id}`)
   })
 
   it('Should return the nft url', async () => {
@@ -30,23 +29,24 @@ describe('SolScanESSolana', () => {
       tokenHash,
       collectionHash: '',
     })
-    expect(url).toBe(`https://solscan.io/token/${tokenHash}?cluster=${network.id}`)
+    expect(url).toBe(`https://solscan.io/token/${tokenHash}?cluster=${service.network.id}`)
   })
 
   it('Should return an address template URL when call the getAddressTemplateUrl method with a Mainnet network', () => {
     const templateUrl = solScanESSolana.getAddressTemplateUrl()
 
-    expect(templateUrl).toBe(`https://solscan.io/account/{address}?cluster=${network.id}`)
+    expect(templateUrl).toBe(`https://solscan.io/account/{address}?cluster=${service.network.id}`)
   })
 
   it('Should return a transaction template URL when call the getTxTemplateUrl method with a Mainnet network', () => {
     const templateUrl = solScanESSolana.getTxTemplateUrl()
 
-    expect(templateUrl).toBe(`https://solscan.io/tx/{txId}?cluster=${network.id}`)
+    expect(templateUrl).toBe(`https://solscan.io/tx/{txId}?cluster=${service.network.id}`)
   })
 
   it('Should return an address template URL (Mainnet) when call the getAddressTemplateUrl method with a Mainnet network', () => {
-    solScanESSolana = new SolScanESSolana(BSSolanaConstants.MAINNET_NETWORKS[0], tokenService)
+    service = new BSSolana('test', BSSolanaConstants.MAINNET_NETWORK)
+    solScanESSolana = new SolScanESSolana(service)
 
     const templateUrl = solScanESSolana.getAddressTemplateUrl()
 
@@ -54,7 +54,8 @@ describe('SolScanESSolana', () => {
   })
 
   it('Should return a transaction template URL (Mainnet) when call the getTxTemplateUrl method with a Mainnet network', () => {
-    solScanESSolana = new SolScanESSolana(BSSolanaConstants.MAINNET_NETWORKS[0], tokenService)
+    service = new BSSolana('test', BSSolanaConstants.MAINNET_NETWORK)
+    solScanESSolana = new SolScanESSolana(service)
 
     const templateUrl = solScanESSolana.getTxTemplateUrl()
 

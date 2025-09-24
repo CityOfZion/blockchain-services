@@ -1,26 +1,25 @@
 import { ethers } from 'ethers'
 import { BSEthereum } from '../BSEthereum'
-import { Account, Token } from '@cityofzion/blockchain-service'
+import { TBSAccount, TBSToken } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 
-const network = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '11155111')!
-
-let bsEthereum: BSEthereum<'ethereum'>
+let bsEthereum: BSEthereum<'test'>
 let wallet: ethers.Wallet
-let account: Account
-let nativeToken: Token
+let account: TBSAccount
+let nativeToken: TBSToken
 
 describe('BSEthereum', () => {
   beforeEach(async () => {
-    bsEthereum = new BSEthereum('ethereum', network)
+    const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
+    bsEthereum = new BSEthereum('test', 'ethereum', network)
     wallet = ethers.Wallet.createRandom()
     account = {
       key: wallet.privateKey,
       type: 'privateKey',
       address: wallet.address,
-      blockchain: 'ethereum',
+      blockchain: 'test',
     }
     nativeToken = BSEthereumHelper.getNativeAsset(network)
   })
@@ -85,7 +84,7 @@ describe('BSEthereum', () => {
   })
 
   it('Should be able to test the network', () => {
-    expect(() => bsEthereum.testNetwork(network)).not.toThrowError()
+    expect(() => bsEthereum.testNetwork(bsEthereum.network)).not.toThrowError()
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {
@@ -104,7 +103,7 @@ describe('BSEthereum', () => {
     })
 
     expect(fee).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   it.skip('Should be able to transfer a native token', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -122,7 +121,7 @@ describe('BSEthereum', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   it.skip('Should be able to transfer a ERC20 token', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -140,11 +139,11 @@ describe('BSEthereum', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   it.skip('Should be able to transfer a native token with ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSEthereum('neo3', network, async () => transport)
+    const service = new BSEthereum('test', 'ethereum', bsEthereum.network, async () => transport)
     const [account] = await service.ledgerService.getAccounts(transport)
 
     const [transactionHash] = await service.transfer({
@@ -161,11 +160,11 @@ describe('BSEthereum', () => {
 
     expect(transactionHash).toEqual(expect.any(String))
     await transport.close()
-  }, 50000)
+  })
 
   it.skip('Should be able to transfer a ERC20 token with ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSEthereum('neo3', network, async () => transport)
+    const service = new BSEthereum('test', 'ethereum', bsEthereum.network, async () => transport)
 
     const [account] = await service.ledgerService.getAccounts(transport)
 
@@ -183,16 +182,16 @@ describe('BSEthereum', () => {
 
     expect(transactionHash).toEqual(expect.any(String))
     await transport.close()
-  }, 50000)
+  })
 
   it.skip('Should be able to resolve a name service domain', async () => {
     const address = await bsEthereum.resolveNameServiceDomain('alice.eth')
     expect(address).toEqual('0xa974890156A3649A23a6C0f2ebd77D6F7A7333d4')
-  }, 10000)
+  })
 
   it.skip('Should be able to transfer a native token using a EVM', async () => {
-    const polygonNetwork = BSEthereumConstants.TESTNET_NETWORKS.find(network => network.id === '80002')!
-    const service = new BSEthereum('neo3', polygonNetwork)
+    const network = BSEthereumConstants.NETWORKS_BY_EVM.polygon.find(network => network.type === 'testnet')!
+    const service = new BSEthereum('test', 'polygon', network)
     const account = service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const [transactionHash] = await service.transfer({
@@ -232,7 +231,7 @@ describe('BSEthereum', () => {
     })
 
     expect(fee).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   it.skip('Should be able to transfer more than one intent', async () => {
     const account = bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -256,5 +255,5 @@ describe('BSEthereum', () => {
     })
 
     expect(transactionHashes).toHaveLength(2)
-  }, 50000)
+  })
 })

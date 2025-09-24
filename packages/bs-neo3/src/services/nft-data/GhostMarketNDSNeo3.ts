@@ -1,143 +1,51 @@
-import { GetNftParam, GetNftsByAddressParams, Network, NftResponse, NftsResponse } from '@cityofzion/blockchain-service'
-import axios from 'axios'
-import qs from 'query-string'
-import { BSNeo3NetworkId } from '../../constants/BSNeo3Constants'
-import { RpcNDSNeo3 } from './RpcNDSNeo3'
+import { GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
 
-type GhostMarketNFT = {
-  tokenId: string
-  contract: {
-    chain?: string
-    hash: string
-    symbol: string
+import { IBSNeo3, TBSNeo3NetworkId } from '../../types'
+import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
+
+export class GhostMarketNDSNeo3<N extends string> extends GhostMarketNDS {
+  static readonly CHAIN_BY_NETWORK_ID: Record<TBSNeo3NetworkId, string> = {
+    mainnet: 'n3',
+    testnet: 'n3t',
   }
-  creator: {
-    address: string
-    offchainName?: string
+
+  readonly #service: IBSNeo3<N>
+
+  constructor(service: IBSNeo3<N>) {
+    super()
+
+    this.#service = service
   }
-  apiUrl?: string
-  ownerships: {
-    owner: {
-      address?: string
+
+  async hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean> {
+    const parser = NeonParser
+    const invoker = await NeonInvoker.init({ rpcAddress: this.#service.network.url })
+    try {
+      const result = await invoker.testInvoke({
+        invocations: [
+          {
+            scriptHash: collectionHash,
+            operation: 'balanceOf',
+            args: [
+              {
+                type: 'Hash160',
+                value: address,
+              },
+            ],
+          },
+        ],
+      })
+
+      return parser.parseRpcResponse(result.stack[0], { type: 'Integer' }) > 0
+    } catch {
+      throw new Error(`Token not found: ${collectionHash}`)
     }
-  }[]
-  collection: {
-    name?: string
-    logoUrl?: string
-  }
-  metadata: {
-    description: string
-    mediaType: string
-    mediaUri: string
-    mintDate: number
-    mintNumber: number
-    name: string
-  }
-}
-
-type GhostMarketAssets = {
-  assets: GhostMarketNFT[]
-  next: string
-}
-
-export class GhostMarketNDSNeo3 extends RpcNDSNeo3 {
-  static CONFIG_BY_NETWORK_ID: Partial<
-    Record<
-      BSNeo3NetworkId,
-      {
-        url: string
-        chain: string
-      }
-    >
-  > = {
-    mainnet: {
-      url: 'https://api.ghostmarket.io/api/v2',
-      chain: 'n3',
-    },
-    testnet: {
-      url: 'https://api.ghostmarket.io/api/v2',
-      chain: 'n3t',
-    },
   }
 
-  readonly #network: Network<BSNeo3NetworkId>
+  getChain(): string {
+    const chain = GhostMarketNDSNeo3.CHAIN_BY_NETWORK_ID[this.#service.network.id]
+    if (!chain) throw new Error('Network not supported')
 
-  constructor(network: Network<BSNeo3NetworkId>) {
-    super(network)
-    this.#network = network
-  }
-
-  async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
-    const url = this.#getUrlWithParams({
-      size,
-      owners: [address],
-      cursor: cursor,
-    })
-    const { data } = await axios.get<GhostMarketAssets>(url)
-    const nfts = data.assets ?? []
-
-    return { nextCursor: data.next, items: nfts.map(this.#parse.bind(this)) }
-  }
-
-  async getNft({ collectionHash, tokenHash }: GetNftParam): Promise<NftResponse> {
-    const url = this.#getUrlWithParams({
-      contract: collectionHash,
-      tokenIds: [tokenHash],
-    })
-    const { data } = await axios.get<GhostMarketAssets>(url)
-    return this.#parse(data.assets[0])
-  }
-
-  #treatGhostMarketImage(srcImage?: string) {
-    if (!srcImage) {
-      return
-    }
-
-    if (srcImage.startsWith('ipfs://')) {
-      const splitImage = srcImage.split('/')
-      const imageId = splitImage.slice(-2).filter(Boolean).join('/')
-
-      return `https://ghostmarket.mypinata.cloud/ipfs/${imageId}`
-    }
-
-    return srcImage
-  }
-
-  #getUrlWithParams(params: Record<string, any>) {
-    const config = GhostMarketNDSNeo3.CONFIG_BY_NETWORK_ID[this.#network.id]
-    const chain = config?.chain
-
-    if (!chain) throw new Error('GhostMarketNDSNeo3 does not support this network')
-
-    const parameters = qs.stringify(
-      {
-        chain,
-        ownersChains: [chain],
-        ...params,
-      },
-      { arrayFormat: 'bracket' }
-    )
-    return `${config.url}/assets?${parameters}`
-  }
-
-  #parse(data: GhostMarketNFT) {
-    const nftResponse: NftResponse = {
-      hash: data.tokenId,
-      collection: {
-        hash: data.contract.hash,
-        name: data.collection?.name,
-        image: this.#treatGhostMarketImage(data.collection?.logoUrl),
-      },
-      symbol: data.contract.symbol,
-      image: this.#treatGhostMarketImage(data.metadata.mediaUri),
-      isSVG: String(data.metadata.mediaType).includes('svg+xml'),
-      name: data.metadata.name,
-      creator: {
-        address: data.creator.address,
-        name: data.creator.offchainName,
-      },
-    }
-
-    return nftResponse
+    return chain
   }
 }

@@ -1,11 +1,11 @@
 import { BSNeoX } from '../BSNeoX'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 
-let bsNeoX: BSNeoX<'neox'>
+let bsNeoX: BSNeoX<'test'>
 
 describe('BSNeoX', () => {
   beforeEach(async () => {
-    bsNeoX = new BSNeoX('neox', BSNeoXConstants.TESTNET_NETWORKS[0])
+    bsNeoX = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
   })
 
   it.skip('Should be able to transfer a native token using a EVM', async () => {

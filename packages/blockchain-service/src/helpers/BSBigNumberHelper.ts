@@ -9,8 +9,8 @@ export class BSBigNumberHelper {
     return new BigNumber(value).shiftedBy(decimals).toString()
   }
 
-  static toNumber(value: BigNumber): string {
-    return value.toFixed()
+  static toNumber(value: BigNumber, decimals?: number): string {
+    return decimals ? value.toFixed(decimals) : value.toFixed()
   }
 
   static fromNumber(value: string | number): BigNumber {
@@ -46,3 +46,5 @@ export class BSBigNumberHelper {
     }
   }
 }
+
+export type TBigNumber = BigNumber
