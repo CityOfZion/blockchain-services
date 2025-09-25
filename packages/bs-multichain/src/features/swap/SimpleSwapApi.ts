@@ -63,7 +63,7 @@ export class SimpleSwapApi<BSName extends string = string> {
     currency: TSimpleSwapApiCurrencyResponse,
     options: TSimpleSwapOrchestratorInitParams<BSName>
   ): TSimpleSwapApiCurrency<BSName> | undefined {
-    const { network: simpleSwapBlockchain, ticker } = currency
+    const { network: simpleSwapBlockchain, ticker, precision } = currency
     let { name } = currency
     let symbol = ticker
 
@@ -77,7 +77,7 @@ export class SimpleSwapApi<BSName extends string = string> {
 
     let blockchain: BSName | undefined
     let blockchainService: BlockchainService | undefined
-    let decimals: number | undefined
+    let decimals = precision ?? undefined
     let hash = currency.contractAddress ?? undefined
     const lowerCaseSymbol = symbol!.toLowerCase()
     const tickers = this.#tickersBySimpleSwapBlockchain[simpleSwapBlockchain]
