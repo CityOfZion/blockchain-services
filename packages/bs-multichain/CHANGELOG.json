@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "1.0.12",
+      "tag": "@cityofzion/bs-multichain_v1.0.12",
+      "date": "Thu, 25 Sep 2025 19:07:43 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add precision in swap tokens"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.0.11",
       "tag": "@cityofzion/bs-multichain_v1.0.11",
       "date": "Thu, 11 Sep 2025 16:10:40 GMT",

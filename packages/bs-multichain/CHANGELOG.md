@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Thu, 11 Sep 2025 16:10:40 GMT and should not be manually modified.
+This log was last generated on Thu, 25 Sep 2025 19:07:43 GMT and should not be manually modified.
+
+## 1.0.12
+Thu, 25 Sep 2025 19:07:43 GMT
+
+### Patches
+
+- Add precision in swap tokens
 
 ## 1.0.11
 Thu, 11 Sep 2025 16:10:40 GMT
