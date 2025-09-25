@@ -896,4 +896,15 @@ describe('SimpleSwapService', () => {
 
     expect(fee).toEqual(expect.any(String))
   }, 30000)
+
+  it('Should get decimals (or precision) from a non-native token and a native token', async () => {
+    await simpleSwapOrchestrator.init()
+
+    const tokens = availableTokensToUse.value!
+    const usdtFromEth = tokens.find(token => token.id === 'usdt:eth')
+    const ethFromEth = tokens.find(token => token.id === 'eth:eth')
+
+    expect(usdtFromEth?.decimals).toBe(6)
+    expect(ethFromEth?.decimals).toBe(18)
+  }, 10000)
 })

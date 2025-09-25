@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Add precision in swap tokens",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}

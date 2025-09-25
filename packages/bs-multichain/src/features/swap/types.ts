@@ -33,6 +33,7 @@ export type TSimpleSwapApiCurrencyResponse = {
   contractAddress: string | null
   addressExplorer: string | null
   txExplorer: string | null
+  precision: number | null
 }
 
 export type TSimpleSwapApiGetCurrenciesResponse = {
