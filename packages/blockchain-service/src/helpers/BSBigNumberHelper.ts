@@ -46,3 +46,5 @@ export class BSBigNumberHelper {
     }
   }
 }
+
+export const BSBigNumber = BigNumber
