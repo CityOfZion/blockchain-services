@@ -10,6 +10,7 @@ import {
   TBridgeToken,
   TBridgeValidateValue,
   TBridgeValue,
+  BSBigNumber,
   TSwapOrchestratorEvents,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
@@ -328,7 +329,7 @@ export class Neo3NeoXBridgeOrchestrator<BSName extends string> implements IBridg
         ? tokenBalanceAmountBn.minus(constants.bridgeFee)
         : tokenBalanceAmountBn
 
-      const max = Math.max(0, Math.min(bridgeMaxAmountBn.toNumber(), maxTokenBalanceAmountBn.toNumber()))
+      const max = BSBigNumber.max(0, BSBigNumber.min(bridgeMaxAmountBn, maxTokenBalanceAmountBn))
 
       this.#amountToUseMax = { value: BSBigNumberHelper.format(max, { decimals: this.#tokenToUse.value.decimals }) }
     } catch (error) {

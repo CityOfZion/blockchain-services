@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Fix error rounding maxAmountToUse calculation",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}
