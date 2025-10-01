@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-solana",
   "entries": [
     {
+      "version": "2.0.2",
+      "tag": "@cityofzion/bs-solana_v2.0.2",
+      "date": "Wed, 01 Oct 2025 23:44:28 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.21.2`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.0.1",
       "tag": "@cityofzion/bs-solana_v2.0.1",
       "date": "Mon, 08 Sep 2025 19:38:54 GMT",

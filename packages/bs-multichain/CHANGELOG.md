@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Thu, 25 Sep 2025 19:07:43 GMT and should not be manually modified.
+This log was last generated on Wed, 01 Oct 2025 23:44:28 GMT and should not be manually modified.
+
+## 1.0.13
+Wed, 01 Oct 2025 23:44:28 GMT
+
+### Patches
+
+- Fix error rounding maxAmountToUse calculation
 
 ## 1.0.12
 Thu, 25 Sep 2025 19:07:43 GMT
