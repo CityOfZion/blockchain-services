@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Wed, 01 Oct 2025 23:44:28 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Oct 2025 15:10:01 GMT and should not be manually modified.
+
+## 2.13.4
+Mon, 06 Oct 2025 15:10:01 GMT
+
+### Patches
+
+- Fix getTokenPrices parameters
 
 ## 2.13.3
 Wed, 01 Oct 2025 23:44:28 GMT
