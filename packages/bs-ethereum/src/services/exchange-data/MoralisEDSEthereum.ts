@@ -56,7 +56,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     })
   }
 
-  async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
+  async getTokenPrices({ tokens }: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
     if (!BSEthereumHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
     if (!MoralisBDSEthereum.isSupported(this.#network)) throw new Error('Exchange is not supported on this network')
 
@@ -65,21 +65,21 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
     const tokensBody: { token_address: string }[] = []
     let wrappedNativeToken: Token | undefined
 
-    if (params.tokens.some(token => token.symbol === nativeToken.symbol)) {
+    if (tokens.some(token => token.symbol === nativeToken.symbol)) {
       try {
         wrappedNativeToken = await this.#getWrappedNativeToken()
 
         if (wrappedNativeToken) {
-          tokensBody.push({ token_address: wrappedNativeToken.hash })
+          tokensBody.push({ token_address: wrappedNativeToken.hash.toLowerCase() })
         }
       } catch {
         /* empty */
       }
     }
 
-    params.tokens.forEach(token => {
+    tokens.forEach(token => {
       if (token.symbol !== nativeToken.symbol) {
-        tokensBody.push({ token_address: token.hash })
+        tokensBody.push({ token_address: token.hash.toLowerCase() })
       }
     })
 
@@ -106,7 +106,7 @@ export class MoralisEDSEthereum extends CryptoCompareEDS implements ExchangeData
           } else {
             token = {
               decimals: Number(item.tokenDecimals),
-              hash: item.tokenAddress,
+              hash: this.#tokenService.normalizeHash(item.tokenAddress),
               name: item.tokenName,
               symbol: item.tokenSymbol,
             }

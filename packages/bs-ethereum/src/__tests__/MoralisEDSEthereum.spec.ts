@@ -21,14 +21,27 @@ describe('MoralisEDSEthereum', () => {
     moralisEDSEthereum = new MoralisEDSEthereum(network, moralisBDSEthereum, tokenService)
   })
 
-  it('Should return the ETH price in USD', async () => {
-    const tokenPriceList = await moralisEDSEthereum.getTokenPrices({
-      tokens: [BSEthereumHelper.getNativeAsset(network)],
-    })
-    expect(tokenPriceList).toHaveLength(1)
+  it('Should return the ETH and USDT prices in USD', async () => {
+    const ethToken = BSEthereumHelper.getNativeAsset(network)
+    const usdtToken = {
+      hash: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+      name: 'Tether USD',
+      symbol: 'USDT',
+      decimals: 6,
+    }
+
+    const tokenPriceList = await moralisEDSEthereum.getTokenPrices({ tokens: [ethToken, usdtToken] })
+
+    expect(tokenPriceList).toHaveLength(2)
+
     expect(tokenPriceList[0]).toEqual({
       usdPrice: expect.any(Number),
-      token: BSEthereumHelper.getNativeAsset(network),
+      token: ethToken,
+    })
+
+    expect(tokenPriceList[1]).toEqual({
+      usdPrice: expect.any(Number),
+      token: usdtToken,
     })
   }, 60000)
 
