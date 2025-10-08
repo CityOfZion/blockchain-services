@@ -1,57 +1,54 @@
 import {
-  BalanceResponse,
-  BlockchainDataService,
+  TBalanceResponse,
   BSBigNumberHelper,
   ContractResponse,
-  ExportTransactionsByAddressParams,
-  FullTransactionsByAddressParams,
-  FullTransactionsByAddressResponse,
-  Network,
-  RpcResponse,
-  Token,
-  TransactionResponse,
-  TransactionsByAddressParams,
-  TransactionsByAddressResponse,
-  TransactionTransferAsset,
-  TransactionTransferNft,
+  TExportTransactionsByAddressParams,
+  TFullTransactionsByAddressParams,
+  TFullTransactionsByAddressResponse,
+  IBlockchainDataService,
+  TRpcResponse,
+  TNetwork,
+  TBSToken,
+  TTransactionResponse,
+  TTransactionsByAddressParams,
+  TTransactionsByAddressResponse,
+  TTransactionTransferAsset,
+  TTransactionTransferNft,
 } from '@cityofzion/blockchain-service'
-import { BSSolanaConstants, BSSolanaNetworkId } from '../../constants/BSSolanaConstants'
+import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import solanaSDK from '@solana/web3.js'
 import * as solanaSplSDK from '@solana/spl-token'
 import { BSSolanaCachedMethodsHelper } from '../../helpers/BSSolanaCachedMethodsHelper'
 import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
+import { IBSSolana, TBSSolanaNetworkId } from '../../types'
 
-export class TatumRpcBDSSolana implements BlockchainDataService {
-  static tatumUrlByNetworkId: Record<BSSolanaNetworkId, string> = {
+export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataService {
+  static URL_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string> = {
     'mainnet-beta': 'https://solana-mainnet.gateway.tatum.io/',
     devnet: 'https://solana-devnet.gateway.tatum.io',
   }
 
-  static getTatumConnection(network: Network<BSSolanaNetworkId>, apiKey: string) {
-    return new solanaSDK.Connection(this.tatumUrlByNetworkId[network.id], {
+  static getConnection(network: TNetwork<TBSSolanaNetworkId>) {
+    return new solanaSDK.Connection(TatumRpcBDSSolana.URL_BY_NETWORK_ID[network.id], {
       httpHeaders: {
-        'x-api-key': apiKey,
+        'x-api-key': BSSolanaHelper.isMainnetNetwork(network)
+          ? process.env.TATUM_MAINNET_API_KEY
+          : process.env.TATUM_TESTNET_API_KEY,
       },
     })
   }
 
-  maxTimeToConfirmTransactionInMs: number = 1000 * 60
-
-  #network: Network<BSSolanaNetworkId>
-  #feeToken: Token
-
-  #connection: solanaSDK.Connection
-  #mainnetApiKey: string
-  #testnetApiKey: string
-
-  #functionByProgramIdAndMethod: Record<
+  readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 // 1 minutes
+  readonly #service: IBSSolana<N>
+  readonly #connection: solanaSDK.Connection
+  readonly #functionByProgramIdAndMethod: Record<
     string,
     Record<
       string,
       (
         instruction: solanaSDK.ParsedInstruction,
         allInstructions: solanaSDK.ParsedInstruction[]
-      ) => Promise<TransactionTransferAsset | TransactionTransferNft>
+      ) => Promise<TTransactionTransferAsset | TTransactionTransferNft>
     >
   > = {
     [solanaSplSDK.TOKEN_PROGRAM_ID.toString()]: {
@@ -63,29 +60,15 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
     },
   }
 
-  constructor(network: Network<BSSolanaNetworkId>, feeToken: Token, mainnetApiKey: string, testnetApiKey: string) {
-    this.#network = network
-    this.#feeToken = feeToken
-    this.#mainnetApiKey = mainnetApiKey
-    this.#testnetApiKey = testnetApiKey
-    this.#connection = TatumRpcBDSSolana.getTatumConnection(
-      network,
-      BSSolanaHelper.isMainnet(network) ? mainnetApiKey : testnetApiKey
-    )
-  }
-
-  getFullTransactionsByAddress(_params: FullTransactionsByAddressParams): Promise<FullTransactionsByAddressResponse> {
-    throw new Error('Method not implemented.')
-  }
-
-  exportFullTransactionsByAddress(_params: ExportTransactionsByAddressParams): Promise<string> {
-    throw new Error('Method not implemented.')
+  constructor(service: IBSSolana<N>) {
+    this.#service = service
+    this.#connection = TatumRpcBDSSolana.getConnection(service.network)
   }
 
   async #parseSplTransferCheckedInstruction(
     instruction: solanaSDK.ParsedInstruction,
     allInstructions: solanaSDK.ParsedInstruction[]
-  ): Promise<TransactionTransferAsset | TransactionTransferNft> {
+  ): Promise<TTransactionTransferAsset | TTransactionTransferNft> {
     const info = instruction.parsed.info
 
     if (!info.destination || !info.source || !info.mint) {
@@ -135,7 +118,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
       }
     }
 
-    const token: Token = {
+    const token: TBSToken = {
       symbol: metaplex.currency.symbol,
       name: metaplex.name,
       decimals: metaplex.decimals,
@@ -157,7 +140,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
   async #parseSplTransferInstruction(
     instruction: solanaSDK.ParsedInstruction,
     allInstructions: solanaSDK.ParsedInstruction[]
-  ): Promise<TransactionTransferAsset | TransactionTransferNft> {
+  ): Promise<TTransactionTransferAsset | TTransactionTransferNft> {
     const info = instruction.parsed.info
 
     if (!info.destination || !info.source || !info.amount) {
@@ -217,7 +200,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
       }
     }
 
-    const token: Token = {
+    const token: TBSToken = {
       symbol: metaplex.currency.symbol,
       name: metaplex.name,
       decimals: metaplex.decimals,
@@ -238,7 +221,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
 
   async #parseSystemInstruction(
     instruction: solanaSDK.ParsedInstruction
-  ): Promise<TransactionTransferAsset | TransactionTransferNft> {
+  ): Promise<TTransactionTransferAsset | TTransactionTransferNft> {
     const info = instruction.parsed.info
     const method = instruction.parsed.type
 
@@ -262,7 +245,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
   async #parseInstruction(
     instruction: solanaSDK.ParsedInstruction,
     allInstructions: solanaSDK.ParsedInstruction[]
-  ): Promise<TransactionTransferAsset | TransactionTransferNft> {
+  ): Promise<TTransactionTransferAsset | TTransactionTransferNft> {
     if (!instruction.parsed.type || !instruction.parsed.info) {
       throw new Error('Unsupported instruction format')
     }
@@ -278,7 +261,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
     throw new Error('Unsupported instruction')
   }
 
-  async getTransaction(txid: string): Promise<TransactionResponse> {
+  async getTransaction(txid: string): Promise<TTransactionResponse> {
     const transaction = await this.#connection.getParsedTransaction(txid, {
       maxSupportedTransactionVersion: 0,
     })
@@ -288,7 +271,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
     if (!transaction.blockTime) throw new Error('Block time not found')
     if (!transaction.meta) throw new Error('Transaction meta not found')
 
-    const transfers: (TransactionTransferAsset | TransactionTransferNft)[] = []
+    const transfers: (TTransactionTransferAsset | TTransactionTransferNft)[] = []
 
     const allInstructions = [
       ...transaction.transaction.message.instructions,
@@ -304,7 +287,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
       }
     }
 
-    const feeBn = BSBigNumberHelper.fromDecimals(transaction.meta.fee, this.#feeToken.decimals)
+    const feeBn = BSBigNumberHelper.fromDecimals(transaction.meta.fee, this.#service.feeToken.decimals)
     const fee = BSBigNumberHelper.toNumber(feeBn)
 
     return {
@@ -318,7 +301,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
     }
   }
 
-  async getTransactionsByAddress(params: TransactionsByAddressParams): Promise<TransactionsByAddressResponse> {
+  async getTransactionsByAddress(params: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse> {
     const publicKey = new solanaSDK.PublicKey(params.address)
 
     const signaturesResponse = await this.#connection.getSignaturesForAddress(publicKey, {
@@ -326,7 +309,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
       before: params.nextPageParams,
     })
 
-    const transactions: TransactionResponse[] = []
+    const transactions: TTransactionResponse[] = []
 
     const promises = signaturesResponse.map(async signatureResponse => {
       const transaction = await this.getTransaction(signatureResponse.signature)
@@ -341,11 +324,21 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
     }
   }
 
-  async getContract(_contractHash: string): Promise<ContractResponse> {
-    throw new Error('Method not implemented.')
+  async getFullTransactionsByAddress(
+    _params: TFullTransactionsByAddressParams
+  ): Promise<TFullTransactionsByAddressResponse> {
+    throw new Error('Method not supported.')
   }
 
-  async getTokenInfo(tokenHash: string): Promise<Token> {
+  async exportFullTransactionsByAddress(_params: TExportTransactionsByAddressParams): Promise<string> {
+    throw new Error('Method not supported.')
+  }
+
+  async getContract(_contractHash: string): Promise<ContractResponse> {
+    throw new Error('Method not supported.')
+  }
+
+  async getTokenInfo(tokenHash: string): Promise<TBSToken> {
     if (tokenHash === BSSolanaConstants.NATIVE_TOKEN.hash) {
       return BSSolanaConstants.NATIVE_TOKEN
     }
@@ -364,7 +357,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
     }
   }
 
-  async getBalance(address: string): Promise<BalanceResponse[]> {
+  async getBalance(address: string): Promise<TBalanceResponse[]> {
     const publicKey = new solanaSDK.PublicKey(address)
 
     const nativeBalance = await this.#connection.getBalance(publicKey)
@@ -375,7 +368,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
     const nativeBalanceBn = BSBigNumberHelper.fromDecimals(nativeBalance, BSSolanaConstants.NATIVE_TOKEN.decimals)
     const nativeBalanceAmount = BSBigNumberHelper.toNumber(nativeBalanceBn)
 
-    const balances: BalanceResponse[] = [
+    const balances: TBalanceResponse[] = [
       {
         amount: nativeBalanceAmount,
         token: BSSolanaConstants.NATIVE_TOKEN,
@@ -405,10 +398,10 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
     return await this.#connection.getBlockHeight()
   }
 
-  async getRpcList(): Promise<RpcResponse[]> {
-    const list: RpcResponse[] = []
+  async getRpcList(): Promise<TRpcResponse[]> {
+    const list: TRpcResponse[] = []
 
-    const urls = BSSolanaConstants.RPC_LIST_BY_NETWORK_ID[this.#network.id]
+    const urls = BSSolanaConstants.RPC_LIST_BY_NETWORK_ID[this.#service.network.id]
     if (!urls) {
       throw new Error('RPC list not found')
     }
@@ -421,13 +414,7 @@ export class TatumRpcBDSSolana implements BlockchainDataService {
         }, 5000)
 
         try {
-          const connection = TatumRpcBDSSolana.getTatumConnection(
-            {
-              ...this.#network,
-              url,
-            },
-            BSSolanaHelper.isMainnet(this.#network) ? this.#mainnetApiKey : this.#testnetApiKey
-          )
+          const connection = TatumRpcBDSSolana.getConnection({ ...this.#service.network, url })
 
           const timeStart = Date.now()
           const height = await connection.getBlockHeight()

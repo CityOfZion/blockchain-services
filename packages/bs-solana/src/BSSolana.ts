@@ -1,28 +1,23 @@
 import {
-  Account,
-  BlockchainDataService,
-  BlockchainService,
+  TBSAccount,
   BSBigNumberHelper,
-  BSCalculableFee,
-  BSWithExplorerService,
-  BSWithLedger,
-  BSWithNameService,
-  BSWithNft,
-  ExchangeDataService,
-  ExplorerService,
-  GetLedgerTransport,
+  BSUtilsHelper,
+  TGetLedgerTransport,
+  IBlockchainDataService,
+  IExchangeDataService,
+  IExplorerService,
+  INftDataService,
   ITokenService,
-  Network,
-  NftDataService,
-  Token,
-  TransferParam,
+  TNetwork,
+  TBSToken,
+  TTransferParam,
 } from '@cityofzion/blockchain-service'
 import solanaSDK from '@solana/web3.js'
 import * as solanaSplSDK from '@solana/spl-token'
 import * as bip39 from 'bip39'
 import solanaSnsSDK from '@bonfida/spl-name-service'
 import HDKey from 'micro-key-producer/slip10.js'
-import { BSSolanaConstants, BSSolanaNetworkId } from './constants/BSSolanaConstants'
+import { BSSolanaConstants } from './constants/BSSolanaConstants'
 import bs58 from 'bs58'
 import { Web3LedgerServiceSolana } from './services/ledger/Web3LedgerServiceSolana'
 import { TatumRpcBDSSolana } from './services/blockchain-data/TatumRpcBDSSolana'
@@ -30,57 +25,47 @@ import { TatumRpcNDSSolana } from './services/nft-data/TatumRpcNDSSolana'
 import { SolScanESSolana } from './services/explorer/SolScanESSolana'
 import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
-
-type BSSolanaApiKeys = {
-  moralisApiKey: string
-  tatumMainnetApiKey: string
-  tatumTestnetApiKey: string
-}
+import { IBSSolana, TBSSolanaNetworkId } from './types'
 
 const KEY_BYTES_LENGTH = 64
 
-export class BSSolana<BSName extends string = string>
-  implements
-    BlockchainService<BSName, any>,
-    BSCalculableFee<BSName>,
-    BSWithNameService,
-    BSWithLedger<BSName>,
-    BSWithNft,
-    BSWithExplorerService
-{
-  name: BSName
-  bip44DerivationPath: string
+export class BSSolana<N extends string = string> implements IBSSolana<N> {
+  readonly name: N
+  readonly bip44DerivationPath: string
 
-  feeToken!: Token
-  tokens!: Token[]
-  nativeTokens!: Token[]
-  network!: Network<BSSolanaNetworkId>
+  readonly isMultiTransferSupported: boolean = true
+  readonly isCustomNetworkSupported: boolean = false
 
-  ledgerService: Web3LedgerServiceSolana<BSName>
-  exchangeDataService!: ExchangeDataService
-  blockchainDataService!: BlockchainDataService
-  nftDataService!: NftDataService
-  explorerService!: ExplorerService
+  readonly feeToken!: TBSToken
+  readonly tokens!: TBSToken[]
+  readonly nativeTokens!: TBSToken[]
+
+  network!: TNetwork<TBSSolanaNetworkId>
+  readonly availableNetworks: TNetwork<TBSSolanaNetworkId>[]
+  readonly defaultNetwork: TNetwork<TBSSolanaNetworkId>
+
+  ledgerService: Web3LedgerServiceSolana<N>
+  exchangeDataService!: IExchangeDataService
+  blockchainDataService!: IBlockchainDataService
+  nftDataService!: INftDataService
+  explorerService!: IExplorerService
   tokenService!: ITokenService
 
   #connection!: solanaSDK.Connection
-  #apiKeys: BSSolanaApiKeys
 
-  constructor(
-    name: BSName,
-    apiKeys: BSSolanaApiKeys,
-    network?: Network<BSSolanaNetworkId>,
-    getLedgerTransport?: GetLedgerTransport<BSName>
-  ) {
-    network = network ?? BSSolanaConstants.DEFAULT_NETWORK
-
+  constructor(name: N, network?: TNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.bip44DerivationPath = BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH
     this.ledgerService = new Web3LedgerServiceSolana(this, getLedgerTransport)
 
-    this.#apiKeys = apiKeys
+    this.tokens = [BSSolanaConstants.NATIVE_TOKEN]
+    this.nativeTokens = [BSSolanaConstants.NATIVE_TOKEN]
+    this.feeToken = BSSolanaConstants.NATIVE_TOKEN
 
-    this.setNetwork(network)
+    this.availableNetworks = BSSolanaConstants.ALL_NETWORKS
+    this.defaultNetwork = BSSolanaConstants.MAINNET_NETWORK
+
+    this.setNetwork(network ?? this.defaultNetwork)
   }
 
   #generateKeyPairFromKey(key: string): solanaSDK.Keypair {
@@ -95,7 +80,7 @@ export class BSSolana<BSName extends string = string>
     return solanaSDK.Keypair.fromSecretKey(keyBuffer)
   }
 
-  async #signTransaction(transaction: solanaSDK.Transaction, senderAccount: Account<BSName>) {
+  async #signTransaction(transaction: solanaSDK.Transaction, senderAccount: TBSAccount<N>) {
     if (senderAccount.isHardware) {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
@@ -111,7 +96,7 @@ export class BSSolana<BSName extends string = string>
     return transaction.serialize()
   }
 
-  async #buildTransferParams(param: TransferParam) {
+  async #buildTransferParams(param: TTransferParam) {
     const latestBlockhash = await this.#connection.getLatestBlockhash()
 
     const senderPublicKey = new solanaSDK.PublicKey(param.senderAccount.address)
@@ -175,31 +160,24 @@ export class BSSolana<BSName extends string = string>
     }
   }
 
-  setNetwork(partialNetwork: Network<BSSolanaNetworkId>): void {
-    this.tokens = [BSSolanaConstants.NATIVE_TOKEN]
-    this.nativeTokens = [BSSolanaConstants.NATIVE_TOKEN]
-    this.feeToken = BSSolanaConstants.NATIVE_TOKEN
-    this.network = partialNetwork
+  setNetwork(network: TNetwork<TBSSolanaNetworkId>): void {
+    const isValidNetwork = this.availableNetworks.some(networkItem => BSUtilsHelper.isEqual(networkItem, network))
+    if (!isValidNetwork) {
+      throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+    }
+
+    this.network = network
 
     this.tokenService = new TokenServiceSolana()
-    this.blockchainDataService = new TatumRpcBDSSolana(
-      this.network,
-      this.feeToken,
-      this.#apiKeys.tatumMainnetApiKey,
-      this.#apiKeys.tatumTestnetApiKey
-    )
-    this.nftDataService = new TatumRpcNDSSolana(
-      this.network,
-      this.#apiKeys.tatumMainnetApiKey,
-      this.#apiKeys.tatumTestnetApiKey
-    )
-    this.explorerService = new SolScanESSolana(this.network, this.tokenService)
-    this.exchangeDataService = new MoralisEDSSolana(this.network, this.#apiKeys.moralisApiKey)
+    this.blockchainDataService = new TatumRpcBDSSolana(this)
+    this.nftDataService = new TatumRpcNDSSolana(this)
+    this.explorerService = new SolScanESSolana(this)
+    this.exchangeDataService = new MoralisEDSSolana(this)
 
     this.#connection = new solanaSDK.Connection(this.network.url)
   }
 
-  async testNetwork(network: Network<BSSolanaNetworkId>): Promise<void> {
+  async testNetwork(network: TNetwork<TBSSolanaNetworkId>): Promise<void> {
     const connection = new solanaSDK.Connection(network.url)
     await connection.getBlockHeight()
   }
@@ -228,7 +206,7 @@ export class BSSolana<BSName extends string = string>
     return true
   }
 
-  generateAccountFromMnemonic(mnemonic: string, index: number): Account<BSName> {
+  generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N> {
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
 
     const seed = bip39.mnemonicToSeedSync(mnemonic)
@@ -246,7 +224,7 @@ export class BSSolana<BSName extends string = string>
     }
   }
 
-  generateAccountFromKey(key: string): Account<BSName> {
+  generateAccountFromKey(key: string): TBSAccount<N> {
     const keypair = this.#generateKeyPairFromKey(key)
 
     const address = keypair.publicKey.toBase58()
@@ -260,7 +238,7 @@ export class BSSolana<BSName extends string = string>
     }
   }
 
-  generateAccountFromPublicKey(publicKey: string): Account<BSName> {
+  generateAccountFromPublicKey(publicKey: string): TBSAccount<N> {
     return {
       address: publicKey,
       key: publicKey,
@@ -269,7 +247,7 @@ export class BSSolana<BSName extends string = string>
     }
   }
 
-  async transfer(param: TransferParam<BSName>): Promise<string[]> {
+  async transfer(param: TTransferParam<N>): Promise<string[]> {
     const { transaction, latestBlockhash } = await this.#buildTransferParams(param)
 
     const signedTransaction = await this.#signTransaction(transaction, param.senderAccount)
@@ -287,7 +265,7 @@ export class BSSolana<BSName extends string = string>
     return [signature]
   }
 
-  async calculateTransferFee(param: TransferParam<BSName>): Promise<string> {
+  async calculateTransferFee(param: TTransferParam<N>): Promise<string> {
     const { senderPublicKey, transaction } = await this.#buildTransferParams(param)
 
     const { blockhash } = await this.#connection.getLatestBlockhash()

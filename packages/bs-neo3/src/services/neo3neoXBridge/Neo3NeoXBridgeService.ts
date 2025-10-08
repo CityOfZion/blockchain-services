@@ -10,23 +10,20 @@ import {
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
-import { BSNeo3 } from '../../BSNeo3'
 import type { ContractInvocation, Signer } from '@cityofzion/neon-dappkit-types'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
-import { DoraNeoRest } from '../blockchain-data/DoraBDSNeo3'
 import axios from 'axios'
+import { IBSNeo3, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
+import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
+import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import { LogResponse } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 
-type TGetBridgeTxByNonceResponse = { result: { Vmstate: string; txid: string } }
+export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeService<N> {
+  static readonly BRIDGE_SCRIPT_HASH: string = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
 
-export class Neo3NeoXBridgeService<BSName extends string = string> implements INeo3NeoXBridgeService<BSName> {
-  readonly BRIDGE_SCRIPT_HASH = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
+  readonly #service: IBSNeo3<N>
+  readonly tokens: TBridgeToken<N>[]
 
-  readonly #service: BSNeo3<BSName>
-
-  tokens: TBridgeToken<BSName>[]
-
-  constructor(service: BSNeo3<BSName>) {
+  constructor(service: IBSNeo3<N>) {
     this.#service = service
 
     this.tokens = [
@@ -39,7 +36,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
     throw new BSError('Neo3 does not require approval', 'APPROVAl_NOT_NEEDED')
   }
 
-  async getBridgeConstants(token: TBridgeToken<BSName>): Promise<TNeo3NeoXBridgeServiceConstants> {
+  async getBridgeConstants(token: TBridgeToken<N>): Promise<TNeo3NeoXBridgeServiceConstants> {
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#service.network.url,
     })
@@ -50,25 +47,25 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
 
     if (isNativeToken) {
       invocations = [
-        { operation: 'nativeDepositFee', scriptHash: this.BRIDGE_SCRIPT_HASH, args: [] },
-        { operation: 'minNativeDeposit', scriptHash: this.BRIDGE_SCRIPT_HASH, args: [] },
-        { operation: 'maxNativeDeposit', scriptHash: this.BRIDGE_SCRIPT_HASH, args: [] },
+        { operation: 'nativeDepositFee', scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, args: [] },
+        { operation: 'minNativeDeposit', scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, args: [] },
+        { operation: 'maxNativeDeposit', scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, args: [] },
       ]
     } else {
       invocations = [
         {
           operation: 'tokenDepositFee',
-          scriptHash: this.BRIDGE_SCRIPT_HASH,
+          scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH,
           args: [{ type: 'Hash160', value: token.hash }],
         },
         {
           operation: 'minTokenDeposit',
-          scriptHash: this.BRIDGE_SCRIPT_HASH,
+          scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH,
           args: [{ type: 'Hash160', value: token.hash }],
         },
         {
           operation: 'maxTokenDeposit',
-          scriptHash: this.BRIDGE_SCRIPT_HASH,
+          scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH,
           args: [{ type: 'Hash160', value: token.hash }],
         },
       ]
@@ -105,8 +102,8 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
     }
   }
 
-  async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string> {
-    if (!BSNeo3Helper.isMainnet(this.#service.network))
+  async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<N>): Promise<string> {
+    if (!BSNeo3Helper.isMainnetNetwork(this.#service.network))
       throw new BSError('Bridging to NeoX is only supported on mainnet', 'UNSUPPORTED_NETWORK')
 
     const { account } = params
@@ -120,7 +117,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
     })
 
     const contractInvocation: ContractInvocation = {
-      scriptHash: this.BRIDGE_SCRIPT_HASH,
+      scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH,
       operation: 'depositNative',
       args: [
         { type: 'Hash160', value: neonJsAccount.address },
@@ -141,7 +138,7 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
 
     const signer: Signer = {
       scopes: 16,
-      allowedContracts: [this.BRIDGE_SCRIPT_HASH, BSNeo3Constants.GAS_TOKEN.hash],
+      allowedContracts: [Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BSNeo3Constants.GAS_TOKEN.hash],
     }
 
     const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
@@ -157,10 +154,10 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
     })
   }
 
-  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string> {
+  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<N>): Promise<string> {
     let log: LogResponse | undefined
     try {
-      log = await DoraNeoRest.log(params.transactionHash, this.#service.network.id)
+      log = await DoraBDSNeo3.API.log(params.transactionHash, this.#service.network.id)
     } catch (error) {
       throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', error)
     }
@@ -188,23 +185,24 @@ export class Neo3NeoXBridgeService<BSName extends string = string> implements IN
     return nonce
   }
 
-  async getTransactionHashByNonce(
-    params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<BSName>
-  ): Promise<string> {
-    let data: TGetBridgeTxByNonceResponse | undefined
+  async getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N>): Promise<string> {
+    let data: TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse | undefined
     try {
       const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
 
-      const response = await axios.post<TGetBridgeTxByNonceResponse>('https://neofura.ngd.network', {
-        jsonrpc: '2.0',
-        method: 'GetBridgeTxByNonce',
-        params: {
-          ContractHash: this.BRIDGE_SCRIPT_HASH,
-          TokenHash: isNativeToken ? '' : BSNeo3Constants.NEO_TOKEN.hash,
-          Nonce: Number(params.nonce),
-        },
-        id: 1,
-      })
+      const response = await axios.post<TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse>(
+        'https://neofura.ngd.network',
+        {
+          jsonrpc: '2.0',
+          method: 'GetBridgeTxByNonce',
+          params: {
+            ContractHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH,
+            TokenHash: isNativeToken ? '' : BSNeo3Constants.NEO_TOKEN.hash,
+            Nonce: Number(params.nonce),
+          },
+          id: 1,
+        }
+      )
       data = response.data
     } catch (error) {
       throw new BSError('Failed to get transaction by nonce', 'FAILED_TO_GET_TRANSACTION_BY_NONCE', error)

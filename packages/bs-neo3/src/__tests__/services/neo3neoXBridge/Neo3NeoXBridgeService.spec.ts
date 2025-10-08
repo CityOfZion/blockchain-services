@@ -1,39 +1,36 @@
-import { Account, BSBigNumberHelper, BSError, TBridgeToken } from '@cityofzion/blockchain-service'
+import { TBSAccount, BSBigNumberHelper, BSError, TBridgeToken } from '@cityofzion/blockchain-service'
 
 import { BSNeo3 } from '../../../BSNeo3'
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { Neo3NeoXBridgeService } from '../../../services/neo3neoXBridge/Neo3NeoXBridgeService'
 import { NeonInvoker } from '@cityofzion/neon-dappkit'
-import { DoraNeoRest } from '../../../services/blockchain-data/DoraBDSNeo3'
 import axios from 'axios'
-import { TokenServiceNeo3 } from '../../../services/token/TokenServiceNeo3'
+import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
 
-let neo3NeoXBridgeService: Neo3NeoXBridgeService<'neo3'>
-let bsNeo3Service: BSNeo3<'neo3'>
-let account: Account<'neo3'>
+let neo3NeoXBridgeService: Neo3NeoXBridgeService<'test'>
+let bsNeo3Service: BSNeo3<'test'>
+let account: TBSAccount<'test'>
 let receiverAddress: string
-let gasToken: TBridgeToken<'neo3'>
-let neoToken: TBridgeToken<'neo3'>
+let gasToken: TBridgeToken<'test'>
+let neoToken: TBridgeToken<'test'>
 
-const network = BSNeo3Constants.DEFAULT_NETWORK
-const tokenService = new TokenServiceNeo3()
+const network = BSNeo3Constants.MAINNET_NETWORK
 
 describe('Neo3NeoXBridgeService', () => {
   beforeAll(async () => {
     receiverAddress = process.env.TEST_BRIDGE_NEOX_ADDRESS
-    bsNeo3Service = new BSNeo3('neo3', network)
+    bsNeo3Service = new BSNeo3('test', network)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeo3Service)
 
     account = bsNeo3Service.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
 
     gasToken = neo3NeoXBridgeService.tokens.find(token =>
-      tokenService.predicateByHash(BSNeo3Constants.GAS_TOKEN, token)
+      bsNeo3Service.tokenService.predicateByHash(BSNeo3Constants.GAS_TOKEN, token)
     )!
-
     neoToken = neo3NeoXBridgeService.tokens.find(token =>
-      tokenService.predicateByHash(BSNeo3Constants.NEO_TOKEN, token)
+      bsNeo3Service.tokenService.predicateByHash(BSNeo3Constants.NEO_TOKEN, token)
     )!
-  }, 60000)
+  })
 
   afterEach(() => {
     jest.restoreAllMocks()
@@ -95,7 +92,7 @@ describe('Neo3NeoXBridgeService', () => {
   })
 
   it('Should be able to get the nonce of a invalid transaction vmState', async () => {
-    jest.spyOn(DoraNeoRest, 'log').mockResolvedValue({ vmstate: 'FAULT' } as any)
+    jest.spyOn(DoraBDSNeo3.API, 'log').mockResolvedValue({ vmstate: 'FAULT' } as any)
 
     await expect(
       neo3NeoXBridgeService.getNonce({
@@ -166,8 +163,7 @@ describe('Neo3NeoXBridgeService', () => {
 
     const balances = await bsNeo3Service.blockchainDataService.getBalance(account.address)
 
-    const gasBalance = balances.find(balance => tokenService.predicateByHash(gasToken, balance.token))
-
+    const gasBalance = balances.find(balance => bsNeo3Service.tokenService.predicateByHash(gasToken, balance.token))
     if (!gasBalance) {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
@@ -183,15 +179,14 @@ describe('Neo3NeoXBridgeService', () => {
     })
 
     expect(transactionHash).toBeDefined()
-  }, 60000)
+  })
 
   it.skip('Should be able to bridge NEO', async () => {
     const { bridgeFee, bridgeMinAmount } = await neo3NeoXBridgeService.getBridgeConstants(neoToken)
 
     const balances = await bsNeo3Service.blockchainDataService.getBalance(account.address)
 
-    const neoBalance = balances.find(balance => tokenService.predicateByHash(neoToken, balance.token))
-
+    const neoBalance = balances.find(balance => bsNeo3Service.tokenService.predicateByHash(neoToken, balance.token))
     if (!neoBalance) {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
@@ -207,5 +202,5 @@ describe('Neo3NeoXBridgeService', () => {
     })
 
     expect(transactionHash).toBeDefined()
-  }, 60000)
+  })
 })

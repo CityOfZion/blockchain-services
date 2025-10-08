@@ -1,49 +1,39 @@
 import {
-  Account,
+  TBSAccount,
   generateAccountForBlockchainService,
-  GetLedgerTransport,
-  LedgerService,
-  LedgerServiceEmitter,
-  UntilIndexRecord,
+  TGetLedgerTransport,
+  ILedgerService,
+  TLedgerServiceEmitter,
+  TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacy } from '../../BSNeoLegacy'
 import EventEmitter from 'events'
 import Transport from '@ledgerhq/hw-transport'
 import { wallet, u, tx } from '@cityofzion/neon-js'
+import {
+  ENeonJsLedgerServiceNeoLegacyCommand,
+  ENeonJsLedgerServiceNeoLegacyParameter,
+  ENeonJsLedgerServiceNeoLegacyStatus,
+} from '../../types'
 
-enum LedgerStatus {
-  OK = 0x9000,
-}
+export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements ILedgerService<N> {
+  readonly #service: BSNeoLegacy<N>
+  readonly getLedgerTransport?: TGetLedgerTransport<N>
+  emitter: TLedgerServiceEmitter = new EventEmitter() as TLedgerServiceEmitter
 
-enum LedgerCommand {
-  GET_PUBLIC_KEY = 0x04,
-  SIGN = 0x02,
-}
-
-enum LedgerParameter {
-  MORE_DATA = 0x00,
-  LAST_DATA = 0x80,
-}
-
-export class NeonJsLedgerServiceNeoLegacy<BSName extends string = string> implements LedgerService<BSName> {
-  #blockchainService: BSNeoLegacy<BSName>
-
-  emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
-  getLedgerTransport?: GetLedgerTransport<BSName>
-
-  constructor(blockchainService: BSNeoLegacy<BSName>, getLedgerTransport?: GetLedgerTransport<BSName>) {
-    this.#blockchainService = blockchainService
+  constructor(blockchainService: BSNeoLegacy<N>, getLedgerTransport?: TGetLedgerTransport<N>) {
+    this.#service = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
 
-  async getAccount(transport: Transport, index: number): Promise<Account<BSName>> {
-    const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
+  async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
+    const bip44Path = this.#service.bip44DerivationPath.replace('?', index.toString())
     const bip44PathHex = this.#bip44PathToHex(bip44Path)
 
     const result = await this.#sendChunk(
       transport,
-      LedgerCommand.GET_PUBLIC_KEY,
-      LedgerParameter.LAST_DATA,
+      ENeonJsLedgerServiceNeoLegacyCommand.GET_PUBLIC_KEY,
+      ENeonJsLedgerServiceNeoLegacyParameter.LAST_DATA,
       bip44PathHex
     )
 
@@ -55,30 +45,30 @@ export class NeonJsLedgerServiceNeoLegacy<BSName extends string = string> implem
       key: publicKey,
       type: 'publicKey',
       bip44Path,
-      blockchain: this.#blockchainService.name,
+      blockchain: this.#service.name,
       isHardware: true,
     }
   }
 
   async getAccounts(
     transport: Transport,
-    untilIndexByBlockchainService?: UntilIndexRecord<BSName>
-  ): Promise<Account<BSName>[]> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<N>
+  ): Promise<TBSAccount<N>[]> {
     const accountsByBlockchainService = await generateAccountForBlockchainService(
-      [this.#blockchainService],
+      [this.#service],
       async (_service, index) => {
         return this.getAccount(transport, index)
       },
       untilIndexByBlockchainService
     )
 
-    const accounts = accountsByBlockchainService.get(this.#blockchainService.name)
+    const accounts = accountsByBlockchainService.get(this.#service.name)
     return accounts ?? []
   }
 
   getSigningCallback(
     transport: Transport,
-    account: Account
+    account: TBSAccount
   ): (transaction: string, publicKey: string) => Promise<string | string[]> {
     return async (transaction, publicKey) => {
       try {
@@ -105,18 +95,23 @@ export class NeonJsLedgerServiceNeoLegacy<BSName extends string = string> implem
 
         // Send all chunks except the last one
         for (let i = 0; i < chunks.length - 1; i++) {
-          await this.#sendChunk(transport, LedgerCommand.SIGN, LedgerParameter.MORE_DATA, chunks[i])
+          await this.#sendChunk(
+            transport,
+            ENeonJsLedgerServiceNeoLegacyCommand.SIGN,
+            ENeonJsLedgerServiceNeoLegacyParameter.MORE_DATA,
+            chunks[i]
+          )
         }
 
         // Send the last chunk signaling that it is the last one and get the signature
         const response = await this.#sendChunk(
           transport,
-          LedgerCommand.SIGN,
-          LedgerParameter.LAST_DATA,
+          ENeonJsLedgerServiceNeoLegacyCommand.SIGN,
+          ENeonJsLedgerServiceNeoLegacyParameter.LAST_DATA,
           chunks[chunks.length - 1]
         )
 
-        if (response.readUIntBE(0, 2) === LedgerStatus.OK) {
+        if (response.readUIntBE(0, 2) === ENeonJsLedgerServiceNeoLegacyStatus.OK) {
           throw new Error('No more data but Ledger did not return signature!')
         }
 
@@ -129,8 +124,15 @@ export class NeonJsLedgerServiceNeoLegacy<BSName extends string = string> implem
     }
   }
 
-  #sendChunk(transport: Transport, command: LedgerCommand, parameter: LedgerParameter, chunk: string) {
-    return transport.send(0x80, command, parameter, 0x00, Buffer.from(chunk, 'hex'), [LedgerStatus.OK])
+  #sendChunk(
+    transport: Transport,
+    command: ENeonJsLedgerServiceNeoLegacyCommand,
+    parameter: ENeonJsLedgerServiceNeoLegacyParameter,
+    chunk: string
+  ) {
+    return transport.send(0x80, command, parameter, 0x00, Buffer.from(chunk, 'hex'), [
+      ENeonJsLedgerServiceNeoLegacyStatus.OK,
+    ])
   }
 
   #bip44PathToHex(path: string): string {

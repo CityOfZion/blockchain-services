@@ -1,31 +1,33 @@
 import {
   CryptoCompareEDS,
-  ExchangeDataService,
-  GetTokenPriceHistoryParams,
-  GetTokenPricesParams,
-  Network,
-  TokenPricesHistoryResponse,
-  TokenPricesResponse,
+  TGetTokenPriceHistoryParams,
+  TGetTokenPricesParams,
+  TTokenPricesHistoryResponse,
+  TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { BSNeoLegacyNetworkId } from '../../constants/BSNeoLegacyConstants'
+import { IBSNeoLegacy } from '../../types'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
-export class CryptoCompareEDSNeoLegacy extends CryptoCompareEDS implements ExchangeDataService {
-  #network: Network<BSNeoLegacyNetworkId>
+export class CryptoCompareEDSNeoLegacy<N extends string> extends CryptoCompareEDS {
+  readonly #service: IBSNeoLegacy<N>
 
-  constructor(network: Network<BSNeoLegacyNetworkId>) {
+  constructor(service: IBSNeoLegacy<N>) {
     super()
 
-    this.#network = network
+    this.#service = service
   }
 
-  async getTokenPriceHistory(params: GetTokenPriceHistoryParams): Promise<TokenPricesHistoryResponse[]> {
-    if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
+  async getTokenPriceHistory(params: TGetTokenPriceHistoryParams): Promise<TTokenPricesHistoryResponse[]> {
+    if (!BSNeoLegacyHelper.isMainnetNetwork(this.#service.network))
+      throw new Error('Exchange is only available on mainnet')
+
     return await super.getTokenPriceHistory(params)
   }
 
-  async getTokenPrices(params: GetTokenPricesParams): Promise<TokenPricesResponse[]> {
-    if (!BSNeoLegacyHelper.isMainnet(this.#network)) throw new Error('Exchange is only available on mainnet')
+  async getTokenPrices(params: TGetTokenPricesParams): Promise<TTokenPricesResponse[]> {
+    if (!BSNeoLegacyHelper.isMainnetNetwork(this.#service.network))
+      throw new Error('Exchange is only available on mainnet')
+
     return await super.getTokenPrices(params)
   }
 }

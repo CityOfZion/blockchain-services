@@ -1,32 +1,15 @@
-import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
-import { Network, TokenService } from '@cityofzion/blockchain-service'
-import { TokenServiceEthereum } from '../services/token/TokenServiceEthereum'
+import { TNetworkId } from '@cityofzion/blockchain-service'
+import { IBSEthereum } from '../types'
+import { BSEthereum } from '../BSEthereum'
 
-const INVALID_NETWORK: Network = { id: '99999999', name: '', url: '' }
-let blockscoutESEthereum: BlockscoutESEthereum
-let tokenService: TokenService
+let blockscoutESEthereum: BlockscoutESEthereum<'test', TNetworkId>
+let service: IBSEthereum<'test'>
 
 describe('BlockscoutESEthereum', () => {
   beforeEach(() => {
-    tokenService = new TokenServiceEthereum()
-    blockscoutESEthereum = new BlockscoutESEthereum(BSEthereumConstants.DEFAULT_NETWORK, tokenService)
-  })
-
-  it('Should return undefined when call the getAddressTemplateUrl method with an invalid network', () => {
-    blockscoutESEthereum = new BlockscoutESEthereum(INVALID_NETWORK, tokenService)
-
-    const templateUrl = blockscoutESEthereum.getAddressTemplateUrl()
-
-    expect(templateUrl).toBe(undefined)
-  })
-
-  it('Should return undefined when call the getTxTemplateUrl method with an invalid network', () => {
-    blockscoutESEthereum = new BlockscoutESEthereum(INVALID_NETWORK, tokenService)
-
-    const templateUrl = blockscoutESEthereum.getTxTemplateUrl()
-
-    expect(templateUrl).toBe(undefined)
+    service = new BSEthereum('test', 'ethereum')
+    blockscoutESEthereum = new BlockscoutESEthereum(service)
   })
 
   it('Should return an address template URL (Mainnet) when call the getAddressTemplateUrl method with a Mainnet network', () => {
@@ -39,22 +22,6 @@ describe('BlockscoutESEthereum', () => {
     const templateUrl = blockscoutESEthereum.getTxTemplateUrl()
 
     expect(templateUrl).toBe('https://eth.blockscout.com/tx/{txId}')
-  })
-
-  it('Should return undefined when call the getNftTemplateUrl method with an invalid network', () => {
-    blockscoutESEthereum = new BlockscoutESEthereum(INVALID_NETWORK, tokenService)
-
-    const templateUrl = blockscoutESEthereum.getNftTemplateUrl()
-
-    expect(templateUrl).toBe(undefined)
-  })
-
-  it('Should return undefined when call the getContractTemplateUrl method with an invalid network', () => {
-    blockscoutESEthereum = new BlockscoutESEthereum(INVALID_NETWORK, tokenService)
-
-    const templateUrl = blockscoutESEthereum.getContractTemplateUrl()
-
-    expect(templateUrl).toBe(undefined)
   })
 
   it('Should return an address template URL (Mainnet) when call the getNftTemplateUrl method with a Mainnet network', () => {

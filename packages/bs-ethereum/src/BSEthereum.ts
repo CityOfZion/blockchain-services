@@ -1,88 +1,70 @@
 import {
-  Account,
-  BSCalculableFee,
-  BSWithExplorerService,
-  BSWithLedger,
-  BSWithNameService,
-  BSWithNft,
-  BlockchainDataService,
-  BlockchainService,
-  ExchangeDataService,
-  ExplorerService,
-  IntentTransferParam,
-  Network,
-  NftDataService,
-  Token,
-  TransferParam,
-  GetLedgerTransport,
-  BSWithEncryption,
+  TBSAccount,
+  TIntentTransferParam,
+  TBSToken,
+  TTransferParam,
+  TGetLedgerTransport,
   ITokenService,
+  TNetwork,
+  IBlockchainDataService,
+  IExchangeDataService,
+  INftDataService,
+  IExplorerService,
+  BSUtilsHelper,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
 import * as ethersBytes from '@ethersproject/bytes'
 import * as ethersBigNumber from '@ethersproject/bignumber'
-import { BSEthereumConstants, BSEthereumNetworkId } from './constants/BSEthereumConstants'
+import { BSEthereumConstants } from './constants/BSEthereumConstants'
 import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServiceEthereum'
 import { BSEthereumHelper } from './helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from './services/blockchain-data/MoralisBDSEthereum'
 import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
 import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
-import { RpcBDSEthereum } from './services/blockchain-data/RpcBDSEthereum'
 import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
+import { IBSEthereum, TBSEthereumNetworkId, TSupportedEVM } from './types'
 
-export class BSEthereum<BSName extends string = string, NetworkId extends string = BSEthereumNetworkId>
-  implements
-    BlockchainService<BSName, NetworkId>,
-    BSWithNft,
-    BSWithNameService,
-    BSCalculableFee<BSName>,
-    BSWithLedger<BSName>,
-    BSWithExplorerService,
-    BSWithEncryption<BSName>
+export class BSEthereum<N extends string = string, A extends string = TBSEthereumNetworkId>
+  implements IBSEthereum<N, A>
 {
-  readonly name: BSName
+  readonly name: N
+  readonly evm: TSupportedEVM
   readonly bip44DerivationPath: string
 
-  nativeTokens!: Token[]
-  feeToken!: Token
-  blockchainDataService!: BlockchainDataService
-  exchangeDataService!: ExchangeDataService
-  ledgerService: EthersLedgerServiceEthereum<BSName>
-  tokens!: Token[]
-  nftDataService!: NftDataService
-  network!: Network<NetworkId>
-  explorerService!: ExplorerService
+  readonly isMultiTransferSupported = false
+  readonly isCustomNetworkSupported = false
+
+  tokens!: TBSToken[]
+  nativeTokens!: TBSToken[]
+  feeToken!: TBSToken
+
+  network!: TNetwork<A>
+  readonly defaultNetwork: TNetwork<A>
+  readonly availableNetworks: TNetwork<A>[]
+
+  blockchainDataService!: IBlockchainDataService
+  exchangeDataService!: IExchangeDataService
+  ledgerService: EthersLedgerServiceEthereum<N>
+  nftDataService!: INftDataService
+  explorerService!: IExplorerService
   tokenService!: ITokenService
 
-  constructor(name: BSName, network?: Network<NetworkId>, getLedgerTransport?: GetLedgerTransport<BSName>) {
-    network = network ?? (BSEthereumConstants.DEFAULT_NETWORK as Network<NetworkId>)
-
+  constructor(name: N, evm?: TSupportedEVM, network?: TNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
     this.bip44DerivationPath = BSEthereumConstants.DEFAULT_BIP44_DERIVATION_PATH
 
-    this.setNetwork(network)
+    this.evm = evm ?? 'ethereum'
+
+    this.availableNetworks = BSEthereumConstants.NETWORKS_BY_EVM[this.evm] as TNetwork<A>[]
+    this.defaultNetwork = this.availableNetworks.find(network => network.type === 'mainnet')! as TNetwork<A>
+
+    this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  async generateSigner(account: Account<BSName>): Promise<ethers.Signer> {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
-
-    if (account.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide getLedgerTransport function to use Ledger')
-
-      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
-
-      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
-      return this.ledgerService.getSigner(ledgerTransport, account.bip44Path, provider)
-    }
-
-    return new ethers.Wallet(account.key, provider)
-  }
-
-  async #buildTransferParams(intent: IntentTransferParam) {
+  async #buildTransferParams(intent: TIntentTransferParam) {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
     let decimals = intent.tokenDecimals
@@ -125,35 +107,51 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
     }
   }
 
-  #setTokens(network: Network<NetworkId>) {
+  #setTokens(network: TNetwork<A>) {
     const nativeAsset = BSEthereumHelper.getNativeAsset(network)
     this.tokens = [nativeAsset]
     this.nativeTokens = [nativeAsset]
     this.feeToken = nativeAsset
   }
 
-  async testNetwork(network: Network<NetworkId>) {
-    this.tokenService = new TokenServiceEthereum()
+  async generateSigner(account: TBSAccount<N>): Promise<ethers.Signer> {
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
-    const blockchainDataServiceClone = new RpcBDSEthereum(network, this.tokenService)
+    if (account.isHardware) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide getLedgerTransport function to use Ledger')
+
+      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+
+      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+      return this.ledgerService.getSigner(ledgerTransport, account.bip44Path, provider)
+    }
+
+    return new ethers.Wallet(account.key, provider)
+  }
+
+  async testNetwork(network: TNetwork<A>) {
+    this.tokenService = new TokenServiceEthereum()
+    const service = new BSEthereum(this.name, this.evm, network, this.ledgerService.getLedgerTransport)
+    const blockchainDataServiceClone = new MoralisBDSEthereum(service)
 
     await blockchainDataServiceClone.getBlockHeight()
   }
 
-  setNetwork(network: Network<NetworkId>) {
+  setNetwork(network: TNetwork<A>) {
+    const isValidNetwork = this.availableNetworks.some(networkItem => BSUtilsHelper.isEqual(networkItem, network))
+    if (!isValidNetwork) {
+      throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+    }
+
     this.#setTokens(network)
 
     this.network = network
-    this.nftDataService = new GhostMarketNDSEthereum(network)
-    this.explorerService = new BlockscoutESEthereum(network, this.tokenService)
-    this.exchangeDataService = new MoralisEDSEthereum(network, this.blockchainDataService, this.tokenService)
+    this.nftDataService = new GhostMarketNDSEthereum(this)
+    this.explorerService = new BlockscoutESEthereum(this)
+    this.exchangeDataService = new MoralisEDSEthereum(this)
+    this.blockchainDataService = new MoralisBDSEthereum(this)
     this.tokenService = new TokenServiceEthereum()
-    this.blockchainDataService = new MoralisBDSEthereum(
-      network,
-      this.nftDataService,
-      this.explorerService,
-      this.tokenService
-    )
   }
 
   validateAddress(address: string): boolean {
@@ -180,7 +178,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
     return domainName.endsWith('.eth')
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Account<BSName> {
+  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): TBSAccount<N> {
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
     const hd = ethers.utils.HDNode.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic).derivePath(
       bip44Path
@@ -195,7 +193,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
     }
   }
 
-  generateAccountFromKey(key: string): Account<BSName> {
+  generateAccountFromKey(key: string): TBSAccount<N> {
     const wallet = new ethers.Wallet(key)
 
     return {
@@ -206,7 +204,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
     }
   }
 
-  generateAccountFromPublicKey(publicKey: string): Account<BSName> {
+  generateAccountFromPublicKey(publicKey: string): TBSAccount<N> {
     const address = ethers.utils.computeAddress(publicKey)
     return {
       address,
@@ -216,7 +214,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
     }
   }
 
-  async decrypt(json: string, password: string): Promise<Account<BSName>> {
+  async decrypt(json: string, password: string): Promise<TBSAccount<N>> {
     const wallet = await ethers.Wallet.fromEncryptedJson(json, password)
     return {
       address: wallet.address,
@@ -231,7 +229,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
     return wallet.encrypt(password)
   }
 
-  async transfer(param: TransferParam<BSName>): Promise<string[]> {
+  async transfer(param: TTransferParam<N>): Promise<string[]> {
     const signer = await this.generateSigner(param.senderAccount)
 
     const sentTransactionHashes: string[] = []
@@ -272,7 +270,7 @@ export class BSEthereum<BSName extends string = string, NetworkId extends string
     return sentTransactionHashes
   }
 
-  async calculateTransferFee(param: TransferParam<BSName>): Promise<string> {
+  async calculateTransferFee(param: TTransferParam<N>): Promise<string> {
     const signer = await this.generateSigner(param.senderAccount)
 
     let fee = ethers.utils.parseEther('0')

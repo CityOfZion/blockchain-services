@@ -1,26 +1,26 @@
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { BSNeo3 } from '../../../BSNeo3'
 import { DoraVoteServiceNeo3 } from '../../../services/vote/DoraVoteServiceNeo3'
-import { Account } from '@cityofzion/blockchain-service'
+import { TBSAccount } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 describe('DoraVoteServiceNeo3', () => {
-  let doraVoteServiceNeo3: DoraVoteServiceNeo3<'neo3'>
-  let account: Account<'neo3'>
+  let doraVoteServiceNeo3: DoraVoteServiceNeo3<'test'>
+  let account: TBSAccount<'test'>
   const cozCandidatePubKey = '02946248f71bdf14933e6735da9867e81cc9eea0b5895329aa7f71e7745cf40659'
-  const testnetNetwork = BSNeo3Constants.TESTNET_NETWORKS[0]
+  const testnetNetwork = BSNeo3Constants.TESTNET_NETWORK
 
   beforeEach(() => {
-    const bsNeo3 = new BSNeo3('neo3')
+    const bsNeo3 = new BSNeo3('test')
 
-    doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'neo3'>(bsNeo3)
+    doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'test'>(bsNeo3)
 
     account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
   })
 
   describe('getCandidatesToVote', () => {
     it("Shouldn't be able to get candidates to vote when is using a Testnet network", async () => {
-      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'neo3'>(new BSNeo3('neo3', testnetNetwork))
+      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'test'>(new BSNeo3('test', testnetNetwork))
 
       await expect(doraVoteServiceNeo3.getCandidatesToVote()).rejects.toThrow('Only Mainnet is supported')
     })
@@ -52,7 +52,7 @@ describe('DoraVoteServiceNeo3', () => {
     const address = 'Nbgjdh2MmB9oWUY7Botk6Yy58eCzuPrQFW'
 
     it("Shouldn't be able to get vote details by address when is using a Testnet network", async () => {
-      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'neo3'>(new BSNeo3('neo3', testnetNetwork))
+      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'test'>(new BSNeo3('test', testnetNetwork))
 
       await expect(doraVoteServiceNeo3.getVoteDetailsByAddress(address)).rejects.toThrow('Only Mainnet is supported')
     })
@@ -80,7 +80,7 @@ describe('DoraVoteServiceNeo3', () => {
 
   describe('calculateVoteFee (RpcVoteServiceNeo3)', () => {
     it("Shouldn't be able to calculate vote fee when is using a Testnet network", async () => {
-      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'neo3'>(new BSNeo3('neo3', testnetNetwork))
+      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'test'>(new BSNeo3('test', testnetNetwork))
 
       await expect(
         doraVoteServiceNeo3.calculateVoteFee({ account, candidatePubKey: cozCandidatePubKey })
@@ -97,12 +97,12 @@ describe('DoraVoteServiceNeo3', () => {
       const fee = await doraVoteServiceNeo3.calculateVoteFee({ account, candidatePubKey: cozCandidatePubKey })
 
       expect(fee).toEqual(expect.any(String))
-    }, 30000)
+    })
   })
 
   describe('vote (RpcVoteServiceNeo3)', () => {
     it("Shouldn't be able to vote when is using a Testnet network", async () => {
-      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'neo3'>(new BSNeo3('neo3', testnetNetwork))
+      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'test'>(new BSNeo3('test', testnetNetwork))
 
       await expect(doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })).rejects.toThrow(
         'Only Mainnet is supported'
@@ -116,20 +116,20 @@ describe('DoraVoteServiceNeo3', () => {
     })
 
     it.skip('Should be able to vote with success', async () => {
-      const { transactionHash } = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
+      const transactionHash = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
 
       expect(transactionHash).toEqual(expect.any(String))
     })
 
     it.skip('Should be able to vote using Ledger with success', async () => {
       const transport = await TransportNodeHid.create()
-      const bsNeo3 = new BSNeo3('neo3', undefined, async () => transport)
+      const bsNeo3 = new BSNeo3('test', undefined, async () => transport)
 
-      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'neo3'>(bsNeo3)
+      doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'test'>(bsNeo3)
 
       account = await bsNeo3.ledgerService.getAccount(transport, 0)
 
-      const { transactionHash } = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
+      const transactionHash = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
 
       transport.close()
 

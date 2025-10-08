@@ -1,145 +1,42 @@
-import {
-  NftResponse,
-  NftsResponse,
-  GetNftParam,
-  GetNftsByAddressParams,
-  Network,
-  NetworkId,
-} from '@cityofzion/blockchain-service'
-import qs from 'query-string'
-import axios from 'axios'
+import { TNetworkId, GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
 
-import { RpcNDSEthereum } from './RpcNDSEthereum'
-import { BSEthereumConstants, BSEthereumNetworkId } from '../../constants/BSEthereumConstants'
+import { IBSEthereum, TBSEthereumNetworkId } from '../../types'
+import { ethers } from 'ethers'
+import { ERC20_ABI } from '../../assets/abis/ERC20'
 
-type GhostMarketNFT = {
-  tokenId: string
-  contract: {
-    chain?: string
-    hash: string
-    symbol: string
+export class GhostMarketNDSEthereum<N extends string, A extends TNetworkId> extends GhostMarketNDS {
+  static readonly CHAIN_BY_NETWORK_ID: Partial<Record<TBSEthereumNetworkId, string>> = {
+    '1': 'eth',
+    '56': 'bsc',
+    '137': 'polygon',
+    '43114': 'avalanche',
+    '8453': 'base',
   }
-  creator: {
-    address: string
-    offchainName?: string
+
+  _service: IBSEthereum<N, A>
+
+  constructor(service: IBSEthereum<N, A>) {
+    super()
+
+    this._service = service
   }
-  apiUrl?: string
-  ownerships: {
-    owner: {
-      address?: string
+
+  async hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean> {
+    try {
+      const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+      const contract = new ethers.Contract(collectionHash, ERC20_ABI, provider)
+      const response = await contract.balanceOf(address)
+      if (!response) throw new Error()
+      const parsedResponse = response as BigNumber
+      return parsedResponse.gt(0)
+    } catch {
+      throw new Error(`Token not found: ${collectionHash}`)
     }
-  }[]
-  collection: {
-    name?: string
-    logoUrl?: string
-  }
-  metadata: {
-    description: string
-    mediaType: string
-    mediaUri: string
-    mintDate: number
-    mintNumber: number
-    name: string
-  }
-}
-
-type GhostMarketAssets = {
-  assets: GhostMarketNFT[]
-  next: string
-}
-
-const BASE_URL = 'https://api.ghostmarket.io/api/v2'
-
-const GHOSTMARKET_CHAIN_BY_NETWORK_ID: Partial<Record<BSEthereumNetworkId, string>> = {
-  [BSEthereumConstants.ETHEREUM_MAINNET_NETWORK_ID]: 'eth',
-  '56': 'bsc',
-  [BSEthereumConstants.POLYGON_MAINNET_NETWORK_ID]: 'polygon',
-  '43114': 'avalanche',
-  [BSEthereumConstants.BASE_MAINNET_NETWORK_ID]: 'base',
-}
-export class GhostMarketNDSEthereum<BSNetworkId extends NetworkId = BSEthereumNetworkId> extends RpcNDSEthereum {
-  #network: Network<BSNetworkId>
-  #ghostMarketChainByNetworkId: Partial<Record<BSNetworkId, string>>
-
-  constructor(network: Network<BSNetworkId>, ghostMarketChainByNetworkId?: Partial<Record<BSNetworkId, string>>) {
-    super(network)
-
-    this.#network = network
-    this.#ghostMarketChainByNetworkId = ghostMarketChainByNetworkId ?? GHOSTMARKET_CHAIN_BY_NETWORK_ID
   }
 
-  async getNftsByAddress({ address, size = 18, cursor }: GetNftsByAddressParams): Promise<NftsResponse> {
-    const url = this.getUrlWithParams({
-      size,
-      owners: [address],
-      cursor: cursor,
-    })
-
-    const request = await axios.get<GhostMarketAssets>(url)
-    const nfts = request.data.assets ?? []
-    return { nextCursor: request.data.next, items: nfts.map(this.parse.bind(this)) }
-  }
-
-  async getNft({ collectionHash, tokenHash }: GetNftParam): Promise<NftResponse> {
-    const url = this.getUrlWithParams({
-      contract: collectionHash,
-      tokenIds: [tokenHash],
-    })
-
-    const request = await axios.get<GhostMarketAssets>(url)
-
-    return this.parse(request.data.assets[0])
-  }
-
-  private treatGhostMarketImage(srcImage?: string) {
-    if (!srcImage) {
-      return
-    }
-
-    if (srcImage.startsWith('ipfs://')) {
-      const splitImage = srcImage.split('/')
-      const imageId = splitImage.slice(-2).filter(Boolean).join('/')
-
-      return `https://ghostmarket.mypinata.cloud/ipfs/${imageId}`
-    }
-
-    return srcImage
-  }
-
-  private getUrlWithParams(params: any) {
-    const chain = this.#ghostMarketChainByNetworkId[this.#network.id as BSNetworkId]
-    if (!chain) throw new Error('Unsupported network')
-
-    const parameters = qs.stringify(
-      {
-        chain,
-        ownersChains: [chain],
-        ...params,
-      },
-      { arrayFormat: 'bracket' }
-    )
-
-    return `${BASE_URL}/assets?${parameters}`
-  }
-
-  private parse(data: GhostMarketNFT) {
-    const nftResponse: NftResponse = {
-      hash: data.tokenId,
-      collection: {
-        hash: data.contract.hash,
-        name: data.collection?.name,
-        image: this.treatGhostMarketImage(data.collection?.logoUrl),
-      },
-      symbol: data.contract.symbol,
-      image: this.treatGhostMarketImage(data.metadata.mediaUri),
-      isSVG: String(data.metadata.mediaType).includes('svg+xml'),
-      name: data.metadata.name,
-      creator: {
-        address: data.creator.address,
-        name: data.creator.offchainName,
-      },
-    }
-
-    return nftResponse
+  getChain(): string {
+    const chain = GhostMarketNDSEthereum.CHAIN_BY_NETWORK_ID[this._service.network.id]
+    if (!chain) throw new Error('Network not supported')
+    return chain
   }
 }

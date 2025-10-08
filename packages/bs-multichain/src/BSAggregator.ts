@@ -1,23 +1,23 @@
 import {
-  Account,
-  BlockchainService,
+  TBSAccount,
+  IBlockchainService,
   generateAccountForBlockchainService,
   hasEncryption,
-  UntilIndexRecord,
+  TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 
-export class BSAggregator<BSName extends string> {
-  readonly blockchainServicesByName: Record<BSName, BlockchainService<BSName>>
-  readonly #blockchainServices: BlockchainService<BSName>[]
+export class BSAggregator<N extends string> {
+  readonly blockchainServicesByName: Record<N, IBlockchainService<N>>
+  readonly #blockchainServices: IBlockchainService<N>[]
 
-  constructor(blockchainServices: BlockchainService<BSName>[]) {
+  constructor(blockchainServices: IBlockchainService<N>[]) {
     this.#blockchainServices = blockchainServices
     this.blockchainServicesByName = blockchainServices.reduce(
       (acc, service) => {
         acc[service.name] = service
         return acc
       },
-      {} as Record<BSName, BlockchainService<BSName>>
+      {} as Record<N, IBlockchainService<N>>
     )
   }
 
@@ -41,15 +41,15 @@ export class BSAggregator<BSName extends string> {
     return this.#blockchainServices.some(bs => hasEncryption(bs) && bs.validateEncrypted(keyOrJson))
   }
 
-  getBlockchainNameByAddress(address: string): BSName[] {
+  getBlockchainNameByAddress(address: string): N[] {
     return this.#blockchainServices.filter(bs => bs.validateAddress(address)).map(bs => bs.name)
   }
 
-  getBlockchainNameByKey(wif: string): BSName[] {
+  getBlockchainNameByKey(wif: string): N[] {
     return this.#blockchainServices.filter(bs => bs.validateKey(wif)).map(bs => bs.name)
   }
 
-  getBlockchainNameByEncrypted(keyOrJson: string): BSName[] {
+  getBlockchainNameByEncrypted(keyOrJson: string): N[] {
     return this.#blockchainServices
       .filter(bs => hasEncryption(bs) && bs.validateEncrypted(keyOrJson))
       .map(bs => bs.name)
@@ -57,11 +57,11 @@ export class BSAggregator<BSName extends string> {
 
   async generateAccountsFromMnemonic(
     mnemonic: string,
-    untilIndexByBlockchainService?: UntilIndexRecord<BSName>
-  ): Promise<Map<BSName, Account<BSName>[]>> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<N>
+  ): Promise<Map<N, TBSAccount<N>[]>> {
     return generateAccountForBlockchainService(
       this.#blockchainServices,
-      async (service: BlockchainService<BSName>, index: number) => {
+      async (service: IBlockchainService<N>, index: number) => {
         return service.generateAccountFromMnemonic(mnemonic, index)
       },
       untilIndexByBlockchainService

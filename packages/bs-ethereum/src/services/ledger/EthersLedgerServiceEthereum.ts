@@ -1,11 +1,11 @@
 import {
-  Account,
-  LedgerService,
-  LedgerServiceEmitter,
-  GetLedgerTransport,
-  UntilIndexRecord,
+  TBSAccount,
+  TLedgerServiceEmitter,
+  TGetLedgerTransport,
+  TUntilIndexRecord,
   generateAccountForBlockchainService,
   BSUtilsHelper,
+  ILedgerService,
 } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
@@ -15,13 +15,13 @@ import { defineReadOnly } from '@ethersproject/properties'
 import EventEmitter from 'events'
 import { BSEthereum } from '../../BSEthereum'
 
-const shouldRetry = (error: any): boolean => {
-  return error?.id === 'TransportLocked'
-}
-
 export class EthersLedgerSigner extends Signer implements TypedDataSigner {
+  static shouldRetry = (error: any): boolean => {
+    return error?.id === 'TransportLocked'
+  }
+
   #transport: Transport
-  #emitter?: LedgerServiceEmitter
+  #emitter?: TLedgerServiceEmitter
   #bip44Path: string
   #ledgerApp: LedgerEthereumApp
 
@@ -29,7 +29,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
     transport: Transport,
     bip44Path: string,
     provider?: ethers.providers.Provider,
-    emitter?: LedgerServiceEmitter
+    emitter?: TLedgerServiceEmitter
   ) {
     super()
 
@@ -46,7 +46,9 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
   }
 
   async getAddress(): Promise<string> {
-    const { address } = await BSUtilsHelper.retry(() => this.#ledgerApp.getAddress(this.#bip44Path), { shouldRetry })
+    const { address } = await BSUtilsHelper.retry(() => this.#ledgerApp.getAddress(this.#bip44Path), {
+      shouldRetry: EthersLedgerSigner.shouldRetry,
+    })
     return address
   }
 
@@ -60,7 +62,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       const obj = await BSUtilsHelper.retry(
         () => this.#ledgerApp.signPersonalMessage(this.#bip44Path, ethers.utils.hexlify(message).substring(2)),
-        { shouldRetry }
+        { shouldRetry: EthersLedgerSigner.shouldRetry }
       )
 
       this.#emitter?.emit('getSignatureEnd')
@@ -90,7 +92,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       const signature = await BSUtilsHelper.retry(
         () => this.#ledgerApp.signTransaction(this.#bip44Path, serializedUnsignedTransaction, resolution),
-        { shouldRetry }
+        { shouldRetry: EthersLedgerSigner.shouldRetry }
       )
 
       this.#emitter?.emit('getSignatureEnd')
@@ -132,7 +134,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       try {
         obj = await BSUtilsHelper.retry(() => this.#ledgerApp.signEIP712Message(this.#bip44Path, payload), {
-          shouldRetry,
+          shouldRetry: EthersLedgerSigner.shouldRetry,
         })
       } catch {
         const domainSeparatorHex = ethers.utils._TypedDataEncoder.hashDomain(payload.domain)
@@ -143,7 +145,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
         )
         obj = await BSUtilsHelper.retry(
           () => this.#ledgerApp.signEIP712HashedMessage(this.#bip44Path, domainSeparatorHex, hashStructMessageHex),
-          { shouldRetry }
+          { shouldRetry: EthersLedgerSigner.shouldRetry }
         )
       }
 
@@ -161,20 +163,20 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
   }
 }
 
-export class EthersLedgerServiceEthereum<BSName extends string = string> implements LedgerService<BSName> {
-  #blockchainService: BSEthereum<BSName>
-  emitter: LedgerServiceEmitter = new EventEmitter() as LedgerServiceEmitter
-  getLedgerTransport?: GetLedgerTransport<BSName>
+export class EthersLedgerServiceEthereum<N extends string> implements ILedgerService<N> {
+  #blockchainService: BSEthereum<N>
+  emitter: TLedgerServiceEmitter = new EventEmitter() as TLedgerServiceEmitter
+  getLedgerTransport?: TGetLedgerTransport<N>
 
-  constructor(blockchainService: BSEthereum<BSName>, getLedgerTransport?: GetLedgerTransport<BSName>) {
+  constructor(blockchainService: BSEthereum<N>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.#blockchainService = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
 
   async getAccounts(
     transport: Transport,
-    untilIndexByBlockchainService?: UntilIndexRecord<BSName>
-  ): Promise<Account<BSName>[]> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<N>
+  ): Promise<TBSAccount<N>[]> {
     const accountsByBlockchainService = await generateAccountForBlockchainService(
       [this.#blockchainService],
       async (_service, index) => {
@@ -187,11 +189,13 @@ export class EthersLedgerServiceEthereum<BSName extends string = string> impleme
     return accounts ?? []
   }
 
-  async getAccount(transport: Transport, index: number): Promise<Account<BSName>> {
+  async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const ledgerApp = new LedgerEthereumApp(transport)
     const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
 
-    const { publicKey, address } = await BSUtilsHelper.retry(() => ledgerApp.getAddress(bip44Path), { shouldRetry })
+    const { publicKey, address } = await BSUtilsHelper.retry(() => ledgerApp.getAddress(bip44Path), {
+      shouldRetry: EthersLedgerSigner.shouldRetry,
+    })
 
     const publicKeyWithPrefix = '0x' + publicKey
 
