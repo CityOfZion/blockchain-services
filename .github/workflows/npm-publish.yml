@@ -28,14 +28,18 @@ jobs:
           git config --global user.name github-actions
       - name: Install RushJS
         run: npm install -g @microsoft/rush
+      - name: Install Root Dependencies
+        run: npm install
+      - name: Install Projects Dependencies
+        run: rush update
+      - name: Lint Projects
+        run: rush lint
+      - name: Build Projects
+        run: rush rebuild
       - name: Verify Change Logs
         run: rush change --verify
       - name: Update package.json version(s)
         run: rush version --bump
-      - name: Install dependencies
-        run: rush update
-      - name: Build Projects
-        run: rush rebuild
       - name: Publish Projects
         run: rush publish --apply --target-branch main --publish --npm-auth-token ${{ secrets.NPM_TOKEN }} --add-commit-details --include-all
       - name: Commit and Push package.json version update
