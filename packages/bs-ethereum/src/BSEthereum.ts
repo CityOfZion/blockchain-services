@@ -12,6 +12,7 @@ import {
   IExplorerService,
   BSUtilsHelper,
   TPingNetworkResponse,
+  IWalletConnectService,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
@@ -26,6 +27,8 @@ import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthere
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
 import { IBSEthereum, TBSEthereumNetworkId, TSupportedEVM } from './types'
+import { TypedDataSigner } from '@ethersproject/abstract-signer'
+import { WalletConnectServiceEthereum } from './services/wallet-connect/WalletConnectServiceEthereum'
 import axios from 'axios'
 
 export class BSEthereum<N extends string = string, A extends string = TBSEthereumNetworkId>
@@ -52,6 +55,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
+  walletConnectService!: IWalletConnectService
 
   constructor(name: N, evm?: TSupportedEVM, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -116,7 +120,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     this.feeToken = nativeAsset
   }
 
-  async generateSigner(account: TBSAccount<N>): Promise<ethers.Signer> {
+  async generateSigner(account: TBSAccount<N>): Promise<ethers.Signer & TypedDataSigner> {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
     if (account.isHardware) {
@@ -150,6 +154,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     this.exchangeDataService = new MoralisEDSEthereum(this)
     this.blockchainDataService = new MoralisBDSEthereum(this)
     this.tokenService = new TokenServiceEthereum()
+    this.walletConnectService = new WalletConnectServiceEthereum(this)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout

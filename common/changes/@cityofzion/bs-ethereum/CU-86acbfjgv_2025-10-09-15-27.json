@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Add WalletConnect support",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

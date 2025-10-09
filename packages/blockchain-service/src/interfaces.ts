@@ -114,6 +114,10 @@ export interface IBSWithLedger<N extends string = string> {
   generateAccountFromPublicKey(publicKey: string): TBSAccount<N>
 }
 
+export interface IBSWithWalletConnect {
+  walletConnectService: IWalletConnectService
+}
+
 export type TTransactionNotificationTypedResponse = {
   type: string
   value?: string
@@ -543,4 +547,24 @@ export interface ITokenService {
   ): boolean
   normalizeToken<T extends TBSToken | TBSToken[]>(token: T): T
   normalizeHash(hash: string): string
+}
+
+export type TWalletConnectServiceRequestMethodParams<N extends string = string> = {
+  account: TBSAccount<N>
+  params: any
+}
+
+export type TWalletConnectServiceRequestMethod = (params: TWalletConnectServiceRequestMethodParams) => Promise<any>
+
+export interface IWalletConnectService {
+  readonly namespace: string
+  readonly chain: string
+  readonly supportedMethods: string[]
+  readonly supportedEvents: string[]
+  readonly calculableMethods: string[]
+  readonly autoApproveMethods: string[]
+
+  calculateRequestFee(args: TWalletConnectServiceRequestMethodParams): Promise<string>
+
+  [methodName: string]: any | TWalletConnectServiceRequestMethod
 }

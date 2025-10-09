@@ -23,4 +23,6 @@ export * from './services/neo3neoXBridge/Neo3NeoXBridgeService'
 
 export * from './services/token/TokenServiceNeo3'
 
+export * from './services/wallet-connect/WalletConnectServiceNeo3'
+
 export * from './types'

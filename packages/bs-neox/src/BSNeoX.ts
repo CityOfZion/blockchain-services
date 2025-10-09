@@ -1,4 +1,4 @@
-import { BSEthereum, TokenServiceEthereum } from '@cityofzion/bs-ethereum'
+import { BSEthereum, TokenServiceEthereum, WalletConnectServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from './constants/BSNeoXConstants'
 import { BSUtilsHelper, TGetLedgerTransport, INeo3NeoXBridgeService, TBSNetwork } from '@cityofzion/blockchain-service'
 import { BlockscoutBDSNeoX } from './services/blockchain-data/BlockscoutBDSNeoX'
@@ -44,5 +44,6 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
     this.blockchainDataService = new BlockscoutBDSNeoX(this)
     this.tokenService = new TokenServiceEthereum()
+    this.walletConnectService = new WalletConnectServiceEthereum(this)
   }
 }

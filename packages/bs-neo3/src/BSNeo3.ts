@@ -15,6 +15,7 @@ import {
   TBSToken,
   TTransferParam,
   TPingNetworkResponse,
+  IWalletConnectService,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
@@ -31,6 +32,7 @@ import { RpcCDSNeo3 } from './services/chaim-data/RpcCDSNeo3'
 import { api, BSNeo3NeonJsSingletonHelper, wallet } from './helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper, ContractInvocation } from './helpers/BSNeo3NeonDappKitSingletonHelper'
 import axios from 'axios'
+import { WalletConnectServiceNeo3 } from './services/wallet-connect/WalletConnectServiceNeo3'
 
 export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   readonly name: N
@@ -59,6 +61,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   neo3NeoXBridgeService!: INeo3NeoXBridgeService<N>
   tokenService!: ITokenService
   claimDataService!: IClaimDataService
+  walletConnectService!: IWalletConnectService
 
   constructor(name: N, network?: TBSNetwork<TBSNeo3NetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -145,6 +148,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     this.blockchainDataService = new DoraBDSNeo3(this)
     this.exchangeDataService = new FlamingoForthewinEDSNeo3(this)
     this.claimDataService = new RpcCDSNeo3(this)
+    this.walletConnectService = new WalletConnectServiceNeo3(this)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout

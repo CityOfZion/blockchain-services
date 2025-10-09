@@ -11,6 +11,7 @@ import {
   IBSWithNeo3NeoXBridge,
   IBSWithNft,
   TUntilIndexRecord,
+  IBSWithWalletConnect,
 } from './interfaces'
 
 export function hasNameService<BSName extends string = string>(
@@ -59,6 +60,12 @@ export function hasEncryption<BSName extends string = string>(
   service: IBlockchainService<BSName>
 ): service is IBlockchainService<BSName> & IBSWithEncryption<BSName> {
   return 'encrypt' in service && 'decrypt' in service
+}
+
+export function hasWalletConnect<BSName extends string = string>(
+  service: IBlockchainService<BSName>
+): service is IBlockchainService<BSName> & IBSWithWalletConnect {
+  return 'walletConnectService' in service
 }
 
 /**
