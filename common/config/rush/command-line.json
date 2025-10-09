@@ -4,18 +4,26 @@
     {
       "name": "format",
       "commandKind": "bulk",
-      "summary": "Exec all packages format",
+      "summary": "Exec all packages format command",
       "safeForSimultaneousRushProcesses": true,
       "enableParallelism": false,
       "shellCommand": "npm run format"
     },
     {
-      "name": "package",
+      "name": "lint",
       "commandKind": "bulk",
-      "summary": "Exec all packages pack",
+      "summary": "Exec all packages lint command",
       "safeForSimultaneousRushProcesses": true,
       "enableParallelism": false,
-      "shellCommand": "npm run pack"
+      "shellCommand": "npm run lint"
+    },
+    {
+      "name": "package",
+      "commandKind": "bulk",
+      "summary": "Exec all packages package command",
+      "safeForSimultaneousRushProcesses": true,
+      "enableParallelism": false,
+      "shellCommand": "npm run package"
     },
     {
       "commandKind": "bulk",
