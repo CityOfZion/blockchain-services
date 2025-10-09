@@ -75,18 +75,4 @@ describe('RpcBDSNeo3', () => {
       })
     })
   })
-
-  it('Should be able to get a list of rpc', async () => {
-    const list = await rpcBDSNeo3.getRpcList()
-
-    expect(list.length).toBeGreaterThan(0)
-
-    list.forEach(rpc => {
-      expect(rpc).toEqual({
-        height: expect.any(Number),
-        latency: expect.any(Number),
-        url: expect.any(String),
-      })
-    })
-  })
 })

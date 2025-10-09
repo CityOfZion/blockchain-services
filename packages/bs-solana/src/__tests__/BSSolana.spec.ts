@@ -17,7 +17,7 @@ describe('BSSolana', () => {
 
     const bip44Path = bsSolana.bip44DerivationPath.replace('?', '0')
     const seed = bip39.mnemonicToSeedSync(mnemonic)
-    const hd = HDKey.fromMasterSeed(seed.toString('hex'))
+    const hd = HDKey.fromMasterSeed(seed)
     const keypair = solanaSDK.Keypair.fromSeed(hd.derive(bip44Path).privateKey)
 
     accountKeypair = {
@@ -72,8 +72,13 @@ describe('BSSolana', () => {
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
   })
 
-  it('Should be able to test the network', () => {
-    expect(() => bsSolana.testNetwork(bsSolana.network)).not.toThrowError()
+  it('Should be able to test the network', async () => {
+    const response = await bsSolana.pingNetwork(BSSolanaConstants.MAINNET_NETWORK)
+    expect(response).toEqual({
+      latency: expect.any(Number),
+      url: BSSolanaConstants.MAINNET_NETWORK.url,
+      height: expect.any(Number),
+    })
   })
 
   it('Should be able to calculate transfer fee of the native token', async () => {
@@ -92,7 +97,7 @@ describe('BSSolana', () => {
     })
 
     expect(fee).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it('Should be able to calculate transfer fee of a SPL token', async () => {
@@ -111,7 +116,7 @@ describe('BSSolana', () => {
     })
 
     expect(fee).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it('Should be able to calculate transfer fee for more than one intent', async () => {
@@ -136,7 +141,7 @@ describe('BSSolana', () => {
     })
 
     expect(fee).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   it.skip('Should be able to transfer the native token', async () => {
     const senderAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
@@ -155,7 +160,7 @@ describe('BSSolana', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer a SPL token', async () => {
@@ -175,7 +180,7 @@ describe('BSSolana', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer more than one intent', async () => {
@@ -201,7 +206,7 @@ describe('BSSolana', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   it('Should be able to validate an domain', () => {
     const validDomain = 'bonfida.sol'
@@ -215,7 +220,7 @@ describe('BSSolana', () => {
     const newBSSolana = new BSSolana('test', BSSolanaConstants.MAINNET_NETWORK)
     const address = await newBSSolana.resolveNameServiceDomain('bonfida.sol')
     expect(address).toEqual('HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA')
-  }, 50000)
+  })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to calculate transfer fee for more than one intent using ledger', async () => {
@@ -243,7 +248,7 @@ describe('BSSolana', () => {
     })
 
     expect(fee).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   it.skip('Should be able to transfer the native token using ledger', async () => {
     const transport = await TransportNodeHid.create()
@@ -264,7 +269,7 @@ describe('BSSolana', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer a SPL token using ledger', async () => {
@@ -286,7 +291,7 @@ describe('BSSolana', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 50000)
+  })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer more than one intent using ledger', async () => {
@@ -314,5 +319,5 @@ describe('BSSolana', () => {
     })
 
     expect(transactionHash).toEqual(expect.any(String))
-  }, 50000)
+  })
 })

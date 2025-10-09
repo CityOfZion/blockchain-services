@@ -1,9 +1,9 @@
-import { TFullTransactionsByAddressParams, IBlockchainService, TNetworkId } from '../interfaces'
+import { TFullTransactionsByAddressParams, IBlockchainService, TBSNetworkId } from '../interfaces'
 import { differenceInYears, isAfter, isFuture, isValid, parseISO } from 'date-fns'
 
 type TValidateFullTransactionsByAddressParams<
   N extends string,
-  A extends TNetworkId,
+  A extends TBSNetworkId,
 > = TFullTransactionsByAddressParams & {
   service: IBlockchainService<N, A>
   supportedNetworksIds?: string[]
@@ -11,7 +11,7 @@ type TValidateFullTransactionsByAddressParams<
 }
 
 export class BSFullTransactionsByAddressHelper {
-  static validateFullTransactionsByAddressParams<N extends string, A extends TNetworkId>(
+  static validateFullTransactionsByAddressParams<N extends string, A extends TBSNetworkId>(
     params: TValidateFullTransactionsByAddressParams<N, A>
   ) {
     if (!params.dateFrom) throw new Error('Missing dateFrom param')

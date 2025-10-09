@@ -3,6 +3,8 @@ export * from './BSNeo3'
 export * from './constants/BSNeo3Constants'
 
 export * from './helpers/BSNeo3Helper'
+export * from './helpers/BSNeo3NeonJsSingletonHelper'
+export * from './helpers/BSNeo3NeonDappKitSingletonHelper'
 
 export * from './services/blockchain-data/DoraBDSNeo3'
 export * from './services/blockchain-data/RpcBDSNeo3'

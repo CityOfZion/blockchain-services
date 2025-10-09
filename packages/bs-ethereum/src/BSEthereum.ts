@@ -5,12 +5,13 @@ import {
   TTransferParam,
   TGetLedgerTransport,
   ITokenService,
-  TNetwork,
+  TBSNetwork,
   IBlockchainDataService,
   IExchangeDataService,
   INftDataService,
   IExplorerService,
   BSUtilsHelper,
+  TPingNetworkResponse,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
@@ -25,12 +26,12 @@ import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthere
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
 import { IBSEthereum, TBSEthereumNetworkId, TSupportedEVM } from './types'
+import axios from 'axios'
 
 export class BSEthereum<N extends string = string, A extends string = TBSEthereumNetworkId>
   implements IBSEthereum<N, A>
 {
   readonly name: N
-  readonly evm: TSupportedEVM
   readonly bip44DerivationPath: string
 
   readonly isMultiTransferSupported = false
@@ -40,9 +41,10 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   nativeTokens!: TBSToken[]
   feeToken!: TBSToken
 
-  network!: TNetwork<A>
-  readonly defaultNetwork: TNetwork<A>
-  readonly availableNetworks: TNetwork<A>[]
+  network!: TBSNetwork<A>
+  availableNetworkURLs!: string[]
+  readonly defaultNetwork!: TBSNetwork<A>
+  readonly availableNetworks!: TBSNetwork<A>[]
 
   blockchainDataService!: IBlockchainDataService
   exchangeDataService!: IExchangeDataService
@@ -51,15 +53,15 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   explorerService!: IExplorerService
   tokenService!: ITokenService
 
-  constructor(name: N, evm?: TSupportedEVM, network?: TNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(name: N, evm?: TSupportedEVM, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
     this.bip44DerivationPath = BSEthereumConstants.DEFAULT_BIP44_DERIVATION_PATH
 
-    this.evm = evm ?? 'ethereum'
+    if (!evm) return
 
-    this.availableNetworks = BSEthereumConstants.NETWORKS_BY_EVM[this.evm] as TNetwork<A>[]
-    this.defaultNetwork = this.availableNetworks.find(network => network.type === 'mainnet')! as TNetwork<A>
+    this.availableNetworks = BSEthereumConstants.NETWORKS_BY_EVM[evm] as TBSNetwork<A>[]
+    this.defaultNetwork = this.availableNetworks.find(network => network.type === 'mainnet')! as TBSNetwork<A>
 
     this.setNetwork(network ?? this.defaultNetwork)
   }
@@ -72,7 +74,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
       try {
         const token = await this.blockchainDataService.getTokenInfo(intent.tokenHash)
         decimals = token.decimals
-      } catch (error) {
+      } catch {
         decimals = 18
       }
     }
@@ -107,7 +109,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     }
   }
 
-  #setTokens(network: TNetwork<A>) {
+  #setTokens(network: TBSNetwork<A>) {
     const nativeAsset = BSEthereumHelper.getNativeAsset(network)
     this.tokens = [nativeAsset]
     this.nativeTokens = [nativeAsset]
@@ -130,16 +132,10 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     return new ethers.Wallet(account.key, provider)
   }
 
-  async testNetwork(network: TNetwork<A>) {
-    this.tokenService = new TokenServiceEthereum()
-    const service = new BSEthereum(this.name, this.evm, network, this.ledgerService.getLedgerTransport)
-    const blockchainDataServiceClone = new MoralisBDSEthereum(service)
+  setNetwork(network: TBSNetwork<A>) {
+    const availableURLs = BSEthereumConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
 
-    await blockchainDataServiceClone.getBlockHeight()
-  }
-
-  setNetwork(network: TNetwork<A>) {
-    const isValidNetwork = this.availableNetworks.some(networkItem => BSUtilsHelper.isEqual(networkItem, network))
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, availableURLs)
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
@@ -147,11 +143,39 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     this.#setTokens(network)
 
     this.network = network
+    this.availableNetworkURLs = availableURLs
+
     this.nftDataService = new GhostMarketNDSEthereum(this)
     this.explorerService = new BlockscoutESEthereum(this)
     this.exchangeDataService = new MoralisEDSEthereum(this)
     this.blockchainDataService = new MoralisBDSEthereum(this)
     this.tokenService = new TokenServiceEthereum()
+  }
+
+  // This method is done manually because we need to ensure that the request is aborted after timeout
+  async pingNetwork(network: TBSNetwork<A>): Promise<TPingNetworkResponse> {
+    const abortController = new AbortController()
+    const timeout = setTimeout(() => {
+      abortController.abort()
+    }, 5000)
+
+    const timeStart = Date.now()
+
+    const response = await axios.post(
+      network.url,
+      { jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1234 },
+      { timeout: 5000, signal: abortController.signal }
+    )
+
+    clearTimeout(timeout)
+
+    const latency = Date.now() - timeStart
+
+    return {
+      latency,
+      url: network.url,
+      height: ethers.BigNumber.from(response.data.result).toNumber(),
+    }
   }
 
   validateAddress(address: string): boolean {
@@ -169,7 +193,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
       }
 
       return ethersBytes.hexDataLength(key) === 32
-    } catch (error) {
+    } catch {
       return false
     }
   }

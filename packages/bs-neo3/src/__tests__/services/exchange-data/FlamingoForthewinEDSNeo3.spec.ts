@@ -1,4 +1,4 @@
-import { TNetwork } from '@cityofzion/blockchain-service'
+import { TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../../helpers/BSNeo3Helper'
 import { FlamingoForthewinEDSNeo3 } from '../../../services/exchange-data/FlamingoForthewinEDSNeo3'
@@ -6,7 +6,7 @@ import { TBSNeo3NetworkId } from '../../../types'
 import { BSNeo3 } from '../../../BSNeo3'
 
 let flamingoForthewinEDSNeo3: FlamingoForthewinEDSNeo3<'test'>
-let network: TNetwork<TBSNeo3NetworkId>
+let network: TBSNetwork<TBSNeo3NetworkId>
 
 describe('FlamingoForthewinEDSNeo3', () => {
   beforeAll(() => {

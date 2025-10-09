@@ -1,8 +1,8 @@
-import { TNetworkId } from '@cityofzion/blockchain-service'
+import { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereum } from '../BSEthereum'
 import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 
-let ghostMarketNDSEthereum: GhostMarketNDSEthereum<'test', TNetworkId>
+let ghostMarketNDSEthereum: GhostMarketNDSEthereum<'test', TBSNetworkId>
 
 describe.skip('GhostMarketNDSEthereum', () => {
   beforeAll(() => {

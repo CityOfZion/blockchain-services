@@ -1,13 +1,12 @@
-import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3 } from '../../BSNeo3'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
-import { TNetwork } from '@cityofzion/blockchain-service'
+import { BSKeychainHelper, TBSNetwork } from '@cityofzion/blockchain-service'
 import { TBSNeo3NetworkId } from '../../types'
 
 let bsNeo3: BSNeo3<'test'>
-let network: TNetwork<TBSNeo3NetworkId>
+let network: TBSNetwork<TBSNeo3NetworkId>
 
 describe('BSNeo3', () => {
   beforeAll(async () => {
@@ -47,15 +46,8 @@ describe('BSNeo3', () => {
     expect(bsNeo3.validateNameServiceDomainFormat(invalidDomain)).toBeFalsy()
   })
 
-  it('Should be able to generate a mnemonic', () => {
-    expect(() => {
-      const mnemonic = generateMnemonic()
-      expect(mnemonic).toHaveLength(12)
-    }).not.toThrowError()
-  })
-
   it('Should be able to gererate a account from mnemonic', () => {
-    const mnemonic = generateMnemonic()
+    const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(bsNeo3.validateAddress(account.address)).toBeTruthy()
@@ -63,7 +55,7 @@ describe('BSNeo3', () => {
   })
 
   it('Should be able to generate a account from wif', () => {
-    const mnemonic = generateMnemonic()
+    const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
 
     const accountFromWif = bsNeo3.generateAccountFromKey(account.key)
@@ -71,7 +63,7 @@ describe('BSNeo3', () => {
   })
 
   it('Should be able to decrypt a encrypted key', async () => {
-    const mnemonic = generateMnemonic()
+    const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await bsNeo3.encrypt(account.key, password)
@@ -80,7 +72,7 @@ describe('BSNeo3', () => {
   })
 
   it('Should be able to encrypt a key', async () => {
-    const mnemonic = generateMnemonic()
+    const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await bsNeo3.encrypt(account.key, password)
@@ -88,7 +80,12 @@ describe('BSNeo3', () => {
   })
 
   it('Should be able to test the network', async () => {
-    expect(() => bsNeo3.testNetwork(network)).not.toThrowError()
+    const response = await bsNeo3.pingNetwork(BSNeo3Constants.MAINNET_NETWORK)
+    expect(response).toEqual({
+      latency: expect.any(Number),
+      url: BSNeo3Constants.MAINNET_NETWORK.url,
+      height: expect.any(Number),
+    })
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {

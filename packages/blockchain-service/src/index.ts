@@ -5,6 +5,7 @@ export * from './helpers/BSPromisesHelper'
 export * from './helpers/BSBigNumberHelper'
 export * from './helpers/BSUtilsHelper'
 export * from './helpers/BSAccountHelper'
+export * from './helpers/BSKeychainHelper'
 
 export * from './services/exchange-data/CryptoCompareEDS'
 export * from './services/exchange-data/FlamingoForthewinEDS'

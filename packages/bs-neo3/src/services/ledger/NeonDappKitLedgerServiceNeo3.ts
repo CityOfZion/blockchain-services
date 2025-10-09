@@ -6,17 +6,16 @@ import {
   TLedgerServiceEmitter,
   TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
-import { NeonParser } from '@cityofzion/neon-dappkit'
-import { api, u, wallet } from '@cityofzion/neon-js'
 import Transport from '@ledgerhq/hw-transport'
 import EventEmitter from 'events'
-import { BSNeo3 } from '../../BSNeo3'
 import {
   ENeonDappKitLedgerServiceNeo3Command,
   ENeonDappKitLedgerServiceNeo3SecondParameter,
   ENeonDappKitLedgerServiceNeo3Status,
   IBSNeo3,
 } from '../../types'
+import { api, BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
+import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
 export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements ILedgerService<N> {
   readonly #service: IBSNeo3<N>
@@ -66,6 +65,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
     )
 
     const publicKey = result.toString('hex').substring(0, 130)
+    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
     const { address } = new wallet.Account(publicKey)
 
     return {
@@ -106,6 +106,8 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
           throw new Error('TBSAccount must have a bip 44 path to sign with Ledger')
         }
 
+        const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+
         const neonJsAccount = new wallet.Account(account.key)
 
         const witnessScriptHash = wallet.getScriptHashFromVerificationScript(
@@ -126,6 +128,8 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
           ENeonDappKitLedgerServiceNeo3SecondParameter.MORE_DATA,
           bip44PathHex
         )
+
+        const { NeonParser } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
         // Send the network magic as second chunk
         await this.#sendChunk(
@@ -211,6 +215,8 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
   }
 
   #derSignatureToHex(response: string): string {
+    const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
+
     const ss = new u.StringStream(response)
     // The first byte is format. It is usually 0x30 (SEQ) or 0x31 (SET)
     // The second byte represents the total length of the DER module.

@@ -4,17 +4,16 @@ import {
   TTransferParam,
   TGetLedgerTransport,
   ITokenService,
-  TNetwork,
+  TBSNetwork,
   IClaimDataService,
   IBlockchainDataService,
   IExchangeDataService,
   IExplorerService,
   BSUtilsHelper,
+  BSKeychainHelper,
+  TPingNetworkResponse,
 } from '@cityofzion/blockchain-service'
-import { api, sc, u, wallet } from '@cityofzion/neon-js'
-import { keychain } from '@cityofzion/bs-asteroid-sdk'
 import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
-import { BSNeoLegacyHelper } from './helpers/BSNeoLegacyHelper'
 import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
 import { DoraBDSNeoLegacy } from './services/blockchain-data/DoraBDSNeoLegacy'
 import { NeoTubeESNeoLegacy } from './services/explorer/NeoTubeESNeoLegacy'
@@ -23,23 +22,25 @@ import { TokenServiceNeoLegacy } from './services/token/TokenServiceNeoLegacy'
 import { IBSNeoLegacy, TBSNeoLegacyNetworkId, TSigningCallback } from './types'
 import { DoraCDSNeoLegacy } from './services/claim-data/DoraCDSNeoLegacy'
 import { Neo3NeoLegacyMigrationService } from './services/migration/Neo3NeoLegacyMigrationService'
-
+import { BSNeoLegacyNeonJsSingletonHelper } from './helpers/BSNeoLegacyNeonJsSingletonHelper'
+import axios from 'axios'
 export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   readonly name: N
   readonly bip44DerivationPath: string
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
 
-  tokens!: TBSToken[]
+  readonly tokens!: TBSToken[]
   readonly nativeTokens!: TBSToken[]
   readonly feeToken!: TBSToken
   readonly claimToken!: TBSToken
   readonly burnToken!: TBSToken
 
-  network!: TNetwork<TBSNeoLegacyNetworkId>
+  network!: TBSNetwork<TBSNeoLegacyNetworkId>
+  availableNetworkURLs!: string[]
   legacyNetwork!: string
-  readonly defaultNetwork: TNetwork<TBSNeoLegacyNetworkId>
-  readonly availableNetworks: TNetwork<TBSNeoLegacyNetworkId>[]
+  readonly defaultNetwork: TBSNetwork<TBSNeoLegacyNetworkId>
+  readonly availableNetworks: TBSNetwork<TBSNeoLegacyNetworkId>[]
 
   blockchainDataService!: IBlockchainDataService
   exchangeDataService!: IExchangeDataService
@@ -49,7 +50,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   claimDataService!: IClaimDataService
   neo3NeoLegacyMigrationService!: Neo3NeoLegacyMigrationService<N>
 
-  constructor(name: N, network?: TNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(name: N, network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new NeonJsLedgerServiceNeoLegacy(this, getLedgerTransport)
     this.bip44DerivationPath = BSNeoLegacyConstants.DEFAULT_BIP44_DERIVATION_PATH
@@ -58,16 +59,12 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     this.feeToken = BSNeoLegacyConstants.GAS_ASSET
     this.burnToken = BSNeoLegacyConstants.NEO_ASSET
     this.claimToken = BSNeoLegacyConstants.GAS_ASSET
+    this.tokens = this.nativeTokens
 
     this.availableNetworks = BSNeoLegacyConstants.ALL_NETWORKS
     this.defaultNetwork = BSNeoLegacyConstants.MAINNET_NETWORK
 
     this.setNetwork(network ?? this.defaultNetwork)
-  }
-
-  #setTokens(network: TNetwork<TBSNeoLegacyNetworkId>) {
-    const tokens = BSNeoLegacyHelper.getTokens(network)
-    this.tokens = tokens
   }
 
   #hasTransactionMoreThanMaxSize(config: any) {
@@ -98,6 +95,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   async #signClaim(config: any) {
+    const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     config = await api.createClaimTx(config)
     config = await api.addAttributeIfExecutingAsSmartContract(config)
     config = await api.signTx(config)
@@ -107,6 +105,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   async #sendClaim(config: any) {
+    const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     const sharedConfig = await api.fillClaims(config)
     let signedConfig = await this.#signClaim({ ...sharedConfig })
 
@@ -120,6 +119,8 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   async #signTransfer(config: any, nep5ScriptBuilder?: any) {
+    const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     if (!nep5ScriptBuilder || nep5ScriptBuilder.isEmpty()) {
       config = await api.createContractTx(config)
     } else {
@@ -135,6 +136,8 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   async sendTransfer(config: any, nep5ScriptBuilder?: any) {
+    const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const sharedConfig = await api.fillBalance(config)
     let signedConfig = await this.#signTransfer({ ...sharedConfig }, nep5ScriptBuilder)
 
@@ -150,6 +153,8 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   async generateSigningCallback(
     account: TBSAccount<N>
   ): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }> {
+    const { wallet, api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const neonJsAccount = new wallet.Account(account.key)
 
     if (account.isHardware) {
@@ -172,23 +177,17 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     }
   }
 
-  async testNetwork(network: TNetwork<TBSNeoLegacyNetworkId>) {
-    const service = new BSNeoLegacy(this.name, network, this.ledgerService.getLedgerTransport)
-    const blockchainDataServiceClone = new DoraBDSNeoLegacy(service)
+  setNetwork(network: TBSNetwork<TBSNeoLegacyNetworkId>) {
+    const availableURLs = BSNeoLegacyConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
 
-    await blockchainDataServiceClone.getBlockHeight()
-  }
-
-  setNetwork(network: TNetwork<TBSNeoLegacyNetworkId>) {
-    const isValidNetwork = this.availableNetworks.some(networkItem => BSUtilsHelper.isEqual(networkItem, network))
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, availableURLs)
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
-    this.#setTokens(network)
-
     this.network = network
     this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
+    this.availableNetworkURLs = availableURLs
 
     this.tokenService = new TokenServiceNeoLegacy()
     this.explorerService = new NeoTubeESNeoLegacy(this)
@@ -198,28 +197,67 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     this.neo3NeoLegacyMigrationService = new Neo3NeoLegacyMigrationService(this)
   }
 
+  // This method is done manually because we need to ensure that the request is aborted after timeout
+  async pingNetwork(network: TBSNetwork<TBSNeoLegacyNetworkId>): Promise<TPingNetworkResponse> {
+    const abortController = new AbortController()
+    const timeout = setTimeout(() => {
+      abortController.abort()
+    }, 5000)
+
+    const timeStart = Date.now()
+
+    const response = await axios.post(
+      network.url,
+      {
+        jsonrpc: '2.0',
+        method: 'getblockcount',
+        params: [],
+        id: 1234,
+      },
+      { timeout: 5000, signal: abortController.signal }
+    )
+
+    clearTimeout(timeout)
+
+    const latency = Date.now() - timeStart
+
+    return {
+      latency,
+      url: network.url,
+      height: response.data.result,
+    }
+  }
+
   validateAddress(address: string): boolean {
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     return wallet.isAddress(address)
   }
 
   validateEncrypted(key: string): boolean {
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     return wallet.isNEP2(key)
   }
 
   validateKey(key: string): boolean {
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
   generateAccountFromMnemonic(mnemonic: string[] | string, index: number): TBSAccount<N> {
-    keychain.importMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
+    const mnemonicStr = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
-    const childKey = keychain.generateChildKey('neo', bip44Path)
-    const key = childKey.getWIF()
-    const { address } = new wallet.Account(key)
-    return { address, key, type: 'wif', bip44Path, blockchain: this.name }
+
+    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonicStr, bip44Path)
+
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
+    const { address, WIF } = new wallet.Account(key)
+    return { address, key: WIF, type: 'wif', bip44Path, blockchain: this.name }
   }
 
   generateAccountFromKey(key: string): TBSAccount<N> {
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
     if (!type) throw new Error('Invalid key')
 
@@ -228,6 +266,8 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   generateAccountFromPublicKey(publicKey: string): TBSAccount<N> {
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
 
     const account = new wallet.Account(publicKey)
@@ -241,16 +281,23 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   async decrypt(encryptedKey: string, password: string): Promise<TBSAccount<N>> {
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const key = await wallet.decrypt(encryptedKey, password)
     return this.generateAccountFromKey(key)
   }
 
   encrypt(key: string, password: string): Promise<string> {
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     return wallet.encrypt(key, password)
   }
 
   async transfer({ intents, senderAccount, tipIntent, ...params }: TTransferParam<N>): Promise<string[]> {
     const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
+
+    const { api, sc, u, wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const apiProvider = new api.neoCli.instance(this.network.url)
     const priorityFee = Number(params.priorityFee ?? 0)
 
@@ -298,6 +345,8 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
 
   async claim(account: TBSAccount<N>): Promise<string> {
     const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account)
+
+    const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 
     const apiProvider = new api.neoCli.instance(this.legacyNetwork)
 

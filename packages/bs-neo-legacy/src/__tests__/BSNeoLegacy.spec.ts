@@ -1,7 +1,7 @@
-import { generateMnemonic } from '@cityofzion/bs-asteroid-sdk'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeoLegacy } from '../BSNeoLegacy'
+import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
 let service: BSNeoLegacy<'test'>
 
@@ -37,7 +37,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it('Should be able to generate a account from mnemonic', () => {
-    const mnemonic = generateMnemonic()
+    const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = service.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(service.validateAddress(account.address)).toBeTruthy()
@@ -45,7 +45,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it('Should be able to generate a account from wif', () => {
-    const mnemonic = generateMnemonic()
+    const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = service.generateAccountFromMnemonic(mnemonic, 0)
 
     const accountFromWif = service.generateAccountFromKey(account.key)
@@ -53,7 +53,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to decrypt a encrypted key', async () => {
-    const mnemonic = generateMnemonic()
+    const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = service.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await service.encrypt(account.key, password)
@@ -62,7 +62,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it('Should be able to encrypt a key', async () => {
-    const mnemonic = generateMnemonic()
+    const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = service.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await service.encrypt(account.key, password)
@@ -70,7 +70,12 @@ describe('BSNeoLegacy', () => {
   })
 
   it('Should be able to test the network', async () => {
-    await expect(service.testNetwork(BSNeoLegacyConstants.MAINNET_NETWORK)).resolves.toBeUndefined()
+    const response = await service.pingNetwork(BSNeoLegacyConstants.MAINNET_NETWORK)
+    expect(response).toEqual({
+      latency: expect.any(Number),
+      url: BSNeoLegacyConstants.MAINNET_NETWORK.url,
+      height: expect.any(Number),
+    })
   })
 
   it.skip('Should be able to transfer a native asset', async () => {
@@ -186,7 +191,7 @@ describe('BSNeoLegacy', () => {
   it.skip('Should be able to transfer with ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    const service = new BSNeoLegacy('neoLegacy', undefined, async () => transport)
+    const service = new BSNeoLegacy('test', undefined, async () => transport)
 
     const account = await service.ledgerService.getAccount(transport, 0)
 

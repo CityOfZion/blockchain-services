@@ -5,10 +5,10 @@ import {
   IBSWithLedger,
   IBSWithNameService,
   IBSWithNft,
-  TNetworkId,
+  TBSNetworkId,
 } from '@cityofzion/blockchain-service'
 
-export type TBSSolanaNetworkId = TNetworkId<'mainnet-beta' | 'devnet'>
+export type TBSSolanaNetworkId = TBSNetworkId<'mainnet-beta' | 'devnet'>
 
 export interface IBSSolana<N extends string = string>
   extends IBlockchainService<N, TBSSolanaNetworkId>,

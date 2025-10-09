@@ -13,7 +13,6 @@ import {
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import { BSNeoX } from '../../BSNeoX'
 import { ethers } from 'ethers'
-import { wallet } from '@cityofzion/neon-js'
 import { BRIDGE_ABI } from '../../assets/abis/bridge'
 import { BSEthereumConstants, ERC20_ABI } from '@cityofzion/bs-ethereum'
 import axios from 'axios'
@@ -23,6 +22,7 @@ import {
   TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse,
   TNeo3NeoXBridgeServiceTransactionLogApiResponse,
 } from '../../types'
+import { BSNeo3NeonJsSingletonHelper } from '@cityofzion/bs-neo3'
 
 export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBridgeService<BSName> {
   static readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
@@ -30,15 +30,14 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
   static readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
 
   readonly #service: BSNeoX<BSName>
-  readonly tokens: TBridgeToken<BSName>[]
+  readonly gasToken: TBridgeToken<BSName>
+  readonly neoToken: TBridgeToken<BSName>
 
   constructor(service: BSNeoX<BSName>) {
     this.#service = service
 
-    this.tokens = [
-      { ...BSNeoXConstants.NATIVE_ASSET, multichainId: 'gas', blockchain: service.name },
-      { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: service.name },
-    ]
+    this.gasToken = { ...BSNeoXConstants.NATIVE_ASSET, blockchain: service.name, multichainId: 'gas' }
+    this.neoToken = { ...BSNeoXConstants.NEO_TOKEN, blockchain: service.name, multichainId: 'neo' }
   }
 
   async #buildApproveTransactionParam(params: TNeo3NeoXBridgeServiceGetApprovalParam<BSName>) {
@@ -131,6 +130,8 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
 
     const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
 
+    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+
     const to = '0x' + wallet.getScriptHashFromAddress(params.receiverAddress)
     const bridgeFee = ethers.utils.parseUnits(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals)
 
@@ -169,7 +170,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     let gasLimit: ethers.BigNumberish
     try {
       gasLimit = await signer.estimateGas(bridgeTransactionParam)
-    } catch (error) {
+    } catch {
       gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
     }
 

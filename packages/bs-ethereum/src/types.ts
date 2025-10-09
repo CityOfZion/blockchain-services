@@ -6,10 +6,10 @@ import {
   IBSWithLedger,
   IBSWithNameService,
   IBSWithNft,
-  TNetworkId,
+  TBSNetworkId,
 } from '@cityofzion/blockchain-service'
 
-export type TBSEthereumNetworkId = TNetworkId<
+export type TBSEthereumNetworkId = TBSNetworkId<
   | '1'
   | '10'
   | '25'

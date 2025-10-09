@@ -10,7 +10,6 @@ import {
   TFullTransactionsByAddressResponse,
   TFullTransactionsItem,
   IBlockchainDataService,
-  TRpcResponse,
   TBSToken,
   TTransactionResponse,
   TTransactionsByAddressParams,
@@ -18,9 +17,8 @@ import {
   TTransactionTransferAsset,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { rpc } from '@cityofzion/neon-js'
-import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 import { IBSNeoLegacy, TBSNeoLegacyNetworkId } from '../../types'
+import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
 export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataService {
   static readonly SUPPORTED_NEP5_STANDARDS: string[] = ['nep5', 'nep-5']
@@ -277,6 +275,8 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
   }
 
   async getUnclaimed(address: string): Promise<string> {
+    const { rpc } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const rpcClient = new rpc.RPCClient(this.#service.network.url)
     const response = await rpcClient.getUnclaimed(address)
 
@@ -284,38 +284,9 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
   }
 
   async getBlockHeight(): Promise<number> {
+    const { rpc } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const rpcClient = new rpc.RPCClient(this.#service.network.url)
     return await rpcClient.getBlockCount()
-  }
-
-  async getRpcList(): Promise<TRpcResponse[]> {
-    const list: TRpcResponse[] = []
-    const urls = BSNeoLegacyHelper.getRpcList(this.#service.network)
-
-    const promises = urls.map(url => {
-      // eslint-disable-next-line no-async-promise-executor
-      return new Promise<void>(async resolve => {
-        const timeout = setTimeout(() => {
-          resolve()
-        }, 5000)
-
-        try {
-          const rpcClient = new rpc.RPCClient(url)
-
-          const timeStart = Date.now()
-          const height = await rpcClient.getBlockCount()
-          const latency = Date.now() - timeStart
-
-          list.push({ url, latency, height })
-        } finally {
-          resolve()
-          clearTimeout(timeout)
-        }
-      })
-    })
-
-    await Promise.allSettled(promises)
-
-    return list
   }
 }

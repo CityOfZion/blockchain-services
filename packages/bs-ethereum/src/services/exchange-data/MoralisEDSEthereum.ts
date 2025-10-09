@@ -2,7 +2,7 @@ import {
   CryptoCompareEDS,
   TGetTokenPriceHistoryParams,
   TGetTokenPricesParams,
-  TNetworkId,
+  TBSNetworkId,
   TBSToken,
   TTokenPricesHistoryResponse,
   TTokenPricesResponse,
@@ -11,18 +11,28 @@ import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from '../blockchain-data/MoralisBDSEthereum'
 import { IBSEthereum, TMoralisEDSEthereumERC20PriceApiResponse } from '../../types'
+import { AxiosInstance } from 'axios'
 
-export class MoralisEDSEthereum<N extends string, A extends TNetworkId> extends CryptoCompareEDS {
-  static readonly NUMBERS_OF_BLOCK_BY_HOUR = (15 / 60) * 60
+export class MoralisEDSEthereum<N extends string, A extends TBSNetworkId> extends CryptoCompareEDS {
+  static readonly NUMBERS_OF_BLOCK_BY_HOUR = (60 / 15) * 60
   static readonly NUMBER_OF_BLOCK_BY_DAY = MoralisEDSEthereum.NUMBERS_OF_BLOCK_BY_HOUR * 24
   static readonly MAX_TOKEN_PRICES_PER_CALL = 24
 
   readonly #service: IBSEthereum<N, A>
 
+  #apiInstance?: AxiosInstance
+
   constructor(service: IBSEthereum<N, A>) {
     super()
-
     this.#service = service
+  }
+
+  get #api() {
+    if (!this.#apiInstance) {
+      this.#apiInstance = MoralisBDSEthereum.getClient(this.#service.network)
+    }
+
+    return this.#apiInstance
   }
 
   async #getWrappedNativeToken(): Promise<TBSToken> {
@@ -44,7 +54,6 @@ export class MoralisEDSEthereum<N extends string, A extends TNetworkId> extends 
     if (!MoralisBDSEthereum.isSupported(this.#service.network))
       throw new Error('Exchange is not supported on this network')
 
-    const client = MoralisBDSEthereum.getClient(this.#service.network)
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#service.network)
     const tokensBody: { token_address: string }[] = []
     let wrappedNativeToken: TBSToken | undefined
@@ -78,7 +87,7 @@ export class MoralisEDSEthereum<N extends string, A extends TNetworkId> extends 
 
     await Promise.allSettled(
       splitTokensBody.map(async body => {
-        const { data } = await client.post<TMoralisEDSEthereumERC20PriceApiResponse[]>('/erc20/prices', {
+        const { data } = await this.#api.post<TMoralisEDSEthereumERC20PriceApiResponse[]>('/erc20/prices', {
           tokens: body,
         })
 
@@ -120,7 +129,6 @@ export class MoralisEDSEthereum<N extends string, A extends TNetworkId> extends 
       token = params.token
     }
 
-    const client = MoralisBDSEthereum.getClient(this.#service.network)
     const currentBlockNumber = (await this.#service.blockchainDataService.getBlockHeight()) - 1 // Last block is not included
 
     const tokensBody = Array.from({ length: params.limit }).map((_, index) => ({
@@ -142,7 +150,7 @@ export class MoralisEDSEthereum<N extends string, A extends TNetworkId> extends 
 
     await Promise.allSettled(
       splitTokensBody.map(async body => {
-        const priceResponse = await client.post<TMoralisEDSEthereumERC20PriceApiResponse[]>('/erc20/prices', {
+        const priceResponse = await this.#api.post<TMoralisEDSEthereumERC20PriceApiResponse[]>('/erc20/prices', {
           tokens: body,
         })
 

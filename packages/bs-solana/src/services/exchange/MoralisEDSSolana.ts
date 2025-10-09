@@ -8,7 +8,7 @@ import {
 import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import axios, { AxiosInstance } from 'axios'
-import dayjs from 'dayjs'
+import { sub } from 'date-fns/sub'
 import { IBSSolana } from '../../types'
 
 type MoralisGetPriceResponse = {
@@ -84,8 +84,13 @@ export class MoralisEDSSolana<N extends string> extends CryptoCompareEDS {
       pairAddress = priceResponse.data.pairAddress
     }
 
-    const toDate = dayjs().unix()
-    const fromDate = dayjs().subtract(params.limit, params.type).unix()
+    const toDate = new Date()
+    const fromDate = sub(params.limit, {
+      [params.type === 'day' ? 'days' : 'hours']: params.limit,
+    })
+
+    const toDateTimestamp = toDate.getTime() / 1000
+    const fromDateTimestamp = fromDate.getTime() / 1000
 
     const pricesHistoryResponse = await this.#client.get<MoralisGetPriceHistoryResponse>(
       `token/mainnet/pairs/${pairAddress}/ohlcv`,
@@ -94,14 +99,14 @@ export class MoralisEDSSolana<N extends string> extends CryptoCompareEDS {
           timeframe: params.type === 'day' ? '1d' : '1h',
           currency: 'usd',
           limit: params.limit,
-          toDate,
-          fromDate,
+          toDate: toDateTimestamp,
+          fromDate: fromDateTimestamp,
         },
       }
     )
 
     const pricesHistory = pricesHistoryResponse.data.result.map<TTokenPricesHistoryResponse>(price => ({
-      timestamp: dayjs(price.timestamp).unix(),
+      timestamp: new Date().getTime() / 1000,
       token: params.token,
       usdPrice: price.close,
     }))

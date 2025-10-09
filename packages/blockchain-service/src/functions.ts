@@ -115,7 +115,7 @@ export async function waitForAccountTransaction<BSName extends string = string>(
 }
 
 export async function fetchAccounts<BSName extends string = string>(
-  blockchainServices: IBlockchainService<BSName>,
+  service: IBlockchainService<BSName>,
   initialIndex: number,
   getAccountCallback: (service: IBlockchainService<BSName>, index: number) => Promise<TBSAccount<BSName>>
 ): Promise<TBSAccount<BSName>[]> {
@@ -125,10 +125,10 @@ export async function fetchAccounts<BSName extends string = string>(
   let shouldBreak = false
 
   while (!shouldBreak) {
-    const generatedAccount = await getAccountCallback(blockchainServices, index)
+    const generatedAccount = await getAccountCallback(service, index)
 
     try {
-      const { transactions } = await blockchainServices.blockchainDataService.getTransactionsByAddress({
+      const { transactions } = await service.blockchainDataService.getTransactionsByAddress({
         address: generatedAccount.address,
       })
 
@@ -145,7 +145,7 @@ export async function fetchAccounts<BSName extends string = string>(
 }
 
 export async function generateAccount<BSName extends string = string>(
-  blockchainServices: IBlockchainService<BSName>,
+  service: IBlockchainService<BSName>,
   initialIndex: number,
   untilIndex: number,
   getAccountCallback: (service: IBlockchainService<BSName>, index: number) => Promise<TBSAccount<BSName>>
@@ -155,7 +155,7 @@ export async function generateAccount<BSName extends string = string>(
   let index = initialIndex
 
   while (index <= untilIndex) {
-    const generatedAccount = await getAccountCallback(blockchainServices, index)
+    const generatedAccount = await getAccountCallback(service, index)
     accounts.push(generatedAccount)
     index++
   }
@@ -164,13 +164,13 @@ export async function generateAccount<BSName extends string = string>(
 }
 
 export async function generateAccountForBlockchainService<BSName extends string = string>(
-  blockchainServices: IBlockchainService<BSName>[],
+  services: IBlockchainService<BSName>[],
   getAccountCallback: (service: IBlockchainService<BSName>, index: number) => Promise<TBSAccount<BSName>>,
   untilIndexByBlockchainService?: TUntilIndexRecord<BSName>
 ): Promise<Map<BSName, TBSAccount<BSName>[]>> {
   const accountsByBlockchainService = new Map<BSName, TBSAccount<BSName>[]>()
 
-  const promises = blockchainServices.map(async service => {
+  const promises = services.map(async service => {
     const firstAccount = await getAccountCallback(service, 0)
     const untilIndex = untilIndexByBlockchainService?.[service.name]?.[firstAccount.address]
 

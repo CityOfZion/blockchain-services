@@ -1,15 +1,16 @@
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
 import { BSNeo3 } from '../../../BSNeo3'
-import { TBridgeToken, TransactionBridgeNeo3NeoXResponse, TTransactionResponse } from '@cityofzion/blockchain-service'
+import { TransactionBridgeNeo3NeoXResponse, TTransactionResponse } from '@cityofzion/blockchain-service'
 
 const network = BSNeo3Constants.TESTNET_NETWORK
 
+let service: BSNeo3<'test'>
 let doraBDSNeo3: DoraBDSNeo3<'test'>
 
 describe('DoraBDSNeo3', () => {
   beforeEach(() => {
-    const service = new BSNeo3('test', network)
+    service = new BSNeo3('test', network)
     doraBDSNeo3 = new DoraBDSNeo3(service)
   })
 
@@ -125,28 +126,8 @@ describe('DoraBDSNeo3', () => {
     })
   })
 
-  it('Should be able to get a list of rpc', async () => {
-    const list = await doraBDSNeo3.getRpcList()
-
-    expect(list.length).toBeGreaterThan(0)
-
-    list.forEach(rpc => {
-      expect(rpc).toEqual({
-        height: expect.any(Number),
-        latency: expect.any(Number),
-        url: expect.any(String),
-      })
-    })
-  })
-
   it.skip('Should be able to get transactions that are marked as bridge (GAS)', async () => {
-    const bridgeGasToken: TBridgeToken<'test'> = {
-      ...BSNeo3Constants.GAS_TOKEN,
-      multichainId: 'gas',
-      blockchain: 'test',
-    }
-
-    const service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
     doraBDSNeo3 = new DoraBDSNeo3(service)
 
     const address = 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD'
@@ -158,18 +139,12 @@ describe('DoraBDSNeo3', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(bridgeGasToken)
+    expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.gasToken)
     expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
   })
 
   it.skip('Should be able to get transactions that are marked as bridge (NEO)', async () => {
-    const bridgeNeoToken: TBridgeToken<'test'> = {
-      ...BSNeo3Constants.NEO_TOKEN,
-      multichainId: 'neo',
-      blockchain: 'test',
-    }
-
-    const service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
     doraBDSNeo3 = new DoraBDSNeo3(service)
 
     const address = 'NcTRyXXr2viSowk913dMTvws6sDNbmt8tj'
@@ -181,7 +156,7 @@ describe('DoraBDSNeo3', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(bridgeNeoToken)
+    expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.neoToken)
     expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
   })
 })

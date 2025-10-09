@@ -13,7 +13,7 @@ jobs:
           fetch-depth: 2
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 22
       - name: Rush Install
         run: node common/scripts/install-run-rush.js update
       - name: Rush rebuild

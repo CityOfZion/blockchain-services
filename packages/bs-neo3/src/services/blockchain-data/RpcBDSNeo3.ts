@@ -7,16 +7,14 @@ import {
   TFullTransactionsByAddressParams,
   TFullTransactionsByAddressResponse,
   IBlockchainDataService,
-  TRpcResponse,
   TBSToken,
   TTransactionResponse,
   TTransactionsByAddressParams,
   TTransactionsByAddressResponse,
 } from '@cityofzion/blockchain-service'
-import { rpc, u } from '@cityofzion/neon-core'
-import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { IBSNeo3 } from '../../types'
+import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
+import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
 export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
@@ -29,6 +27,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
 
   async getTransaction(hash: string): Promise<TTransactionResponse> {
     try {
+      const { rpc, u } = BSNeo3NeonJsSingletonHelper.getInstance()
       const rpcClient = new rpc.RPCClient(this._service.network.url)
       const response = await rpcClient.getRawTransaction(hash, true)
 
@@ -64,6 +63,8 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
 
   async getContract(contractHash: string): Promise<ContractResponse> {
     try {
+      const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
+
       const rpcClient = new rpc.RPCClient(this._service.network.url)
       const contractState = await rpcClient.getContractState(contractHash)
 
@@ -95,8 +96,12 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
       let token = this._service.tokens.find(token => this._service.tokenService.predicateByHash(tokenHash, token))
 
       if (!token) {
+        const { rpc, u } = BSNeo3NeonJsSingletonHelper.getInstance()
+
         const rpcClient = new rpc.RPCClient(this._service.network.url)
         const contractState = await rpcClient.getContractState(tokenHash)
+
+        const { TypeChecker, NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
         const invoker = await NeonInvoker.init({
           rpcAddress: this._service.network.url,
@@ -134,6 +139,8 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
+    const { rpc, u } = BSNeo3NeonJsSingletonHelper.getInstance()
+
     const rpcClient = new rpc.RPCClient(this._service.network.url)
     const response = await rpcClient.getNep17Balances(address)
 
@@ -160,39 +167,8 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
   }
 
   async getBlockHeight(): Promise<number> {
+    const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
     const rpcClient = new rpc.RPCClient(this._service.network.url)
     return await rpcClient.getBlockCount()
-  }
-
-  async getRpcList(): Promise<TRpcResponse[]> {
-    const list: TRpcResponse[] = []
-
-    const urls = BSNeo3Helper.getRpcList(this._service.network)
-
-    const promises = urls.map(url => {
-      // eslint-disable-next-line no-async-promise-executor
-      return new Promise<void>(async resolve => {
-        const timeout = setTimeout(() => {
-          resolve()
-        }, 5000)
-
-        try {
-          const rpcClient = new rpc.RPCClient(url)
-
-          const timeStart = Date.now()
-          const height = await rpcClient.getBlockCount()
-          const latency = Date.now() - timeStart
-
-          list.push({ url, latency, height })
-        } finally {
-          resolve()
-          clearTimeout(timeout)
-        }
-      })
-    })
-
-    await Promise.allSettled(promises)
-
-    return list
   }
 }

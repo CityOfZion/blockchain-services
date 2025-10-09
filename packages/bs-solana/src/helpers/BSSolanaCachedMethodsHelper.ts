@@ -29,7 +29,7 @@ export class BSSolanaCachedMethodsHelper {
       } else {
         metadata = nftMetadata
       }
-    } catch (error) {
+    } catch {
       try {
         const tokenMetadata = await metaplexInstance.tokens().findMintByAddress({
           address: new solanaSDK.PublicKey(tokenHash),

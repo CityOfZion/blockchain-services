@@ -1,10 +1,10 @@
-import { TNetworkId, GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
+import { TBSNetworkId, GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
 
 import { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 import { ethers } from 'ethers'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 
-export class GhostMarketNDSEthereum<N extends string, A extends TNetworkId> extends GhostMarketNDS {
+export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> extends GhostMarketNDS {
   static readonly CHAIN_BY_NETWORK_ID: Partial<Record<TBSEthereumNetworkId, string>> = {
     '1': 'eth',
     '56': 'bsc',

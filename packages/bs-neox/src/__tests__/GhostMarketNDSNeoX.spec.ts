@@ -69,7 +69,7 @@ describe('Neo X Blockchain', () => {
 
         expect(hasToken).toBeTruthy()
       }
-    }, 20000)
+    })
   })
 
   describe('GHOST', () => {
@@ -136,6 +136,6 @@ describe('Neo X Blockchain', () => {
           /* empty */
         }
       }
-    }, 40000)
+    })
   })
 })

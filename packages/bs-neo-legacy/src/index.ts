@@ -3,6 +3,7 @@ export * from './BSNeoLegacy'
 export * from './constants/BSNeoLegacyConstants'
 
 export * from './helpers/BSNeoLegacyHelper'
+export * from './helpers/BSNeoLegacyNeonJsSingletonHelper'
 
 export * from './services/blockchain-data/DoraBDSNeoLegacy'
 

@@ -9,12 +9,12 @@ import {
 import { BSNeoLegacy } from '../../BSNeoLegacy'
 import EventEmitter from 'events'
 import Transport from '@ledgerhq/hw-transport'
-import { wallet, u, tx } from '@cityofzion/neon-js'
 import {
   ENeonJsLedgerServiceNeoLegacyCommand,
   ENeonJsLedgerServiceNeoLegacyParameter,
   ENeonJsLedgerServiceNeoLegacyStatus,
 } from '../../types'
+import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
 export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements ILedgerService<N> {
   readonly #service: BSNeoLegacy<N>
@@ -38,6 +38,9 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
     )
 
     const publicKey = result.toString('hex').substring(0, 130)
+
+    const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const { address } = new wallet.Account(publicKey)
 
     return {
@@ -77,6 +80,8 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
         if (!account.bip44Path) {
           throw new Error('Account must have a bip 44 path to sign with Ledger')
         }
+
+        const { wallet, tx } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 
         const neonJsAccount = new wallet.Account(account.key)
 
@@ -157,6 +162,8 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
   }
 
   #derSignatureToHex(response: string): string {
+    const { u } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const ss = new u.StringStream(response)
     // The first byte is format. It is usually 0x30 (SEQ) or 0x31 (SET)
     // The second byte represents the total length of the DER module.

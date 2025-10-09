@@ -8,9 +8,10 @@ import {
   IExplorerService,
   INftDataService,
   ITokenService,
-  TNetwork,
+  TBSNetwork,
   TBSToken,
   TTransferParam,
+  TPingNetworkResponse,
 } from '@cityofzion/blockchain-service'
 import solanaSDK from '@solana/web3.js'
 import * as solanaSplSDK from '@solana/spl-token'
@@ -26,6 +27,7 @@ import { SolScanESSolana } from './services/explorer/SolScanESSolana'
 import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
 import { IBSSolana, TBSSolanaNetworkId } from './types'
+import axios from 'axios'
 
 const KEY_BYTES_LENGTH = 64
 
@@ -40,9 +42,10 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   readonly tokens!: TBSToken[]
   readonly nativeTokens!: TBSToken[]
 
-  network!: TNetwork<TBSSolanaNetworkId>
-  readonly availableNetworks: TNetwork<TBSSolanaNetworkId>[]
-  readonly defaultNetwork: TNetwork<TBSSolanaNetworkId>
+  network!: TBSNetwork<TBSSolanaNetworkId>
+  availableNetworkURLs!: string[]
+  readonly availableNetworks: TBSNetwork<TBSSolanaNetworkId>[]
+  readonly defaultNetwork: TBSNetwork<TBSSolanaNetworkId>
 
   ledgerService: Web3LedgerServiceSolana<N>
   exchangeDataService!: IExchangeDataService
@@ -53,7 +56,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
 
   #connection!: solanaSDK.Connection
 
-  constructor(name: N, network?: TNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(name: N, network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.bip44DerivationPath = BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH
     this.ledgerService = new Web3LedgerServiceSolana(this, getLedgerTransport)
@@ -160,13 +163,16 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     }
   }
 
-  setNetwork(network: TNetwork<TBSSolanaNetworkId>): void {
-    const isValidNetwork = this.availableNetworks.some(networkItem => BSUtilsHelper.isEqual(networkItem, network))
+  setNetwork(network: TBSNetwork<TBSSolanaNetworkId>): void {
+    const availableURLs = BSSolanaConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, availableURLs)
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
     this.network = network
+    this.availableNetworkURLs = availableURLs
 
     this.tokenService = new TokenServiceSolana()
     this.blockchainDataService = new TatumRpcBDSSolana(this)
@@ -177,9 +183,34 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     this.#connection = new solanaSDK.Connection(this.network.url)
   }
 
-  async testNetwork(network: TNetwork<TBSSolanaNetworkId>): Promise<void> {
-    const connection = new solanaSDK.Connection(network.url)
-    await connection.getBlockHeight()
+  // This method is done manually because we need to ensure that the request is aborted after timeout
+  async pingNetwork(network: TBSNetwork<TBSSolanaNetworkId>): Promise<TPingNetworkResponse> {
+    const abortController = new AbortController()
+    const timeout = setTimeout(() => {
+      abortController.abort()
+    }, 5000)
+
+    const timeStart = Date.now()
+
+    const response = await axios.post(
+      network.url,
+      {
+        jsonrpc: '2.0',
+        id: 1234,
+        method: 'getBlockHeight',
+      },
+      { timeout: 5000, signal: abortController.signal }
+    )
+
+    clearTimeout(timeout)
+
+    const latency = Date.now() - timeStart
+
+    return {
+      latency,
+      url: network.url,
+      height: response.data.result,
+    }
   }
 
   validateAddress(address: string): boolean {
@@ -199,7 +230,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
       keyBuffer = Uint8Array.from(key.split(',').map(Number))
     }
 
-    if (keyBuffer.length !== KEY_BYTES_LENGTH) {
+    if (keyBuffer?.length !== KEY_BYTES_LENGTH) {
       return false
     }
 
@@ -210,7 +241,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
 
     const seed = bip39.mnemonicToSeedSync(mnemonic)
-    const hd = HDKey.fromMasterSeed(seed.toString('hex'))
+    const hd = HDKey.fromMasterSeed(seed)
     const keypair = solanaSDK.Keypair.fromSeed(hd.derive(bip44Path).privateKey)
     const key = bs58.encode(keypair.secretKey)
     const address = keypair.publicKey.toBase58()

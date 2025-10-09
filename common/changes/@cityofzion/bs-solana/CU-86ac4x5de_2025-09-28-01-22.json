@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Bump dependencies version",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

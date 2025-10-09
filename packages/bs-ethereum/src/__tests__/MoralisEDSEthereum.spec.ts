@@ -1,14 +1,14 @@
-import { TNetworkId } from '@cityofzion/blockchain-service'
+import { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { MoralisEDSEthereum } from '../services/exchange-data/MoralisEDSEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { BSEthereum } from '../BSEthereum'
 
-let service: BSEthereum<'test', TNetworkId>
-let moralisEDSEthereum: MoralisEDSEthereum<'test', TNetworkId>
+let service: BSEthereum<'test', TBSNetworkId>
+let moralisEDSEthereum: MoralisEDSEthereum<'test', TBSNetworkId>
 
 describe('MoralisEDSEthereum', () => {
   beforeAll(() => {
-    service = new BSEthereum('test')
+    service = new BSEthereum('test', 'ethereum')
     moralisEDSEthereum = new MoralisEDSEthereum(service)
   })
 

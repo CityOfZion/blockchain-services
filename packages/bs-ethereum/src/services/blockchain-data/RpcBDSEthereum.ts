@@ -5,8 +5,7 @@ import {
   TFullTransactionsByAddressParams,
   TFullTransactionsByAddressResponse,
   IBlockchainDataService,
-  TRpcResponse,
-  TNetworkId,
+  TBSNetworkId,
   TBSToken,
   TTransactionResponse,
   TTransactionsByAddressParams,
@@ -17,24 +16,31 @@ import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import { IBSEthereum } from '../../types'
 
-export class RpcBDSEthereum<N extends string, A extends TNetworkId, S extends IBSEthereum<N, A> = IBSEthereum<N, A>>
+export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends IBSEthereum<N, A> = IBSEthereum<N, A>>
   implements IBlockchainDataService
 {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5 // 5 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
   readonly _service: S
 
+  #providerInstance?: ethers.providers.JsonRpcProvider
+
   constructor(service: S) {
     this._service = service
   }
 
-  async getTransaction(hash: string): Promise<TTransactionResponse> {
-    const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+  get #provider() {
+    if (!this.#providerInstance) {
+      this.#providerInstance = new ethers.providers.JsonRpcProvider(this._service.network.url)
+    }
+    return this.#providerInstance
+  }
 
-    const transaction = await provider.getTransaction(hash)
+  async getTransaction(hash: string): Promise<TTransactionResponse> {
+    const transaction = await this.#provider.getTransaction(hash)
     if (!transaction || !transaction.blockHash || !transaction.to) throw new Error('Transaction not found')
 
-    const block = await provider.getBlock(transaction.blockHash)
+    const block = await this.#provider.getBlock(transaction.blockHash)
     if (!block) throw new Error('Block not found')
 
     const token = BSEthereumHelper.getNativeAsset(this._service.network)
@@ -85,8 +91,7 @@ export class RpcBDSEthereum<N extends string, A extends TNetworkId, S extends IB
       return this._tokenCache.get(hash)!
     }
 
-    const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
-    const contract = new ethers.Contract(hash, ERC20_ABI, provider)
+    const contract = new ethers.Contract(hash, ERC20_ABI, this.#provider)
 
     const decimals = await contract.decimals()
     const symbol = await contract.symbol()
@@ -104,8 +109,7 @@ export class RpcBDSEthereum<N extends string, A extends TNetworkId, S extends IB
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
-    const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
-    const balance = await provider.getBalance(address)
+    const balance = await this.#provider.getBalance(address)
 
     const token = BSEthereumHelper.getNativeAsset(this._service.network)
 
@@ -118,45 +122,6 @@ export class RpcBDSEthereum<N extends string, A extends TNetworkId, S extends IB
   }
 
   async getBlockHeight(): Promise<number> {
-    const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
-    return await provider.getBlockNumber()
-  }
-
-  async getRpcList(): Promise<TRpcResponse[]> {
-    const list: TRpcResponse[] = []
-
-    const urls = BSEthereumHelper.getRpcList(this._service.network)
-
-    const promises = urls.map(url => {
-      // eslint-disable-next-line no-async-promise-executor
-      return new Promise<void>(async resolve => {
-        const timeout = setTimeout(() => {
-          resolve()
-        }, 5000)
-
-        try {
-          const provider = new ethers.providers.JsonRpcProvider(url)
-
-          const timeStart = Date.now()
-          const height = await provider.getBlockNumber()
-          const latency = Date.now() - timeStart
-
-          list.push({
-            url,
-            height,
-            latency,
-          })
-        } catch {
-          /* empty */
-        } finally {
-          resolve()
-          clearTimeout(timeout)
-        }
-      })
-    })
-
-    await Promise.allSettled(promises)
-
-    return list
+    return await this.#provider.getBlockNumber()
   }
 }

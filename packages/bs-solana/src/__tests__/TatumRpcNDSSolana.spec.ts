@@ -5,10 +5,11 @@ import { TatumRpcNDSSolana } from '../services/nft-data/TatumRpcNDSSolana'
 let tatumRpcNDSSolana: TatumRpcNDSSolana<'test'>
 
 describe('TatumRpcNDSSolana.spec', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     const service = new BSSolana('test')
     tatumRpcNDSSolana = new TatumRpcNDSSolana(service)
-    await BSUtilsHelper.wait(3000)
+
+    await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit
   })
 
   it('Get NFT', async () => {
@@ -61,5 +62,5 @@ describe('TatumRpcNDSSolana.spec', () => {
     })
 
     expect(hasToken).toBeTruthy()
-  }, 60000)
+  })
 })

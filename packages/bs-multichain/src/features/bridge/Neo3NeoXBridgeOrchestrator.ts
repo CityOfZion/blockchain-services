@@ -178,7 +178,7 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
 
   async init(): Promise<void> {
     this.#availableTokensToUse = {
-      value: this.fromService.neo3NeoXBridgeService.tokens,
+      value: [this.fromService.neo3NeoXBridgeService.gasToken, this.fromService.neo3NeoXBridgeService.neoToken],
     }
 
     this.#accountToUse = { value: null, loading: false }
@@ -224,11 +224,13 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
         )
           throw new BSError('You are trying to use a token that is not available', 'TOKEN_NOT_AVAILABLE')
 
-        tokenToReceive = this.toService.neo3NeoXBridgeService.tokens.find(
-          item => token.multichainId === item.multichainId
+        const isGasToken = this.fromService.tokenService.predicateByHash(
+          token,
+          this.fromService.neo3NeoXBridgeService.gasToken
         )
-
-        if (!tokenToReceive) throw new BSError('Pair token not found', 'PAIR_TOKEN_NOT_FOUND')
+        tokenToReceive = isGasToken
+          ? this.toService.neo3NeoXBridgeService.gasToken
+          : this.toService.neo3NeoXBridgeService.neoToken
       }
 
       this.#tokenToReceive = { value: tokenToReceive ?? null, error: null }

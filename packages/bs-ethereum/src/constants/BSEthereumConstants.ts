@@ -1,4 +1,4 @@
-import { TNetwork } from '@cityofzion/blockchain-service'
+import { TBSNetwork } from '@cityofzion/blockchain-service'
 import { TBSEthereumNetworkId, TSupportedEVM } from '../types'
 
 export class BSEthereumConstants {
@@ -125,7 +125,7 @@ export class BSEthereumConstants {
     ],
   }
 
-  static readonly NETWORKS_BY_EVM: Record<TSupportedEVM, TNetwork<TBSEthereumNetworkId>[]> = {
+  static readonly NETWORKS_BY_EVM: Record<TSupportedEVM, TBSNetwork<TBSEthereumNetworkId>[]> = {
     ethereum: [
       {
         id: '1',

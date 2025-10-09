@@ -12,15 +12,15 @@ import {
   TFullTransactionsByAddressParams,
   TFullTransactionsByAddressResponse,
   TExportTransactionsByAddressParams,
-  TNetwork,
-  TNetworkId,
+  TBSNetwork,
+  TBSNetworkId,
   BSFullTransactionsByAddressHelper,
   TFullTransactionsItem,
   BSBigNumberHelper,
   BSPromisesHelper,
   TNftResponse,
 } from '@cityofzion/blockchain-service'
-import axios from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
@@ -37,7 +37,7 @@ import {
 } from '../../types'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 
-export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends RpcBDSEthereum<N, A> {
+export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extends RpcBDSEthereum<N, A> {
   static readonly BASE_URL = `${BSCommonConstants.DORA_URL}/api/v2/meta`
   static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = ['1', '42161', '8453', '137']
   static readonly FULL_TRANSACTIONS_ERC721_STANDARDS = ['erc721', 'erc-721']
@@ -52,7 +52,7 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
     '5000', '5003', '1101', '2442', '7000', '7001'
   ]
 
-  static getClient(network: TNetwork<TBSEthereumNetworkId>) {
+  static getClient(network: TBSNetwork<TBSEthereumNetworkId>) {
     return axios.create({
       baseURL: MoralisBDSEthereum.BASE_URL,
       params: {
@@ -61,12 +61,22 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
     })
   }
 
-  static isSupported(network: TNetwork<TBSEthereumNetworkId>) {
+  static isSupported(network: TBSNetwork<TBSEthereumNetworkId>) {
     return MoralisBDSEthereum.MORALIS_SUPPORTED_NETWORKS_IDS.includes(network.id)
   }
 
+  #apiInstance?: AxiosInstance
+
   constructor(service: IBSEthereum<N, A>) {
     super(service)
+  }
+
+  get #api() {
+    if (!this.#apiInstance) {
+      this.#apiInstance = MoralisBDSEthereum.getClient(this._service.network)
+    }
+
+    return this.#apiInstance
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
@@ -74,11 +84,9 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
       return super.getBalance(address)
     }
 
-    const client = MoralisBDSEthereum.getClient(this._service.network)
-
     const {
       data: { balance: nativeBalance },
-    } = await client.get<TMoralisBDSEthereumNativeBalanceApiResponse>(`${address}/balance`)
+    } = await this.#api.get<TMoralisBDSEthereumNativeBalanceApiResponse>(`${address}/balance`)
 
     const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
 
@@ -89,7 +97,9 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
       },
     ]
 
-    const { data: erc20Balances } = await client.get<TMoralisBDSEthereumERC20BalanceApiResponse[]>(`${address}/erc20`)
+    const { data: erc20Balances } = await this.#api.get<TMoralisBDSEthereumERC20BalanceApiResponse[]>(
+      `${address}/erc20`
+    )
 
     erc20Balances.forEach(balance => {
       if (balance.possible_spam || !balance.decimals || !balance.token_address || !balance.symbol) return
@@ -121,8 +131,7 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
       return this._tokenCache.get(hash)!
     }
 
-    const client = MoralisBDSEthereum.getClient(this._service.network)
-    const response = await client.get<TMoralisBDSEthereumERC20MetadataApiResponse[]>(`/erc20/metadata`, {
+    const response = await this.#api.get<TMoralisBDSEthereumERC20MetadataApiResponse[]>(`/erc20/metadata`, {
       params: {
         addresses: [hash],
       },
@@ -147,9 +156,7 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
       return super.getTransaction(hash)
     }
 
-    const client = MoralisBDSEthereum.getClient(this._service.network)
-
-    const { data } = await client.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
+    const { data } = await this.#api.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
 
     const transfers: (TTransactionTransferAsset | TTransactionTransferNft)[] = []
 
@@ -220,9 +227,7 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
       return super.getTransactionsByAddress(params)
     }
 
-    const client = MoralisBDSEthereum.getClient(this._service.network)
-
-    const { data } = await client.get<TMoralisWalletHistoryApiResponse>(`/wallets/${params.address}/history`, {
+    const { data } = await this.#api.get<TMoralisWalletHistoryApiResponse>(`/wallets/${params.address}/history`, {
       params: {
         limit: 15,
         cursor: params.nextPageParams,
@@ -385,7 +390,6 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
 
           return
         }
-
         const [token] = await BSPromisesHelper.tryCatch<TBSToken>(() => this.getTokenInfo(contractHash))
 
         newItem.events.splice(eventIndex, 0, {
@@ -436,9 +440,7 @@ export class MoralisBDSEthereum<N extends string, A extends TNetworkId> extends 
     }
 
     try {
-      const client = MoralisBDSEthereum.getClient(this._service.network)
-
-      const { data } = await client.get<TMoralisTokenMetadataApiResponse[]>(`erc20/metadata`, {
+      const { data } = await this.#api.get<TMoralisTokenMetadataApiResponse[]>(`erc20/metadata`, {
         params: {
           addresses: [hash],
         },

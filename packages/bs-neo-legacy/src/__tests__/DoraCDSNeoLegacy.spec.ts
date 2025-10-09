@@ -10,7 +10,7 @@ describe('DoraCDSNeoLegacy', () => {
     doraBDSNeoLegacy = new DoraBDSNeoLegacy(service)
   })
 
-  it('Should be able to get unclaimed - %s', async () => {
+  it('Should be able to get unclaimed', async () => {
     const address = 'AQB8KjskTmRghCS3kMzxBNxKwT6b9kKM4v'
     const unclaimed = await doraBDSNeoLegacy.getUnclaimed(address)
     expect(unclaimed).toEqual(expect.any(String))

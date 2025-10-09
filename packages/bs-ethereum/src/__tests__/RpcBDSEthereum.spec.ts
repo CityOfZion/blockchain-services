@@ -1,11 +1,11 @@
-import { TNetworkId } from '@cityofzion/blockchain-service'
+import { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereum } from '../BSEthereum'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { RpcBDSEthereum } from '../services/blockchain-data/RpcBDSEthereum'
 
-let service: BSEthereum<'test', TNetworkId>
-let rpcBDSEthereum: RpcBDSEthereum<'test', TNetworkId>
+let service: BSEthereum<'test', TBSNetworkId>
+let rpcBDSEthereum: RpcBDSEthereum<'test', TBSNetworkId>
 
 describe('RpcBDSEthereum', () => {
   beforeAll(async () => {

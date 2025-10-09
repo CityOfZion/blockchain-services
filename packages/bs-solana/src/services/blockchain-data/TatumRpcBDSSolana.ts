@@ -6,8 +6,7 @@ import {
   TFullTransactionsByAddressParams,
   TFullTransactionsByAddressResponse,
   IBlockchainDataService,
-  TRpcResponse,
-  TNetwork,
+  TBSNetwork,
   TBSToken,
   TTransactionResponse,
   TTransactionsByAddressParams,
@@ -28,7 +27,7 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
     devnet: 'https://solana-devnet.gateway.tatum.io',
   }
 
-  static getConnection(network: TNetwork<TBSSolanaNetworkId>) {
+  static getConnection(network: TBSNetwork<TBSSolanaNetworkId>) {
     return new solanaSDK.Connection(TatumRpcBDSSolana.URL_BY_NETWORK_ID[network.id], {
       httpHeaders: {
         'x-api-key': BSSolanaHelper.isMainnetNetwork(network)
@@ -396,46 +395,5 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
 
   async getBlockHeight(): Promise<number> {
     return await this.#connection.getBlockHeight()
-  }
-
-  async getRpcList(): Promise<TRpcResponse[]> {
-    const list: TRpcResponse[] = []
-
-    const urls = BSSolanaConstants.RPC_LIST_BY_NETWORK_ID[this.#service.network.id]
-    if (!urls) {
-      throw new Error('RPC list not found')
-    }
-
-    const promises = urls.map(url => {
-      // eslint-disable-next-line no-async-promise-executor
-      return new Promise<void>(async resolve => {
-        const timeout = setTimeout(() => {
-          resolve()
-        }, 5000)
-
-        try {
-          const connection = TatumRpcBDSSolana.getConnection({ ...this.#service.network, url })
-
-          const timeStart = Date.now()
-          const height = await connection.getBlockHeight()
-          const latency = Date.now() - timeStart
-
-          list.push({
-            url,
-            height,
-            latency,
-          })
-        } catch {
-          /* empty */
-        } finally {
-          resolve()
-          clearTimeout(timeout)
-        }
-      })
-    })
-
-    await Promise.allSettled(promises)
-
-    return list
   }
 }

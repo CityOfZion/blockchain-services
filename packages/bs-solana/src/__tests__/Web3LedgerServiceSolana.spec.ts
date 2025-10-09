@@ -18,7 +18,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
 
     transport = await TransportNodeHid.create()
     ledgerService = new Web3LedgerServiceSolana(bsSolana, async () => transport)
-  }, 60000)
+  })
 
   it('Should be able to get all accounts', async () => {
     const accounts = await ledgerService.getAccounts(transport)
@@ -34,7 +34,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         })
       )
     })
-  }, 60000)
+  })
 
   it('Should be able to get account', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -47,7 +47,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         bip44Path: BSSolanaHelper.getBip44Path(bsSolana.bip44DerivationPath, 0),
       })
     )
-  }, 60000)
+  })
 
   it('Should be able to sign transaction', async () => {
     const account = await ledgerService.getAccount(transport, 0)
@@ -72,5 +72,5 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
 
     expect(serializedTransaction).toBeDefined()
     expect(serializedTransaction).toBeInstanceOf(Buffer)
-  }, 60000)
+  })
 })

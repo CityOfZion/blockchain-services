@@ -1,7 +1,7 @@
 import { GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
 
 import { IBSNeo3, TBSNeo3NetworkId } from '../../types'
-import { NeonInvoker, NeonParser } from '@cityofzion/neon-dappkit'
+import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
 export class GhostMarketNDSNeo3<N extends string> extends GhostMarketNDS {
   static readonly CHAIN_BY_NETWORK_ID: Record<TBSNeo3NetworkId, string> = {
@@ -18,7 +18,8 @@ export class GhostMarketNDSNeo3<N extends string> extends GhostMarketNDS {
   }
 
   async hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean> {
-    const parser = NeonParser
+    const { NeonParser, NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
+
     const invoker = await NeonInvoker.init({ rpcAddress: this.#service.network.url })
     try {
       const result = await invoker.testInvoke({
@@ -36,7 +37,7 @@ export class GhostMarketNDSNeo3<N extends string> extends GhostMarketNDS {
         ],
       })
 
-      return parser.parseRpcResponse(result.stack[0], { type: 'Integer' }) > 0
+      return NeonParser.parseRpcResponse(result.stack[0], { type: 'Integer' }) > 0
     } catch {
       throw new Error(`Token not found: ${collectionHash}`)
     }

@@ -3,7 +3,7 @@ import {
   BSUtilsHelper,
   TFullTransactionNftEvent,
   TFullTransactionsByAddressParams,
-  TNetworkId,
+  TBSNetworkId,
 } from '@cityofzion/blockchain-service'
 import { isLeapYear } from 'date-fns'
 import { BSEthereum } from '../BSEthereum'
@@ -44,7 +44,7 @@ const expectedResponse = {
 let dateFrom: Date
 let dateTo: Date
 let params: TFullTransactionsByAddressParams
-let moralisBDSEthereum: MoralisBDSEthereum<'test', TNetworkId>
+let moralisBDSEthereum: MoralisBDSEthereum<'test', TBSNetworkId>
 
 jest.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
   return {

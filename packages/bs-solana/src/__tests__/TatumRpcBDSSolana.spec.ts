@@ -1,3 +1,4 @@
+import { BSUtilsHelper } from '@cityofzion/blockchain-service'
 import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import { TatumRpcBDSSolana } from '../services/blockchain-data/TatumRpcBDSSolana'
@@ -5,9 +6,11 @@ import { TatumRpcBDSSolana } from '../services/blockchain-data/TatumRpcBDSSolana
 let rpcBDSSolana: TatumRpcBDSSolana<'test'>
 
 describe('TatumRpcBDSSolana', () => {
-  beforeAll(() => {
+  beforeEach(async () => {
     const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
     rpcBDSSolana = new TatumRpcBDSSolana(service)
+
+    await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit
   })
 
   // It may throw an error as the tatum devnet only returns transaction made in less than 10 days
@@ -35,7 +38,7 @@ describe('TatumRpcBDSSolana', () => {
         })
       )
     })
-  }, 10000)
+  })
 
   // It may throw an error as the tatum devnet only returns transaction made in less than 10 days
   it('Should be able to get transactions of address', async () => {
@@ -66,7 +69,7 @@ describe('TatumRpcBDSSolana', () => {
         )
       })
     })
-  }, 60000)
+  })
 
   it('Should be able to get sol info', async () => {
     const hash = '-'
@@ -111,16 +114,4 @@ describe('TatumRpcBDSSolana', () => {
       )
     })
   })
-
-  it('Should be able to get a list of rpc', async () => {
-    const list = await rpcBDSSolana.getRpcList()
-    expect(list.length).toBeGreaterThan(0)
-    list.forEach(rpc => {
-      expect(rpc).toEqual({
-        height: expect.any(Number),
-        latency: expect.any(Number),
-        url: expect.any(String),
-      })
-    })
-  }, 50000)
 })

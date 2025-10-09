@@ -1,4 +1,3 @@
-import { api, tx, u } from '@cityofzion/neon-js'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 import {
   IBSNeoLegacy,
@@ -14,6 +13,7 @@ import {
   BSUtilsHelper,
   TTransactionResponse,
 } from '@cityofzion/blockchain-service'
+import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
 export class Neo3NeoLegacyMigrationService<N extends string> {
   readonly #service: IBSNeoLegacy<N>
@@ -35,6 +35,9 @@ export class Neo3NeoLegacyMigrationService<N extends string> {
     }
 
     const { neonJsAccount, signingCallback } = await this.#service.generateSigningCallback(account)
+
+    const { api, tx, u } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     const provider = new api.neoCli.instance(this.#service.network.url)
     const intents: ReturnType<typeof api.makeIntent> = []
 

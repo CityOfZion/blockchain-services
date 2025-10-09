@@ -20,16 +20,15 @@ export type TBSToken = {
   decimals: number
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type TNetworkId<T extends string = string> = T | (string & {})
+export type TBSNetworkId<T extends string = string> = T | (string & {})
 
-export type TNetworkType = 'mainnet' | 'testnet' | 'custom'
+export type TBSNetworkType = 'mainnet' | 'testnet' | 'custom'
 
-export type TNetwork<T extends string = string> = {
-  id: TNetworkId<T>
+export type TBSNetwork<T extends string = string> = {
+  id: TBSNetworkId<T>
   name: string
   url: string
-  type: TNetworkType
+  type: TBSNetworkType
 }
 
 export type TIntentTransferParam = {
@@ -46,6 +45,12 @@ export type TTransferParam<N extends string = string> = {
   priorityFee?: string
 }
 
+export type TPingNetworkResponse = {
+  latency: number
+  url: string
+  height: number
+}
+
 export interface IBlockchainService<N extends string = string, A extends string = string> {
   readonly name: N
   readonly bip44DerivationPath: string
@@ -56,16 +61,17 @@ export interface IBlockchainService<N extends string = string, A extends string 
   tokens: TBSToken[]
   readonly nativeTokens: TBSToken[]
 
-  network: TNetwork<A>
-  readonly defaultNetwork: TNetwork<A>
-  readonly availableNetworks: TNetwork<A>[]
+  network: TBSNetwork<A>
+  availableNetworkURLs: string[]
+  readonly defaultNetwork: TBSNetwork<A>
+  readonly availableNetworks: TBSNetwork<A>[]
 
   exchangeDataService: IExchangeDataService
   blockchainDataService: IBlockchainDataService
   tokenService: ITokenService
 
-  testNetwork: (network: TNetwork<A>) => Promise<void>
-  setNetwork: (partialNetwork: TNetwork<A>) => void
+  pingNetwork: (network: TBSNetwork<A>) => Promise<TPingNetworkResponse>
+  setNetwork: (network: TBSNetwork<A>) => void
   generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N>
   generateAccountFromKey(key: string): TBSAccount<N>
   validateAddress(address: string): boolean
@@ -262,11 +268,7 @@ export type TBalanceResponse = {
   amount: string
   token: TBSToken
 }
-export type TRpcResponse = {
-  latency: number
-  url: string
-  height: number
-}
+
 export interface IBlockchainDataService {
   readonly maxTimeToConfirmTransactionInMs: number
 
@@ -278,7 +280,6 @@ export interface IBlockchainDataService {
   getTokenInfo(tokenHash: string): Promise<TBSToken>
   getBalance(address: string): Promise<TBalanceResponse[]>
   getBlockHeight(): Promise<number>
-  getRpcList(): Promise<TRpcResponse[]>
 }
 
 export interface IClaimDataService {
@@ -444,8 +445,8 @@ export interface ISwapOrchestrator<N extends string = string> {
 }
 
 export type TBridgeToken<N extends string = string> = TBSToken & {
-  multichainId: string
   blockchain: N
+  multichainId: string
 }
 
 export type TBridgeValue<T> = { value: T | null; loading: boolean; error: BSError | null }
@@ -512,7 +513,8 @@ export type TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N extends stri
   nonce: string
 }
 export interface INeo3NeoXBridgeService<N extends string = string> {
-  readonly tokens: TBridgeToken<N>[]
+  readonly gasToken: TBridgeToken<N>
+  readonly neoToken: TBridgeToken<N>
   getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam): Promise<string>
   getBridgeConstants(token: TBridgeToken): Promise<TNeo3NeoXBridgeServiceConstants>
   bridge(params: TNeo3NeoXBridgeServiceBridgeParam<N>): Promise<string>

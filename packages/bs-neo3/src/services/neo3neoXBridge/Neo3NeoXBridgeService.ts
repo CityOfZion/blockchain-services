@@ -9,27 +9,30 @@ import {
   TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import { NeonInvoker, TypeChecker } from '@cityofzion/neon-dappkit'
-import type { ContractInvocation, Signer } from '@cityofzion/neon-dappkit-types'
 import axios from 'axios'
 import { IBSNeo3, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import { LogResponse } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
+import {
+  BSNeo3NeonDappKitSingletonHelper,
+  ContractInvocation,
+  Signer,
+} from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
 export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeService<N> {
   static readonly BRIDGE_SCRIPT_HASH: string = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
 
   readonly #service: IBSNeo3<N>
-  readonly tokens: TBridgeToken<N>[]
+
+  readonly gasToken: TBridgeToken<N>
+  readonly neoToken: TBridgeToken<N>
 
   constructor(service: IBSNeo3<N>) {
     this.#service = service
 
-    this.tokens = [
-      { ...BSNeo3Constants.GAS_TOKEN, multichainId: 'gas', blockchain: service.name },
-      { ...BSNeo3Constants.NEO_TOKEN, multichainId: 'neo', blockchain: service.name },
-    ]
+    this.gasToken = { ...BSNeo3Constants.GAS_TOKEN, blockchain: service.name, multichainId: 'gas' }
+    this.neoToken = { ...BSNeo3Constants.NEO_TOKEN, blockchain: service.name, multichainId: 'neo' }
   }
 
   async getApprovalFee(): Promise<string> {
@@ -37,6 +40,8 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
   }
 
   async getBridgeConstants(token: TBridgeToken<N>): Promise<TNeo3NeoXBridgeServiceConstants> {
+    const { TypeChecker, NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
+
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#service.network.url,
     })
@@ -110,6 +115,8 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
 
     const { neonJsAccount, signingCallback } = await this.#service.generateSigningCallback(account)
 
+    const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
+
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#service.network.url,
       account: neonJsAccount,
@@ -157,7 +164,8 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
   async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<N>): Promise<string> {
     let log: LogResponse | undefined
     try {
-      log = await DoraBDSNeo3.API.log(params.transactionHash, this.#service.network.id)
+      const api = DoraBDSNeo3.getClient()
+      log = await api.log(params.transactionHash, this.#service.network.id)
     } catch (error) {
       throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', error)
     }

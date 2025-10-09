@@ -86,7 +86,7 @@ describe('SimpleSwapApi', () => {
         log: expect.any(String),
       })
     )
-  }, 10000)
+  })
 
   it.skip('Should create the exchange to XRP with extraIdToReceive', async () => {
     const addressFrom = process.env.TEST_ADDRESS_TO_SWAP_TOKEN
@@ -108,7 +108,7 @@ describe('SimpleSwapApi', () => {
         log: expect.any(String),
       })
     )
-  }, 10000)
+  })
 
   it.skip('Should create the exchange to Notcoin with extraIdToReceive', async () => {
     const addressFrom = process.env.TEST_ADDRESS_TO_SWAP_TOKEN
@@ -130,7 +130,7 @@ describe('SimpleSwapApi', () => {
         log: expect.any(String),
       })
     )
-  }, 10000)
+  })
 
   it('Should get the exchange by swap id', async () => {
     const result = await simpleSwapApi.getExchange(process.env.TEST_SWAP_ID)
@@ -143,5 +143,5 @@ describe('SimpleSwapApi', () => {
         log: expect.any(String),
       })
     )
-  }, 10000)
+  })
 })

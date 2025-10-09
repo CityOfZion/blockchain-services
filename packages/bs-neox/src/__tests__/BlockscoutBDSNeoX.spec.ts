@@ -1,6 +1,4 @@
 import {
-  TBalanceResponse,
-  TBridgeToken,
   TransactionBridgeNeo3NeoXResponse,
   TTransactionResponse,
   TTransactionsByAddressResponse,
@@ -12,19 +10,12 @@ import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX
 
 import { BSNeoX } from '../BSNeoX'
 
+let service: BSNeoX<'test'>
 let blockscoutBDSNeoX: BlockscoutBDSNeoX<'test'>
 
 describe('BlockscoutBDSNeoX', () => {
-  const bridgeGasToken: TBridgeToken<'test'> = {
-    ...BSNeoXConstants.NATIVE_ASSET,
-    multichainId: 'gas',
-    blockchain: 'test',
-  }
-
-  const bridgeNeoToken: TBridgeToken<'test'> = { ...BSNeoXConstants.NEO_TOKEN, multichainId: 'neo', blockchain: 'test' }
-
   beforeEach(() => {
-    const service = new BSNeoX('test')
+    service = new BSNeoX('test')
     blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
   })
 
@@ -98,9 +89,9 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(bridgeGasToken)
+    expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.gasToken)
     expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
-  }, 10000)
+  })
 
   it('Should return a bridge transaction details (NEO)', async () => {
     const transaction = (await blockscoutBDSNeoX.getTransaction(
@@ -109,9 +100,9 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(bridgeNeoToken)
+    expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.neoToken)
     expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
-  }, 10000)
+  })
 
   it('Should return transactions by address', async () => {
     const address = '0x1241f44BFA102ab7386C784959BAe3D0fB923734'
@@ -147,7 +138,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(bridgeGasToken)
+    expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.gasToken)
     expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
   })
 
@@ -162,7 +153,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(bridgeNeoToken)
+    expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.neoToken)
     expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
   })
 
@@ -184,16 +175,16 @@ describe('BlockscoutBDSNeoX', () => {
   it('Should return balance', async () => {
     const address = '0xa911a7FA0901Cfc3f1da55A05593823E32e2f1a9'
 
-    const expectedBalance: TBalanceResponse[] = [
-      {
-        amount: expect.any(String),
-        token: BSNeoXConstants.NATIVE_ASSET,
-      },
-    ]
-
     const balance = await blockscoutBDSNeoX.getBalance(address)
 
-    expect(balance).toEqual(expectedBalance)
+    expect(balance).toEqual(
+      expect.arrayContaining([
+        {
+          amount: expect.any(String),
+          token: BSNeoXConstants.NATIVE_ASSET,
+        },
+      ])
+    )
   })
 
   it('Should return block height', async () => {
