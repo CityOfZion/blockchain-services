@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Add WalletConnect support",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

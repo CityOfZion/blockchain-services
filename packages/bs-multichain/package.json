@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "axios": "~1.12.2"
+    "axios": "~1.12.2",
+    "@walletconnect/utils": "~2.21.9",
+    "@walletconnect/jsonrpc-utils": "~1.0.8"
   },
   "devDependencies": {
     "@cityofzion/bs-neo3": "workspace:*",
@@ -27,6 +29,7 @@
     "@cityofzion/bs-neox": "workspace:*",
     "@types/node": "~24.5.2",
     "@types/jest": "~30.0.0",
+    "@walletconnect/types": "~2.21.9",
     "dotenv": "~17.2.2",
     "eslint": "~9.36.0",
     "jest": "~30.1.3",

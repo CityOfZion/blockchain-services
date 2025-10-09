@@ -350,7 +350,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
       return token
     } catch {
-      throw new Error(`Token not found: ${tokenHash}`)
+      throw new Error(`TBSToken not found: ${tokenHash}`)
     }
   }
 

@@ -10,6 +10,7 @@ import {
   IBSWithNeo3NeoXBridge,
   IBSWithNft,
   TBSNetworkId,
+  IBSWithWalletConnect,
 } from '@cityofzion/blockchain-service'
 import { wallet, api } from './helpers/BSNeo3NeonJsSingletonHelper'
 
@@ -24,7 +25,8 @@ export interface IBSNeo3<N extends string = string>
     IBSWithExplorer,
     IBSWithLedger<N>,
     IBSWithNeo3NeoXBridge<N>,
-    IBSWithEncryption<N> {
+    IBSWithEncryption<N>,
+    IBSWithWalletConnect {
   generateSigningCallback(account: TBSAccount<N>): Promise<{
     neonJsAccount: wallet.Account
     signingCallback: api.SigningFunction

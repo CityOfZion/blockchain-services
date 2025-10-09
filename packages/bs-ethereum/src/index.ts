@@ -17,6 +17,8 @@ export * from './services/nft-data/GhostMarketNDSEthereum'
 
 export * from './services/token/TokenServiceEthereum'
 
+export * from './services/wallet-connect/WalletConnectServiceEthereum'
+
 export * from './assets/abis/ERC20'
 export * from './assets/abis/ERC721'
 
