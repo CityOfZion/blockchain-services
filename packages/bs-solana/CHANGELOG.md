@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-solana
 
-This log was last generated on Wed, 01 Oct 2025 23:44:28 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Oct 2025 01:36:19 GMT and should not be manually modified.
+
+## 2.0.3
+Fri, 10 Oct 2025 01:36:19 GMT
+
+### Patches
+
+- General improvements
+- Bump dependencies version
 
 ## 2.0.2
 Wed, 01 Oct 2025 23:44:28 GMT

@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.13.5",
+      "tag": "@cityofzion/bs-neo-legacy_v1.13.5",
+      "date": "Fri, 10 Oct 2025 01:36:19 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "General improvements"
+          },
+          {
+            "comment": "Improve neon-js import time and Bump dependencies version"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.22.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.13.4",
       "tag": "@cityofzion/bs-neo-legacy_v1.13.4",
       "date": "Wed, 01 Oct 2025 23:44:28 GMT",

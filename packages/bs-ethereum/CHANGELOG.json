@@ -2,6 +2,31 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.14.0",
+      "tag": "@cityofzion/bs-ethereum_v2.14.0",
+      "date": "Fri, 10 Oct 2025 01:36:19 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "General improvements"
+          },
+          {
+            "comment": "Bump dependencies version"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add WalletConnect support"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.22.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.13.4",
       "tag": "@cityofzion/bs-ethereum_v2.13.4",
       "date": "Mon, 06 Oct 2025 15:10:01 GMT",

@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Wed, 01 Oct 2025 23:44:28 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Oct 2025 01:36:19 GMT and should not be manually modified.
+
+## 1.13.5
+Fri, 10 Oct 2025 01:36:19 GMT
+
+### Patches
+
+- General improvements
+- Improve neon-js import time and Bump dependencies version
 
 ## 1.13.4
 Wed, 01 Oct 2025 23:44:28 GMT

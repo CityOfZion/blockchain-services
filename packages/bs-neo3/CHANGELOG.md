@@ -1,6 +1,18 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Wed, 01 Oct 2025 23:44:28 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Oct 2025 01:36:19 GMT and should not be manually modified.
+
+## 1.17.0
+Fri, 10 Oct 2025 01:36:19 GMT
+
+### Minor changes
+
+- Add WalletConnect support
+
+### Patches
+
+- General improvements
+- Improve neon-js and neon-dappkit import time and Bump dependencies version
 
 ## 1.16.3
 Wed, 01 Oct 2025 23:44:28 GMT
@@ -236,7 +248,7 @@ Sat, 14 Dec 2024 02:56:00 GMT
 
 ### Patches
 
-- Fix error when trying to send a value with more decimal places than the token supports
+- Fix error when trying to send a value with more decimal places than the token supports 
 
 ## 1.8.6
 Sat, 14 Dec 2024 02:14:48 GMT
@@ -504,7 +516,7 @@ Tue, 11 Jun 2024 19:22:55 GMT
 ### Patches
 
 - Extend new CryptoCompareEDS class to get support to token price history
-- Added Has TBSToken method
+- Added Has Token method
 
 ## 0.11.3
 Thu, 06 Jun 2024 14:55:18 GMT

@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-electron
 
-This log was last generated on Wed, 01 Oct 2025 23:44:28 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Oct 2025 01:36:19 GMT and should not be manually modified.
+
+## 0.1.53
+Fri, 10 Oct 2025 01:36:19 GMT
+
+### Patches
+
+- General improvements
+- Bump dependencies version
 
 ## 0.1.52
 Wed, 01 Oct 2025 23:44:28 GMT

@@ -2,6 +2,26 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.22.0",
+      "tag": "@cityofzion/blockchain-service_v1.22.0",
+      "date": "Fri, 10 Oct 2025 01:36:19 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "General improvements"
+          },
+          {
+            "comment": "Add BSKeychainHelper to deal with mnemonic"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add WalletConnect interfaces"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.21.2",
       "tag": "@cityofzion/blockchain-service_v1.21.2",
       "date": "Wed, 01 Oct 2025 23:44:28 GMT",

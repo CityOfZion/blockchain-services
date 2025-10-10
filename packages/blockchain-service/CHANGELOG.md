@@ -1,6 +1,18 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Wed, 01 Oct 2025 23:44:28 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Oct 2025 01:36:19 GMT and should not be manually modified.
+
+## 1.22.0
+Fri, 10 Oct 2025 01:36:19 GMT
+
+### Minor changes
+
+- Add WalletConnect interfaces
+
+### Patches
+
+- General improvements
+- Add BSKeychainHelper to deal with mnemonic
 
 ## 1.21.2
 Wed, 01 Oct 2025 23:44:28 GMT

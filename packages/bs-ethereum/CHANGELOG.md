@@ -1,6 +1,18 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 06 Oct 2025 15:10:01 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Oct 2025 01:36:19 GMT and should not be manually modified.
+
+## 2.14.0
+Fri, 10 Oct 2025 01:36:19 GMT
+
+### Minor changes
+
+- Add WalletConnect support
+
+### Patches
+
+- General improvements
+- Bump dependencies version
 
 ## 2.13.4
 Mon, 06 Oct 2025 15:10:01 GMT
