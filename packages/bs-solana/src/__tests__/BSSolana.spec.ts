@@ -72,8 +72,8 @@ describe('BSSolana', () => {
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
   })
 
-  it('Should be able to test the network', async () => {
-    const response = await bsSolana.pingNetwork(BSSolanaConstants.MAINNET_NETWORK)
+  it('Should be able to ping a node', async () => {
+    const response = await bsSolana.pingNode(BSSolanaConstants.MAINNET_NETWORK.url)
     expect(response).toEqual({
       latency: expect.any(Number),
       url: BSSolanaConstants.MAINNET_NETWORK.url,

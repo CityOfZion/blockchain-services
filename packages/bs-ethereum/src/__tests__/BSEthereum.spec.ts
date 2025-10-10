@@ -83,9 +83,9 @@ describe('BSEthereum', () => {
     )
   })
 
-  it('Should be able to test the network', async () => {
+  it('Should be able to ping a node', async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(net => net.type === 'mainnet')!
-    const response = await bsEthereum.pingNetwork(network)
+    const response = await bsEthereum.pingNode(network.url)
     expect(response).toEqual({
       latency: expect.any(Number),
       url: network.url,

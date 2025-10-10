@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Implement pingNode function",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

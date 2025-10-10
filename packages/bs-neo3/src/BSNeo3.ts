@@ -152,7 +152,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
-  async pingNetwork(network: TBSNetwork<TBSNeo3NetworkId>): Promise<TPingNetworkResponse> {
+  async pingNode(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
     const timeout = setTimeout(() => {
       abortController.abort()
@@ -161,7 +161,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     const timeStart = Date.now()
 
     const response = await axios.post(
-      network.url,
+      url,
       {
         jsonrpc: '2.0',
         method: 'getblockcount',
@@ -177,7 +177,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
 
     return {
       latency,
-      url: network.url,
+      url,
       height: response.data.result,
     }
   }

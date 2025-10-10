@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Implement pingNode function",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

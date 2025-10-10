@@ -79,8 +79,8 @@ describe('BSNeo3', () => {
     expect(encryptedKey).toEqual(expect.any(String))
   })
 
-  it('Should be able to test the network', async () => {
-    const response = await bsNeo3.pingNetwork(BSNeo3Constants.MAINNET_NETWORK)
+  it('Should be able to ping a node', async () => {
+    const response = await bsNeo3.pingNode(BSNeo3Constants.MAINNET_NETWORK.url)
     expect(response).toEqual({
       latency: expect.any(Number),
       url: BSNeo3Constants.MAINNET_NETWORK.url,

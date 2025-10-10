@@ -184,7 +184,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
-  async pingNetwork(network: TBSNetwork<TBSSolanaNetworkId>): Promise<TPingNetworkResponse> {
+  async pingNode(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
     const timeout = setTimeout(() => {
       abortController.abort()
@@ -193,7 +193,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     const timeStart = Date.now()
 
     const response = await axios.post(
-      network.url,
+      url,
       {
         jsonrpc: '2.0',
         id: 1234,
@@ -208,7 +208,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
 
     return {
       latency,
-      url: network.url,
+      url,
       height: response.data.result,
     }
   }
