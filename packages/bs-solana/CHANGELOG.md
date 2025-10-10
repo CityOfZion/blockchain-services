@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-solana
 
-This log was last generated on Fri, 10 Oct 2025 01:36:19 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Oct 2025 12:24:59 GMT and should not be manually modified.
+
+## 2.0.4
+Fri, 10 Oct 2025 12:24:59 GMT
+
+### Patches
+
+- Implement pingNode function
 
 ## 2.0.3
 Fri, 10 Oct 2025 01:36:19 GMT

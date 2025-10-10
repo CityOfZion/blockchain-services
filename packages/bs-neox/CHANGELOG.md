@@ -1,6 +1,11 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Fri, 10 Oct 2025 01:36:19 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Oct 2025 12:24:59 GMT and should not be manually modified.
+
+## 1.4.1
+Fri, 10 Oct 2025 12:24:59 GMT
+
+_Version update only_
 
 ## 1.4.0
 Fri, 10 Oct 2025 01:36:19 GMT

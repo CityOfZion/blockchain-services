@@ -2,6 +2,23 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.14.1",
+      "tag": "@cityofzion/bs-ethereum_v2.14.1",
+      "date": "Fri, 10 Oct 2025 12:24:59 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Implement pingNode function"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.22.1`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.14.0",
       "tag": "@cityofzion/bs-ethereum_v2.14.0",
       "date": "Fri, 10 Oct 2025 01:36:19 GMT",
