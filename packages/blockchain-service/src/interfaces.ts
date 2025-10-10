@@ -70,7 +70,7 @@ export interface IBlockchainService<N extends string = string, A extends string 
   blockchainDataService: IBlockchainDataService
   tokenService: ITokenService
 
-  pingNetwork: (network: TBSNetwork<A>) => Promise<TPingNetworkResponse>
+  pingNode: (url: string) => Promise<TPingNetworkResponse>
   setNetwork: (network: TBSNetwork<A>) => void
   generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N>
   generateAccountFromKey(key: string): TBSAccount<N>

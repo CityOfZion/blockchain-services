@@ -158,7 +158,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
-  async pingNetwork(network: TBSNetwork<A>): Promise<TPingNetworkResponse> {
+  async pingNode(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
     const timeout = setTimeout(() => {
       abortController.abort()
@@ -167,7 +167,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     const timeStart = Date.now()
 
     const response = await axios.post(
-      network.url,
+      url,
       { jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1234 },
       { timeout: 5000, signal: abortController.signal }
     )
@@ -178,7 +178,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
 
     return {
       latency,
-      url: network.url,
+      url,
       height: ethers.BigNumber.from(response.data.result).toNumber(),
     }
   }
