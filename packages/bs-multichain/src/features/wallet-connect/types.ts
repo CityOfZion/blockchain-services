@@ -32,4 +32,4 @@ export type TWalletKitHelperProcessRequestParams<N extends string = string> = {
   account: TBSAccount<N>
 }
 
-export type TWalletKitHelperFilterSessionsParams = { addresses?: string[]; namespaces?: string[] }
+export type TWalletKitHelperFilterSessionsParams = { addresses?: string[]; chains?: string[] }

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Change filterSessions OR logic to AND logic ",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}
