@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Fri, 17 Oct 2025 12:57:31 GMT and should not be manually modified.
+This log was last generated on Fri, 17 Oct 2025 14:07:13 GMT and should not be manually modified.
+
+## 1.1.3
+Fri, 17 Oct 2025 14:07:13 GMT
+
+### Patches
+
+- Change filterSessions OR logic to AND logic 
 
 ## 1.1.2
 Fri, 17 Oct 2025 12:57:31 GMT
