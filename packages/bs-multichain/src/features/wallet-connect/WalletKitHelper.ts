@@ -129,24 +129,25 @@ export class WalletKitHelper {
 
   static filterSessions(sessions: SessionTypes.Struct[], filters: TWalletKitHelperFilterSessionsParams) {
     const filteredSessions = sessions.filter(session => {
-      let matched = false
+      let addressMatched = !filters.addresses
+      let chainMatched = !filters.chains
 
       if (filters.addresses) {
         const sessionAccounts = getAccountsFromNamespaces(session.namespaces)
         const [address] = getAddressesFromAccounts(sessionAccounts)
         if (address && filters.addresses.includes(address)) {
-          matched = true
+          addressMatched = true
         }
       }
 
-      if (filters.namespaces && !matched) {
-        const namespaces = Object.keys(session.namespaces)
-        if (namespaces.some(namespace => filters.namespaces?.includes(namespace))) {
-          matched = true
+      if (filters.chains) {
+        const chains = getChainsFromNamespaces(session.namespaces)
+        if (chains.some(chain => filters.chains?.includes(chain))) {
+          chainMatched = true
         }
       }
 
-      return matched
+      return addressMatched && chainMatched
     })
 
     return filteredSessions
