@@ -20,6 +20,9 @@ export function getPropertiesAndMethods(object: any) {
       if (key === 'constructor') continue
 
       const keyString = String(key)
+
+      if (keyString.startsWith('_') || keyString.startsWith('#')) continue
+
       if (typeof object[key] === 'function') {
         try {
           // Get the number of parameters of the function to call it with empty objects

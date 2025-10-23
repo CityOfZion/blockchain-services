@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-electron",
+      "comment": "Prevent protected/private property from being exposed",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-electron"
+}
