@@ -274,15 +274,6 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     return await Promise.all(promises)
   }
 
-  async getUnclaimed(address: string): Promise<string> {
-    const { rpc } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
-    const rpcClient = new rpc.RPCClient(this.#service.network.url)
-    const response = await rpcClient.getUnclaimed(address)
-
-    return (response?.unclaimed ?? 0).toFixed(this.#service.claimToken.decimals)
-  }
-
   async getBlockHeight(): Promise<number> {
     const { rpc } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 

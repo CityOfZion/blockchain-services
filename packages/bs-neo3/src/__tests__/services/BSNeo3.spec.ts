@@ -2,7 +2,7 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3 } from '../../BSNeo3'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
-import { BSKeychainHelper, TBSNetwork } from '@cityofzion/blockchain-service'
+import { BSKeychainHelper, isClaimable, TBSNetwork } from '@cityofzion/blockchain-service'
 import { TBSNeo3NetworkId } from '../../types'
 
 let bsNeo3: BSNeo3<'test'>
@@ -12,6 +12,10 @@ describe('BSNeo3', () => {
   beforeAll(async () => {
     network = BSNeo3Constants.TESTNET_NETWORK
     bsNeo3 = new BSNeo3('test', network)
+  })
+
+  it('Should be able to claim', () => {
+    expect(isClaimable(bsNeo3)).toBeTruthy()
   })
 
   it('Should be able to validate an address', () => {

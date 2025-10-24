@@ -23,7 +23,7 @@ export function hasNameService<BSName extends string = string>(
 export function isClaimable<BSName extends string = string>(
   service: IBlockchainService<BSName>
 ): service is IBlockchainService<BSName> & IBSWithClaim<BSName> {
-  return 'claim' in service && 'claimToken' in service && 'getUnclaimed' in service.blockchainDataService
+  return 'claim' in service && 'claimToken' in service && 'claimDataService' in service
 }
 
 export function isCalculableFee<BSName extends string = string>(

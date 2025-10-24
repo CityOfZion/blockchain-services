@@ -1,7 +1,7 @@
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeoLegacy } from '../BSNeoLegacy'
-import { BSKeychainHelper } from '@cityofzion/blockchain-service'
+import { BSKeychainHelper, isClaimable } from '@cityofzion/blockchain-service'
 
 let service: BSNeoLegacy<'test'>
 
@@ -10,6 +10,10 @@ const network = BSNeoLegacyConstants.TESTNET_NETWORK
 describe('BSNeoLegacy', () => {
   beforeEach(() => {
     service = new BSNeoLegacy('test', network)
+  })
+
+  it('Should be able to claim', () => {
+    expect(isClaimable(service)).toBeTruthy()
   })
 
   it('Should be able to validate an address', () => {
