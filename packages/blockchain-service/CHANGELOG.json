@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.22.2",
+      "tag": "@cityofzion/blockchain-service_v1.22.2",
+      "date": "Fri, 24 Oct 2025 22:41:54 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix isClaimable method"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.22.1",
       "tag": "@cityofzion/blockchain-service_v1.22.1",
       "date": "Fri, 10 Oct 2025 12:24:59 GMT",

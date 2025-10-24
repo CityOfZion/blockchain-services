@@ -1,6 +1,6 @@
 {
   "name": "@cityofzion/bs-ethereum",
-  "version": "2.14.1",
+  "version": "2.14.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/CityOfZion/blockchain-services",

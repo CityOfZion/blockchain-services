@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Fri, 10 Oct 2025 12:24:59 GMT and should not be manually modified.
+This log was last generated on Fri, 24 Oct 2025 22:41:54 GMT and should not be manually modified.
+
+## 1.22.2
+Fri, 24 Oct 2025 22:41:54 GMT
+
+### Patches
+
+- Fix isClaimable method
 
 ## 1.22.1
 Fri, 10 Oct 2025 12:24:59 GMT
