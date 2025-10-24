@@ -188,8 +188,6 @@ describe('DoraBDSNeo3 - fullTransactionsByAddress', () => {
                 eventType: expect.any(String),
                 amount: expect.anything(),
                 methodName: expect.any(String),
-                from: expect.anything(),
-                to: expect.anything(),
                 tokenType: expect.any(String),
               }),
             ]),
@@ -328,7 +326,7 @@ describe('DoraBDSNeo3 - fullTransactionsByAddress', () => {
       ) as TFullTransactionsItem & TFullTransactionsItemBridgeNeo3NeoX
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
-      expect(transaction.events.find(event => event.methodName === 'depositNative')).toBeTruthy()
+      expect(transaction.events.find(event => event.methodName === 'NativeDeposit')).toBeTruthy()
       expect(transaction.data.amount).toBe('1')
       expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.gasToken)
       expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
@@ -349,7 +347,7 @@ describe('DoraBDSNeo3 - fullTransactionsByAddress', () => {
       ) as TFullTransactionsItem & TFullTransactionsItemBridgeNeo3NeoX
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
-      expect(transaction.events.find(event => event.methodName === 'depositToken')).toBeTruthy()
+      expect(transaction.events.find(event => event.methodName === 'TokenDeposit')).toBeTruthy()
       expect(transaction.data.amount).toBe('1')
       expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.neoToken)
       expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
