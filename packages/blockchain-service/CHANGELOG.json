@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.22.3",
+      "tag": "@cityofzion/blockchain-service_v1.22.3",
+      "date": "Mon, 27 Oct 2025 14:12:54 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Insert explorerUri to NFT response"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.22.2",
       "tag": "@cityofzion/blockchain-service_v1.22.2",
       "date": "Fri, 24 Oct 2025 22:41:54 GMT",

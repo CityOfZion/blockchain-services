@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-solana
 
-This log was last generated on Fri, 24 Oct 2025 22:41:54 GMT and should not be manually modified.
+This log was last generated on Mon, 27 Oct 2025 14:12:54 GMT and should not be manually modified.
+
+## 2.0.6
+Mon, 27 Oct 2025 14:12:54 GMT
+
+### Patches
+
+- Insert explorerUri to NFT response
 
 ## 2.0.5
 Fri, 24 Oct 2025 22:41:54 GMT
