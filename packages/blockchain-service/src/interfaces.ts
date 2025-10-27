@@ -315,6 +315,7 @@ export interface IExchangeDataService {
 }
 export type TNftResponse = {
   hash: string
+  explorerUri?: string
   collection: {
     name?: string
     image?: string

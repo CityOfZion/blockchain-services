@@ -16,9 +16,12 @@ export class TatumRpcNDSSolana<N extends string> implements INftDataService {
   readonly #connection: solanaSDK.Connection
   readonly #metaplex: Metaplex
 
+  #service: IBSSolana<N>
+
   constructor(service: IBSSolana<N>) {
     this.#connection = TatumRpcBDSSolana.getConnection(service.network)
     this.#metaplex = Metaplex.make(this.#connection)
+    this.#service = service
   }
 
   async getNft(params: TGetNftParam): Promise<TNftResponse> {
@@ -49,6 +52,7 @@ export class TatumRpcNDSSolana<N extends string> implements INftDataService {
 
       const nft: TNftResponse = {
         hash: params.tokenHash,
+        explorerUri: this.#service.explorerService.buildNftUrl({ tokenHash: params.tokenHash, collectionHash }),
         collection: {
           hash: collectionHash,
           name: collectionName,

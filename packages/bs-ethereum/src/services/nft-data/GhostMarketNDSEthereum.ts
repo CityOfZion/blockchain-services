@@ -4,7 +4,11 @@ import { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 import { ethers } from 'ethers'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 
-export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> extends GhostMarketNDS {
+export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> extends GhostMarketNDS<
+  N,
+  A,
+  IBSEthereum<N, A>
+> {
   static readonly CHAIN_BY_NETWORK_ID: Partial<Record<TBSEthereumNetworkId, string>> = {
     '1': 'eth',
     '56': 'bsc',
@@ -13,12 +17,8 @@ export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> ex
     '8453': 'base',
   }
 
-  _service: IBSEthereum<N, A>
-
   constructor(service: IBSEthereum<N, A>) {
-    super()
-
-    this._service = service
+    super(service)
   }
 
   async hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean> {

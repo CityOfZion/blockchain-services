@@ -6,12 +6,22 @@ import {
   INftDataService,
   TNftResponse,
   TNftsResponse,
+  type IBlockchainService,
 } from '../../interfaces'
 import qs from 'query-string'
 import { TGhostMarketNDSNeo3AssetApiResponse, TGhostMarketNDSNeo3GetAssetsApiResponse } from '../../types'
+import { hasExplorerService } from '../../functions'
 
-export abstract class GhostMarketNDS implements INftDataService {
+export abstract class GhostMarketNDS<N extends string, A extends string, T extends IBlockchainService<N, A>>
+  implements INftDataService
+{
   static readonly BASE_URL: string = 'https://api.ghostmarket.io/api/v2'
+
+  _service: T
+
+  constructor(service: T) {
+    this._service = service
+  }
 
   async getNftsByAddress({ address, size = 18, cursor }: TGetNftsByAddressParams): Promise<TNftsResponse> {
     const url = this.#getUrlWithParams({
@@ -70,6 +80,19 @@ export abstract class GhostMarketNDS implements INftDataService {
   }
 
   #parse(data: TGhostMarketNDSNeo3AssetApiResponse): TNftResponse {
+    let explorerUri: string | undefined
+
+    if (hasExplorerService(this._service)) {
+      try {
+        explorerUri = this._service.explorerService.buildNftUrl({
+          tokenHash: data.tokenId,
+          collectionHash: data.contract.hash,
+        })
+      } catch {
+        /* empty */
+      }
+    }
+
     const nftResponse: TNftResponse = {
       hash: data.tokenId,
       collection: {
@@ -81,6 +104,7 @@ export abstract class GhostMarketNDS implements INftDataService {
       image: this.#treatGhostMarketImage(data.metadata.mediaUri),
       isSVG: String(data.metadata.mediaType).includes('svg+xml'),
       name: data.metadata.name,
+      explorerUri,
       creator: {
         address: data.creator.address,
         name: data.creator.offchainName,
