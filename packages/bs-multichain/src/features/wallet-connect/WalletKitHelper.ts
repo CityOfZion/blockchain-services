@@ -19,19 +19,20 @@ import {
   SdkErrorKey,
 } from '@walletconnect/utils'
 import {
-  TWalletKitHelperFilterSessionsParams,
-  TWalletKitHelperGetProposalDetailsParams,
-  TWalletKitHelperGetSessionDetailsParams,
-  TWalletKitHelperProcessRequestParams,
-  TWalletKitHelperProposalDetails,
-  TWalletKitHelperSessionDetails,
+  type TWalletKitHelperFilterSessionsParams,
+  type TWalletKitHelperGetProposalDetailsParams,
+  type TWalletKitHelperGetSessionDetailsParams,
+  type TWalletKitHelperProcessRequestParams,
+  type TWalletKitHelperProposalDetails,
+  type TWalletKitHelperSessionDetails,
+  type TWalletKitHelperGetProposalServicesParams,
 } from './types'
 
 export class WalletKitHelper {
   static getProposalDetails<N extends string>({
     address,
     proposal,
-    services,
+    service,
   }: TWalletKitHelperGetProposalDetailsParams<N>): TWalletKitHelperProposalDetails<N> {
     const mergedNamespacesObject = mergeRequiredAndOptionalNamespaces(
       proposal.requiredNamespaces,
@@ -39,11 +40,8 @@ export class WalletKitHelper {
     )
     const allChains = new Set(getChainsFromRequiredNamespaces(mergedNamespacesObject))
 
-    const service = services.find(
-      (service): service is IBlockchainService<N> & IBSWithWalletConnect =>
-        hasWalletConnect(service) && allChains.has(service.walletConnectService.chain)
-    )
-    if (!service) throw new BSError('Requested chain(s) not supported by any service', 'NO_SERVICE')
+    if (!hasWalletConnect(service) || !allChains.has(service.walletConnectService.chain))
+      throw new BSError('Requested chain(s) not supported by any service', 'NO_SERVICE')
 
     const namespaceObject = mergedNamespacesObject[service.walletConnectService.namespace]
     if (!namespaceObject) throw new BSError('Requested namespace not supported by any service', 'NO_SERVICE')
@@ -63,6 +61,21 @@ export class WalletKitHelper {
     const methods = namespaceObject.methods
 
     return { approvedNamespaces, methods, service, blockchain: service.name }
+  }
+
+  static getProposalServices<N extends string>({ proposal, services }: TWalletKitHelperGetProposalServicesParams<N>) {
+    const mergedNamespacesObject = mergeRequiredAndOptionalNamespaces(
+      proposal.requiredNamespaces,
+      proposal.optionalNamespaces
+    )
+    const allChains = new Set(getChainsFromRequiredNamespaces(mergedNamespacesObject))
+
+    const proposalServices = services.filter(
+      (service): service is IBlockchainService<N> & IBSWithWalletConnect =>
+        hasWalletConnect(service) && allChains.has(service.walletConnectService.chain)
+    )
+
+    return proposalServices
   }
 
   static getSessionDetails<N extends string>({

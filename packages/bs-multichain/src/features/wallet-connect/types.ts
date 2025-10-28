@@ -4,6 +4,11 @@ import { PendingRequestTypes, ProposalTypes, SessionTypes } from '@walletconnect
 export type TWalletKitHelperGetProposalDetailsParams<N extends string = string> = {
   proposal: ProposalTypes.Struct
   address: string
+  service: IBlockchainService<N>
+}
+
+export type TWalletKitHelperGetProposalServicesParams<N extends string = string> = {
+  proposal: ProposalTypes.Struct
   services: IBlockchainService<N>[]
 }
 
