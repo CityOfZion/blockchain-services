@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Mon, 27 Oct 2025 14:12:54 GMT and should not be manually modified.
+This log was last generated on Tue, 28 Oct 2025 20:59:55 GMT and should not be manually modified.
+
+## 1.1.6
+Tue, 28 Oct 2025 20:59:55 GMT
+
+### Patches
+
+- Add new method to get all services from a proposal
 
 ## 1.1.5
 Mon, 27 Oct 2025 14:12:54 GMT
