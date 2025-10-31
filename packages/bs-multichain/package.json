@@ -25,7 +25,6 @@
   "devDependencies": {
     "@cityofzion/bs-neo3": "workspace:*",
     "@cityofzion/bs-ethereum": "workspace:*",
-    "@cityofzion/bs-neo-legacy": "workspace:*",
     "@cityofzion/bs-neox": "workspace:*",
     "@types/node": "~24.5.2",
     "@types/jest": "~30.0.0",

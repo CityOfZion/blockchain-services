@@ -21,7 +21,6 @@ import { NeonJsLedgerServiceNeoLegacy } from './services/ledger/NeonJsLedgerServ
 import { TokenServiceNeoLegacy } from './services/token/TokenServiceNeoLegacy'
 import { IBSNeoLegacy, TBSNeoLegacyNetworkId, TSigningCallback } from './types'
 import { DoraCDSNeoLegacy } from './services/claim-data/DoraCDSNeoLegacy'
-import { Neo3NeoLegacyMigrationService } from './services/migration/Neo3NeoLegacyMigrationService'
 import { BSNeoLegacyNeonJsSingletonHelper } from './helpers/BSNeoLegacyNeonJsSingletonHelper'
 import axios from 'axios'
 export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
@@ -48,7 +47,6 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   explorerService!: IExplorerService
   tokenService!: ITokenService
   claimDataService!: IClaimDataService
-  neo3NeoLegacyMigrationService!: Neo3NeoLegacyMigrationService<N>
 
   constructor(name: N, network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -194,7 +192,6 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     this.blockchainDataService = new DoraBDSNeoLegacy(this)
     this.exchangeDataService = new CryptoCompareEDSNeoLegacy(this)
     this.claimDataService = new DoraCDSNeoLegacy(this)
-    this.neo3NeoLegacyMigrationService = new Neo3NeoLegacyMigrationService(this)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout

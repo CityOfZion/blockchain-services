@@ -1,5 +1,5 @@
-import { SimpleSwapApi } from '../features/swap/SimpleSwapApi'
-import { TSimpleSwapApiCurrency } from '../features/swap/types'
+import { SimpleSwapApi } from '../features/swap'
+import { TSimpleSwapApiCurrency } from '../features/swap'
 import { BSCommonConstants } from '@cityofzion/blockchain-service'
 
 describe('SimpleSwapApi', () => {
@@ -53,21 +53,6 @@ describe('SimpleSwapApi', () => {
     txTemplateUrl: 'https://xrpscan.com/tx/{txId}',
   }
 
-  const notcoinCurrency: TSimpleSwapApiCurrency = {
-    id: 'ton:ton',
-    ticker: 'ton',
-    symbol: 'NOT',
-    network: 'ton',
-    name: 'Notcoin',
-    imageUrl: 'https://static.simpleswap.io/images/currencies-logo/not.svg',
-    hash: 'EQAvlWFDxGF2lXm67y4yzC17wYKD9A0guwPkMs1gOsM__NOT',
-    hasExtraId: true,
-    validationExtra: '^[0-9A-Za-z\\-_]{1,120}$',
-    validationAddress: '^[UE][Qf][0-9a-z-A-Z\\-\\_]{46}$',
-    addressTemplateUrl: 'https://tonscan.org/address/{address}',
-    txTemplateUrl: 'https://tonscan.org/tx/{txId}',
-  }
-
   it.skip('Should create the exchange with params', async () => {
     const address = process.env.TEST_ADDRESS_TO_SWAP_TOKEN
     const result = await simpleSwapApi.createExchange({
@@ -95,28 +80,6 @@ describe('SimpleSwapApi', () => {
     const result = await simpleSwapApi.createExchange({
       currencyFrom: gasCurrency,
       currencyTo: xrpCurrency,
-      amount: '89',
-      refundAddress: addressFrom,
-      address: addressTo,
-      extraIdToReceive,
-    })
-
-    expect(result).toEqual(
-      expect.objectContaining({
-        id: expect.any(String),
-        depositAddress: expect.any(String),
-        log: expect.any(String),
-      })
-    )
-  })
-
-  it.skip('Should create the exchange to Notcoin with extraIdToReceive', async () => {
-    const addressFrom = process.env.TEST_ADDRESS_TO_SWAP_TOKEN
-    const addressTo = process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN
-    const extraIdToReceive = process.env.TEST_NOTCOIN_EXTRA_ID_TO_SWAP_TOKEN
-    const result = await simpleSwapApi.createExchange({
-      currencyFrom: gasCurrency,
-      currencyTo: notcoinCurrency,
       amount: '89',
       refundAddress: addressFrom,
       address: addressTo,
