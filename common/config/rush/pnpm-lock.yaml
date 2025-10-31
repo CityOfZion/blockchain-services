@@ -187,9 +187,6 @@ importers:
       '@cityofzion/bs-ethereum':
         specifier: workspace:*
         version: link:../bs-ethereum
-      '@cityofzion/bs-neo-legacy':
-        specifier: workspace:*
-        version: link:../bs-neo-legacy
       '@cityofzion/bs-neo3':
         specifier: workspace:*
         version: link:../bs-neo3
