@@ -10,9 +10,9 @@ describe('DoraCDSNeoLegacy', () => {
     doraCDSNeoLegacy = new DoraCDSNeoLegacy(service)
   })
 
-  it('Should be able to get unclaimed', async () => {
-    const address = 'AQB8KjskTmRghCS3kMzxBNxKwT6b9kKM4v'
-    const unclaimed = await doraCDSNeoLegacy.getUnclaimed(address)
-    expect(unclaimed).toEqual(expect.any(String))
+  it('Should be able to get unclaimed GAS with an address', async () => {
+    const unclaimedGas = await doraCDSNeoLegacy.getUnclaimed('AQB8KjskTmRghCS3kMzxBNxKwT6b9kKM4v')
+
+    expect(unclaimedGas).toEqual('365.08246065')
   })
 })
