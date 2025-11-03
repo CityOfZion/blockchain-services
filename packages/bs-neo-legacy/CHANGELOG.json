@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.13.9",
+      "tag": "@cityofzion/bs-neo-legacy_v1.13.9",
+      "date": "Mon, 03 Nov 2025 20:56:35 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Dora TS SDK and use the NeoLegacyREST to get unclaimed GAS"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.13.8",
       "tag": "@cityofzion/bs-neo-legacy_v1.13.8",
       "date": "Mon, 27 Oct 2025 14:12:54 GMT",

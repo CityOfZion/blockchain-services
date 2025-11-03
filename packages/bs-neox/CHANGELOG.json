@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "1.4.4",
+      "tag": "@cityofzion/bs-neox_v1.4.4",
+      "date": "Mon, 03 Nov 2025 20:56:35 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Dora TS SDK"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.14.4`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.17.4`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.4.3",
       "tag": "@cityofzion/bs-neox_v1.4.3",
       "date": "Mon, 27 Oct 2025 14:12:54 GMT",

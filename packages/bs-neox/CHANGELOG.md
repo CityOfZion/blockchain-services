@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Mon, 27 Oct 2025 14:12:54 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Nov 2025 20:56:35 GMT and should not be manually modified.
+
+## 1.4.4
+Mon, 03 Nov 2025 20:56:35 GMT
+
+### Patches
+
+- Update Dora TS SDK
 
 ## 1.4.3
 Mon, 27 Oct 2025 14:12:54 GMT

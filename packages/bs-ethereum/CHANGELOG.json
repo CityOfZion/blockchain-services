@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "2.14.4",
+      "tag": "@cityofzion/bs-ethereum_v2.14.4",
+      "date": "Mon, 03 Nov 2025 20:56:35 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Dora TS SDK"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.14.3",
       "tag": "@cityofzion/bs-ethereum_v2.14.3",
       "date": "Mon, 27 Oct 2025 14:12:54 GMT",

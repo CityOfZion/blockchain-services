@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.17.4",
+      "tag": "@cityofzion/bs-neo3_v1.17.4",
+      "date": "Mon, 03 Nov 2025 20:56:35 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Update Dora TS SDK"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.17.3",
       "tag": "@cityofzion/bs-neo3_v1.17.3",
       "date": "Mon, 27 Oct 2025 14:12:54 GMT",
