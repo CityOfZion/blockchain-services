@@ -1,6 +1,6 @@
 import { IClaimDataService } from '@cityofzion/blockchain-service'
 import { IBSNeoLegacy } from '../../types'
-import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
+import { api } from '@cityofzion/dora-ts'
 
 export class DoraCDSNeoLegacy<N extends string> implements IClaimDataService {
   readonly #service: IBSNeoLegacy<N>
@@ -10,10 +10,7 @@ export class DoraCDSNeoLegacy<N extends string> implements IClaimDataService {
   }
 
   async getUnclaimed(address: string): Promise<string> {
-    const { rpc } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
-    const rpcClient = new rpc.RPCClient(this.#service.network.url)
-    const response = await rpcClient.getUnclaimed(address)
+    const response = await api.NeoLegacyREST.getUnclaimed(address)
 
     return (response?.unclaimed ?? 0).toFixed(this.#service.claimToken.decimals)
   }
