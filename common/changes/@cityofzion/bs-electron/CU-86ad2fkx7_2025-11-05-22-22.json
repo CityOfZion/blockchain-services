@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-electron",
+      "comment": "Prevent exposure of individual properties for data-only objects",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-electron"
+}

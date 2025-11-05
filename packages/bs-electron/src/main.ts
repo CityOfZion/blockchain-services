@@ -1,50 +1,10 @@
-import { GET_EXPOSED_API_CHANNEL, TApi, TExposedApi, getPropertiesAndMethods, getValueFromPath } from './utils'
+import { GET_EXPOSED_API_CHANNEL, TApi, TExposedApi, eraseApi, getValueFromPath } from './utils'
 import { buildIpcChannelName } from './utils'
 import { ipcMain } from 'electron'
 import cloneDeep from 'lodash.clonedeep'
 
 const exposedApis: Map<string, TExposedApi> = new Map()
 let initialized = false
-
-// Erase the api to expose all methods and properties to renderer. It also supports nested objects
-export function eraseApi(api: any, prefix?: string): TExposedApi {
-  const { asyncMethods, syncMethods, properties } = getPropertiesAndMethods(api)
-
-  // As it is a recursive function, we need to add the prefix to the methods and properties
-  const response: TExposedApi = {
-    asyncMethods: asyncMethods.map(method => (prefix ? `${prefix}.${method}` : method)),
-    syncMethods: syncMethods.map(method => (prefix ? `${prefix}.${method}` : method)),
-    properties: properties.map(property => (prefix ? `${prefix}.${property}` : property)),
-  }
-
-  // Iterate for all properties to discover nested objects
-  properties.forEach(property => {
-    const propertyValue = api[property]
-    // If the property is not an object, we don't need to iterate over it. Array is also considered an object so we need to disconsider it
-    if (
-      typeof propertyValue !== 'object' ||
-      Array.isArray(propertyValue) ||
-      propertyValue instanceof Map ||
-      propertyValue instanceof Set
-    )
-      return
-
-    const propertyWithPrefix = prefix ? `${prefix}.${property}` : property
-
-    // Recursive call to discover nested properties and methods
-    const nestedPropertiesAndMethods = eraseApi(propertyValue, propertyWithPrefix)
-
-    // Add the nested properties and methods to the response
-    response.syncMethods.push(...nestedPropertiesAndMethods.syncMethods)
-    response.asyncMethods.push(...nestedPropertiesAndMethods.asyncMethods)
-    response.properties.push(...nestedPropertiesAndMethods.properties)
-
-    // Remove the actual property because it is a instance and can't be serialized by ipc
-    response.properties.splice(response.properties.indexOf(propertyWithPrefix), 1)
-  })
-
-  return response
-}
 
 export function exposeApiToRenderer<T extends TApi>(api: T) {
   init()
@@ -59,6 +19,7 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
   }
 
   const apiClone = cloneDeep(api)
+
   const { asyncMethods, properties, syncMethods } = eraseApi(apiClone)
 
   // For each property, we need to create a listener so renderer can request the property value
