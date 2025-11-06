@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-electron",
   "entries": [
     {
+      "version": "0.1.58",
+      "tag": "@cityofzion/bs-electron_v0.1.58",
+      "date": "Thu, 06 Nov 2025 11:54:56 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Prevent exposure of individual properties for data-only objects"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.1.57",
       "tag": "@cityofzion/bs-electron_v0.1.57",
       "date": "Mon, 27 Oct 2025 14:12:54 GMT",

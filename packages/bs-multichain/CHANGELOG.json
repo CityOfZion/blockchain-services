@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "1.1.8",
+      "tag": "@cityofzion/bs-multichain_v1.1.8",
+      "date": "Thu, 06 Nov 2025 11:54:56 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.14.5`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neox\" to `1.4.5`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.1.7",
       "tag": "@cityofzion/bs-multichain_v1.1.7",
       "date": "Mon, 03 Nov 2025 20:56:35 GMT",

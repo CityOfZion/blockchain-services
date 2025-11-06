@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 03 Nov 2025 20:56:35 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Nov 2025 11:54:56 GMT and should not be manually modified.
+
+## 2.14.5
+Thu, 06 Nov 2025 11:54:56 GMT
+
+### Patches
+
+- Update ethers packages to 5.8.0
 
 ## 2.14.4
 Mon, 03 Nov 2025 20:56:35 GMT

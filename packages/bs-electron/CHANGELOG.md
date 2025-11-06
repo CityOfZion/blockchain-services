@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-electron
 
-This log was last generated on Mon, 27 Oct 2025 14:12:54 GMT and should not be manually modified.
+This log was last generated on Thu, 06 Nov 2025 11:54:56 GMT and should not be manually modified.
+
+## 0.1.58
+Thu, 06 Nov 2025 11:54:56 GMT
+
+### Patches
+
+- Prevent exposure of individual properties for data-only objects
 
 ## 0.1.57
 Mon, 27 Oct 2025 14:12:54 GMT
