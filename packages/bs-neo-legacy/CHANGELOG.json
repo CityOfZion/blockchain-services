@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.14.0",
+      "tag": "@cityofzion/bs-neo-legacy_v1.14.0",
+      "date": "Thu, 06 Nov 2025 14:45:46 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Remove migration feature"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.13.9",
       "tag": "@cityofzion/bs-neo-legacy_v1.13.9",
       "date": "Mon, 03 Nov 2025 20:56:35 GMT",
