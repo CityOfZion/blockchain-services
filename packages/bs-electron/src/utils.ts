@@ -9,6 +9,88 @@ export type TExposedApi = {
   asyncMethods: string[]
 }
 
+export function fixSimpleObject(api: TExposedApi) {
+  const methods = [...api.asyncMethods, ...api.syncMethods]
+
+  const newProperties = new Set<string>()
+
+  for (const property of api.properties) {
+    const pathSegments = property.split('.')
+
+    // Handle root level properties (no dots)
+    if (pathSegments.length === 1) {
+      newProperties.add(property)
+      continue
+    }
+
+    const pathWithoutLastSegment = pathSegments.slice(0, -1).join('.')
+
+    // Skip if we already processed this parent path
+    if (newProperties.has(pathWithoutLastSegment)) {
+      continue
+    }
+
+    // Check if this path or any of its sub-paths have methods
+    const hasMethod = methods.some(method => method.startsWith(pathWithoutLastSegment))
+    if (hasMethod) {
+      newProperties.add(property)
+      continue
+    }
+
+    // If no methods are found in this path, it means it's a simple object, so we add only the parent path
+    newProperties.add(pathWithoutLastSegment)
+  }
+
+  return Array.from(newProperties)
+}
+
+// Erase the api to expose all methods and properties to renderer. It also supports nested objects
+export function eraseApi(api: any, prefix?: string): TExposedApi {
+  const { asyncMethods, syncMethods, properties } = getPropertiesAndMethods(api)
+
+  // As it is a recursive function, we need to add the prefix to the methods and properties
+  const response: TExposedApi = {
+    asyncMethods: asyncMethods.map(method => (prefix ? `${prefix}.${method}` : method)),
+    syncMethods: syncMethods.map(method => (prefix ? `${prefix}.${method}` : method)),
+    properties: properties.map(property => (prefix ? `${prefix}.${property}` : property)),
+  }
+
+  // Iterate for all properties to discover nested objects
+  properties.forEach(property => {
+    const propertyValue = api[property]
+    // If the property is not an object, we don't need to iterate over it. Array is also considered an object so we need to disconsider it
+    if (
+      typeof propertyValue !== 'object' ||
+      Array.isArray(propertyValue) ||
+      propertyValue instanceof Map ||
+      propertyValue instanceof Set
+    ) {
+      return
+    }
+
+    const propertyWithPrefix = prefix ? `${prefix}.${property}` : property
+
+    // Recursive call to discover nested properties and methods
+    const nestedResult = eraseApi(propertyValue, propertyWithPrefix)
+
+    // Add the nested properties and methods to the response
+    response.syncMethods.push(...nestedResult.syncMethods)
+    response.asyncMethods.push(...nestedResult.asyncMethods)
+    response.properties.push(...nestedResult.properties)
+
+    // Remove the actual property because it is a instance and can't be serialized by ipc
+    response.properties.splice(response.properties.indexOf(propertyWithPrefix), 1)
+  })
+
+  response.properties = fixSimpleObject({
+    asyncMethods: response.asyncMethods,
+    syncMethods: response.syncMethods,
+    properties: response.properties,
+  })
+
+  return response
+}
+
 // It returns all properties and methods from an object and its prototype chain, that is, extended classes are also considered
 export function getPropertiesAndMethods(object: any) {
   const syncMethods = new Set<string>()
@@ -17,32 +99,40 @@ export function getPropertiesAndMethods(object: any) {
 
   do {
     for (const key of Reflect.ownKeys(object)) {
-      if (key === 'constructor') continue
+      try {
+        if (key === 'constructor') continue
 
-      const keyString = String(key)
+        const keyString = String(key)
 
-      if (keyString.startsWith('_') || keyString.startsWith('#')) continue
+        if (keyString.startsWith('_') || keyString.startsWith('#')) continue
 
-      if (typeof object[key] === 'function') {
-        try {
-          // Get the number of parameters of the function to call it with empty objects
-          const params = Array.from({ length: object[key].length }, () => ({}))
-          const funcResponse = object[key].call(object, ...params)
-          if (funcResponse instanceof Promise) {
-            funcResponse.catch(() => {}).then(() => {})
+        if (typeof object[key] === 'function') {
+          const funcString = object[key].toString()
+
+          // Check for async patterns:
+          // 1. Native async: 'async function' or 'async ('
+          // 2. TypeScript compiled: '__awaiter' helper
+          // 3. Babel compiled: '_asyncToGenerator' helper
+          const isAsync =
+            funcString.includes('__awaiter') ||
+            funcString.includes('_asyncToGenerator') ||
+            funcString.startsWith('async ') ||
+            funcString.startsWith('async(') ||
+            funcString.includes('async function')
+
+          if (isAsync) {
             asyncMethods.add(keyString)
-            continue
+          } else {
+            syncMethods.add(keyString)
           }
 
-          syncMethods.add(keyString)
-        } catch {
-          syncMethods.add(keyString)
+          continue
         }
 
+        properties.add(keyString)
+      } catch {
         continue
       }
-
-      properties.add(keyString)
     }
   } while ((object = Reflect.getPrototypeOf(object)) && object !== Object.prototype)
 
