@@ -6,9 +6,9 @@ import {
   TSwapToken,
   TSwapValidateValue,
 } from '@cityofzion/blockchain-service'
-import { SimpleSwapOrchestrator } from '../features/swap/SimpleSwapOrchestrator'
+import { SimpleSwapOrchestrator } from '../features/swap'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
-import { SimpleSwapApi } from '../features/swap/SimpleSwapApi'
+import { SimpleSwapApi } from '../features/swap'
 import { BSEthereum } from '@cityofzion/bs-ethereum'
 
 let blockchainServicesByName: Record<string, BSNeo3<'neo3'> | BSEthereum<'ethereum'>>
@@ -156,7 +156,7 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set the token to use', async () => {
     await simpleSwapOrchestrator.init()
 
-    const token = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(token)
 
     expect(availableTokensToUse).toEqual({ loading: false, value: expect.any(Array) })
@@ -186,7 +186,7 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should not be able to set the account to use if account blockchain is different of token to use blockchain', async () => {
     await simpleSwapOrchestrator.init()
 
-    await simpleSwapOrchestrator.setTokenToUse(availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!)
+    await simpleSwapOrchestrator.setTokenToUse(availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
@@ -200,7 +200,7 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set the account to use to null', async () => {
     await simpleSwapOrchestrator.init()
 
-    const token = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(token)
 
     await simpleSwapOrchestrator.setAccountToUse(null)
@@ -220,7 +220,7 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set the account to use', async () => {
     await simpleSwapOrchestrator.init()
 
-    const token = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(token)
 
     expect(accountToUse).toEqual({ loading: false, value: null, valid: null })
@@ -243,7 +243,7 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set the amount to use', async () => {
     await simpleSwapOrchestrator.init()
 
-    const token = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(token)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -277,7 +277,7 @@ describe('SimpleSwapOrchestrator', () => {
   it("Should not be able to set the token to receive if it's not in the available tokens to receive", async () => {
     await simpleSwapOrchestrator.init()
 
-    const token = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(token)
 
     await expect(
@@ -294,7 +294,7 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set the token to receive to null', async () => {
     await simpleSwapOrchestrator.init()
 
-    const token = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(token)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -317,13 +317,13 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set the token to receive', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    const tokenReceive = availableTokensToReceive.value!.filter(token => token.blockchain === 'neo3')[1]!
+    const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
 
     expect(tokenToUse).toEqual({ loading: false, value: tokenUse })
@@ -347,9 +347,7 @@ describe('SimpleSwapOrchestrator', () => {
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setTokenToReceive(
-      availableTokensToReceive.value!.find(token => token.blockchain === 'neo3')!
-    )
+    await simpleSwapOrchestrator.setTokenToReceive(availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!)
 
     const min = amountToUseMinMax.value!.min
 
@@ -372,7 +370,7 @@ describe('SimpleSwapOrchestrator', () => {
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(
-      availableTokensToReceive.value!.find(token => token.blockchain === 'neo3')!
+      availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     )
 
     expect(amountToUseMinMax).toEqual({
@@ -386,13 +384,13 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set an invalid address', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    const tokenReceive = availableTokensToReceive.value!.filter(token => token.blockchain === 'neo3')[1]!
+    const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
 
     await simpleSwapOrchestrator.setAddressToReceive('INVALID')
@@ -412,9 +410,8 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set a valid address', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokens = availableTokensToUse.value!.filter(token => token.blockchain === 'neo3')
-    const tokenUse = tokens[0]!
-    const tokenReceive = tokens[1]!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
+    const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
@@ -440,7 +437,7 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set an invalid extraIdToReceive to XRP', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
@@ -460,7 +457,7 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should be able to set a valid extraIdToReceive to XRP', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
@@ -472,48 +469,6 @@ describe('SimpleSwapOrchestrator', () => {
     const extraId = process.env.TEST_XRP_EXTRA_ID_TO_SWAP_TOKEN
 
     await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_XRP_ADDRESS_TO_SWAP_TOKEN)
-    await simpleSwapOrchestrator.setExtraIdToReceive(extraId)
-
-    await BSUtilsHelper.wait(1000)
-
-    expect(extraIdToReceive).toEqual({ loading: false, value: extraId, valid: true })
-  })
-
-  it('Should be able to set an invalid extraIdToReceive to Notcoin', async () => {
-    await simpleSwapOrchestrator.init()
-
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
-    await simpleSwapOrchestrator.setTokenToUse(tokenUse)
-
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
-    await simpleSwapOrchestrator.setAccountToUse(account)
-
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
-    await simpleSwapOrchestrator.setTokenToReceive(notcoinToken)
-
-    const extraId = 'INVALID'.repeat(20)
-
-    await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN)
-    await simpleSwapOrchestrator.setExtraIdToReceive(extraId)
-
-    expect(extraIdToReceive).toEqual({ loading: false, value: extraId, valid: false })
-  })
-
-  it('Should be able to set a valid extraIdToReceive to Notcoin', async () => {
-    await simpleSwapOrchestrator.init()
-
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
-    await simpleSwapOrchestrator.setTokenToUse(tokenUse)
-
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
-    await simpleSwapOrchestrator.setAccountToUse(account)
-
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
-    await simpleSwapOrchestrator.setTokenToReceive(notcoinToken)
-
-    const extraId = process.env.TEST_NOTCOIN_EXTRA_ID_TO_SWAP_TOKEN
-
-    await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setExtraIdToReceive(extraId)
 
     await BSUtilsHelper.wait(1000)
@@ -524,14 +479,14 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should clear extraIdToReceive when changes the tokenToReceive', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
+    const usdcToken = availableTokensToReceive.value!.find(({ id }) => id === 'usdc:xlm')!
 
     await simpleSwapOrchestrator.setTokenToReceive(xrpToken)
 
@@ -544,7 +499,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     expect(extraIdToReceive).toEqual({ loading: false, value: extraId, valid: true })
 
-    await simpleSwapOrchestrator.setTokenToReceive(notcoinToken).catch(() => {})
+    await simpleSwapOrchestrator.setTokenToReceive(usdcToken).catch(() => {})
     await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
 
     expect(extraIdToReceive).toEqual({ loading: false, value: null, valid: null })
@@ -553,9 +508,8 @@ describe('SimpleSwapOrchestrator', () => {
   it('Should clear amountToReceive and amountToUseMinMax when setTokenToUse is called', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokens = availableTokensToUse.value!.filter(token => token.blockchain === 'neo3')
-    const tokenUse = tokens[0]!
-    const tokenReceive = tokens[1]!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
+    const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
@@ -582,7 +536,7 @@ describe('SimpleSwapOrchestrator', () => {
     await simpleSwapOrchestrator.init()
 
     const tokens = availableTokensToUse.value!
-    const tokenUse = tokens.find(token => token.blockchain === 'neo3')!
+    const tokenUse = tokens.find(token => token.id === 'gasn3:neo3')!
 
     const tokenReceive = tokens[1]!
 
@@ -624,7 +578,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.init()
 
-    const token = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
 
     try {
       await simpleSwapOrchestrator.setTokenToUse(token)
@@ -650,13 +604,13 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.filter(token => token.blockchain === 'neo3')[0]!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    const tokenReceive = availableTokensToReceive.value!.filter(token => token.blockchain === 'neo3')[1]!
+    const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
 
     try {
       await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
@@ -682,13 +636,13 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.filter(token => token.blockchain === 'neo3')[0]!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    const tokenReceive = availableTokensToReceive.value!.filter(token => token.blockchain === 'neo3')[1]!
+    const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
 
     try {
       await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
@@ -712,9 +666,8 @@ describe('SimpleSwapOrchestrator', () => {
   it.skip('Should create a swap when all fields are filled', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokens = availableTokensToUse.value!.filter(token => token.blockchain === 'neo3')
-    const tokenUse = tokens[0]!
-    const tokenReceive = tokens[1]!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
+    const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
@@ -741,7 +694,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
@@ -766,7 +719,7 @@ describe('SimpleSwapOrchestrator', () => {
   it.skip('Should create a swap to XRP when all fields are filled with extraIdToReceive', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
@@ -792,68 +745,11 @@ describe('SimpleSwapOrchestrator', () => {
     )
   })
 
-  it("Should return an error on create a swap to Notcoin when extraIdToReceive isn't filled", async () => {
-    const swapSpy = jest.spyOn(simpleSwapOrchestrator, 'swap')
-
-    await simpleSwapOrchestrator.init()
-
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
-    await simpleSwapOrchestrator.setTokenToUse(tokenUse)
-
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
-    await simpleSwapOrchestrator.setAccountToUse(account)
-
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
-    await simpleSwapOrchestrator.setTokenToReceive(notcoinToken)
-
-    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
-
-    await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN)
-
-    try {
-      await simpleSwapOrchestrator.swap()
-    } catch {
-      /* empty */
-    }
-
-    await expect(swapSpy).rejects.toThrow()
-  })
-
-  it.skip('Should create a swap to Notcoin when all fields are filled with extraIdToReceive', async () => {
-    await simpleSwapOrchestrator.init()
-
-    const tokenUse = availableTokensToUse.value!.find(token => token.blockchain === 'neo3')!
-    await simpleSwapOrchestrator.setTokenToUse(tokenUse)
-
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
-    await simpleSwapOrchestrator.setAccountToUse(account)
-
-    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
-
-    const notcoinToken = availableTokensToReceive.value!.find(({ id }) => id === 'ton:ton')!
-    await simpleSwapOrchestrator.setTokenToReceive(notcoinToken)
-
-    await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_NOTCOIN_ADDRESS_TO_SWAP_TOKEN)
-
-    await simpleSwapOrchestrator.setExtraIdToReceive(process.env.TEST_NOTCOIN_EXTRA_ID_TO_SWAP_TOKEN)
-
-    const result = await simpleSwapOrchestrator.swap()
-
-    expect(result).toEqual(
-      expect.objectContaining({
-        id: expect.any(String),
-        txFrom: undefined,
-        log: expect.any(String),
-      })
-    )
-  })
-
   it('Should calculate fee with the same blockchain', async () => {
     await simpleSwapOrchestrator.init()
 
-    const tokens = availableTokensToUse.value!.filter(token => token.blockchain === 'neo3')
-    const tokenUse = tokens[0]!
-    const tokenReceive = tokens[1]!
+    const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
+    const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
