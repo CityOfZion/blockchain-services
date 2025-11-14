@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-electron",
+      "comment": "Improve error handling",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-electron"
+}

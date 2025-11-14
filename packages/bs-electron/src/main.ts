@@ -29,7 +29,7 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
         const value = getValueFromPath(api, property)
         event.returnValue = { data: value }
       } catch (error: any) {
-        event.returnValue = { error: error.message }
+        event.returnValue = { error: { message: error.message, stack: error.stack, name: error.name } }
       }
     })
   })
@@ -42,7 +42,7 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
         const data = func(...args)
         event.returnValue = { data }
       } catch (error: any) {
-        event.returnValue = { error: error.message }
+        event.returnValue = { error: { message: error.message, stack: error.stack, name: error.name } }
       }
     })
   })
@@ -55,7 +55,7 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
         const data = await func(...args)
         return { data }
       } catch (error: any) {
-        return { error: error.message }
+        return { error: { message: error.message, stack: error.stack, name: error.name } }
       }
     })
   })
