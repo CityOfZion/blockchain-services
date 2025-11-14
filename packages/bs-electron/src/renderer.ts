@@ -29,7 +29,10 @@ export function bindApiFromMain<T extends TApi = any>(apiName: string) {
       get: () => {
         const result = window.ipcBsElectron.sendSync(buildIpcChannelName(apiName, property))
         if (result.error) {
-          throw new Error('Ipc only supports stringified data')
+          const error = new Error(result.error.message)
+          error.name = result.error.name
+          error.stack = result.error.stack
+          throw error
         }
         return result.data
       },
@@ -44,7 +47,10 @@ export function bindApiFromMain<T extends TApi = any>(apiName: string) {
 
         const result = window.ipcBsElectron.sendSync(buildIpcChannelName(apiName, method), ...plainArgs)
         if (result.error) {
-          throw new Error(result.error)
+          const error = new Error(result.error.message)
+          error.name = result.error.name
+          error.stack = result.error.stack
+          throw error
         }
         return result.data
       },
@@ -59,7 +65,10 @@ export function bindApiFromMain<T extends TApi = any>(apiName: string) {
 
         const result = await window.ipcBsElectron.invoke(buildIpcChannelName(apiName, method), ...plainArgs)
         if (result.error) {
-          throw new Error(result.error)
+          const error = new Error(result.error.message)
+          error.name = result.error.name
+          error.stack = result.error.stack
+          throw error
         }
         return result.data
       },
