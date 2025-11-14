@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-electron",
   "entries": [
     {
+      "version": "0.1.59",
+      "tag": "@cityofzion/bs-electron_v0.1.59",
+      "date": "Fri, 14 Nov 2025 21:17:37 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Improve error handling"
+          }
+        ]
+      }
+    },
+    {
       "version": "0.1.58",
       "tag": "@cityofzion/bs-electron_v0.1.58",
       "date": "Thu, 06 Nov 2025 11:54:56 GMT",
