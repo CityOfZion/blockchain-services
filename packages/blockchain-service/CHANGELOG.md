@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 27 Oct 2025 14:12:54 GMT and should not be manually modified.
+This log was last generated on Mon, 17 Nov 2025 15:12:54 GMT and should not be manually modified.
+
+## 1.22.4
+Mon, 17 Nov 2025 15:12:54 GMT
+
+### Patches
+
+- Update Dora TS SDK and create COZ_API_URL variable
 
 ## 1.22.3
 Mon, 27 Oct 2025 14:12:54 GMT

@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Thu, 06 Nov 2025 11:54:56 GMT and should not be manually modified.
+This log was last generated on Mon, 17 Nov 2025 15:12:54 GMT and should not be manually modified.
+
+## 1.4.6
+Mon, 17 Nov 2025 15:12:54 GMT
+
+### Patches
+
+- Update Dora TS SDK and create COZ_API_URL variable
 
 ## 1.4.5
 Thu, 06 Nov 2025 11:54:56 GMT
