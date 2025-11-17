@@ -27,7 +27,7 @@ export class SimpleSwapApi<N extends string> {
   get #api() {
     if (!this.#apiInstance) {
       this.#apiInstance = axios.create({
-        baseURL: `${BSCommonConstants.DORA_URL}/api/v2/swap`,
+        baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/swap`,
         headers: {
           'Cache-Control': 'no-cache',
           Pragma: 'no-cache',

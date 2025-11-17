@@ -111,8 +111,8 @@ importers:
         specifier: workspace:*
         version: link:../blockchain-service
       '@cityofzion/dora-ts':
-        specifier: 0.6.1
-        version: 0.6.1
+        specifier: 0.6.2
+        version: 0.6.2
       '@ethersproject/abstract-signer':
         specifier: 5.8.0
         version: 5.8.0
@@ -230,8 +230,8 @@ importers:
         specifier: workspace:*
         version: link:../blockchain-service
       '@cityofzion/dora-ts':
-        specifier: 0.6.1
-        version: 0.6.1
+        specifier: 0.6.2
+        version: 0.6.2
       '@cityofzion/neon-js':
         specifier: 4.8.3
         version: 4.8.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -276,8 +276,8 @@ importers:
         specifier: workspace:*
         version: link:../blockchain-service
       '@cityofzion/dora-ts':
-        specifier: 0.6.1
-        version: 0.6.1
+        specifier: 0.6.2
+        version: 0.6.2
       '@cityofzion/neon-core':
         specifier: ~5.7.0
         version: 5.7.0
@@ -337,8 +337,8 @@ importers:
         specifier: workspace:*
         version: link:../bs-neo3
       '@cityofzion/dora-ts':
-        specifier: 0.6.1
-        version: 0.6.1
+        specifier: 0.6.2
+        version: 0.6.2
       axios:
         specifier: 1.12.2
         version: 1.12.2(debug@4.4.3)
@@ -622,8 +622,8 @@ packages:
     peerDependencies:
       '@solana/web3.js': ^1.98.2
 
-  '@cityofzion/dora-ts@0.6.1':
-    resolution: {integrity: sha512-92y4414zczSi6pfigtwwMx1hGbPsyYQXr1hJUVXmdlGv/+nk1yM5UaGO8uBCpmfiv14n/bPT7KCDgufxxXbTqQ==}
+  '@cityofzion/dora-ts@0.6.2':
+    resolution: {integrity: sha512-CMmA2kaQthBr1KwnHwe48OiKBDYAEi5OeeNhEwsgMQj4b2ziSZe5Z7Wacz7Y2Pxybqj4CHYlVOrwBaOVKUid2A==}
 
   '@cityofzion/neon-api@4.9.0':
     resolution: {integrity: sha512-8eN3N3sGgd4L7qFaFATKr94kA/65626eo6hB7fHL+S8OGCVCrrl3tfh8GAOv50vLxd2YyoDu9pBY/0NPKY8tsQ==}
@@ -4495,7 +4495,7 @@ snapshots:
       - typescript
       - utf-8-validate
 
-  '@cityofzion/dora-ts@0.6.1':
+  '@cityofzion/dora-ts@0.6.2':
     dependencies:
       axios: 1.12.2(debug@4.4.3)
     transitivePeerDependencies:

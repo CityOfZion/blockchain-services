@@ -537,8 +537,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     const tokens = availableTokensToUse.value!
     const tokenUse = tokens.find(token => token.id === 'gasn3:neo3')!
-
-    const tokenReceive = tokens[1]!
+    const tokenReceive = tokens.find(token => token.id === 'neo3:neo3')!
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 

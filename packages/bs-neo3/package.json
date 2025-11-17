@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "@cityofzion/dora-ts": "0.6.1",
+    "@cityofzion/dora-ts": "0.6.2",
     "@cityofzion/neon-js": "~5.7.0",
     "@cityofzion/neon-core": "~5.7.0",
     "@cityofzion/neon-dappkit": "~0.6.0",

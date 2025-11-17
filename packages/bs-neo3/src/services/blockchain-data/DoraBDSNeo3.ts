@@ -32,7 +32,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
   static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSNeo3NetworkId[] = ['mainnet', 'testnet']
 
   static getClient() {
-    return new api.NeoRESTApi({ doraUrl: BSCommonConstants.DORA_URL, endpoint: '/api/v2/neo3' })
+    return new api.NeoRESTApi({ url: BSCommonConstants.COZ_API_URL, endpoint: '/api/v2/neo3' })
   }
 
   #apiInstance?: api.NeoRESTApi
