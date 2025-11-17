@@ -28,7 +28,7 @@ export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
 
   get #api() {
     if (!this.#apiInstance) {
-      this.#apiInstance = axios.create({ baseURL: `${BSCommonConstants.DORA_URL}/api/v2/neo3` })
+      this.#apiInstance = axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/neo3` })
     }
     return this.#apiInstance
   }

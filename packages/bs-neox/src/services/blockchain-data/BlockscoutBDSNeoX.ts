@@ -43,7 +43,7 @@ import { BSNeo3NeonJsSingletonHelper } from '@cityofzion/bs-neo3'
 
 export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNeoXNetworkId, IBSNeoX<N>> {
   static readonly BASE_URL_BY_CHAIN_ID: Partial<Record<TBSNeoXNetworkId, string>> = {
-    '47763': `${BSCommonConstants.DORA_URL}/api/neox/mainnet`,
+    '47763': `${BSCommonConstants.COZ_API_URL}/api/neox/mainnet`,
     '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
   }
   static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSNeoXNetworkId[] = ['12227332', '47763']

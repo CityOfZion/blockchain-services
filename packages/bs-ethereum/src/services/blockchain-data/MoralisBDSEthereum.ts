@@ -38,7 +38,7 @@ import {
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 
 export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extends RpcBDSEthereum<N, A> {
-  static readonly BASE_URL = `${BSCommonConstants.DORA_URL}/api/v2/meta`
+  static readonly BASE_URL = `${BSCommonConstants.COZ_API_URL}/api/v2/meta`
   static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = ['1', '42161', '8453', '137']
   static readonly FULL_TRANSACTIONS_ERC721_STANDARDS = ['erc721', 'erc-721']
   static readonly FULL_TRANSACTIONS_ERC1155_STANDARDS = ['erc1155', 'erc-1155']
