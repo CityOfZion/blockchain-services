@@ -57,7 +57,7 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
       const splitImage = srcImage.split('/')
       const imageId = splitImage.slice(-2).filter(Boolean).join('/')
 
-      return `https://ghostmarket.mypinata.cloud/ipfs/${imageId}`
+      return `https://cdn.ghostmarket.io/ext-full/${imageId}`
     }
 
     return srcImage
