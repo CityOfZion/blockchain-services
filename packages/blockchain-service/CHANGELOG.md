@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 17 Nov 2025 15:12:54 GMT and should not be manually modified.
+This log was last generated on Fri, 28 Nov 2025 14:03:41 GMT and should not be manually modified.
+
+## 1.22.5
+Fri, 28 Nov 2025 14:03:41 GMT
+
+### Patches
+
+- Fix GhostMarket url image
 
 ## 1.22.4
 Mon, 17 Nov 2025 15:12:54 GMT

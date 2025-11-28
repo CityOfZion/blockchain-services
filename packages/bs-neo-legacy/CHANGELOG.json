@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.14.2",
+      "tag": "@cityofzion/bs-neo-legacy_v1.14.2",
+      "date": "Fri, 28 Nov 2025 14:03:41 GMT",
+      "comments": {
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.22.5`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.14.1",
       "tag": "@cityofzion/bs-neo-legacy_v1.14.1",
       "date": "Mon, 17 Nov 2025 15:12:54 GMT",
