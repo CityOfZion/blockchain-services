@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Changed Solana RPC endpoints from Tatum gateway to COZ proxy for mainnet and devnet",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}
