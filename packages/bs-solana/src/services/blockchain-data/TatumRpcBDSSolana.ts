@@ -18,23 +18,16 @@ import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import solanaSDK from '@solana/web3.js'
 import * as solanaSplSDK from '@solana/spl-token'
 import { BSSolanaCachedMethodsHelper } from '../../helpers/BSSolanaCachedMethodsHelper'
-import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
 import { IBSSolana, TBSSolanaNetworkId } from '../../types'
 
 export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataService {
   static URL_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string> = {
-    'mainnet-beta': 'https://solana-mainnet.gateway.tatum.io/',
-    devnet: 'https://solana-devnet.gateway.tatum.io',
+    'mainnet-beta': 'https://api.coz.io/api/v2/solana/meta/mainnet',
+    devnet: 'https://api.coz.io/api/v2/solana/meta/devnet',
   }
 
   static getConnection(network: TBSNetwork<TBSSolanaNetworkId>) {
-    return new solanaSDK.Connection(TatumRpcBDSSolana.URL_BY_NETWORK_ID[network.id], {
-      httpHeaders: {
-        'x-api-key': BSSolanaHelper.isMainnetNetwork(network)
-          ? process.env.TATUM_MAINNET_API_KEY
-          : process.env.TATUM_TESTNET_API_KEY,
-      },
-    })
+    return new solanaSDK.Connection(TatumRpcBDSSolana.URL_BY_NETWORK_ID[network.id])
   }
 
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 // 1 minutes

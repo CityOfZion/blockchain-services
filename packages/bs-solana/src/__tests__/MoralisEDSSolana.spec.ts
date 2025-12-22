@@ -4,7 +4,7 @@ import { MoralisEDSSolana } from '../services/exchange/MoralisEDSSolana'
 
 let moralisEDSSolana: MoralisEDSSolana<'test'>
 
-describe('MoralisEDSEthereum', () => {
+describe('MoralisEDSSolana', () => {
   beforeAll(() => {
     const service = new BSSolana('test')
     moralisEDSSolana = new MoralisEDSSolana(service)

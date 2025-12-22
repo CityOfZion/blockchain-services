@@ -36,7 +36,8 @@ describe('TatumRpcNDSSolana.spec', () => {
     )
   })
 
-  it('Get NFTS by address', async () => {
+  // TODO: Needs paid plan on Tatum to work
+  it.skip('Get NFTS by address', async () => {
     const nfts = await tatumRpcNDSSolana.getNftsByAddress({
       address: '47iUSSiZnp2grSXJNpN19qYQYLZ8Kdfxpf318w48Ydxo',
     })
@@ -53,7 +54,8 @@ describe('TatumRpcNDSSolana.spec', () => {
     })
   })
 
-  it('Check if address has specific Token', async () => {
+  // TODO: Needs paid plan on Tatum to work
+  it.skip('Check if address has specific Token', async () => {
     const address: string = '2RtGg6fsFiiF1EQzHqbd66AhW7R5bWeQGpTbv2UMkCdW'
 
     const hasToken: boolean = await tatumRpcNDSSolana.hasToken({

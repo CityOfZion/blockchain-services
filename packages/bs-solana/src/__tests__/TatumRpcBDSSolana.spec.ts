@@ -15,7 +15,7 @@ describe('TatumRpcBDSSolana', () => {
 
   // It may throw an error as the tatum devnet only returns transaction made in less than 10 days
   it('Should be able to get transaction', async () => {
-    const hash = '8qrQ4RQEwzsj8JKhX6xE2g7fuDmw9Unqh4o8NgqTurNwHjLq3e8irU2Y4RuC7drBwNEk3LWutzZhjSnbiZABBQD'
+    const hash = 'eagpXrR1TP9H9jRyPcGaaAksJuyoSiK76aQyJT92uYJ2MDK7hy1e7bi9krHhTLEaSNEKU7cSUGwyoUFugR4ysrw'
 
     const transaction = await rpcBDSSolana.getTransaction(hash)
 
@@ -42,7 +42,7 @@ describe('TatumRpcBDSSolana', () => {
 
   // It may throw an error as the tatum devnet only returns transaction made in less than 10 days
   it('Should be able to get transactions of address', async () => {
-    const address = 'ANVUJaJoVaJZELtV2AvRp7V5qPV1B84o29zAwDhPj1c2'
+    const address = '8X35rQUK2u9hfn8rMPwwr6ZSEUhbmfDPEapp589XyoM1'
     const response = await rpcBDSSolana.getTransactionsByAddress({ address: address })
 
     expect(response.transactions.length).toBeGreaterThan(0)
@@ -95,7 +95,8 @@ describe('TatumRpcBDSSolana', () => {
     })
   })
 
-  it('Should be able to get balance', async () => {
+  // TODO: Needs paid plan on Tatum to work
+  it.skip('Should be able to get balance', async () => {
     const address = 'F6pwhbYdsEso1yhAihxLxiWtHKS7vhnEVnLakNn4L3tN'
     const balance = await rpcBDSSolana.getBalance(address)
 
