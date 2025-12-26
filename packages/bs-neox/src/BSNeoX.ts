@@ -22,6 +22,15 @@ import { KEY_MANAGEMENT_ABI } from './assets/abis/key-management'
 import { getConsensusThreshold, getScaler, PublicKey } from 'neox-tpke'
 import { concat, keccak256, pad, parseTransaction, toBytes, toHex } from 'viem'
 
+// Necessary to run on Node.js
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
+if (typeof self === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  global.self = global
+}
+
 export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetworkId> implements IBSNeoX<N> {
   neo3NeoXBridgeService!: INeo3NeoXBridgeService<N>
 

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Add polyfill for _self",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}
