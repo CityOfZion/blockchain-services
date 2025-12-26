@@ -37,7 +37,7 @@ export class BSUtilsHelper {
     })
   }
 
-  static validateNetwork(network: TBSNetwork, availableNetworks: TBSNetwork[], availableNetworkURLs: string[]) {
+  static validateNetwork(network: TBSNetwork, availableNetworks: TBSNetwork[], rpcNetworkUrls: string[]) {
     const isValid = availableNetworks.some(networkItem =>
       isEqual(
         { id: network.id, type: network.type, name: network.name },
@@ -47,8 +47,6 @@ export class BSUtilsHelper {
 
     if (!isValid) return false
 
-    if (!availableNetworkURLs.includes(network.url)) return false
-
-    return true
+    return rpcNetworkUrls.some(rpcNetworkUrl => rpcNetworkUrl === network.url)
   }
 }

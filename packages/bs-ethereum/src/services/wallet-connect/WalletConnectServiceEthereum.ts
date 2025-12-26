@@ -47,7 +47,7 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
     this.chain = `${this.namespace}:${this.#service.network.id.toString()}`
   }
 
-  async #resolveParams(args: TWalletConnectServiceRequestMethodParams<N>) {
+  protected async _resolveParams(args: TWalletConnectServiceRequestMethodParams<N>) {
     const wallet = await this.#service.generateSigner(args.account)
     const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
 
@@ -108,8 +108,7 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
     const message = args.params.filter((param: any) => !ethers.utils.isAddress(param))[0]
     const convertedMessage = this.#convertHexToUtf8(message)
 
-    const signedMessage = await wallet.signMessage(convertedMessage)
-    return signedMessage
+    return await wallet.signMessage(convertedMessage)
   }
 
   async eth_sign(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
@@ -117,9 +116,9 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   }
 
   async eth_signTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { param, wallet } = await this.#resolveParams(args)
-    const signature = await wallet.signTransaction(param)
-    return signature
+    const { param, wallet } = await this._resolveParams(args)
+
+    return await wallet.signTransaction(param)
   }
 
   async eth_signTypedData(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
@@ -131,8 +130,8 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
     const { domain, types, message } = parsedData
     // https://github.com/ethers-io/ethers.js/issues/687#issuecomment-714069471
     delete types.EIP712Domain
-    const signedData = await wallet._signTypedData(domain, types, message)
-    return signedData
+
+    return await wallet._signTypedData(domain, types, message)
   }
 
   async eth_signTypedData_v3(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
@@ -144,7 +143,7 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   }
 
   async eth_sendTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { param, provider, wallet } = await this.#resolveParams(args)
+    const { param, provider, wallet } = await this._resolveParams(args)
 
     const connectedWallet = wallet.connect(provider)
 
@@ -153,7 +152,7 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   }
 
   async eth_call(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { param, provider, wallet } = await this.#resolveParams(args)
+    const { param, provider, wallet } = await this._resolveParams(args)
 
     const connectedWallet = wallet.connect(provider)
 
@@ -198,7 +197,7 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   }
 
   async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { param, wallet, provider } = await this.#resolveParams(args)
+    const { param, wallet, provider } = await this._resolveParams(args)
     const connectedWallet = wallet.connect(provider)
 
     const gasPrice = await provider.getGasPrice()

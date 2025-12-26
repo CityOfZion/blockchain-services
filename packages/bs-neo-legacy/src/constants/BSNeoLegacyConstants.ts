@@ -36,13 +36,13 @@ export class BSNeoLegacyConstants {
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeoLegacyNetworkId> = {
     id: 'mainnet',
     name: 'Mainnet',
-    url: this.RPC_LIST_BY_NETWORK_ID['mainnet']![0],
+    url: this.RPC_LIST_BY_NETWORK_ID['mainnet'][0],
     type: 'mainnet',
   }
   static readonly TESTNET_NETWORK: TBSNetwork<TBSNeoLegacyNetworkId> = {
     id: 'testnet',
     name: 'Testnet',
-    url: this.RPC_LIST_BY_NETWORK_ID['testnet']![0],
+    url: this.RPC_LIST_BY_NETWORK_ID['testnet'][0],
     type: 'testnet',
   }
   static readonly ALL_NETWORKS: TBSNetwork<TBSNeoLegacyNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]

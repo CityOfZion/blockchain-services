@@ -45,7 +45,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   feeToken!: TBSToken
 
   network!: TBSNetwork<A>
-  availableNetworkURLs!: string[]
+  rpcNetworkUrls!: string[]
   readonly defaultNetwork!: TBSNetwork<A>
   readonly availableNetworks!: TBSNetwork<A>[]
 
@@ -70,7 +70,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  async #buildTransferParams(intent: TIntentTransferParam) {
+  protected async _buildTransferParams(intent: TIntentTransferParam) {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
     let decimals = intent.tokenDecimals
@@ -137,9 +137,9 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   }
 
   setNetwork(network: TBSNetwork<A>) {
-    const availableURLs = BSEthereumConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const rpcNetworkUrls = BSEthereumConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
 
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, availableURLs)
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
@@ -147,7 +147,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     this.#setTokens(network)
 
     this.network = network
-    this.availableNetworkURLs = availableURLs
+    this.rpcNetworkUrls = rpcNetworkUrls
 
     this.nftDataService = new GhostMarketNDSEthereum(this)
     this.explorerService = new BlockscoutESEthereum(this)
@@ -268,7 +268,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
       let transactionHash = ''
 
       try {
-        const { transactionParams, gasPrice } = await this.#buildTransferParams(intent)
+        const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
 
         let gasLimit: ethers.BigNumberish
         try {
@@ -305,7 +305,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     let fee = ethers.utils.parseEther('0')
 
     for (const intent of param.intents) {
-      const { gasPrice, transactionParams } = await this.#buildTransferParams(intent)
+      const { gasPrice, transactionParams } = await this._buildTransferParams(intent)
       const estimated = await signer.estimateGas(transactionParams)
       const intentFee = gasPrice.mul(estimated)
 

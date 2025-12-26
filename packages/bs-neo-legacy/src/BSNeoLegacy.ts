@@ -36,7 +36,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   readonly burnToken!: TBSToken
 
   network!: TBSNetwork<TBSNeoLegacyNetworkId>
-  availableNetworkURLs!: string[]
+  rpcNetworkUrls!: string[]
   legacyNetwork!: string
   readonly defaultNetwork: TBSNetwork<TBSNeoLegacyNetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeoLegacyNetworkId>[]
@@ -176,16 +176,16 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   setNetwork(network: TBSNetwork<TBSNeoLegacyNetworkId>) {
-    const availableURLs = BSNeoLegacyConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const rpcNetworkUrls = BSNeoLegacyConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
 
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, availableURLs)
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
     this.network = network
     this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
-    this.availableNetworkURLs = availableURLs
+    this.rpcNetworkUrls = rpcNetworkUrls
 
     this.tokenService = new TokenServiceNeoLegacy()
     this.explorerService = new NeoTubeESNeoLegacy(this)

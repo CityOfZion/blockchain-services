@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Add rpcNetworkUrls",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}
