@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-solana",
   "entries": [
     {
+      "version": "2.0.9",
+      "tag": "@cityofzion/bs-solana_v2.0.9",
+      "date": "Fri, 26 Dec 2025 16:54:17 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add rpcNetworkUrls"
+          },
+          {
+            "comment": "Changed Solana RPC endpoints from Tatum gateway to COZ proxy for mainnet and devnet"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.22.6`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.0.8",
       "tag": "@cityofzion/bs-solana_v2.0.8",
       "date": "Fri, 28 Nov 2025 14:03:41 GMT",

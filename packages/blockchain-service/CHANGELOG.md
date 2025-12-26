@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Fri, 28 Nov 2025 14:03:41 GMT and should not be manually modified.
+This log was last generated on Fri, 26 Dec 2025 16:54:17 GMT and should not be manually modified.
+
+## 1.22.6
+Fri, 26 Dec 2025 16:54:17 GMT
+
+### Patches
+
+- Improve validateNetwork method
 
 ## 1.22.5
 Fri, 28 Nov 2025 14:03:41 GMT

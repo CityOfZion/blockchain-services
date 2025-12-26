@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 28 Nov 2025 14:03:41 GMT and should not be manually modified.
+This log was last generated on Fri, 26 Dec 2025 16:54:17 GMT and should not be manually modified.
+
+## 1.17.7
+Fri, 26 Dec 2025 16:54:17 GMT
+
+### Patches
+
+- Add rpcNetworkUrls
 
 ## 1.17.6
 Fri, 28 Nov 2025 14:03:41 GMT

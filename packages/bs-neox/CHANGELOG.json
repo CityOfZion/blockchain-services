@@ -2,6 +2,29 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "1.5.0",
+      "tag": "@cityofzion/bs-neox_v1.5.0",
+      "date": "Fri, 26 Dec 2025 16:54:17 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add Anti-MEV protection"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.22.6`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.14.8`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.17.7`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.4.7",
       "tag": "@cityofzion/bs-neox_v1.4.7",
       "date": "Fri, 28 Nov 2025 14:03:41 GMT",
