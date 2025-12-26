@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Fri, 26 Dec 2025 16:54:17 GMT and should not be manually modified.
+This log was last generated on Fri, 26 Dec 2025 21:11:11 GMT and should not be manually modified.
+
+## 1.5.1
+Fri, 26 Dec 2025 21:11:11 GMT
+
+### Patches
+
+- Add polyfill for _self
 
 ## 1.5.0
 Fri, 26 Dec 2025 16:54:17 GMT

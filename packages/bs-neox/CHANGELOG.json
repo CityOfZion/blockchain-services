@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "1.5.1",
+      "tag": "@cityofzion/bs-neox_v1.5.1",
+      "date": "Fri, 26 Dec 2025 21:11:11 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add polyfill for _self"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.5.0",
       "tag": "@cityofzion/bs-neox_v1.5.0",
       "date": "Fri, 26 Dec 2025 16:54:17 GMT",
