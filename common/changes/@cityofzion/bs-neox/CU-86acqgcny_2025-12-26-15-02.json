@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Add Anti-MEV protection",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

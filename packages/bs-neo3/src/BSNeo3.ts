@@ -1,9 +1,7 @@
 import {
-  TBSAccount,
   BSBigNumberHelper,
   BSKeychainHelper,
   BSUtilsHelper,
-  TGetLedgerTransport,
   IBlockchainDataService,
   IClaimDataService,
   IExchangeDataService,
@@ -11,11 +9,13 @@ import {
   INeo3NeoXBridgeService,
   INftDataService,
   ITokenService,
+  IWalletConnectService,
+  TBSAccount,
   TBSNetwork,
   TBSToken,
-  TTransferParam,
+  TGetLedgerTransport,
   TPingNetworkResponse,
-  IWalletConnectService,
+  TTransferParam,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
@@ -48,7 +48,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   readonly burnToken!: TBSToken
 
   network!: TBSNetwork<TBSNeo3NetworkId>
-  availableNetworkURLs!: string[]
+  rpcNetworkUrls!: string[]
   readonly defaultNetwork: TBSNetwork<TBSNeo3NetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeo3NetworkId>[]
 
@@ -80,8 +80,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   }
 
   #setTokens(network: TBSNetwork<TBSNeo3NetworkId>) {
-    const tokens = BSNeo3Helper.getTokens(network)
-    this.tokens = tokens
+    this.tokens = BSNeo3Helper.getTokens(network)
   }
 
   async #buildTransferInvocation(
@@ -122,14 +121,15 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   }
 
   setNetwork(network: TBSNetwork<TBSNeo3NetworkId>) {
-    const availableURLs = BSNeo3Constants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const rpcNetworkUrls = BSNeo3Constants.RPC_LIST_BY_NETWORK_ID[network.id] || []
 
     if (network.type === 'custom') {
       if (typeof network.url !== 'string' || network.url.length === 0) {
         throw new Error('You must provide a valid url to use a custom network')
       }
     } else {
-      const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, availableURLs)
+      const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
+
       if (!isValidNetwork) {
         throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
       }
@@ -138,7 +138,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     this.#setTokens(network)
 
     this.network = network
-    this.availableNetworkURLs = availableURLs
+    this.rpcNetworkUrls = rpcNetworkUrls
 
     this.tokenService = new TokenServiceNeo3()
     this.nftDataService = new GhostMarketNDSNeo3(this)

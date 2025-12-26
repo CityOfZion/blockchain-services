@@ -215,7 +215,7 @@ export class BSNeo3Constants {
 
   static readonly NATIVE_ASSETS: TBSToken[] = [BSNeo3Constants.GAS_TOKEN, BSNeo3Constants.NEO_TOKEN]
 
-  static readonly RPC_LIST_BY_NETWORK_ID: Partial<Record<TBSNeo3NetworkId, string[]>> = {
+  static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSNeo3NetworkId, string[]> = {
     mainnet: [
       'https://mainnet1.neo.coz.io:443',
       'https://mainnet4.neo.coz.io:443',
@@ -242,13 +242,13 @@ export class BSNeo3Constants {
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeo3NetworkId> = {
     id: 'mainnet',
     name: 'Mainnet',
-    url: this.RPC_LIST_BY_NETWORK_ID['mainnet']![0],
+    url: this.RPC_LIST_BY_NETWORK_ID['mainnet'][0],
     type: 'mainnet',
   }
   static readonly TESTNET_NETWORK: TBSNetwork<TBSNeo3NetworkId> = {
     id: 'testnet',
     name: 'Testnet',
-    url: this.RPC_LIST_BY_NETWORK_ID['testnet']![0],
+    url: this.RPC_LIST_BY_NETWORK_ID['testnet'][0],
     type: 'testnet',
   }
   static readonly ALL_NETWORKS = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]

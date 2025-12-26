@@ -10,4 +10,6 @@ export * from './services/explorer/BlockscoutESNeoX'
 
 export * from './services/nft-data/GhostMarketNDSNeoX'
 
+export * from './services/wallet-connect/WalletConnectServiceNeoX'
+
 export * from './types'

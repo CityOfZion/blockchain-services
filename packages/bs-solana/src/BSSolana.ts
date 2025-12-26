@@ -43,7 +43,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   readonly nativeTokens!: TBSToken[]
 
   network!: TBSNetwork<TBSSolanaNetworkId>
-  availableNetworkURLs!: string[]
+  rpcNetworkUrls!: string[]
   readonly availableNetworks: TBSNetwork<TBSSolanaNetworkId>[]
   readonly defaultNetwork: TBSNetwork<TBSSolanaNetworkId>
 
@@ -164,15 +164,15 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   setNetwork(network: TBSNetwork<TBSSolanaNetworkId>): void {
-    const availableURLs = BSSolanaConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const rpcNetworkUrls = BSSolanaConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
 
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, availableURLs)
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
     this.network = network
-    this.availableNetworkURLs = availableURLs
+    this.rpcNetworkUrls = rpcNetworkUrls
 
     this.tokenService = new TokenServiceSolana()
     this.blockchainDataService = new TatumRpcBDSSolana(this)
@@ -230,11 +230,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
       keyBuffer = Uint8Array.from(key.split(',').map(Number))
     }
 
-    if (keyBuffer?.length !== KEY_BYTES_LENGTH) {
-      return false
-    }
-
-    return true
+    return keyBuffer?.length === KEY_BYTES_LENGTH
   }
 
   generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N> {

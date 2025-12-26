@@ -58,7 +58,7 @@ export class BSEthereumConstants {
     '56': [
       'https://binance.llamarpc.com',
       'https://bsc-rpc.publicnode.com',
-      'https://bsc-dataseed.binance.org/',
+      'https://bsc-dataseed.binance.org',
       'https://bsc-dataseed.bnbchain.org',
       'https://endpoints.omniatech.io/v1/bsc/mainnet/public',
     ],

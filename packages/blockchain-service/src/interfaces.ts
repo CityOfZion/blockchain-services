@@ -62,7 +62,7 @@ export interface IBlockchainService<N extends string = string, A extends string 
   readonly nativeTokens: TBSToken[]
 
   network: TBSNetwork<A>
-  availableNetworkURLs: string[]
+  rpcNetworkUrls: string[]
   readonly defaultNetwork: TBSNetwork<A>
   readonly availableNetworks: TBSNetwork<A>[]
 
