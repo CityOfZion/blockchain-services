@@ -35,8 +35,8 @@ export class WalletKitHelper {
     service,
   }: TWalletKitHelperGetProposalDetailsParams<N>): TWalletKitHelperProposalDetails<N> {
     const mergedNamespacesObject = mergeRequiredAndOptionalNamespaces(
-      proposal.requiredNamespaces,
-      proposal.optionalNamespaces
+      proposal?.requiredNamespaces ?? {},
+      proposal?.optionalNamespaces ?? {}
     )
     const allChains = new Set(getChainsFromRequiredNamespaces(mergedNamespacesObject))
 
@@ -65,8 +65,8 @@ export class WalletKitHelper {
 
   static getProposalServices<N extends string>({ proposal, services }: TWalletKitHelperGetProposalServicesParams<N>) {
     const mergedNamespacesObject = mergeRequiredAndOptionalNamespaces(
-      proposal.requiredNamespaces,
-      proposal.optionalNamespaces
+      proposal?.requiredNamespaces ?? {},
+      proposal?.optionalNamespaces ?? {}
     )
     const allChains = new Set(getChainsFromRequiredNamespaces(mergedNamespacesObject))
 
