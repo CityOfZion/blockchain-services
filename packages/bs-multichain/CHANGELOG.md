@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Fri, 26 Dec 2025 21:11:11 GMT and should not be manually modified.
+This log was last generated on Mon, 29 Dec 2025 21:04:01 GMT and should not be manually modified.
+
+## 1.1.13
+Mon, 29 Dec 2025 21:04:01 GMT
+
+### Patches
+
+- Fix to optionalNameSpaces error handling
 
 ## 1.1.12
 Fri, 26 Dec 2025 21:11:11 GMT

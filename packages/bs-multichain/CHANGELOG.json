@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "1.1.13",
+      "tag": "@cityofzion/bs-multichain_v1.1.13",
+      "date": "Mon, 29 Dec 2025 21:04:01 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix to optionalNameSpaces error handling"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.1.12",
       "tag": "@cityofzion/bs-multichain_v1.1.12",
       "date": "Fri, 26 Dec 2025 21:11:11 GMT",
