@@ -71,11 +71,11 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
   }
 
   async transfer(params: TTransferParam<N>): Promise<string[]> {
-    const isAntiMevRpcNetworkUrl = BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[this.network.id].some(
-      rpcNetworkUrl => rpcNetworkUrl === this.network.url
+    const isAntiMevNetwork = BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[this.network.id].some(
+      url => url === this.network.url
     )
 
-    if (!isAntiMevRpcNetworkUrl) return await super.transfer(params)
+    if (!isAntiMevNetwork) return await super.transfer(params)
 
     const signer = await this.generateSigner(params.senderAccount)
     let nonce = await signer.getTransactionCount()

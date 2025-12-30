@@ -47,6 +47,6 @@ export class BSUtilsHelper {
 
     if (!isValid) return false
 
-    return rpcNetworkUrls.some(rpcNetworkUrl => rpcNetworkUrl === network.url)
+    return rpcNetworkUrls.some(url => url === network.url)
   }
 }
