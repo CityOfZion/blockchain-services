@@ -40,32 +40,39 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
     'wallet_addEthereumChain',
   ]
 
-  readonly #service: IBSEthereum<N, A>
+  protected readonly _service: IBSEthereum<N, A>
 
   constructor(service: IBSEthereum<N, A>) {
-    this.#service = service
-    this.chain = `${this.namespace}:${this.#service.network.id.toString()}`
+    this._service = service
+    this.chain = `${this.namespace}:${this._service.network.id.toString()}`
   }
 
   protected async _resolveParams(args: TWalletConnectServiceRequestMethodParams<N>) {
-    const wallet = await this.#service.generateSigner(args.account)
-    const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
-
     const param = args.params[0]
 
     if (typeof param !== 'object') {
-      throw new Error('Invalid Params')
+      throw new Error('Invalid params')
+    }
+
+    if (!param.chainId) {
+      const chainId = parseInt(this._service.network.id)
+
+      if (!isNaN(chainId)) param.chainId = chainId
     }
 
     if (param.gas) {
       param.gasLimit = param.gas
+
       delete param.gas
     }
 
     if (param.type && typeof param.type !== 'number') {
-      param.type = parseInt(param.type)
+      const typeAsNumber = parseInt(param.type)
+
+      if (!isNaN(typeAsNumber)) param.type = typeAsNumber
     }
 
+    const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
     const gasPrice = await provider.getGasPrice()
 
     if (param.type === 2) {
@@ -75,22 +82,25 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
       param.gasPrice = param.gasPrice ?? gasPrice
     }
 
+    const wallet = await this._service.generateSigner(args.account)
+    const connectedWallet = wallet.connect(provider)
+
     if (!param.gasLimit) {
-      const connectedWallet = wallet.connect(provider)
       try {
-        param.gasLimit = await connectedWallet.estimateGas({
-          ...param,
-          gasLimit: BSEthereumConstants.DEFAULT_GAS_LIMIT,
-        })
+        param.gasLimit = await connectedWallet.estimateGas({ ...param, gasPrice: undefined })
       } catch {
         param.gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
       }
     }
 
+    if (!param.nonce) {
+      param.nonce = await connectedWallet.getTransactionCount()
+    }
+
     return {
-      param,
-      provider,
       wallet,
+      provider,
+      param,
     }
   }
 
@@ -103,7 +113,7 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   }
 
   async personal_sign(args: TWalletConnectServiceRequestMethodParams<N>) {
-    const wallet = await this.#service.generateSigner(args.account)
+    const wallet = await this._service.generateSigner(args.account)
 
     const message = args.params.filter((param: any) => !ethers.utils.isAddress(param))[0]
     const convertedMessage = this.#convertHexToUtf8(message)
@@ -122,7 +132,7 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   }
 
   async eth_signTypedData(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const wallet = await this.#service.generateSigner(args.account)
+    const wallet = await this._service.generateSigner(args.account)
 
     const data = args.params.filter((param: any) => !ethers.utils.isAddress(param))[0]
     const parsedData = typeof data === 'string' ? JSON.parse(data) : data
@@ -160,12 +170,12 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   }
 
   async eth_requestAccounts(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string[]> {
-    const wallet = await this.#service.generateSigner(args.account)
+    const wallet = await this._service.generateSigner(args.account)
     return [await wallet.getAddress()]
   }
 
   async eth_sendRawTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
+    const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
 
     const { hash } = await provider.sendTransaction(args.params[0])
 
@@ -200,8 +210,8 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
     const { param, wallet, provider } = await this._resolveParams(args)
     const connectedWallet = wallet.connect(provider)
 
-    const gasPrice = await provider.getGasPrice()
-    const estimated = await connectedWallet.estimateGas(param)
+    const gasPrice = await connectedWallet.getGasPrice()
+    const estimated = await connectedWallet.estimateGas({ ...param, gasLimit: undefined, gasPrice: undefined })
 
     return ethers.utils.formatEther(gasPrice.mul(estimated))
   }

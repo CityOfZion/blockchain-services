@@ -49,13 +49,13 @@ describe('BSNeoX', () => {
       senderAccount: account,
       intents: [
         {
-          amount: '1',
+          amount: '0.1',
           receiverAddress: account.address,
           tokenDecimals: neoTokenTestNet.decimals,
           tokenHash: neoTokenTestNet.hash,
         },
         {
-          amount: '1',
+          amount: '0.1',
           receiverAddress: account.address,
           tokenDecimals: neoTokenTestNet.decimals,
           tokenHash: neoTokenTestNet.hash,
@@ -88,6 +88,37 @@ describe('BSNeoX', () => {
           receiverAddress: account.address,
           tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
           tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+        },
+      ],
+    })
+
+    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes.length).toBe(2)
+
+    await transport.close()
+  }, 120000)
+
+  it.skip('Should be able to transfer the NEO token on TestNet using Ledger', async () => {
+    const transport = await TransportNodeHid.create()
+
+    bsNeoX = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK, async () => transport)
+
+    const account = await bsNeoX.ledgerService.getAccount(transport, 0)
+
+    const transactionHashes = await bsNeoX.transfer({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.1',
+          receiverAddress: account.address,
+          tokenDecimals: neoTokenTestNet.decimals,
+          tokenHash: neoTokenTestNet.hash,
+        },
+        {
+          amount: '0.1',
+          receiverAddress: account.address,
+          tokenDecimals: neoTokenTestNet.decimals,
+          tokenHash: neoTokenTestNet.hash,
         },
       ],
     })
@@ -140,13 +171,13 @@ describe('BSNeoX', () => {
       senderAccount: account,
       intents: [
         {
-          amount: '1',
+          amount: '0.1',
           receiverAddress: account.address,
           tokenDecimals: neoTokenTestNet.decimals,
           tokenHash: neoTokenTestNet.hash,
         },
         {
-          amount: '1',
+          amount: '0.1',
           receiverAddress: account.address,
           tokenDecimals: neoTokenTestNet.decimals,
           tokenHash: neoTokenTestNet.hash,
@@ -182,6 +213,40 @@ describe('BSNeoX', () => {
           receiverAddress: account.address,
           tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
           tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+        },
+      ],
+    })
+
+    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes.length).toBe(2)
+
+    await transport.close()
+  }, 120000)
+
+  it.skip('Should be able to transfer the NEO token on TestNet using Anti-MEV and Ledger', async () => {
+    // To wait the updated nonce
+    await BSUtilsHelper.wait(30000)
+
+    const transport = await TransportNodeHid.create()
+
+    bsNeoX = new BSNeoX('test', antiMevNetwork, async () => transport)
+
+    const account = await bsNeoX.ledgerService.getAccount(transport, 0)
+
+    const transactionHashes = await bsNeoX.transfer({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.1',
+          receiverAddress: account.address,
+          tokenDecimals: neoTokenTestNet.decimals,
+          tokenHash: neoTokenTestNet.hash,
+        },
+        {
+          amount: '0.1',
+          receiverAddress: account.address,
+          tokenDecimals: neoTokenTestNet.decimals,
+          tokenHash: neoTokenTestNet.hash,
         },
       ],
     })
