@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.22.7",
+      "tag": "@cityofzion/blockchain-service_v1.22.7",
+      "date": "Fri, 02 Jan 2026 18:27:28 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Change variable names"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.22.6",
       "tag": "@cityofzion/blockchain-service_v1.22.6",
       "date": "Fri, 26 Dec 2025 16:54:17 GMT",

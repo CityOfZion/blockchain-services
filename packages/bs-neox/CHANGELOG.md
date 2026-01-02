@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Fri, 26 Dec 2025 21:11:11 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Jan 2026 18:27:28 GMT and should not be manually modified.
+
+## 1.6.0
+Fri, 02 Jan 2026 18:27:28 GMT
+
+### Minor changes
+
+- Add eth_sendTransaction and eth_sendRawTransaction in WC and add tests for NEO token using Ledger
 
 ## 1.5.1
 Fri, 26 Dec 2025 21:11:11 GMT

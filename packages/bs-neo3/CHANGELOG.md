@@ -1,6 +1,11 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Fri, 26 Dec 2025 16:54:17 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Jan 2026 18:27:28 GMT and should not be manually modified.
+
+## 1.17.8
+Fri, 02 Jan 2026 18:27:28 GMT
+
+_Version update only_
 
 ## 1.17.7
 Fri, 26 Dec 2025 16:54:17 GMT
