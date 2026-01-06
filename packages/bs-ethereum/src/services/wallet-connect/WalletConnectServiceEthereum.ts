@@ -209,7 +209,6 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
     const { param, wallet, provider } = await this._resolveParams(args)
     const connectedWallet = wallet.connect(provider)
-
     const gasPrice = await connectedWallet.getGasPrice()
     const estimated = await connectedWallet.estimateGas({ ...param, gasLimit: undefined, gasPrice: undefined })
 

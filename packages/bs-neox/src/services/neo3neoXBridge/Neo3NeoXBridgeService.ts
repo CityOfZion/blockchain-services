@@ -4,6 +4,7 @@ import {
   BSPromisesHelper,
   INeo3NeoXBridgeService,
   TBridgeToken,
+  THexString,
   TNeo3NeoXBridgeServiceBridgeParam,
   TNeo3NeoXBridgeServiceConstants,
   TNeo3NeoXBridgeServiceGetApprovalParam,
@@ -59,6 +60,138 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     return await erc20Contract.populateTransaction.approve(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, amount)
   }
 
+  async #bridgeAntiMev(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>) {
+    const chainId = parseInt(this.#service.network.id)
+
+    if (isNaN(chainId)) {
+      throw new Error('Invalid chainId')
+    }
+
+    const signer = await this.#service.generateSigner(params.account)
+    let nonce = await signer.getTransactionCount()
+
+    if (isNaN(nonce)) {
+      throw new Error('Invalid nonce')
+    }
+
+    const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
+    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+    const to: THexString = `0x${wallet.getScriptHashFromAddress(params.receiverAddress)}`
+    const bridgeFee = ethers.utils.parseUnits(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals)
+    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
+    const transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = { type: 2 }
+    const gasPrice = await signer.getGasPrice()
+
+    if (isNativeToken) {
+      const populatedTransactionParams = await bridgeContract.populateTransaction.withdrawNative(to, bridgeFee)
+
+      Object.assign(transactionParams, populatedTransactionParams, {
+        value: ethers.utils.parseUnits(params.amount, params.token.decimals).add(bridgeFee),
+      })
+    } else {
+      const approveTransactionParam = await this.#buildApproveTransactionParam(params)
+
+      if (approveTransactionParam) {
+        const transactionHash = await this.#service.sendTransferAntiMev({
+          signer,
+          chainId,
+          nonce,
+          gasPrice,
+          params: approveTransactionParam,
+        })
+
+        const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
+
+        await provider.waitForTransaction(transactionHash)
+
+        nonce++
+      }
+
+      const fixedAmount = BSBigNumberHelper.format(params.amount, { decimals: 0 })
+      const amount = ethers.utils.parseUnits(fixedAmount, params.token.decimals)
+
+      const populatedTransactionParams = await bridgeContract.populateTransaction.withdrawToken(
+        params.token.hash,
+        to,
+        amount
+      )
+
+      Object.assign(transactionParams, populatedTransactionParams, { value: bridgeFee })
+    }
+
+    return await this.#service.sendTransferAntiMev({
+      signer,
+      chainId,
+      nonce,
+      gasPrice,
+      params: transactionParams,
+    })
+  }
+
+  async #bridgeDefault(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>) {
+    const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
+    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+    const to: THexString = `0x${wallet.getScriptHashFromAddress(params.receiverAddress)}`
+    const bridgeFee = ethers.utils.parseUnits(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals)
+    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
+    const transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = { type: 2 }
+    const signer = await this.#service.generateSigner(params.account)
+    const gasPrice = await signer.getGasPrice()
+    const gasParams = { maxPriorityFeePerGas: gasPrice, maxFeePerGas: gasPrice }
+    let gasLimit: ethers.BigNumberish
+
+    if (isNativeToken) {
+      const populatedTransactionParams = await bridgeContract.populateTransaction.withdrawNative(to, bridgeFee)
+
+      Object.assign(transactionParams, populatedTransactionParams, {
+        value: ethers.utils.parseUnits(params.amount, params.token.decimals).add(bridgeFee),
+      })
+    } else {
+      const approveTransactionParam = await this.#buildApproveTransactionParam(params)
+
+      if (approveTransactionParam) {
+        try {
+          gasLimit = await signer.estimateGas(approveTransactionParam)
+        } catch {
+          gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
+        }
+
+        const approveTransaction = await signer.sendTransaction({
+          ...approveTransactionParam,
+          ...gasParams,
+          gasLimit,
+        })
+
+        await approveTransaction.wait()
+      }
+
+      const fixedAmount = BSBigNumberHelper.format(params.amount, { decimals: 0 })
+      const amount = ethers.utils.parseUnits(fixedAmount, params.token.decimals)
+
+      const populatedTransactionParams = await bridgeContract.populateTransaction.withdrawToken(
+        params.token.hash,
+        to,
+        amount
+      )
+
+      Object.assign(transactionParams, populatedTransactionParams, { value: bridgeFee })
+    }
+
+    try {
+      gasLimit = await signer.estimateGas(transactionParams)
+    } catch {
+      gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
+    }
+
+    const transaction = await signer.sendTransaction({
+      ...transactionParams,
+      ...gasParams,
+      gasLimit,
+    })
+
+    return transaction.hash
+  }
+
   async getBridgeConstants(token: TBridgeToken<BSName>): Promise<TNeo3NeoXBridgeServiceConstants> {
     try {
       const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
@@ -104,9 +237,20 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
         throw new BSError('Allowance is already sufficient', 'ALLOWANCE_ALREADY_SUFFICIENT')
       }
 
-      const signer = await this.#service.generateSigner(params.account)
-      const approvedEstimated = await signer.estimateGas({ ...populatedApproveTransaction, type: 2 })
+      const chainId = parseInt(this.#service.network.id)
 
+      if (isNaN(chainId)) {
+        throw new Error('Invalid chainId')
+      }
+
+      const signer = await this.#service.generateSigner(params.account)
+      const nonce = await signer.getTransactionCount()
+
+      if (isNaN(nonce)) {
+        throw new Error('Invalid nonce')
+      }
+
+      const approvedEstimated = await signer.estimateGas({ ...populatedApproveTransaction, chainId, nonce, type: 2 })
       const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
       const gasPrice = await provider.getGasPrice()
 
@@ -121,68 +265,16 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
   }
 
   async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<BSName>): Promise<string> {
-    if (!BSNeoXHelper.isMainnetNetwork(this.#service.network))
+    if (!BSNeoXHelper.isMainnetNetwork(this.#service.network)) {
       throw new BSError('Bridging to Neo3 is only supported on mainnet', 'UNSUPPORTED_NETWORK')
-
-    const { account } = params
-
-    const signer = await this.#service.generateSigner(account)
-
-    const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
-
-    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
-
-    const to = '0x' + wallet.getScriptHashFromAddress(params.receiverAddress)
-    const bridgeFee = ethers.utils.parseUnits(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals)
-
-    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
-
-    let bridgeTransactionParam: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
-      type: 2,
     }
 
-    if (isNativeToken) {
-      const populatedTransaction = await bridgeContract.populateTransaction.withdrawNative(to, bridgeFee)
-      bridgeTransactionParam = {
-        ...bridgeTransactionParam,
-        ...populatedTransaction,
-        value: ethers.utils.parseUnits(params.amount, params.token.decimals).add(bridgeFee),
-      }
-    } else {
-      const approveTransactionParam = await this.#buildApproveTransactionParam(params)
-      if (approveTransactionParam) {
-        const approveTransaction = await signer.sendTransaction(approveTransactionParam)
-        await approveTransaction.wait()
-      }
+    const isAntiMevNetwork = BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[this.#service.network.id].some(
+      url => url === this.#service.network.url
+    )
 
-      const fixedAmount = BSBigNumberHelper.format(params.amount, { decimals: 0 })
-      const amount = ethers.utils.parseUnits(fixedAmount, params.token.decimals)
-
-      const populatedTransaction = await bridgeContract.populateTransaction.withdrawToken(params.token.hash, to, amount)
-
-      bridgeTransactionParam = {
-        ...bridgeTransactionParam,
-        ...populatedTransaction,
-        value: bridgeFee,
-      }
-    }
-
-    let gasLimit: ethers.BigNumberish
-    try {
-      gasLimit = await signer.estimateGas(bridgeTransactionParam)
-    } catch {
-      gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
-    }
-
-    const gasPrice = await signer.getGasPrice()
-
-    const transaction = await signer.sendTransaction({
-      ...bridgeTransactionParam,
-      gasLimit,
-      maxPriorityFeePerGas: gasPrice,
-      maxFeePerGas: gasPrice,
-    })
-    return transaction.hash
+    if (isAntiMevNetwork) return await this.#bridgeAntiMev(params)
+    else return await this.#bridgeDefault(params)
   }
 
   async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string> {

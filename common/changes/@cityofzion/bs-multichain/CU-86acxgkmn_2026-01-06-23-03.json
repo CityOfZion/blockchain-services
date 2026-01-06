@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Improve tests",
+      "type": "patch"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}

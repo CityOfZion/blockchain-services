@@ -271,6 +271,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
 
         let gasLimit: ethers.BigNumberish
+
         try {
           gasLimit = await signer.estimateGas(transactionParams)
         } catch {
@@ -286,13 +287,13 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
 
         transactionHash = transaction.hash
       } catch (err: any) {
-        error = err
+        if (!error) error = err
       }
 
       sentTransactionHashes.push(transactionHash)
     }
 
-    if (error && sentTransactionHashes.every(hash => !hash)) {
+    if (error && !sentTransactionHashes.some(hash => !!hash)) {
       throw error
     }
 

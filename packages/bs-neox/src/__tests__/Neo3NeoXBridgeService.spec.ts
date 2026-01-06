@@ -1,8 +1,10 @@
-import { TBSAccount, BSBigNumberHelper, BSError } from '@cityofzion/blockchain-service'
+import { TBSAccount, BSBigNumberHelper, BSError, TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSNeoX } from '../BSNeoX'
 import { Neo3NeoXBridgeService } from '../services/neo3neoXBridge/Neo3NeoXBridgeService'
 import { ethers } from 'ethers'
 import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
+import { BSNeoXConstants } from '../constants/BSNeoXConstants'
+import { TBSNeoXNetworkId } from '../types'
 
 let neo3NeoXBridgeService: Neo3NeoXBridgeService<'test'>
 let bsNeoXService: BSNeoX<'test'>
@@ -11,10 +13,22 @@ let receiverAddress: string
 
 const tokenService = new TokenServiceEthereum()
 
+const defaultNetwork: TBSNetwork<TBSNeoXNetworkId> = {
+  ...BSNeoXConstants.MAINNET_NETWORK,
+  url: BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.MAINNET_NETWORK.id].find(
+    url => !BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.MAINNET_NETWORK.id].includes(url)
+  )!,
+}
+
+const antiMevNetwork: TBSNetwork<TBSNeoXNetworkId> = {
+  ...BSNeoXConstants.MAINNET_NETWORK,
+  url: BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.MAINNET_NETWORK.id][0],
+}
+
 describe('Neo3NeoXBridgeService', () => {
   beforeAll(async () => {
     receiverAddress = process.env.TEST_BRIDGE_NEO3_ADDRESS
-    bsNeoXService = new BSNeoX('test')
+    bsNeoXService = new BSNeoX('test', defaultNetwork)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
 
     account = bsNeoXService.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
@@ -171,7 +185,38 @@ describe('Neo3NeoXBridgeService', () => {
       bridgeFee,
     })
 
-    expect(transactionHash).toBeDefined()
+    expect(transactionHash).toBeTruthy()
+  })
+
+  it.skip('Should be able to bridge GAS using Anti-MEV', async () => {
+    bsNeoXService = new BSNeoX('test', antiMevNetwork)
+    neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
+
+    const { bridgeFee, bridgeMinAmount } = await neo3NeoXBridgeService.getBridgeConstants(
+      neo3NeoXBridgeService.gasToken
+    )
+
+    const balances = await bsNeoXService.blockchainDataService.getBalance(account.address)
+
+    const gasBalance = balances.find(balance =>
+      tokenService.predicateByHash(neo3NeoXBridgeService.gasToken, balance.token)
+    )
+
+    if (!gasBalance) {
+      throw new Error('It seems you do not have GAS balance to bridge')
+    }
+
+    expect(BSBigNumberHelper.fromNumber(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+
+    const transactionHash = await neo3NeoXBridgeService.bridge({
+      account,
+      receiverAddress,
+      amount: bridgeMinAmount,
+      token: neo3NeoXBridgeService.gasToken,
+      bridgeFee,
+    })
+
+    expect(transactionHash).toBeTruthy()
   })
 
   it.skip('Should be able to bridge NEO', async () => {
@@ -186,7 +231,7 @@ describe('Neo3NeoXBridgeService', () => {
     )
 
     if (!neoBalance) {
-      throw new Error('It seems you do not have GAS balance to bridge')
+      throw new Error('It seems you do not have NEO balance to bridge')
     }
 
     expect(BSBigNumberHelper.fromNumber(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
@@ -199,6 +244,37 @@ describe('Neo3NeoXBridgeService', () => {
       bridgeFee,
     })
 
-    expect(transactionHash).toBeDefined()
+    expect(transactionHash).toBeTruthy()
+  })
+
+  it.skip('Should be able to bridge NEO using Anti-MEV', async () => {
+    bsNeoXService = new BSNeoX('test', antiMevNetwork)
+    neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
+
+    const { bridgeFee, bridgeMinAmount } = await neo3NeoXBridgeService.getBridgeConstants(
+      neo3NeoXBridgeService.neoToken
+    )
+
+    const balances = await bsNeoXService.blockchainDataService.getBalance(account.address)
+
+    const neoBalance = balances.find(balance =>
+      tokenService.predicateByHash(neo3NeoXBridgeService.neoToken, balance.token)
+    )
+
+    if (!neoBalance) {
+      throw new Error('It seems you do not have NEO balance to bridge')
+    }
+
+    expect(BSBigNumberHelper.fromNumber(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+
+    const transactionHash = await neo3NeoXBridgeService.bridge({
+      account,
+      receiverAddress,
+      amount: bridgeMinAmount,
+      token: neo3NeoXBridgeService.neoToken,
+      bridgeFee,
+    })
+
+    expect(transactionHash).toBeTruthy()
   })
 })

@@ -3,6 +3,7 @@ import {
   IWalletConnectService,
   TBSNetworkId,
   TWalletConnectServiceRequestMethodParams,
+  THexString,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { IBSEthereum, WalletConnectServiceEthereum } from '@cityofzion/bs-ethereum'
@@ -28,7 +29,7 @@ export class WalletConnectServiceNeoX<N extends string, A extends TBSNetworkId>
     return await connectedWallet.getTransactionCount()
   }
 
-  async eth_getCachedTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<`0x${string}`> {
+  async eth_getCachedTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<THexString> {
     const url = this._service.network.url
     const wallet = await this._service.generateSigner(args.account)
     const provider = new ethers.providers.JsonRpcProvider(url)
@@ -57,31 +58,11 @@ export class WalletConnectServiceNeoX<N extends string, A extends TBSNetworkId>
 
     const { wallet, provider, param } = await this._resolveParams(args)
     const connectedWallet = wallet.connect(provider)
+    const [response, error] = await BSPromisesHelper.tryCatch(() => connectedWallet.sendTransaction(param))
+    const transactionHash = response?.hash || error?.returnedHash
 
-    const [transactionResponse, transactionError] = await BSPromisesHelper.tryCatch(() =>
-      connectedWallet.sendTransaction(param)
-    )
-
-    const transactionHash = transactionResponse?.hash || transactionError?.returnedHash
-
-    if (!transactionHash) throw transactionError || new Error('Transaction error')
+    if (!transactionHash) throw error || new Error('Transaction error')
 
     return transactionHash
-  }
-
-  async eth_sendRawTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { wallet, provider, param } = await this._resolveParams(args)
-    const connectedWallet = wallet.connect(provider)
-    const signedTransaction = await connectedWallet.signTransaction(param)
-
-    // Keep using Axios because of the wallet, provider and connectedWallet don't have the eth_sendRawTransaction method
-    const transactionResponse = await axios.post(this._service.network.url, {
-      id: Date.now(),
-      jsonrpc: '2.0',
-      method: 'eth_sendRawTransaction',
-      params: [signedTransaction],
-    })
-
-    return transactionResponse.data.result
   }
 }
