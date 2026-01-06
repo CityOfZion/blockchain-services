@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Add bridge using Anti-MEV",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

@@ -1,9 +1,17 @@
 import { BSNeoX } from '../BSNeoX'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
-import { BSUtilsHelper } from '@cityofzion/blockchain-service'
+import { TBSNetwork } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import { TBSNeoXNetworkId } from '../types'
 
-const antiMevNetwork = {
+const defaultNetwork: TBSNetwork<TBSNeoXNetworkId> = {
+  ...BSNeoXConstants.TESTNET_NETWORK,
+  url: BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.TESTNET_NETWORK.id].find(
+    url => !BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.TESTNET_NETWORK.id].includes(url)
+  )!,
+}
+
+const antiMevNetwork: TBSNetwork<TBSNeoXNetworkId> = {
   ...BSNeoXConstants.TESTNET_NETWORK,
   url: BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.TESTNET_NETWORK.id][0],
 }
@@ -14,7 +22,7 @@ describe('BSNeoX', () => {
   let bsNeoX: BSNeoX<'test'>
 
   it('Should be able to transfer the native token (GAS) on TestNet', async () => {
-    bsNeoX = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
+    bsNeoX = new BSNeoX('test', defaultNetwork)
 
     const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
@@ -41,7 +49,7 @@ describe('BSNeoX', () => {
   })
 
   it('Should be able to transfer the NEO token on TestNet', async () => {
-    bsNeoX = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
+    bsNeoX = new BSNeoX('test', defaultNetwork)
 
     const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
@@ -70,7 +78,7 @@ describe('BSNeoX', () => {
   it.skip('Should be able to transfer the native token (GAS) on TestNet using Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK, async () => transport)
+    bsNeoX = new BSNeoX('test', defaultNetwork, async () => transport)
 
     const account = await bsNeoX.ledgerService.getAccount(transport, 0)
 
@@ -101,7 +109,7 @@ describe('BSNeoX', () => {
   it.skip('Should be able to transfer the NEO token on TestNet using Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK, async () => transport)
+    bsNeoX = new BSNeoX('test', defaultNetwork, async () => transport)
 
     const account = await bsNeoX.ledgerService.getAccount(transport, 0)
 
@@ -130,9 +138,6 @@ describe('BSNeoX', () => {
   }, 120000)
 
   it('Should be able to transfer the native token (GAS) on TestNet using Anti-MEV', async () => {
-    // To wait the updated nonce
-    await BSUtilsHelper.wait(30000)
-
     bsNeoX = new BSNeoX('test', antiMevNetwork)
 
     const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -160,9 +165,6 @@ describe('BSNeoX', () => {
   })
 
   it('Should be able to transfer the NEO token on TestNet using Anti-MEV', async () => {
-    // To wait the updated nonce
-    await BSUtilsHelper.wait(30000)
-
     bsNeoX = new BSNeoX('test', antiMevNetwork)
 
     const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -190,9 +192,6 @@ describe('BSNeoX', () => {
   })
 
   it.skip('Should be able to transfer the native token (GAS) on TestNet using Anti-MEV and Ledger', async () => {
-    // To wait the updated nonce
-    await BSUtilsHelper.wait(30000)
-
     const transport = await TransportNodeHid.create()
 
     bsNeoX = new BSNeoX('test', antiMevNetwork, async () => transport)
@@ -224,9 +223,6 @@ describe('BSNeoX', () => {
   }, 120000)
 
   it.skip('Should be able to transfer the NEO token on TestNet using Anti-MEV and Ledger', async () => {
-    // To wait the updated nonce
-    await BSUtilsHelper.wait(30000)
-
     const transport = await TransportNodeHid.create()
 
     bsNeoX = new BSNeoX('test', antiMevNetwork, async () => transport)

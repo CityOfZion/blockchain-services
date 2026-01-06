@@ -26,6 +26,7 @@ describe('Neo X Blockchain', () => {
         },
         symbol: 'XNAUTS',
         image: expect.any(String),
+        explorerUri: expect.any(String),
         isSVG: expect.any(Boolean),
         name: `NEONAUTS #${tokenHash}`,
         creator: {

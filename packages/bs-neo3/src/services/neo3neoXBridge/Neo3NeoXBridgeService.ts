@@ -108,8 +108,9 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
   }
 
   async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<N>): Promise<string> {
-    if (!BSNeo3Helper.isMainnetNetwork(this.#service.network))
+    if (!BSNeo3Helper.isMainnetNetwork(this.#service.network)) {
       throw new BSError('Bridging to NeoX is only supported on mainnet', 'UNSUPPORTED_NETWORK')
+    }
 
     const { account } = params
 
@@ -151,8 +152,9 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
 
     if (!isNativeToken) {
-      contractInvocation.args?.unshift({ type: 'Hash160', value: BSNeo3Constants.NEO_TOKEN.hash })
-      signer.allowedContracts?.push(BSNeo3Constants.NEO_TOKEN.hash)
+      contractInvocation.operation = 'depositToken'
+      contractInvocation.args!.unshift({ type: 'Hash160', value: BSNeo3Constants.NEO_TOKEN.hash })
+      signer.allowedContracts!.push(BSNeo3Constants.NEO_TOKEN.hash)
     }
 
     return await invoker.invokeFunction({

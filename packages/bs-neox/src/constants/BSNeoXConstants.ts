@@ -23,12 +23,12 @@ export class BSNeoXConstants {
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSNeoXNetworkId, string[]> = {
     '47763': [
+      ...this.ANTI_MEV_RPC_LIST_BY_NETWORK_ID['47763'],
       'https://mainnet-1.rpc.banelabs.org',
       'https://mainnet-2.rpc.banelabs.org',
       'https://mainnet-3.rpc.banelabs.org',
-      ...this.ANTI_MEV_RPC_LIST_BY_NETWORK_ID['47763'],
     ],
-    '12227332': ['https://testnet.rpc.banelabs.org', ...this.ANTI_MEV_RPC_LIST_BY_NETWORK_ID['12227332']],
+    '12227332': [...this.ANTI_MEV_RPC_LIST_BY_NETWORK_ID['12227332'], 'https://testnet.rpc.banelabs.org'],
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeoXNetworkId> = {

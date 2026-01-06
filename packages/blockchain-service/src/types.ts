@@ -60,3 +60,5 @@ export type TCryptoCompareEDSHistoryResponse = {
     close: number
   }[]
 }
+
+export type THexString = `0x${string}`

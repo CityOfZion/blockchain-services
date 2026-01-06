@@ -77,7 +77,7 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
 
     if (param.type === 2) {
       param.maxPriorityFeePerGas = param.maxPriorityFeePerGas ?? gasPrice
-      param.maxFeePerGas = param.maxPriorityFeePerGas ?? gasPrice
+      param.maxFeePerGas = param.maxFeePerGas ?? gasPrice
     } else {
       param.gasPrice = param.gasPrice ?? gasPrice
     }
@@ -87,21 +87,22 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
 
     if (!param.gasLimit) {
       try {
-        param.gasLimit = await connectedWallet.estimateGas({ ...param, gasPrice: undefined })
+        param.gasLimit = await connectedWallet.estimateGas({
+          ...param,
+          gasPrice: undefined,
+          maxFeePerGas: undefined,
+          maxPriorityFeePerGas: undefined,
+        })
       } catch {
         param.gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
       }
     }
 
     if (!param.nonce) {
-      param.nonce = await connectedWallet.getTransactionCount()
+      param.nonce = await connectedWallet.getTransactionCount('pending')
     }
 
-    return {
-      wallet,
-      provider,
-      param,
-    }
+    return { wallet, provider, param }
   }
 
   #convertHexToUtf8(value: string) {
@@ -209,9 +210,15 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
   async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
     const { param, wallet, provider } = await this._resolveParams(args)
     const connectedWallet = wallet.connect(provider)
-
     const gasPrice = await connectedWallet.getGasPrice()
-    const estimated = await connectedWallet.estimateGas({ ...param, gasLimit: undefined, gasPrice: undefined })
+
+    const estimated = await connectedWallet.estimateGas({
+      ...param,
+      gasLimit: undefined,
+      gasPrice: undefined,
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined,
+    })
 
     return ethers.utils.formatEther(gasPrice.mul(estimated))
   }

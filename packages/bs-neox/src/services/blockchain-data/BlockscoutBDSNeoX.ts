@@ -46,7 +46,8 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     '47763': `${BSCommonConstants.COZ_API_URL}/api/neox/mainnet`,
     '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
   }
-  static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSNeoXNetworkId[] = ['12227332', '47763']
+
+  static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSNeoXNetworkId[] = ['47763', '12227332']
   static readonly FULL_TRANSACTIONS_ERC721_STANDARDS = ['erc721', 'erc-721']
   static readonly FULL_TRANSACTIONS_ERC1155_STANDARDS = ['erc1155', 'erc-1155']
   static readonly FULL_TRANSACTIONS_ERC20_STANDARDS = ['erc20', 'erc-20']

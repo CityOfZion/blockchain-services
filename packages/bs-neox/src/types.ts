@@ -1,5 +1,6 @@
 import { IBSWithNeo3NeoXBridge, TBSNetworkId } from '@cityofzion/blockchain-service'
 import { ERC20_ABI, IBSEthereum } from '@cityofzion/bs-ethereum'
+import { ethers, Signer } from 'ethers'
 
 export type TBSNeoXNetworkId = TBSNetworkId<'47763' | '12227332'>
 
@@ -89,3 +90,9 @@ export type TBlockscoutBDSNeoXTokensApiResponse = {
 
 export type TNeo3NeoXBridgeServiceTransactionLogApiResponse = { items: { data: string; topics: any[] }[] }
 export type TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse = { txid: string | null }
+
+export type TSendTransactionParams = {
+  signer: Signer
+  gasPrice: ethers.BigNumberish
+  params: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
+}
