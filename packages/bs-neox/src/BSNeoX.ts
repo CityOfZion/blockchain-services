@@ -25,8 +25,6 @@ import { concat, keccak256, pad, parseTransaction, toBytes, toHex } from 'viem'
 
 type TSendTransferAntiMevParams = {
   signer: Signer
-  chainId: number
-  nonce: number
   gasPrice: ethers.BigNumberish
   params: Record<string, any>
 }
@@ -70,9 +68,16 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.walletConnectService = new WalletConnectServiceNeoX(this)
   }
 
-  async sendTransferAntiMev({ signer, chainId, nonce, gasPrice, params }: TSendTransferAntiMevParams) {
+  async sendTransaction({
+    signer,
+    gasPrice,
+    params,
+  }: TSendTransferAntiMevParams): Promise<ethers.providers.TransactionResponse> {
     const gasParams = { maxPriorityFeePerGas: gasPrice, maxFeePerGas: gasPrice }
     let gasLimit: ethers.BigNumberish
+
+    const chainId = parseInt(this.network.id)
+    const nonce = await signer.getTransactionCount()
 
     Object.assign(params, { chainId, nonce })
 
@@ -80,6 +85,20 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
       gasLimit = await signer.estimateGas(params)
     } catch {
       gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
+    }
+
+    const isAntiMevNetwork = BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[this.network.id].some(
+      url => url === this.network.url
+    )
+
+    if (!isAntiMevNetwork) {
+      const transactionResponse = await signer.sendTransaction({
+        ...params,
+        ...gasParams,
+        gasLimit,
+      })
+
+      return transactionResponse
     }
 
     const [, firstTransactionError] = await BSPromisesHelper.tryCatch(() =>
@@ -160,30 +179,13 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
 
     const transactionHash: string = transactionResponse?.hash || secondTransactionError?.returnedHash
 
-    if (!transactionHash) throw secondTransactionError || new Error('Transaction error')
+    if (!transactionHash || !transactionResponse) throw secondTransactionError || new Error('Transaction error')
 
-    return transactionHash
+    return transactionResponse
   }
 
   async transfer(params: TTransferParam<N>): Promise<string[]> {
-    const isAntiMevNetwork = BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[this.network.id].some(
-      url => url === this.network.url
-    )
-
-    if (!isAntiMevNetwork) return await super.transfer(params)
-
     const signer = await this.generateSigner(params.senderAccount)
-    let nonce = await signer.getTransactionCount()
-
-    if (isNaN(nonce)) {
-      throw new Error('Invalid nonce')
-    }
-
-    const chainId = +this.network.id
-
-    if (isNaN(chainId)) {
-      throw new Error('Invalid chainId')
-    }
 
     const transactionHashes: string[] = []
     let error: Error | undefined
@@ -192,17 +194,10 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
       try {
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
 
-        const transactionHash = await this.sendTransferAntiMev({
-          signer,
-          chainId,
-          nonce,
-          gasPrice,
-          params: transactionParams,
-        })
+        const transactionHash = await this.sendTransaction({ signer, gasPrice, params: transactionParams })
 
         if (transactionHash) {
-          transactionHashes.push(transactionHash)
-          nonce++
+          transactionHashes.push(transactionHash.hash)
         }
       } catch (newError: any) {
         console.error(newError)
