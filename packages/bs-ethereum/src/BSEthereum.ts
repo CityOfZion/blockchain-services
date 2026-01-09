@@ -260,7 +260,6 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
 
   async transfer(param: TTransferParam<N>): Promise<string[]> {
     const signer = await this.generateSigner(param.senderAccount)
-
     const sentTransactionHashes: string[] = []
     let error: Error | undefined
 
@@ -271,6 +270,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
 
         let gasLimit: ethers.BigNumberish
+
         try {
           gasLimit = await signer.estimateGas(transactionParams)
         } catch {
@@ -286,7 +286,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
 
         transactionHash = transaction.hash
       } catch (err: any) {
-        error = err
+        if (!error) error = err
       }
 
       sentTransactionHashes.push(transactionHash)
@@ -301,7 +301,6 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
 
   async calculateTransferFee(param: TTransferParam<N>): Promise<string> {
     const signer = await this.generateSigner(param.senderAccount)
-
     let fee = ethers.utils.parseEther('0')
 
     for (const intent of param.intents) {

@@ -10,9 +10,16 @@ import {
 } from '@cityofzion/blockchain-service'
 import { Neo3NeoXBridgeOrchestrator } from '../features/bridge'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
-import { BSNeoX } from '@cityofzion/bs-neox'
+import { BSNeoX, BSNeoXConstants } from '@cityofzion/bs-neox'
 
 type TBridgeBlockchains = 'neo3' | 'neox'
+
+const defaultNetwork = {
+  ...BSNeoXConstants.MAINNET_NETWORK,
+  url: BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.MAINNET_NETWORK.id].find(
+    url => !BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.MAINNET_NETWORK.id].includes(url)
+  )!,
+}
 
 let neo3Service: BSNeo3<TBridgeBlockchains>
 let neoXService: BSNeoX<TBridgeBlockchains>
@@ -44,7 +51,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     bridgeFee = { value: null, loading: false, error: null }
 
     neo3Service = new BSNeo3<'neo3' | 'neox'>('neo3')
-    neoXService = new BSNeoX<'neo3' | 'neox'>('neox')
+    neoXService = new BSNeoX<'neo3' | 'neox'>('neox', defaultNetwork)
 
     neo3NeoXBridgeOrchestrator = new Neo3NeoXBridgeOrchestrator<'neo3' | 'neox'>({
       neo3Service,

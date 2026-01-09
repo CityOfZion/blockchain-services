@@ -10,6 +10,7 @@ describe('FlamingoForthewinEDSNeox', () => {
     const service = new BSNeoX('test')
     flamingoForthewinEDSNeoX = new FlamingoForthewinEDSNeoX(service)
   })
+
   it('Should get token prices', async () => {
     const params: TGetTokenPricesParams = {
       tokens: [

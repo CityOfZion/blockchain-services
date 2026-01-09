@@ -10,8 +10,6 @@ declare global {
       TEST_XRP_EXTRA_ID_TO_SWAP_TOKEN: string
       TEST_BRIDGE_NEO3_PRIVATE_KEY: string
       TEST_BRIDGE_NEOX_PRIVATE_KEY: string
-      TEST_BRIDGE_NEO3_RECEIVE_ADDRESS: string
-      TEST_BRIDGE_NEOX_RECEIVE_ADDRESS: string
     }
   }
 }
