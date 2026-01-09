@@ -2,6 +2,29 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "1.7.0",
+      "tag": "@cityofzion/bs-neox_v1.7.0",
+      "date": "Fri, 09 Jan 2026 18:51:04 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add bridge using Anti-MEV"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.22.8`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.15.1`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.17.9`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.6.0",
       "tag": "@cityofzion/bs-neox_v1.6.0",
       "date": "Fri, 02 Jan 2026 18:27:28 GMT",

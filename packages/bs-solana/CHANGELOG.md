@@ -1,6 +1,11 @@
 # Change Log - @cityofzion/bs-solana
 
-This log was last generated on Fri, 02 Jan 2026 18:27:28 GMT and should not be manually modified.
+This log was last generated on Fri, 09 Jan 2026 18:51:04 GMT and should not be manually modified.
+
+## 2.0.11
+Fri, 09 Jan 2026 18:51:04 GMT
+
+_Version update only_
 
 ## 2.0.10
 Fri, 02 Jan 2026 18:27:28 GMT

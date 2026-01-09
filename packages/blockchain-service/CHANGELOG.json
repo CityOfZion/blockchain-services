@@ -2,6 +2,18 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.22.8",
+      "tag": "@cityofzion/blockchain-service_v1.22.8",
+      "date": "Fri, 09 Jan 2026 18:51:04 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add self config and add THexString type"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.22.7",
       "tag": "@cityofzion/blockchain-service_v1.22.7",
       "date": "Fri, 02 Jan 2026 18:27:28 GMT",

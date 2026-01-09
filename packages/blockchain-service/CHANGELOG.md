@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Fri, 02 Jan 2026 18:27:28 GMT and should not be manually modified.
+This log was last generated on Fri, 09 Jan 2026 18:51:04 GMT and should not be manually modified.
+
+## 1.22.8
+Fri, 09 Jan 2026 18:51:04 GMT
+
+### Patches
+
+- Add self config and add THexString type
 
 ## 1.22.7
 Fri, 02 Jan 2026 18:27:28 GMT

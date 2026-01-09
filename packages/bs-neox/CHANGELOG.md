@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Fri, 02 Jan 2026 18:27:28 GMT and should not be manually modified.
+This log was last generated on Fri, 09 Jan 2026 18:51:04 GMT and should not be manually modified.
+
+## 1.7.0
+Fri, 09 Jan 2026 18:51:04 GMT
+
+### Minor changes
+
+- Add bridge using Anti-MEV
 
 ## 1.6.0
 Fri, 02 Jan 2026 18:27:28 GMT
