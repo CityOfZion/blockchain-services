@@ -94,8 +94,7 @@ describe('BSNeoLegacy', () => {
         {
           amount: '0.00000001',
           receiverAddress: account.address,
-          tokenHash: gasBalance.token.hash,
-          tokenDecimals: gasBalance.token.decimals,
+          token: gasBalance.token,
         },
       ],
     })
@@ -115,40 +114,9 @@ describe('BSNeoLegacy', () => {
         {
           amount: '0.00000001',
           receiverAddress: account.address,
-          tokenHash: LXBalance.token.hash,
-          tokenDecimals: LXBalance.token.decimals,
+          token: LXBalance.token,
         },
       ],
-    })
-
-    expect(transactionHash).toEqual(expect.any(String))
-  })
-
-  it.skip('Should be able to transfer a asset with tip', async () => {
-    service.setNetwork(BSNeoLegacyConstants.MAINNET_NETWORK)
-    const account = service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-    const balance = await service.blockchainDataService.getBalance(account.address)
-    const LXBalance = balance.find(item => item.token.symbol === 'LX')!
-    expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000001)
-    const gasBalance = balance.find(item => item.token.symbol === service.feeToken.symbol)!
-    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
-
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
-          tokenHash: LXBalance.token.hash,
-          tokenDecimals: LXBalance.token.decimals,
-        },
-      ],
-      tipIntent: {
-        amount: '0.00000001',
-        receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
-        tokenHash: gasBalance.token.hash,
-        tokenDecimals: gasBalance.token.decimals,
-      },
     })
 
     expect(transactionHash).toEqual(expect.any(String))
@@ -171,20 +139,17 @@ describe('BSNeoLegacy', () => {
         {
           amount: '0.00000001',
           receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
-          tokenHash: LXBalance.token.hash,
-          tokenDecimals: LXBalance.token.decimals,
+          token: LXBalance.token,
         },
         {
           amount: '0.00000001',
           receiverAddress: 'AJybR5Uhwvs7WqGaruQ38dkyZkaKG9tyDK',
-          tokenHash: LXBalance.token.hash,
-          tokenDecimals: LXBalance.token.decimals,
+          token: LXBalance.token,
         },
         {
           amount: '0.00000001',
           receiverAddress: account.address,
-          tokenHash: gasBalance.token.hash,
-          tokenDecimals: gasBalance.token.decimals,
+          token: gasBalance.token,
         },
       ],
     })
@@ -211,8 +176,7 @@ describe('BSNeoLegacy', () => {
         {
           amount: '0.00000001',
           receiverAddress: 'Ac9hjKxteW3BvDyrhTxizkUxEShT8B4DaU',
-          tokenHash: service.feeToken.hash,
-          tokenDecimals: service.feeToken.decimals,
+          token: gasBalance!.token,
         },
       ],
     })

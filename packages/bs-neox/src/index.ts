@@ -12,4 +12,6 @@ export * from './services/nft-data/GhostMarketNDSNeoX'
 
 export * from './services/wallet-connect/WalletConnectServiceNeoX'
 
+export * from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
+
 export * from './types'

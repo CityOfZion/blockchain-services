@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Change the implementations to fit new blockchain-service interfaces",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}

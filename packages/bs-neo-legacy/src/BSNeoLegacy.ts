@@ -295,7 +295,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     return wallet.encrypt(key, password)
   }
 
-  async transfer({ intents, senderAccount, tipIntent, ...params }: TTransferParam<N>): Promise<string[]> {
+  async transfer({ intents, senderAccount, ...params }: TTransferParam<N>): Promise<string[]> {
     const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
 
     const { api, sc, u, wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
@@ -306,10 +306,8 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     const nativeIntents: ReturnType<typeof api.makeIntent> = []
     const nep5ScriptBuilder = new sc.ScriptBuilder()
 
-    const concatIntents = [...intents, ...(tipIntent ? [tipIntent] : [])]
-
-    for (const intent of concatIntents) {
-      const normalizeTokenHash = this.tokenService.normalizeHash(intent.tokenHash)
+    for (const intent of intents) {
+      const normalizeTokenHash = this.tokenService.normalizeHash(intent.token.hash)
 
       const nativeAsset = this.nativeTokens.find(token => this.tokenService.predicateByHash(normalizeTokenHash, token))
 
@@ -323,7 +321,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
         u.reverseHex(wallet.getScriptHashFromAddress(intent.receiverAddress)),
         sc.ContractParam.integer(
           new u.Fixed8(intent.amount)
-            .div(Math.pow(10, 8 - (intent.tokenDecimals ?? 8)))
+            .div(Math.pow(10, 8 - intent.token.decimals))
             .toRawNumber()
             .toString()
         ),

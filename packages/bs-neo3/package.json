@@ -22,12 +22,12 @@
     "@cityofzion/neon-js": "~5.7.0",
     "@cityofzion/neon-core": "~5.7.0",
     "@cityofzion/neon-dappkit": "~0.6.0",
-    "axios": "~1.12.2"
+    "axios": "~1.13.2"
   },
   "devDependencies": {
     "@cityofzion/neon-dappkit-types": "~0.5.0",
-    "@ledgerhq/hw-transport": "~6.31.11",
-    "@ledgerhq/hw-transport-node-hid": "~6.29.12",
+    "@ledgerhq/hw-transport": "~6.32.0",
+    "@ledgerhq/hw-transport-node-hid": "~6.30.0",
     "@types/jest": "~30.0.0",
     "date-fns": "~4.1.0",
     "dotenv": "~17.2.2",

@@ -6,20 +6,20 @@ import {
   TBridgeToken,
   TBSNetwork,
   TBSToken,
-  TBigNumber,
   type TTransaction,
   BSUtilsHelper,
   type TTransactionBridgeNeo3NeoX,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TContractResponse,
+  type TBSBigNumber,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
 import { BSEthereumConstants, ERC20_ABI, RpcBDSEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import { BRIDGE_ABI } from '../../assets/abis/bridge'
-import { Neo3NeoXBridgeService } from '../neo3neoXBridge/Neo3NeoXBridgeService'
+import { Neo3NeoXBridgeService } from '../neo3-neox-bridge/Neo3NeoXBridgeService'
 import {
   IBSNeoX,
   TBlockscoutBDSNeoXBalanceApiResponse,
@@ -464,7 +464,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     const receiverAddress = wallet.getAddressFromScriptHash(to.startsWith('0x') ? to.slice(2) : to)
 
     let token: TBridgeToken | undefined
-    let amountBn: TBigNumber | undefined
+    let amountBn: TBSBigNumber | undefined
 
     if (input.name === 'withdrawNative') {
       token = this._service.neo3NeoXBridgeService.gasToken

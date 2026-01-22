@@ -13,7 +13,7 @@ import { WalletConnectServiceNeoX } from './services/wallet-connect/WalletConnec
 import { FlamingoForthewinEDSNeoX } from './services/exchange-data/FlamingoForthewinEDSNeoX'
 import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
 import { GhostMarketNDSNeoX } from './services/nft-data/GhostMarketNDSNeoX'
-import { Neo3NeoXBridgeService } from './services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
 import { IBSNeoX, TBSNeoXNetworkId, TSendTransactionParams } from './types'
 import { ethers } from 'ethers'
 import axios from 'axios'
@@ -63,7 +63,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.fullTransactionsDataService = new BlockscoutFullTransactionsDataService(this)
   }
 
-  async sendTransaction({ signer, gasPrice, params }: TSendTransactionParams) {
+  async _sendTransaction({ signer, gasPrice, params }: TSendTransactionParams) {
     const chainId = parseInt(this.network.id)
 
     if (isNaN(chainId)) {
@@ -189,7 +189,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     for (const intent of params.intents) {
       try {
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
-        const transactionHash = await this.sendTransaction({ signer, gasPrice, params: transactionParams })
+        const transactionHash = await this._sendTransaction({ signer, gasPrice, params: transactionParams })
 
         transactionHashes.push(transactionHash)
       } catch (newError: any) {

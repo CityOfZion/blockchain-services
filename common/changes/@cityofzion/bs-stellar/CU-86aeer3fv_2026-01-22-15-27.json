@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Add Stellar initial implementation",
+      "type": "major"
+    }
+  ],
+  "packageName": "@cityofzion/bs-stellar"
+}

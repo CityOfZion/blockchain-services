@@ -1,6 +1,6 @@
 import { TBSAccount, BSBigNumberHelper, BSError, TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSNeoX } from '../BSNeoX'
-import { Neo3NeoXBridgeService } from '../services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { Neo3NeoXBridgeService } from '../services/neo3-neox-bridge/Neo3NeoXBridgeService'
 import { ethers } from 'ethers'
 import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'

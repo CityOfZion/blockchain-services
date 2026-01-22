@@ -10,6 +10,20 @@ let wallet: ethers.Wallet
 let account: TBSAccount
 let nativeToken: TBSToken
 
+const usdcToken: TBSToken = {
+  name: 'USD Coin',
+  symbol: 'USDC',
+  decimals: 6,
+  hash: '0x1291070C5f838DCCDddc56312893d3EfE9B372a8',
+}
+
+const ktkToken: TBSToken = {
+  name: 'KerryToken',
+  symbol: 'KTK',
+  decimals: 18,
+  hash: '0xcf185f2F3Fe19D82bFdcee59E3330FD7ba5f27ce',
+}
+
 describe('BSEthereum', () => {
   beforeEach(async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
@@ -102,8 +116,7 @@ describe('BSEthereum', () => {
         {
           amount: '0.1',
           receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-          tokenDecimals: 18,
-          tokenHash: '0xBA62BCfcAaFc6622853cca2BE6Ac7d845BC0f2Dc',
+          token: usdcToken,
         },
       ],
     })
@@ -120,8 +133,7 @@ describe('BSEthereum', () => {
         {
           amount: '0.00000001',
           receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-          tokenDecimals: 18,
-          tokenHash: nativeToken.hash,
+          token: nativeToken,
         },
       ],
     })
@@ -138,8 +150,7 @@ describe('BSEthereum', () => {
         {
           amount: '0.00001',
           receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-          tokenDecimals: 6,
-          tokenHash: '0x1291070C5f838DCCDddc56312893d3EfE9B372a8',
+          token: usdcToken,
         },
       ],
     })
@@ -158,8 +169,7 @@ describe('BSEthereum', () => {
         {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          tokenDecimals: 18,
-          tokenHash: nativeToken.hash,
+          token: nativeToken,
         },
       ],
     })
@@ -180,8 +190,7 @@ describe('BSEthereum', () => {
         {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          tokenDecimals: 18,
-          tokenHash: '0xcf185f2F3Fe19D82bFdcee59E3330FD7ba5f27ce',
+          token: ktkToken,
         },
       ],
     })
@@ -206,8 +215,7 @@ describe('BSEthereum', () => {
         {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          tokenDecimals: 18,
-          tokenHash: nativeToken.hash,
+          token: service.nativeTokens[0],
         },
       ],
     })
@@ -224,14 +232,12 @@ describe('BSEthereum', () => {
         {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          tokenDecimals: 18,
-          tokenHash: nativeToken.hash,
+          token: nativeToken,
         },
         {
           amount: '0.00000001',
           receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-          tokenDecimals: 18,
-          tokenHash: nativeToken.hash,
+          token: nativeToken,
         },
       ],
     })
@@ -248,14 +254,12 @@ describe('BSEthereum', () => {
         {
           amount: '0.00000001',
           receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          tokenDecimals: 18,
-          tokenHash: nativeToken.hash,
+          token: nativeToken,
         },
         {
           amount: '0.00000001',
           receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-          tokenDecimals: 18,
-          tokenHash: nativeToken.hash,
+          token: nativeToken,
         },
       ],
     })

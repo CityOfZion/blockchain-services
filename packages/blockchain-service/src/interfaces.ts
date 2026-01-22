@@ -33,15 +33,13 @@ export type TBSNetwork<T extends string = string> = {
 
 export type TIntentTransferParam = {
   receiverAddress: string
-  tokenHash: string
   amount: string
-  tokenDecimals?: number
+  token: TBSToken
 }
 
 export type TTransferParam<N extends string = string> = {
   senderAccount: TBSAccount<N>
   intents: TIntentTransferParam[]
-  tipIntent?: TIntentTransferParam
   priorityFee?: string
 }
 
@@ -70,8 +68,8 @@ export interface IBlockchainService<N extends string = string, A extends string 
   blockchainDataService: IBlockchainDataService
   tokenService: ITokenService
 
-  pingNode: (url: string) => Promise<TPingNetworkResponse>
-  setNetwork: (network: TBSNetwork<A>) => void
+  pingNode(url: string): Promise<TPingNetworkResponse>
+  setNetwork(network: TBSNetwork<A>): void
   generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N>
   generateAccountFromKey(key: string): TBSAccount<N>
   validateAddress(address: string): boolean
@@ -315,9 +313,9 @@ export type TBuildNftUrlParams = {
   tokenHash: string
 }
 export interface IExplorerService {
-  buildTransactionUrl(hash: string): string
-  buildContractUrl(contractHash: string): string
-  buildNftUrl(params: TBuildNftUrlParams): string
+  buildTransactionUrl(hash: string): string | undefined
+  buildContractUrl(contractHash: string): string | undefined
+  buildNftUrl(params: TBuildNftUrlParams): string | undefined
   getAddressTemplateUrl(): string | undefined
   getTxTemplateUrl(): string | undefined
   getNftTemplateUrl(): string | undefined

@@ -42,6 +42,7 @@ export class WalletConnectServiceNeo3<N extends string> implements IWalletConnec
 
     this.chain = `${this.namespace}:${networkId}`
   }
+
   [methodName: string]: any
 
   async #getInvoker(args: TWalletConnectServiceRequestMethodParams<N>) {

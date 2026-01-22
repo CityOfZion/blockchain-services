@@ -101,8 +101,7 @@ describe('BSNeo3', () => {
         {
           amount: '0.00000001',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: bsNeo3.feeToken.hash,
-          tokenDecimals: bsNeo3.feeToken.decimals,
+          token: BSNeo3Constants.GAS_TOKEN,
         },
       ],
     })
@@ -122,8 +121,7 @@ describe('BSNeo3', () => {
         {
           amount: '0.00000001',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: bsNeo3.feeToken.hash,
-          tokenDecimals: bsNeo3.feeToken.decimals,
+          token: BSNeo3Constants.GAS_TOKEN,
         },
       ],
     })
@@ -147,8 +145,7 @@ describe('BSNeo3', () => {
         {
           amount: '1',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: service.feeToken.hash,
-          tokenDecimals: service.feeToken.decimals,
+          token: BSNeo3Constants.GAS_TOKEN,
         },
       ],
     })
@@ -172,8 +169,6 @@ describe('BSNeo3', () => {
 
   it.skip('Should be able to calculate transfer fee more than one intent', async () => {
     const account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-    const NEO = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'NEO')!
-    const GAS = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'GAS')!
 
     const fee = await bsNeo3.calculateTransferFee({
       senderAccount: account,
@@ -181,14 +176,12 @@ describe('BSNeo3', () => {
         {
           amount: '0.00000001',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: GAS.hash,
-          tokenDecimals: GAS.decimals,
+          token: BSNeo3Constants.GAS_TOKEN,
         },
         {
           amount: '1',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: NEO.hash,
-          tokenDecimals: NEO.decimals,
+          token: BSNeo3Constants.NEO_TOKEN,
         },
       ],
     })
@@ -215,14 +208,12 @@ describe('BSNeo3', () => {
         {
           amount: '0.00000001',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: GAS.hash,
-          tokenDecimals: GAS.decimals,
+          token: BSNeo3Constants.GAS_TOKEN,
         },
         {
           amount: '1',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: NEO.hash,
-          tokenDecimals: NEO.decimals,
+          token: BSNeo3Constants.NEO_TOKEN,
         },
       ],
     })
@@ -253,14 +244,12 @@ describe('BSNeo3', () => {
         {
           amount: '0.00000001',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: GAS.hash,
-          tokenDecimals: GAS.decimals,
+          token: BSNeo3Constants.GAS_TOKEN,
         },
         {
           amount: '1',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          tokenHash: NEO.hash,
-          tokenDecimals: NEO.decimals,
+          token: BSNeo3Constants.NEO_TOKEN,
         },
       ],
     })

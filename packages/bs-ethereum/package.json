@@ -24,13 +24,13 @@
     "@ethersproject/bignumber": "5.8.0",
     "@ethersproject/json-wallets": "5.8.0",
     "@ethersproject/properties": "5.8.0",
-    "@ledgerhq/hw-app-eth": "~6.45.19",
-    "axios": "~1.12.2",
+    "@ledgerhq/hw-app-eth": "~7.3.0",
+    "axios": "~1.13.2",
     "ethers": "5.8.0"
   },
   "devDependencies": {
-    "@ledgerhq/hw-transport": "~6.31.11",
-    "@ledgerhq/hw-transport-node-hid": "~6.29.12",
+    "@ledgerhq/hw-transport": "~6.32.0",
+    "@ledgerhq/hw-transport-node-hid": "~6.30.0",
     "@types/jest": "~30.0.0",
     "date-fns": "~4.1.0",
     "dotenv": "~17.2.2",

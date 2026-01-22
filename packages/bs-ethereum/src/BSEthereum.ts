@@ -76,17 +76,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   protected async _buildTransferParams(intent: TIntentTransferParam) {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
-    let decimals = intent.tokenDecimals
-    if (!decimals) {
-      try {
-        const token = await this.blockchainDataService.getTokenInfo(intent.tokenHash)
-        decimals = token.decimals
-      } catch {
-        decimals = 18
-      }
-    }
-
-    const amount = ethersBigNumber.parseFixed(intent.amount, decimals)
+    const amount = ethersBigNumber.parseFixed(intent.amount, intent.token.decimals)
 
     const gasPrice = await provider.getGasPrice()
 
@@ -94,13 +84,13 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
       type: 2,
     }
 
-    const isNative = this.tokenService.predicateByHash(this.feeToken, intent.tokenHash)
+    const isNative = this.tokenService.predicateByHash(this.feeToken, intent.token.hash)
 
     if (isNative) {
       transactionParams.to = intent.receiverAddress
       transactionParams.value = amount
     } else {
-      const contract = new ethers.Contract(intent.tokenHash, [
+      const contract = new ethers.Contract(intent.token.hash, [
         'function transfer(address to, uint amount) returns (bool)',
       ])
       const populatedTransaction = await contract.populateTransaction.transfer(intent.receiverAddress, amount)

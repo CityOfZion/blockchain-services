@@ -7,15 +7,15 @@ complexity of each one with a single interface.
 ## Available packages
 | Package                        | Description                                                                                                                                                    |
 |--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| @cityofzion/blockchain-service | Contains the main interfaces and methods used by different blockchain implementations, as well as utility classes like an aggregator and exchange data service |                                                                   |
+| @cityofzion/blockchain-service | Contains the main interfaces and methods used by different blockchain implementations, as well as utility classes like an aggregator and exchange data service |
 | @cityofzion/bs-electron        | Responsible for leveraging the communication between main and renderer process, exposing the API to be used in Electron                                        |
 | @cityofzion/bs-ethereum        | Implementation of interfaces and methods for the Ethereum blockchain                                                                                           |
 | @cityofzion/bs-neo3            | Implementation of interfaces and methods for the NEO 3 blockchain                                                                                              |
 | @cityofzion/bs-neo-legacy      | Implementation of interfaces and methods for the NEO Legacy (NEO 2) blockchain                                                                                 |
-| @cityofzion/bs-multichain            | Implementation of interfaces and methods for multichain features                                                                                                        |
+| @cityofzion/bs-multichain      | Implementation of interfaces and methods for multichain features                                                                                               |
 | @cityofzion/bs-neox            | Implementation of interfaces and methods for the Neo X blockchain                                                                                              |
 | @cityofzion/bs-solana          | Implementation of interfaces and methods for the Solana blockchain                                                                                             |
-
+| @cityofzion/bs-stellar         | Implementation of interfaces and methods for the Stellar blockchain                                                                                            |
 
 ## Technologies Used
 - **TypeScript**

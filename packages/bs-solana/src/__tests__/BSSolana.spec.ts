@@ -11,6 +11,13 @@ let bsSolana: BSSolana<'test'>
 const mnemonic = process.env.TEST_MNEMONIC as string
 let accountKeypair: { base58Key: string; base58Address: string; bufferKey: string }
 
+const splToken = {
+  hash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+  name: 'Test SPL Token',
+  symbol: 'TST',
+  decimals: 6,
+}
+
 describe('BSSolana', () => {
   beforeEach(async () => {
     bsSolana = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
@@ -90,8 +97,7 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: accountKeypair.base58Address,
-          tokenDecimals: 9,
-          tokenHash: '-',
+          token: BSSolanaConstants.NATIVE_TOKEN,
         },
       ],
     })
@@ -109,8 +115,7 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: accountKeypair.base58Address,
-          tokenDecimals: 6,
-          tokenHash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+          token: splToken,
         },
       ],
     })
@@ -128,14 +133,12 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: accountKeypair.base58Address,
-          tokenDecimals: 9,
-          tokenHash: '-',
+          token: BSSolanaConstants.NATIVE_TOKEN,
         },
         {
           amount: '0.1',
           receiverAddress: accountKeypair.base58Address,
-          tokenDecimals: 6,
-          tokenHash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+          token: splToken,
         },
       ],
     })
@@ -153,8 +156,7 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 9,
-          tokenHash: '-',
+          token: BSSolanaConstants.NATIVE_TOKEN,
         },
       ],
     })
@@ -173,8 +175,7 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 6,
-          tokenHash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+          token: splToken,
         },
       ],
     })
@@ -193,14 +194,12 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 9,
-          tokenHash: '-',
+          token: BSSolanaConstants.NATIVE_TOKEN,
         },
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 6,
-          tokenHash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+          token: splToken,
         },
       ],
     })
@@ -235,14 +234,12 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 9,
-          tokenHash: '-',
+          token: BSSolanaConstants.NATIVE_TOKEN,
         },
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 6,
-          tokenHash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+          token: splToken,
         },
       ],
     })
@@ -262,8 +259,7 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 9,
-          tokenHash: '-',
+          token: BSSolanaConstants.NATIVE_TOKEN,
         },
       ],
     })
@@ -284,8 +280,7 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 6,
-          tokenHash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+          token: splToken,
         },
       ],
     })
@@ -306,14 +301,12 @@ describe('BSSolana', () => {
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 9,
-          tokenHash: '-',
+          token: BSSolanaConstants.NATIVE_TOKEN,
         },
         {
           amount: '0.1',
           receiverAddress: receiverAccount.address,
-          tokenDecimals: 6,
-          tokenHash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
+          token: splToken,
         },
       ],
     })

@@ -27,8 +27,8 @@
     "viem": "~2.38.5"
   },
   "devDependencies": {
-    "@ledgerhq/hw-transport": "~6.31.14",
-    "@ledgerhq/hw-transport-node-hid": "~6.29.15",
+    "@ledgerhq/hw-transport": "~6.32.0",
+    "@ledgerhq/hw-transport-node-hid": "~6.30.0",
     "@types/jest": "~30.0.0",
     "date-fns": "~4.1.0",
     "dotenv": "~17.2.2",

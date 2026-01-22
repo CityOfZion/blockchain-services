@@ -45,6 +45,44 @@ export class BSKeychainHelper {
     return key.toString('hex')
   }
 
+  static generateEd25519KeyFromMnemonic(mnemonic: string, path: string) {
+    const seed = bip39.mnemonicToSeedSync(mnemonic)
+
+    const hmac = crypto.createHmac('sha512', 'ed25519 seed')
+    const I = hmac.update(seed).digest()
+    const masterKey = I.subarray(0, 32)
+    const masterChainCode = I.subarray(32)
+
+    const segments = path
+      .split('/')
+      .slice(1)
+      .map((segment: string) => {
+        const isHardened = segment.endsWith("'")
+        const index = parseInt(segment.replace("'", ''), 10)
+
+        // For Ed25519, all derivations must be hardened
+        // Add 0x80000000 for hardened derivation
+        return isHardened ? index + 0x80000000 : index
+      })
+    const { key } = segments.reduce(
+      (parentKeys, index) => {
+        const indexBuffer = Buffer.alloc(4)
+        indexBuffer.writeUInt32BE(index, 0)
+
+        const data = Buffer.concat([Buffer.alloc(1, 0), parentKeys.key, indexBuffer])
+        const childI = crypto.createHmac('sha512', parentKeys.chainCode).update(data).digest()
+
+        const childKey = childI.subarray(0, 32)
+        const childChainCode = childI.subarray(32)
+
+        return { key: childKey, chainCode: childChainCode }
+      },
+      { key: masterKey, chainCode: masterChainCode }
+    )
+
+    return key
+  }
+
   static generateMnemonic() {
     return bip39.generateMnemonic(128)
   }
@@ -65,5 +103,9 @@ export class BSKeychainHelper {
 
   static getBip44Path(path: string, order = 0) {
     return path.replace('?', order.toString())
+  }
+
+  static fixBip44Path(bip44Path: string) {
+    return bip44Path.replace('m/', '')
   }
 }

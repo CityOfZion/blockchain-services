@@ -416,6 +416,8 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
       !this.#amountToUse.value ||
       !this.#amountToReceive.value ||
       !this.#tokenToUse.value.hash ||
+      this.#tokenToUse.value.decimals === undefined ||
+      isNaN(this.#tokenToUse.value.decimals) ||
       (this.#tokenToReceive.value.hasExtraId &&
         (!this.#extraIdToReceive.valid || !this.#extraIdToReceive.value?.trim()))
     ) {
@@ -449,8 +451,12 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
           {
             amount: this.#amountToUse.value,
             receiverAddress: depositAddress,
-            tokenHash: this.#tokenToUse.value.hash,
-            tokenDecimals: this.#tokenToUse.value.decimals,
+            token: {
+              decimals: this.#tokenToUse.value.decimals,
+              hash: this.#tokenToUse.value.hash,
+              name: this.#tokenToUse.value.name,
+              symbol: this.#tokenToUse.value.symbol,
+            },
           },
         ],
       })
@@ -472,7 +478,9 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
       !this.#addressToReceive.valid ||
       !this.#amountToUse.value ||
       !this.#amountToReceive.value ||
-      !this.#tokenToUse.value.hash
+      !this.#tokenToUse.value.hash ||
+      this.#tokenToUse.value.decimals === undefined ||
+      isNaN(this.#tokenToUse.value.decimals)
     ) {
       throw new Error('Not all required fields are set')
     }
@@ -491,8 +499,12 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
             this.#tokenToReceive.value.blockchain === blockchain
               ? this.#addressToReceive.value
               : this.#accountToUse.value.address,
-          tokenHash: this.#tokenToUse.value.hash,
-          tokenDecimals: this.#tokenToUse.value.decimals,
+          token: {
+            decimals: this.#tokenToUse.value.decimals,
+            hash: this.#tokenToUse.value.hash,
+            name: this.#tokenToUse.value.name,
+            symbol: this.#tokenToUse.value.symbol,
+          },
         },
       ],
     })
