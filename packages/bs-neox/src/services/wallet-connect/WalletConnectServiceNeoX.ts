@@ -1,9 +1,9 @@
 import {
-  BSPromisesHelper,
   IWalletConnectService,
   TBSNetworkId,
   TWalletConnectServiceRequestMethodParams,
   THexString,
+  BSUtilsHelper,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { IBSEthereum, WalletConnectServiceEthereum } from '@cityofzion/bs-ethereum'
@@ -51,7 +51,7 @@ export class WalletConnectServiceNeoX<N extends string, A extends TBSNetworkId>
   async eth_sendTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
     const { wallet, provider, param } = await this._resolveParams(args)
     const connectedWallet = wallet.connect(provider)
-    const [response, error] = await BSPromisesHelper.tryCatch(() => connectedWallet.sendTransaction(param))
+    const [response, error] = await BSUtilsHelper.tryCatch(() => connectedWallet.sendTransaction(param))
     const transactionHash: string = response?.hash || error?.returnedHash
 
     if (!transactionHash) throw error || new Error('Transaction error')

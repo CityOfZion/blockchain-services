@@ -118,86 +118,21 @@ export interface IBSWithWalletConnect {
   walletConnectService: IWalletConnectService
 }
 
-export type TTransactionNotificationTypedResponse = {
-  type: string
-  value?: string
+export interface IBSWithFullTransactions {
+  fullTransactionsDataService: IFullTransactionsDataService
 }
-
-export type TTransactionNotificationStateResponse = {
-  type: string
-  value?: string | TTransactionNotificationTypedResponse[]
-}
-
-export type TTransactionNotifications = {
-  eventName: string
-  state?: TTransactionNotificationStateResponse | TTransactionNotificationStateResponse[]
-}
-export type TTransactionTransferAsset = {
-  amount: string
-  to: string
-  from: string
-  type: 'token'
-  contractHash: string
-  token?: TBSToken
-}
-export type TTransactionTransferNft = {
-  tokenHash: string
-  to: string
-  from: string
-  type: 'nft'
-  collectionHash: string
-}
-
-type TTransactionDefaultResponse = {
-  type: 'default'
-}
-
-export type TransactionBridgeNeo3NeoXResponse = {
-  type: 'bridgeNeo3NeoX'
-  data: {
-    amount: string
-    token: TBridgeToken
-    receiverAddress: string
-  }
-}
-
-export type TTransactionResponse = {
-  hash: string
-  block: number
-  time: number
-  transfers: (TTransactionTransferAsset | TTransactionTransferNft)[]
-  fee?: string
-  notifications: TTransactionNotifications[]
-} & (TTransactionDefaultResponse | TransactionBridgeNeo3NeoXResponse)
 
 export type TContractParameter = {
   name: string
   type: string
 }
-export type TTransactionsByAddressResponse = {
-  transactions: TTransactionResponse[]
-  nextPageParams?: any
-}
-export type TTransactionsByAddressParams = {
+
+export type TGetTransactionsByAddressParams = {
   address: string
   nextPageParams?: any
 }
 
-export type TFullTransactionsByAddressParams = {
-  address: string
-  dateFrom: string
-  dateTo: string
-  pageSize?: number
-  nextCursor?: string
-}
-
-export type TExportTransactionsByAddressParams = {
-  address: string
-  dateFrom: string
-  dateTo: string
-}
-
-export type TFullTransactionNftEvent = {
+export type TTransactionNftEvent = {
   eventType: 'nft'
   amount?: string
   methodName: string
@@ -215,7 +150,7 @@ export type TFullTransactionNftEvent = {
   collectionName?: string
 }
 
-export type TFullTransactionAssetEvent = {
+export type TTransactionTokenEvent = {
   eventType: 'token'
   amount?: string
   methodName: string
@@ -229,11 +164,11 @@ export type TFullTransactionAssetEvent = {
   tokenType: 'generic' | (string & NonNullable<unknown>)
 }
 
-type TFullTransactionsItemDefault = {
+type TTransactionDefault = {
   type: 'default'
 }
 
-export type TFullTransactionsItemBridgeNeo3NeoX = {
+export type TTransactionBridgeNeo3NeoX = {
   type: 'bridgeNeo3NeoX'
   data: {
     amount: string
@@ -242,7 +177,7 @@ export type TFullTransactionsItemBridgeNeo3NeoX = {
   }
 }
 
-export type TFullTransactionsItem = {
+export type TTransaction = {
   txId: string
   txIdUrl?: string
   block: number
@@ -251,23 +186,25 @@ export type TFullTransactionsItem = {
   notificationCount: number
   networkFeeAmount?: string
   systemFeeAmount?: string
-  events: (TFullTransactionAssetEvent | TFullTransactionNftEvent)[]
-} & (TFullTransactionsItemDefault | TFullTransactionsItemBridgeNeo3NeoX)
+  events: (TTransactionTokenEvent | TTransactionNftEvent)[]
+} & (TTransactionDefault | TTransactionBridgeNeo3NeoX)
 
-export type TFullTransactionsByAddressResponse = {
-  nextCursor?: string
-  data: TFullTransactionsItem[]
+export type TGetTransactionsByAddressResponse = {
+  nextPageParams?: any
+  data: TTransaction[]
 }
 
 export type TContractMethod = {
   name: string
   parameters: TContractParameter[]
 }
-export type ContractResponse = {
+
+export type TContractResponse = {
   hash: string
   name: string
   methods: TContractMethod[]
 }
+
 export type TBalanceResponse = {
   amount: string
   token: TBSToken
@@ -276,14 +213,31 @@ export type TBalanceResponse = {
 export interface IBlockchainDataService {
   readonly maxTimeToConfirmTransactionInMs: number
 
-  getTransaction(txid: string): Promise<TTransactionResponse>
-  getTransactionsByAddress(params: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse>
-  getFullTransactionsByAddress(params: TFullTransactionsByAddressParams): Promise<TFullTransactionsByAddressResponse>
-  exportFullTransactionsByAddress(params: TExportTransactionsByAddressParams): Promise<string>
-  getContract(contractHash: string): Promise<ContractResponse>
+  getTransaction(txid: string): Promise<TTransaction>
+  getTransactionsByAddress(params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse>
+  getContract(contractHash: string): Promise<TContractResponse>
   getTokenInfo(tokenHash: string): Promise<TBSToken>
   getBalance(address: string): Promise<TBalanceResponse[]>
   getBlockHeight(): Promise<number>
+}
+
+export type TGetFullTransactionsByAddressParams = {
+  address: string
+  dateFrom: string
+  dateTo: string
+  pageSize?: number
+  nextPageParams?: any
+}
+
+export type TExportFullTransactionsByAddressParams = {
+  address: string
+  dateFrom: string
+  dateTo: string
+}
+
+export interface IFullTransactionsDataService {
+  getFullTransactionsByAddress(params: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse>
+  exportFullTransactionsByAddress(params: TExportFullTransactionsByAddressParams): Promise<string>
 }
 
 export interface IClaimDataService {

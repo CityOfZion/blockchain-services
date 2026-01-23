@@ -49,4 +49,22 @@ export class BSUtilsHelper {
 
     return rpcNetworkUrls.some(url => url === network.url)
   }
+
+  static tryCatch<T>(
+    callback: () => T
+  ): T extends Promise<infer R> ? Promise<[R, undefined] | [undefined, any]> : [T, undefined] | [undefined, any] {
+    try {
+      const result = callback()
+
+      if (result instanceof Promise) {
+        return result
+          .then(res => [res, undefined] as [typeof res, undefined])
+          .catch(err => [undefined, err as Error] as [undefined, Error]) as any
+      }
+
+      return [result, undefined] as any
+    } catch (error) {
+      return [undefined, error as Error] as any
+    }
+  }
 }

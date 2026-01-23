@@ -13,6 +13,7 @@ import {
   BSUtilsHelper,
   TPingNetworkResponse,
   IWalletConnectService,
+  type IFullTransactionsDataService,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
@@ -30,6 +31,7 @@ import { IBSEthereum, TBSEthereumNetworkId, TSupportedEVM } from './types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { WalletConnectServiceEthereum } from './services/wallet-connect/WalletConnectServiceEthereum'
 import axios from 'axios'
+import { MoralisFullTransactionsDataServiceEthereum } from './services/full-transactions-data/MoralisFullTransactionsDataServiceEthereum'
 
 export class BSEthereum<N extends string = string, A extends string = TBSEthereumNetworkId>
   implements IBSEthereum<N, A>
@@ -56,6 +58,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   explorerService!: IExplorerService
   tokenService!: ITokenService
   walletConnectService!: IWalletConnectService
+  fullTransactionsDataService!: IFullTransactionsDataService
 
   constructor(name: N, evm?: TSupportedEVM, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -155,6 +158,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     this.blockchainDataService = new MoralisBDSEthereum(this)
     this.tokenService = new TokenServiceEthereum()
     this.walletConnectService = new WalletConnectServiceEthereum(this)
+    this.fullTransactionsDataService = new MoralisFullTransactionsDataServiceEthereum(this)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout

@@ -1,21 +1,20 @@
-import {
-  TFullTransactionNftEvent,
-  TFullTransactionsByAddressParams,
-  TFullTransactionsItem,
-  TFullTransactionsItemBridgeNeo3NeoX,
-} from '@cityofzion/blockchain-service'
-
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
-import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
 import { BSNeoX } from '../BSNeoX'
+import type {
+  TGetFullTransactionsByAddressParams,
+  TTransaction,
+  TTransactionBridgeNeo3NeoX,
+  TTransactionNftEvent,
+} from '@cityofzion/blockchain-service'
+import { BlockscoutFullTransactionsDataService } from '../services/full-transactions-data/BlockscoutFullTransactionsDataService'
 
 const address = '0x889D02c0df966Ea5BE11dd8E3Eb0d5E4BD0500dD'
 
 let dateFrom: Date
 let dateTo: Date
-let params: TFullTransactionsByAddressParams
+let params: TGetFullTransactionsByAddressParams
 
-let blockscoutBDSNeoX: BlockscoutBDSNeoX<'test'>
+let blockscoutFullTransactionsDataService: BlockscoutFullTransactionsDataService<'test'>
 let service: BSNeoX<'test'>
 
 jest.mock('../services/nft-data/GhostMarketNDSNeoX', () => {
@@ -45,7 +44,7 @@ jest.mock('../services/explorer/BlockscoutESNeoX', () => {
   }
 })
 
-describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
+describe('BlockscoutFullTransactionsDataService', () => {
   beforeEach(() => {
     dateFrom = new Date()
     dateTo = new Date()
@@ -56,28 +55,28 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
     service = new BSNeoX('test')
-    blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
+    blockscoutFullTransactionsDataService = new BlockscoutFullTransactionsDataService(service)
   })
 
   describe('getFullTransactionsByAddress', () => {
     it("Shouldn't be able to get transactions when missing one of the dates", async () => {
-      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, dateFrom: '' })).rejects.toThrow(
-        'Missing dateFrom param'
-      )
+      await expect(
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, dateFrom: '' })
+      ).rejects.toThrow('Missing dateFrom param')
 
-      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, dateTo: '' })).rejects.toThrow(
-        'Missing dateTo param'
-      )
+      await expect(
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, dateTo: '' })
+      ).rejects.toThrow('Missing dateTo param')
     })
 
     it("Shouldn't be able to get transactions when one of the dates is invalid", async () => {
-      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, dateFrom: 'invalid' })).rejects.toThrow(
-        'Invalid dateFrom param'
-      )
+      await expect(
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, dateFrom: 'invalid' })
+      ).rejects.toThrow('Invalid dateFrom param')
 
-      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, dateTo: 'invalid' })).rejects.toThrow(
-        'Invalid dateTo param'
-      )
+      await expect(
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, dateTo: 'invalid' })
+      ).rejects.toThrow('Invalid dateTo param')
     })
 
     it("Shouldn't be able to get transactions when dateFrom is greater than dateTo", async () => {
@@ -87,7 +86,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       dateTo.setDate(dateTo.getDate() - 1)
 
       await expect(
-        blockscoutBDSNeoX.getFullTransactionsByAddress({
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: dateTo.toJSON(),
@@ -96,9 +95,9 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
     })
 
     it("Shouldn't be able to get full transactions when address is wrong", async () => {
-      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, address: 'invalid' })).rejects.toThrow(
-        'Invalid address param'
-      )
+      await expect(
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, address: 'invalid' })
+      ).rejects.toThrow('Invalid address param')
     })
 
     it("Shouldn't be able to get transactions when the range dates are greater than one year", async () => {
@@ -106,7 +105,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       dateFrom.setSeconds(dateFrom.getSeconds() - 1)
 
       await expect(
-        blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, dateFrom: dateFrom.toJSON() })
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, dateFrom: dateFrom.toJSON() })
       ).rejects.toThrow('Date range greater than one year')
     })
 
@@ -118,7 +117,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       dateTo.setDate(dateTo.getDate() + 2)
 
       await expect(
-        blockscoutBDSNeoX.getFullTransactionsByAddress({
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: new Date().toJSON(),
@@ -126,7 +125,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
 
       await expect(
-        blockscoutBDSNeoX.getFullTransactionsByAddress({
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
           ...params,
           dateFrom: new Date().toJSON(),
           dateTo: dateTo.toJSON(),
@@ -134,7 +133,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
 
       await expect(
-        blockscoutBDSNeoX.getFullTransactionsByAddress({
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: dateTo.toJSON(),
@@ -143,31 +142,31 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
     })
 
     it("Shouldn't be able to get transactions when pageSize param was invalid", async () => {
-      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, pageSize: 0 })).rejects.toThrow(
-        'Page size should be between 1 and 500'
-      )
+      await expect(
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, pageSize: 0 })
+      ).rejects.toThrow('Page size should be between 1 and 500')
 
-      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, pageSize: 501 })).rejects.toThrow(
-        'Page size should be between 1 and 500'
-      )
+      await expect(
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, pageSize: 501 })
+      ).rejects.toThrow('Page size should be between 1 and 500')
 
-      await expect(blockscoutBDSNeoX.getFullTransactionsByAddress({ ...params, pageSize: NaN })).rejects.toThrow(
-        'Page size should be between 1 and 500'
-      )
+      await expect(
+        blockscoutFullTransactionsDataService.getFullTransactionsByAddress({ ...params, pageSize: NaN })
+      ).rejects.toThrow('Page size should be between 1 and 500')
     })
 
     it('Should be able to get transactions when is using a Neo X Testnet network', async () => {
       service = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
-      blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
+      blockscoutFullTransactionsDataService = new BlockscoutFullTransactionsDataService(service)
 
-      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress({
+      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
         ...params,
         dateFrom: new Date('2024-03-25T12:00:00').toJSON(),
         dateTo: new Date('2025-02-25T12:00:00').toJSON(),
       })
 
       expect(response).toEqual({
-        nextCursor: expect.anything(),
+        nextPageParams: expect.anything(),
         data: expect.arrayContaining([
           expect.objectContaining({
             txId: expect.any(String),
@@ -196,14 +195,14 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
     })
 
     it('Should be able to get transactions when is using a Neo X Mainnet network', async () => {
-      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress({
+      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
         ...params,
         dateFrom: new Date('2024-03-25T12:00:00').toJSON(),
         dateTo: new Date('2025-02-25T12:00:00').toJSON(),
       })
 
       expect(response).toEqual({
-        nextCursor: expect.anything(),
+        nextPageParams: expect.anything(),
         data: expect.arrayContaining([
           expect.objectContaining({
             txId: expect.any(String),
@@ -231,7 +230,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
       })
     })
 
-    it('Should be able to get transactions when send the nextCursor param using Neo X Mainnet network', async () => {
+    it('Should be able to get transactions when send the nextPageParams param using Neo X Mainnet network', async () => {
       const newParams = {
         ...params,
         dateFrom: new Date('2024-04-26T12:00:00').toJSON(),
@@ -239,20 +238,20 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
         address: '0x1212000000000000000000000000000000000004',
       }
 
-      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress(newParams)
-      const nextResponse = await blockscoutBDSNeoX.getFullTransactionsByAddress({
+      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress(newParams)
+      const nextResponse = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
         ...newParams,
-        nextCursor: response.nextCursor,
+        nextPageParams: response.nextPageParams,
       })
 
-      expect(response.nextCursor).toBeTruthy()
+      expect(response.nextPageParams).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     })
 
     // The NFTs on Neo X should be implemented in future in Dora (remove mock to test)
     it.skip('Should be able to get transactions with NFTs when it was called using Neo X Mainnet network', async () => {
-      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress({
+      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
         ...params,
         address: '0xE3aBC0b2A74FD2eF662b1c25C9769398f53b4304',
         dateFrom: new Date('2024-01-01T12:00:00').toJSON(),
@@ -261,7 +260,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
 
       const nftEvents = response.data
         .flatMap(({ events }) => events)
-        .filter(({ eventType }) => eventType === 'nft') as TFullTransactionNftEvent[]
+        .filter(({ eventType }) => eventType === 'nft') as TTransactionNftEvent[]
 
       expect(nftEvents).toEqual(
         expect.arrayContaining([
@@ -292,9 +291,9 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
         address: '0x1212000000000000000000000000000000000004',
       }
 
-      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress(newParams)
+      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress(newParams)
 
-      expect(response.nextCursor).toBeTruthy()
+      expect(response.nextPageParams).toBeTruthy()
       expect(response.data.length).toBe(50)
     })
 
@@ -306,11 +305,11 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
         address: '0xe3abc0b2a74fd2ef662b1c25c9769398f53b4304',
       }
 
-      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress(newParams)
+      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress(newParams)
 
       const transaction = response.data.find(
         ({ txId }) => txId === '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-      ) as TFullTransactionsItem & TFullTransactionsItemBridgeNeo3NeoX
+      ) as TTransaction & TTransactionBridgeNeo3NeoX
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.data.amount).toBe('1')
@@ -326,11 +325,11 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
         address: '0x5c2b22ecc2660187bee0a4b737e4d93283270dea',
       }
 
-      const response = await blockscoutBDSNeoX.getFullTransactionsByAddress(newParams)
+      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress(newParams)
 
       const transaction = response.data.find(
         ({ txId }) => txId === '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-      ) as TFullTransactionsItem & TFullTransactionsItemBridgeNeo3NeoX
+      ) as TTransaction & TTransactionBridgeNeo3NeoX
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.data.amount).toBe('1')
@@ -342,9 +341,9 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Neo X Testnet network', async () => {
       service = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
-      blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
+      blockscoutFullTransactionsDataService = new BlockscoutFullTransactionsDataService(service)
 
-      const response = await blockscoutBDSNeoX.exportFullTransactionsByAddress({
+      const response = await blockscoutFullTransactionsDataService.exportFullTransactionsByAddress({
         address: params.address,
         dateFrom: new Date('2024-03-25T12:00:00').toJSON(),
         dateTo: new Date('2025-02-25T12:00:00').toJSON(),
@@ -354,7 +353,7 @@ describe('BlockscoutBDSNeoX - fullTransactionsByAddress', () => {
     })
 
     it('Should be able to export transactions when is using a Neo X Mainnet network', async () => {
-      const response = await blockscoutBDSNeoX.exportFullTransactionsByAddress({
+      const response = await blockscoutFullTransactionsDataService.exportFullTransactionsByAddress({
         address: params.address,
         dateFrom: new Date('2024-03-25T12:00:00').toJSON(),
         dateTo: new Date('2025-02-25T12:00:00').toJSON(),

@@ -1,17 +1,18 @@
 import { BSUtilsHelper } from './helpers/BSUtilsHelper'
 import {
-  TBSAccount,
-  IBlockchainService,
-  IBSWithClaim,
-  IBSWithEncryption,
-  IBSWithExplorer,
-  IBSWithFee,
-  IBSWithLedger,
-  IBSWithNameService,
-  IBSWithNeo3NeoXBridge,
-  IBSWithNft,
-  TUntilIndexRecord,
-  IBSWithWalletConnect,
+  type TBSAccount,
+  type IBlockchainService,
+  type IBSWithClaim,
+  type IBSWithEncryption,
+  type IBSWithExplorer,
+  type IBSWithFee,
+  type IBSWithLedger,
+  type IBSWithNameService,
+  type IBSWithNeo3NeoXBridge,
+  type IBSWithNft,
+  type TUntilIndexRecord,
+  type IBSWithWalletConnect,
+  type IBSWithFullTransactions,
 } from './interfaces'
 
 export function hasNameService<N extends string = string, A extends string = string>(
@@ -68,6 +69,12 @@ export function hasWalletConnect<N extends string = string, A extends string = s
   return 'walletConnectService' in service
 }
 
+export function hasFullTransactions<N extends string = string, A extends string = string>(
+  service: IBlockchainService<N, A>
+): service is IBlockchainService<N, A> & IBSWithFullTransactions {
+  return 'fullTransactionsDataService' in service
+}
+
 /**
  * @deprecated use `waitForAccountTransaction` instead
  */
@@ -108,7 +115,7 @@ export async function waitForAccountTransaction<N extends string = string, A ext
 
     try {
       const response = await service.blockchainDataService.getTransactionsByAddress({ address })
-      const isTransactionConfirmed = response.transactions.some(transaction => transaction.hash === txId)
+      const isTransactionConfirmed = response.data.some(transaction => transaction.txId === txId)
 
       if (isTransactionConfirmed) return true
     } catch {
@@ -135,11 +142,11 @@ export async function fetchAccounts<N extends string = string, A extends string 
     const generatedAccount = await getAccountCallback(service, index)
 
     try {
-      const { transactions } = await service.blockchainDataService.getTransactionsByAddress({
+      const { data } = await service.blockchainDataService.getTransactionsByAddress({
         address: generatedAccount.address,
       })
 
-      if (!transactions || transactions.length <= 0) shouldBreak = true
+      if (!data || data.length <= 0) shouldBreak = true
     } catch {
       shouldBreak = true
     }

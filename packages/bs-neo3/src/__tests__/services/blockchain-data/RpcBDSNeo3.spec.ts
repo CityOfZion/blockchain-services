@@ -18,13 +18,35 @@ describe('RpcBDSNeo3', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
         block: expect.any(Number),
-        hash,
-        notifications: [],
-        transfers: [],
-        time: expect.any(Number),
-        fee: expect.any(String),
-        type: 'default',
+        date: expect.any(String),
+        invocationCount: expect.any(Number),
+        notificationCount: expect.any(Number),
+        networkFeeAmount: expect.anything(),
+        systemFeeAmount: expect.anything(),
+        type: expect.any(String),
+        events: expect.arrayContaining([
+          expect.objectContaining({
+            eventType: expect.any(String),
+            amount: expect.anything(),
+            methodName: expect.any(String),
+            from: expect.anything(),
+            fromUrl: expect.anything(),
+            to: expect.anything(),
+            toUrl: expect.anything(),
+            contractHash: expect.any(String),
+            contractHashUrl: expect.any(String),
+            token: expect.objectContaining({
+              decimals: expect.any(Number),
+              symbol: expect.any(String),
+              name: expect.any(String),
+              hash: expect.any(String),
+            }),
+            tokenType: expect.any(String),
+          }),
+        ]),
       })
     )
   })

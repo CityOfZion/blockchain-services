@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Unify transaction interface",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

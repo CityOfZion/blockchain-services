@@ -1,7 +1,6 @@
 import { BSEthereum, BSEthereumConstants, TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from './constants/BSNeoXConstants'
 import {
-  BSPromisesHelper,
   BSUtilsHelper,
   INeo3NeoXBridgeService,
   TBSNetwork,
@@ -22,6 +21,7 @@ import { CONSENSUS_ABI } from './assets/abis/consensus'
 import { KEY_MANAGEMENT_ABI } from './assets/abis/key-management'
 import { getConsensusThreshold, getScaler, PublicKey } from 'neox-tpke'
 import { concat, keccak256, pad, parseTransaction, toBytes, toHex } from 'viem'
+import { BlockscoutFullTransactionsDataService } from './services/full-transactions-data/BlockscoutFullTransactionsDataService'
 
 export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetworkId> implements IBSNeoX<N> {
   neo3NeoXBridgeService!: INeo3NeoXBridgeService<N>
@@ -60,6 +60,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.blockchainDataService = new BlockscoutBDSNeoX(this)
     this.tokenService = new TokenServiceEthereum()
     this.walletConnectService = new WalletConnectServiceNeoX(this)
+    this.fullTransactionsDataService = new BlockscoutFullTransactionsDataService(this)
   }
 
   async sendTransaction({ signer, gasPrice, params }: TSendTransactionParams) {
@@ -88,7 +89,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
       gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
     }
 
-    const [firstTransactionResponse, firstTransactionError] = await BSPromisesHelper.tryCatch(() =>
+    const [firstTransactionResponse, firstTransactionError] = await BSUtilsHelper.tryCatch(() =>
       signer.sendTransaction({
         ...params,
         ...gasParams,
@@ -102,7 +103,6 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
 
     if (!isAntiMevNetwork) {
       if (firstTransactionError) throw firstTransactionError
-
       return firstTransactionResponse!.hash
     }
 
@@ -166,7 +166,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
       gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
     }
 
-    const [secondTransactionResponse, secondTransactionError] = await BSPromisesHelper.tryCatch(() =>
+    const [secondTransactionResponse, secondTransactionError] = await BSUtilsHelper.tryCatch(() =>
       signer.sendTransaction({
         ...newParams,
         ...gasParams,

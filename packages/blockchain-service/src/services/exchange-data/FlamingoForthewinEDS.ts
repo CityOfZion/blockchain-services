@@ -14,7 +14,6 @@ export class FlamingoForthewinEDS<N extends string> extends CryptoCompareEDS imp
 
   constructor(service: IBlockchainService<N>) {
     super()
-
     this._service = service
   }
 

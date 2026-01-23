@@ -10,7 +10,6 @@ if (typeof self === 'undefined') {
 export * from './constants/BSCommonConstants'
 
 export * from './helpers/BSFullTransactionsByAddressHelper'
-export * from './helpers/BSPromisesHelper'
 export * from './helpers/BSBigNumberHelper'
 export * from './helpers/BSUtilsHelper'
 export * from './helpers/BSAccountHelper'

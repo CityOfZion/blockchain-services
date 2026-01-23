@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Unify transaction interface",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

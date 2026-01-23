@@ -2,29 +2,20 @@ import {
   TBalanceResponse,
   BSBigNumberHelper,
   BSCommonConstants,
-  BSFullTransactionsByAddressHelper,
-  BSPromisesHelper,
   TContractMethod,
-  ContractResponse,
-  TExportTransactionsByAddressParams,
-  TFullTransactionsByAddressParams,
-  TFullTransactionsByAddressResponse,
-  TFullTransactionsItem,
-  TNftResponse,
   TBridgeToken,
   TBSNetwork,
   TBSToken,
-  TransactionBridgeNeo3NeoXResponse,
-  TTransactionResponse,
-  TTransactionsByAddressParams,
-  TTransactionsByAddressResponse,
-  TTransactionTransferAsset,
-  TTransactionTransferNft,
   TBigNumber,
+  type TTransaction,
+  BSUtilsHelper,
+  type TTransactionBridgeNeo3NeoX,
+  type TGetTransactionsByAddressParams,
+  type TGetTransactionsByAddressResponse,
+  type TContractResponse,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
-import { api } from '@cityofzion/dora-ts'
 import { BSEthereumConstants, ERC20_ABI, RpcBDSEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import { BRIDGE_ABI } from '../../assets/abis/bridge'
@@ -46,11 +37,6 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     '47763': `${BSCommonConstants.COZ_API_URL}/api/neox/mainnet`,
     '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
   }
-
-  static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSNeoXNetworkId[] = ['47763', '12227332']
-  static readonly FULL_TRANSACTIONS_ERC721_STANDARDS = ['erc721', 'erc-721']
-  static readonly FULL_TRANSACTIONS_ERC1155_STANDARDS = ['erc1155', 'erc-1155']
-  static readonly FULL_TRANSACTIONS_ERC20_STANDARDS = ['erc20', 'erc-20']
 
   static getClient(network: TBSNetwork<TBSNeoXNetworkId>) {
     const baseURL = BlockscoutBDSNeoX.BASE_URL_BY_CHAIN_ID[network.id]
@@ -74,39 +60,69 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     return this.#apiInstance
   }
 
-  async getTransaction(txid: string): Promise<TTransactionResponse> {
-    const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
+  async getTransaction(txid: string): Promise<TTransaction> {
+    const { data: response } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
-    if (!data || 'message' in data) {
+    if (!response || 'message' in response) {
       throw new Error('Transaction not found')
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
-    const to = data.to?.hash
-    const transfers: (TTransactionTransferAsset | TTransactionTransferNft)[] = []
+    const to = response.to?.hash
+    const events: TTransaction['events'] = []
 
-    const hasNativeTokenBeingTransferred = data.value !== '0'
+    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
+    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
+    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
+    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
+
+    const hasNativeTokenBeingTransferred = response.value !== '0'
     if (hasNativeTokenBeingTransferred) {
-      transfers.push({
-        amount: ethers.utils.formatUnits(data.value, nativeToken.decimals),
-        from: data.from.hash,
+      const from = response.from.hash
+      const to = response.to.hash
+      const fromUrl = addressTemplateUrl?.replace('{address}', from)
+      const toUrl = addressTemplateUrl?.replace('{address}', to)
+
+      const contractHashUrl = contractTemplateUrl?.replace('{hash}', nativeToken.hash)
+
+      events.push({
+        amount: ethers.utils.formatUnits(response.value, nativeToken.decimals),
+        from,
+        fromUrl,
         to,
-        type: 'token',
+        toUrl,
+        eventType: 'token',
         contractHash: nativeToken.hash,
+        contractHashUrl,
         token: nativeToken,
+        methodName: 'transfer',
+        tokenType: 'native',
       })
     }
 
-    const hasTokenTransfers = data.token_transfers && data.token_transfers.length > 0
+    const hasTokenTransfers = response.token_transfers && response.token_transfers.length > 0
     if (hasTokenTransfers) {
-      for (const tokenTransfer of data.token_transfers) {
+      const promises = response.token_transfers.map(async tokenTransfer => {
+        const from = tokenTransfer.from.hash
+        const to = tokenTransfer.to.hash
+        const contractHash = tokenTransfer.token.address
+
+        const fromUrl = addressTemplateUrl?.replace('{address}', from)
+        const toUrl = addressTemplateUrl?.replace('{address}', to)
+        const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+
         if (tokenTransfer.token.type === 'ERC-20') {
-          transfers.push({
+          events.push({
             amount: ethers.utils.formatUnits(tokenTransfer.total.value, tokenTransfer.total.decimals),
-            from: tokenTransfer.from.hash,
-            to: tokenTransfer.to.hash,
-            type: 'token',
-            contractHash: tokenTransfer.token.address,
+            from,
+            fromUrl,
+            to,
+            toUrl,
+            eventType: 'token',
+            contractHash,
+            contractHashUrl,
+            methodName: 'transfer',
+            tokenType: 'erc-20',
             token: this._service.tokenService.normalizeToken({
               symbol: tokenTransfer.token.symbol,
               name: tokenTransfer.token.name,
@@ -115,42 +131,71 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             }),
           })
 
-          continue
+          return
         }
+
+        const tokenHash = tokenTransfer.total.token_id
+
+        const [nft] = await BSUtilsHelper.tryCatch(() =>
+          this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
+        )
+
+        const nftUrl = nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
 
         if (tokenTransfer.token.type === 'ERC-721') {
-          transfers.push({
-            tokenHash: tokenTransfer.total.token_id,
-            from: tokenTransfer.from.hash,
-            to: tokenTransfer.to.hash,
-            type: 'nft',
+          events.push({
+            tokenHash,
+            from,
+            fromUrl,
+            to,
+            toUrl,
+            eventType: 'nft',
+            methodName: 'transfer',
+            tokenType: 'erc-721',
+            amount: '1',
             collectionHash: tokenTransfer.token.address,
+            collectionHashUrl: contractHashUrl,
+            collectionName: nft?.collection?.name,
+            name: nft?.name,
+            nftImageUrl: nft?.image,
+            nftUrl,
           })
         }
-      }
+      })
+
+      await Promise.allSettled(promises)
     }
 
-    let transaction: TTransactionResponse = {
-      block: data.block,
-      hash: data.hash,
-      fee: ethers.utils.formatUnits(data.fee.value, nativeToken.decimals),
-      time: new Date(data.timestamp).getTime() / 1000,
-      notifications: [],
-      transfers,
+    const txId = response.hash
+    const txIdUrl = txTemplateUrl?.replace('{tx}', txId)
+
+    let transaction: TTransaction = {
+      block: response.block,
+      txId,
+      txIdUrl,
+      events,
+      networkFeeAmount: ethers.utils.formatEther(response.fee.value),
+      systemFeeAmount: ethers.utils.formatEther(0),
+      date: new Date(response.timestamp).toISOString(),
+      invocationCount: 0,
+      notificationCount: 0,
       type: 'default',
     }
 
     if (to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH) {
-      await BSPromisesHelper.tryCatch(() => {
-        const bridgeNeo3NeoXData = this.#getBridgeNeo3NeoXDataByBlockscoutTransaction(data)
-        if (bridgeNeo3NeoXData) transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
-      })
+      const [bridgeNeo3NeoXData] = BSUtilsHelper.tryCatch(() =>
+        this.#getBridgeNeo3NeoXDataByBlockscoutTransaction(response)
+      )
+
+      if (bridgeNeo3NeoXData) {
+        transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
+      }
     }
 
     return transaction
   }
 
-  async getTransactionsByAddress(params: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse> {
+  async getTransactionsByAddress(params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
     const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionByAddressApiResponse>(
       `/addresses/${params.address}/transactions`,
       {
@@ -166,20 +211,37 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
 
-    const transactions: TTransactionResponse[] = []
+    const transactions: TTransaction[] = []
+
+    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
+    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
+    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
 
     const promises = data.items.map(async item => {
-      const transfers: (TTransactionTransferAsset | TTransactionTransferNft)[] = []
-      const to = item.to?.hash
+      const events: TTransaction['events'] = []
+
       const hasNativeTokenBeingTransferred = item.value !== '0'
 
       if (hasNativeTokenBeingTransferred) {
-        transfers.push({
+        const to = item.to?.hash
+        const from = item.from.hash
+        const contractHash = nativeToken.hash
+
+        const fromUrl = addressTemplateUrl?.replace('{address}', from)
+        const toUrl = addressTemplateUrl?.replace('{address}', to)
+        const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+
+        events.push({
           amount: ethers.utils.formatUnits(item.value, nativeToken.decimals),
           from: item.from.hash,
+          fromUrl,
           to,
-          type: 'token',
+          toUrl,
+          eventType: 'token',
+          methodName: 'transfer',
+          tokenType: 'native',
           contractHash: nativeToken.hash,
+          contractHashUrl,
           token: nativeToken,
         })
       }
@@ -195,15 +257,25 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
           const token = await this.getTokenInfo(contractHash)
 
+          const from = item.from.hash
           const to = result[0]
           const value = result[1]
 
-          transfers.push({
+          const fromUrl = addressTemplateUrl?.replace('{address}', from)
+          const toUrl = addressTemplateUrl?.replace('{address}', to)
+          const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+
+          events.push({
             amount: ethers.utils.formatUnits(value, token.decimals),
             from: item.from.hash,
+            fromUrl,
             to,
-            type: 'token',
+            toUrl,
+            eventType: 'token',
+            methodName: 'transfer',
+            tokenType: 'erc-20',
             contractHash: token.hash,
+            contractHashUrl,
             token,
           })
         } catch {
@@ -211,22 +283,36 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         }
       }
 
-      let transaction: TTransactionResponse = {
+      if (events.length === 0) {
+        return
+      }
+
+      const txId = item.hash
+      const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
+
+      let transaction: TTransaction = {
         block: item.block,
-        hash: item.hash,
-        fee: ethers.utils.formatUnits(item.fee.value, nativeToken.decimals),
-        time: new Date(item.timestamp).getTime() / 1000,
-        notifications: [],
-        transfers,
+        txId,
+        txIdUrl,
+        date: new Date(item.timestamp).toISOString(),
+        invocationCount: 0,
+        notificationCount: 0,
+        networkFeeAmount: ethers.utils.formatEther(item.fee.value),
+        systemFeeAmount: ethers.utils.formatEther(0),
+        events,
         type: 'default',
       }
 
-      if (to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH) {
-        const [bridgeNeo3NeoXData] = await BSPromisesHelper.tryCatch(() =>
+      const hasBridgeNeo3NeoXEvent = events.some(event => event.to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH)
+
+      if (hasBridgeNeo3NeoXEvent) {
+        const [bridgeNeo3NeoXData] = BSUtilsHelper.tryCatch(() =>
           this.#getBridgeNeo3NeoXDataByBlockscoutTransaction(item)
         )
 
-        if (bridgeNeo3NeoXData) transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
+        if (bridgeNeo3NeoXData) {
+          transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
+        }
       }
 
       transactions.push(transaction)
@@ -235,162 +321,12 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     await Promise.allSettled(promises)
 
     return {
-      transactions,
+      data: transactions,
       nextPageParams: data.next_page_params,
     }
   }
 
-  async getFullTransactionsByAddress({
-    nextCursor,
-    ...params
-  }: TFullTransactionsByAddressParams): Promise<TFullTransactionsByAddressResponse> {
-    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
-      service: this._service,
-      supportedNetworksIds: BlockscoutBDSNeoX.FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS,
-      ...params,
-    })
-
-    const data: TFullTransactionsItem[] = []
-
-    const response = await api.NeoXREST.getFullTransactionsByAddress({
-      address: params.address,
-      timestampFrom: params.dateFrom,
-      timestampTo: params.dateTo,
-      network: this._service.network.type as 'mainnet' | 'testnet',
-      cursor: nextCursor,
-      pageLimit: params.pageSize ?? 50,
-    })
-
-    const items = response.data ?? []
-
-    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
-    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
-    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
-
-    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
-      const txId = item.transactionID
-
-      let newItem: TFullTransactionsItem = {
-        txId,
-        txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
-        block: item.block,
-        date: item.date,
-        invocationCount: item.invocationCount,
-        notificationCount: item.notificationCount,
-        networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: BSNeoXConstants.NATIVE_ASSET.decimals })
-          : undefined,
-        systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: BSNeoXConstants.NATIVE_ASSET.decimals })
-          : undefined,
-        events: [],
-        type: 'default',
-      }
-
-      const eventPromises = item.events.map(async (event, eventIndex) => {
-        const { methodName, tokenID: tokenHash, contractHash } = event
-
-        const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
-        const isErc1155 = BlockscoutBDSNeoX.FULL_TRANSACTIONS_ERC1155_STANDARDS.includes(standard)
-        const isErc721 = BlockscoutBDSNeoX.FULL_TRANSACTIONS_ERC721_STANDARDS.includes(standard)
-        const isErc20 = BlockscoutBDSNeoX.FULL_TRANSACTIONS_ERC20_STANDARDS.includes(standard)
-        const isNft = (isErc1155 || isErc721) && !!tokenHash
-
-        const from = event.from ?? undefined
-        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
-
-        const to = event.to ?? undefined
-        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-
-        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
-
-        if (isNft) {
-          const [nft] = await BSPromisesHelper.tryCatch<TNftResponse>(() =>
-            this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
-          )
-
-          const nftUrl = contractHash
-            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
-            : undefined
-
-          newItem.events.splice(eventIndex, 0, {
-            eventType: 'nft',
-            amount: undefined,
-            methodName,
-            from,
-            fromUrl,
-            to,
-            toUrl,
-            collectionHash: contractHash,
-            collectionHashUrl: contractHashUrl,
-            tokenHash,
-            tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
-            nftImageUrl: nft?.image,
-            nftUrl,
-            name: nft?.name,
-            collectionName: nft?.collection?.name,
-          })
-
-          return
-        }
-
-        const [token] = await BSPromisesHelper.tryCatch<TBSToken>(() => this.getTokenInfo(contractHash))
-
-        newItem.events.splice(eventIndex, 0, {
-          eventType: 'token',
-          amount: event.amount
-            ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
-            : undefined,
-          methodName,
-          from,
-          fromUrl,
-          to,
-          toUrl,
-          contractHash,
-          contractHashUrl,
-          token: token ?? undefined,
-          tokenType: isErc20 ? 'erc-20' : 'generic',
-        })
-
-        // Verify if the event is a bridgeNeo3NeoX event
-        if (newItem.type === 'default' && to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH) {
-          await BSPromisesHelper.tryCatch(async () => {
-            const response = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txId}`)
-
-            const bridgeNeo3NeoXData = this.#getBridgeNeo3NeoXDataByBlockscoutTransaction(response.data)
-
-            if (bridgeNeo3NeoXData) newItem = { ...newItem, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
-          })
-        }
-      })
-
-      await Promise.allSettled(eventPromises)
-
-      data.splice(index, 0, newItem)
-    })
-
-    await Promise.allSettled(itemPromises)
-
-    return { nextCursor: response.nextCursor, data }
-  }
-
-  async exportFullTransactionsByAddress(params: TExportTransactionsByAddressParams): Promise<string> {
-    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
-      service: this._service,
-      supportedNetworksIds: BlockscoutBDSNeoX.FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS,
-      ...params,
-    })
-
-    return await api.NeoXREST.exportFullTransactionsByAddress({
-      address: params.address,
-      timestampFrom: params.dateFrom,
-      timestampTo: params.dateTo,
-      network: this._service.network.type as 'mainnet' | 'testnet',
-    })
-  }
-
-  async getContract(contractHash: string): Promise<ContractResponse> {
+  async getContract(contractHash: string): Promise<TContractResponse> {
     try {
       const { data } = await this.#api.get<TBlockscoutBDSNeoXSmartContractApiResponse>(
         `/smart-contracts/${contractHash}`
@@ -518,7 +454,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
   #getBridgeNeo3NeoXDataByBlockscoutTransaction(
     transactionResponse: TBlockscoutBDSNeoXTransactionApiResponse
-  ): TransactionBridgeNeo3NeoXResponse['data'] | undefined {
+  ): TTransactionBridgeNeo3NeoX['data'] | undefined {
     const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
     const input = BridgeInterface.parseTransaction({ data: transactionResponse.raw_input })
 

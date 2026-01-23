@@ -6,6 +6,7 @@ import {
   IBSWithExplorer,
   IBSWithLedger,
   TBSNetworkId,
+  type IBSWithFullTransactions,
 } from '@cityofzion/blockchain-service'
 
 export type TBSNeoLegacyNetworkId = TBSNetworkId<'mainnet' | 'testnet'>
@@ -17,7 +18,8 @@ export interface IBSNeoLegacy<N extends string = string>
     IBSWithClaim<N>,
     IBSWithExplorer,
     IBSWithLedger<N>,
-    IBSWithEncryption<N> {
+    IBSWithEncryption<N>,
+    IBSWithFullTransactions {
   generateSigningCallback(account: TBSAccount<N>): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }>
   sendTransfer(config: any, nep5ScriptBuilder?: any): Promise<string>
 }

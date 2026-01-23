@@ -1,7 +1,7 @@
 import { BSNeo3Constants } from '../../../constants/BSNeo3Constants'
 import { DoraBDSNeo3 } from '../../../services/blockchain-data/DoraBDSNeo3'
 import { BSNeo3 } from '../../../BSNeo3'
-import { TransactionBridgeNeo3NeoXResponse, TTransactionResponse } from '@cityofzion/blockchain-service'
+import type { TTransaction, TTransactionBridgeNeo3NeoX } from '@cityofzion/blockchain-service'
 
 const network = BSNeo3Constants.TESTNET_NETWORK
 
@@ -20,13 +20,35 @@ describe('DoraBDSNeo3', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
         block: expect.any(Number),
-        hash,
-        notifications: [],
-        transfers: [],
-        time: expect.any(Number),
-        fee: expect.any(String),
-        type: 'default',
+        date: expect.any(String),
+        invocationCount: expect.any(Number),
+        notificationCount: expect.any(Number),
+        networkFeeAmount: expect.anything(),
+        systemFeeAmount: expect.anything(),
+        type: expect.any(String),
+        events: expect.arrayContaining([
+          expect.objectContaining({
+            eventType: expect.any(String),
+            amount: expect.anything(),
+            methodName: expect.any(String),
+            from: expect.anything(),
+            fromUrl: expect.anything(),
+            to: expect.anything(),
+            toUrl: expect.anything(),
+            contractHash: expect.any(String),
+            contractHashUrl: expect.any(String),
+            token: expect.objectContaining({
+              decimals: expect.any(Number),
+              symbol: expect.any(String),
+              name: expect.any(String),
+              hash: expect.any(String),
+            }),
+            tokenType: expect.any(String),
+          }),
+        ]),
       })
     )
   })
@@ -35,43 +57,36 @@ describe('DoraBDSNeo3', () => {
     const address = 'NRwXs5yZRMuuXUo7AqvetHQ4GDHe3pV7Mb'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address, nextPageParams: 1 })
 
-    response.transactions.forEach(transaction => {
+    response.data.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
+          txId: expect.any(String),
+          txIdUrl: expect.any(String),
           block: expect.any(Number),
-          hash: expect.any(String),
-          time: expect.any(Number),
-          fee: expect.any(String),
-          notifications: expect.arrayContaining([
+          date: expect.any(String),
+          invocationCount: expect.any(Number),
+          notificationCount: expect.any(Number),
+          networkFeeAmount: expect.anything(),
+          systemFeeAmount: expect.anything(),
+          type: expect.any(String),
+          events: expect.arrayContaining([
             expect.objectContaining({
-              eventName: expect.any(String),
-              state: expect.objectContaining({
-                type: expect.any(String),
-                value: expect.arrayContaining([
-                  expect.objectContaining({
-                    value: expect.any(String),
-                  }),
-                  expect.objectContaining({
-                    type: expect.any(String),
-                    value: expect.any(String),
-                  }),
-                ]),
-              }),
-            }),
-          ]),
-          transfers: expect.arrayContaining([
-            expect.objectContaining({
-              amount: expect.any(String),
+              eventType: expect.any(String),
+              amount: expect.anything(),
+              methodName: expect.any(String),
+              from: expect.anything(),
+              fromUrl: expect.anything(),
+              to: expect.anything(),
+              toUrl: expect.anything(),
               contractHash: expect.any(String),
-              from: expect.any(String),
-              to: expect.any(String),
-              type: expect.any(String),
+              contractHashUrl: expect.any(String),
               token: expect.objectContaining({
                 decimals: expect.any(Number),
-                hash: expect.any(String),
-                name: expect.any(String),
                 symbol: expect.any(String),
+                name: expect.any(String),
+                hash: expect.any(String),
               }),
+              tokenType: expect.any(String),
             }),
           ]),
         })
@@ -133,9 +148,9 @@ describe('DoraBDSNeo3', () => {
     const address = 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address })
 
-    const transaction = response.transactions.find(
-      ({ hash }) => hash === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
-    ) as TTransactionResponse & TransactionBridgeNeo3NeoXResponse
+    const transaction = response.data.find(
+      ({ txId }) => txId === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
+    ) as TTransaction & TTransactionBridgeNeo3NeoX
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -150,9 +165,9 @@ describe('DoraBDSNeo3', () => {
     const address = 'NcTRyXXr2viSowk913dMTvws6sDNbmt8tj'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address })
 
-    const transaction = response.transactions.find(
-      ({ hash }) => hash === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
-    ) as TTransactionResponse & TransactionBridgeNeo3NeoXResponse
+    const transaction = response.data.find(
+      ({ txId }) => txId === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
+    ) as TTransaction & TTransactionBridgeNeo3NeoX
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
