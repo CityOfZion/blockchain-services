@@ -1,7 +1,7 @@
 import {
   BSBigNumberHelper,
   BSError,
-  BSPromisesHelper,
+  BSUtilsHelper,
   INeo3NeoXBridgeService,
   TBridgeToken,
   THexString,
@@ -183,7 +183,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
   }
 
   async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string> {
-    const [transactionLogsResponse, transactionLogsResponseError] = await BSPromisesHelper.tryCatch(async () => {
+    const [transactionLogsResponse, transactionLogsResponseError] = await BSUtilsHelper.tryCatch(async () => {
       const client = BlockscoutBDSNeoX.getClient(this.#service.network)
       return await client.get<TNeo3NeoXBridgeServiceTransactionLogApiResponse>(
         `/transactions/${params.transactionHash}/logs`
@@ -193,7 +193,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
     if (!transactionLogsResponse)
       throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', transactionLogsResponseError)
 
-    const [nonce, nonceError] = await BSPromisesHelper.tryCatch(() => {
+    const [nonce, nonceError] = await BSUtilsHelper.tryCatch(() => {
       const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
 
       const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)

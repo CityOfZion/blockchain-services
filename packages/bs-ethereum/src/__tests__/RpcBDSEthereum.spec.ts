@@ -20,21 +20,27 @@ describe('RpcBDSEthereum', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
+        txId: expect.any(String),
+        txIdUrl: expect.anything(),
         block: expect.any(Number),
-        hash,
-        notifications: [],
-        time: expect.any(Number),
+        date: expect.any(String),
+        invocationCount: expect.any(Number),
+        notificationCount: expect.any(Number),
+        networkFeeAmount: expect.anything(),
         type: expect.any(String),
       })
     )
-    transaction.transfers.forEach(transfer => {
+    transaction.events.forEach(transfer => {
       expect(transfer).toEqual(
         expect.objectContaining({
-          from: expect.any(String),
-          to: expect.any(String),
-          contractHash: expect.any(String),
-          amount: expect.any(String),
-          type: expect.any(String),
+          eventType: expect.any(String),
+          amount: expect.anything(),
+          methodName: expect.any(String),
+          from: expect.anything(),
+          fromUrl: expect.anything(),
+          to: expect.anything(),
+          toUrl: expect.anything(),
+          tokenType: expect.any(String),
         })
       )
     })

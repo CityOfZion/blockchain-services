@@ -1,12 +1,12 @@
-import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 import {
   BSUtilsHelper,
-  TFullTransactionNftEvent,
-  TFullTransactionsByAddressParams,
   TBSNetworkId,
+  type TGetFullTransactionsByAddressParams,
+  type TTransactionNftEvent,
 } from '@cityofzion/blockchain-service'
 import { isLeapYear } from 'date-fns'
 import { BSEthereum } from '../BSEthereum'
+import { MoralisFullTransactionsDataServiceEthereum } from '../services/full-transactions-data/MoralisFullTransactionsDataServiceEthereum'
 
 const address = '0xd1d6634415be11a54664298373c57c131aa828d5'
 const polygonAddress = '0xbCc845dcfF7005c0ca7BD11eA8b5049a384a9f94'
@@ -14,7 +14,7 @@ const baseAddress = '0x4088e9E4d61B8F575aB7518fe46D741980017daA'
 const arbitrumAddress = '0x0b07f64ABc342B68AEc57c0936E4B6fD4452967E'
 
 const expectedResponse = {
-  nextCursor: expect.anything(),
+  nextPageParams: expect.anything(),
   data: expect.arrayContaining([
     expect.objectContaining({
       txId: expect.any(String),
@@ -43,8 +43,8 @@ const expectedResponse = {
 
 let dateFrom: Date
 let dateTo: Date
-let params: TFullTransactionsByAddressParams
-let moralisBDSEthereum: MoralisBDSEthereum<'test', TBSNetworkId>
+let params: TGetFullTransactionsByAddressParams
+let moralisFullTransactionsDataServiceEthereum: MoralisFullTransactionsDataServiceEthereum<'test', TBSNetworkId>
 
 jest.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
   return {
@@ -73,7 +73,7 @@ jest.mock('../services/explorer/BlockscoutESEthereum', () => {
   }
 })
 
-describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
+describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
   beforeEach(async () => {
     dateFrom = new Date()
     dateTo = new Date()
@@ -85,30 +85,30 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
     const service = new BSEthereum('test', 'ethereum')
-    moralisBDSEthereum = new MoralisBDSEthereum(service)
+    moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
     await BSUtilsHelper.wait(3000)
   })
 
   describe('getFullTransactionsByAddress', () => {
     it("Shouldn't be able to get transactions when missing one of the dates", async () => {
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, dateFrom: '' })).rejects.toThrow(
-        'Missing dateFrom param'
-      )
+      await expect(
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({ ...params, dateFrom: '' })
+      ).rejects.toThrow('Missing dateFrom param')
 
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, dateTo: '' })).rejects.toThrow(
-        'Missing dateTo param'
-      )
+      await expect(
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({ ...params, dateTo: '' })
+      ).rejects.toThrow('Missing dateTo param')
     })
 
     it("Shouldn't be able to get transactions when one of the dates is invalid", async () => {
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, dateFrom: 'invalid' })).rejects.toThrow(
-        'Invalid dateFrom param'
-      )
+      await expect(
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({ ...params, dateFrom: 'invalid' })
+      ).rejects.toThrow('Invalid dateFrom param')
 
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, dateTo: 'invalid' })).rejects.toThrow(
-        'Invalid dateTo param'
-      )
+      await expect(
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({ ...params, dateTo: 'invalid' })
+      ).rejects.toThrow('Invalid dateTo param')
     })
 
     it("Shouldn't be able to get transactions when dateFrom is greater than dateTo", async () => {
@@ -118,7 +118,7 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
       dateTo.setDate(dateTo.getDate() - 1)
 
       await expect(
-        moralisBDSEthereum.getFullTransactionsByAddress({
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: dateTo.toJSON(),
@@ -126,18 +126,15 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
       ).rejects.toThrow('Invalid date order because dateFrom is greater than dateTo')
     })
 
-    it("Shouldn't be able to get full transactions when address is wrong", async () => {
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, address: 'invalid' })).rejects.toThrow(
-        'Invalid address param'
-      )
-    })
-
     it("Shouldn't be able to get transactions when the range dates are greater than one year", async () => {
       dateFrom.setDate(dateFrom.getDate() - 1)
       dateFrom.setSeconds(dateFrom.getSeconds() - 1)
 
       await expect(
-        moralisBDSEthereum.getFullTransactionsByAddress({ ...params, dateFrom: dateFrom.toJSON() })
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
+          ...params,
+          dateFrom: dateFrom.toJSON(),
+        })
       ).rejects.toThrow('Date range greater than one year')
     })
 
@@ -149,7 +146,7 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
       dateTo.setDate(dateTo.getDate() + 2)
 
       await expect(
-        moralisBDSEthereum.getFullTransactionsByAddress({
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: new Date().toJSON(),
@@ -157,7 +154,7 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
 
       await expect(
-        moralisBDSEthereum.getFullTransactionsByAddress({
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
           ...params,
           dateFrom: new Date().toJSON(),
           dateTo: dateTo.toJSON(),
@@ -165,7 +162,7 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
 
       await expect(
-        moralisBDSEthereum.getFullTransactionsByAddress({
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: dateTo.toJSON(),
@@ -174,21 +171,36 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
     })
 
     it("Shouldn't be able to get transactions when pageSize param was invalid", async () => {
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, pageSize: 0 })).rejects.toThrow(
-        'Page size should be between 1 and 500'
-      )
+      await expect(
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
+          ...params,
+          pageSize: 0,
+          dateFrom: new Date('2025-01-25T12:00:00').toJSON(),
+          dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        })
+      ).rejects.toThrow('Page size should be between 1 and 500')
 
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, pageSize: 501 })).rejects.toThrow(
-        'Page size should be between 1 and 500'
-      )
+      await expect(
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
+          ...params,
+          pageSize: 501,
+          dateFrom: new Date('2025-01-25T12:00:00').toJSON(),
+          dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        })
+      ).rejects.toThrow('Page size should be between 1 and 500')
 
-      await expect(moralisBDSEthereum.getFullTransactionsByAddress({ ...params, pageSize: NaN })).rejects.toThrow(
-        'Page size should be between 1 and 500'
-      )
+      await expect(
+        moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
+          ...params,
+          pageSize: NaN,
+          dateFrom: new Date('2025-01-25T12:00:00').toJSON(),
+          dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        })
+      ).rejects.toThrow('Page size should be between 1 and 500')
     })
 
     it('Should be able to get transactions when is using a Ethereum Mainnet network', async () => {
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...params,
         dateFrom: new Date('2025-01-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
@@ -199,9 +211,9 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
 
     it('Should be able to get transactions when is using a Polygon Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'polygon')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...params,
         dateFrom: new Date('2024-04-26T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
@@ -213,9 +225,9 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
 
     it('Should be able to get transactions when is using a Base Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'base')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...params,
         dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
@@ -227,9 +239,9 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
 
     it('Should be able to get transactions when is using a Arbitrum Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'arbitrum')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...params,
         dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
@@ -239,27 +251,27 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
       expect(response).toEqual(expectedResponse)
     })
 
-    it('Should be able to get transactions when send the nextCursor param using Ethereum Mainnet network', async () => {
+    it('Should be able to get transactions when send the nextPageParams param using Ethereum Mainnet network', async () => {
       const newParams = {
         ...params,
         dateFrom: new Date('2024-06-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       }
 
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress(newParams)
-      const nextResponse = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress(newParams)
+      const nextResponse = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...newParams,
-        nextCursor: response.nextCursor,
+        nextPageParams: response.nextPageParams,
       })
 
-      expect(response.nextCursor).toBeTruthy()
+      expect(response.nextPageParams).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     })
 
-    it('Should be able to get transactions when send the nextCursor param using Polygon Mainnet network (EVM)', async () => {
+    it('Should be able to get transactions when send the nextPageParams param using Polygon Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'polygon')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const newParams = {
         ...params,
@@ -268,20 +280,20 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
         address: polygonAddress,
       }
 
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress(newParams)
-      const nextResponse = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress(newParams)
+      const nextResponse = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...newParams,
-        nextCursor: response.nextCursor,
+        nextPageParams: response.nextPageParams,
       })
 
-      expect(response.nextCursor).toBeTruthy()
+      expect(response.nextPageParams).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     })
 
-    it('Should be able to get transactions when send the nextCursor param using Base Mainnet network (EVM)', async () => {
+    it('Should be able to get transactions when send the nextPageParams param using Base Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'base')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const newParams = {
         ...params,
@@ -290,20 +302,20 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
         address: baseAddress,
       }
 
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress(newParams)
-      const nextResponse = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress(newParams)
+      const nextResponse = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...newParams,
-        nextCursor: response.nextCursor,
+        nextPageParams: response.nextPageParams,
       })
 
-      expect(response.nextCursor).toBeTruthy()
+      expect(response.nextPageParams).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     })
 
-    it('Should be able to get transactions when send the nextCursor param using Arbitrum Mainnet network (EVM)', async () => {
+    it('Should be able to get transactions when send the nextPageParams param using Arbitrum Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'arbitrum')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const newParams = {
         ...params,
@@ -312,25 +324,25 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
         address: arbitrumAddress,
       }
 
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress(newParams)
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress(newParams)
 
       await BSUtilsHelper.wait(1000) // It's necessary to have this timeout because of an issue on endpoint
 
-      const nextResponse = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const nextResponse = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...newParams,
-        nextCursor: response.nextCursor,
+        nextPageParams: response.nextPageParams,
       })
 
-      expect(response.nextCursor).toBeTruthy()
+      expect(response.nextPageParams).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     })
 
     it('Should be able to get transactions with NFTs when it was called using Polygon Mainnet network', async () => {
       const service = new BSEthereum('test', 'polygon')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
-      const response = await moralisBDSEthereum.getFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...params,
         address: '0x3c8287c41ad4938f4041cdc869b78bce8680d260',
         dateFrom: new Date('2024-03-30T12:00:00').toJSON(),
@@ -339,7 +351,7 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
 
       const nftEvents = response.data
         .flatMap(({ events }) => events)
-        .filter(({ eventType }) => eventType === 'nft') as TFullTransactionNftEvent[]
+        .filter(({ eventType }) => eventType === 'nft') as TTransactionNftEvent[]
 
       expect(nftEvents).toEqual(
         expect.arrayContaining([
@@ -367,7 +379,7 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
 
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Ethereum Mainnet network', async () => {
-      const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
         address: params.address,
         dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
@@ -378,9 +390,9 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
 
     it('Should be able to export transactions when is using a Polygon Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'polygon')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
-      const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
         dateFrom: new Date('2025-02-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
         address: polygonAddress,
@@ -391,9 +403,9 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
 
     it('Should be able to export transactions when is using a Base Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'base')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
-      const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
         dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
         address: baseAddress,
@@ -404,9 +416,9 @@ describe.skip('MoralisBDSEthereum - fullTransactionsByAddress', () => {
 
     it('Should be able to export transactions when is using a Arbitrum Mainnet network (EVM)', async () => {
       const service = new BSEthereum('test', 'arbitrum')
-      moralisBDSEthereum = new MoralisBDSEthereum(service)
+      moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
-      const response = await moralisBDSEthereum.exportFullTransactionsByAddress({
+      const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
         dateFrom: new Date('2024-10-25T12:00:00').toJSON(),
         dateTo: new Date('2024-11-25T12:00:00').toJSON(),
         address: arbitrumAddress,

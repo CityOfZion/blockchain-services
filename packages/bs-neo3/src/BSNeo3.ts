@@ -16,6 +16,7 @@ import {
   TGetLedgerTransport,
   TPingNetworkResponse,
   TTransferParam,
+  type IFullTransactionsDataService,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
@@ -33,6 +34,7 @@ import { api, BSNeo3NeonJsSingletonHelper, wallet } from './helpers/BSNeo3NeonJs
 import { BSNeo3NeonDappKitSingletonHelper, ContractInvocation } from './helpers/BSNeo3NeonDappKitSingletonHelper'
 import axios from 'axios'
 import { WalletConnectServiceNeo3 } from './services/wallet-connect/WalletConnectServiceNeo3'
+import { DoraFullTransactionsDataServiceNeo3 } from './services/full-transactions-data/DoraFullTransactionsDataServiceNeo3'
 
 export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   readonly name: N
@@ -54,7 +56,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
 
   blockchainDataService!: IBlockchainDataService
   nftDataService!: INftDataService
-  ledgerService: NeonDappKitLedgerServiceNeo3<N>
+  ledgerService!: NeonDappKitLedgerServiceNeo3<N>
   exchangeDataService!: IExchangeDataService
   explorerService!: IExplorerService
   voteService!: IVoteService<N>
@@ -62,6 +64,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   tokenService!: ITokenService
   claimDataService!: IClaimDataService
   walletConnectService!: IWalletConnectService
+  fullTransactionsDataService!: IFullTransactionsDataService
 
   constructor(name: N, network?: TBSNetwork<TBSNeo3NetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -149,6 +152,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     this.exchangeDataService = new FlamingoForthewinEDSNeo3(this)
     this.claimDataService = new RpcCDSNeo3(this)
     this.walletConnectService = new WalletConnectServiceNeo3(this)
+    this.fullTransactionsDataService = new DoraFullTransactionsDataServiceNeo3(this)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout

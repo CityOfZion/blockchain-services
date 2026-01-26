@@ -1,8 +1,8 @@
-import { TFullTransactionsByAddressParams } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
-import { DoraBDSNeoLegacy } from '../services/blockchain-data/DoraBDSNeoLegacy'
 import { isLeapYear } from 'date-fns'
 import { BSNeoLegacy } from '../BSNeoLegacy'
+import type { TGetFullTransactionsByAddressParams } from '@cityofzion/blockchain-service'
+import { DoraFullTransactionsDataServiceNeoLegacy } from '../services/full-transactions-data/DoraFullTransactionsDataServiceNeoLegacy'
 
 jest.mock('../services/explorer/NeoTubeESNeoLegacy', () => {
   return {
@@ -20,10 +20,10 @@ jest.mock('../services/explorer/NeoTubeESNeoLegacy', () => {
 const address = 'AFnH8Cv7qzuxWZdeLqK9QqTrfPWCq5f8A3'
 let dateFrom: Date
 let dateTo: Date
-let params: TFullTransactionsByAddressParams
-let bdsNeoLegacy: DoraBDSNeoLegacy<'test'>
+let params: TGetFullTransactionsByAddressParams
+let doraFullTransactionsDataServiceNeoLegacy: DoraFullTransactionsDataServiceNeoLegacy<'test'>
 
-describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
+describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
   beforeEach(() => {
     dateFrom = new Date()
     dateTo = new Date()
@@ -35,34 +35,38 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
     const service = new BSNeoLegacy('test', BSNeoLegacyConstants.MAINNET_NETWORK)
-    bdsNeoLegacy = new DoraBDSNeoLegacy(service)
+    doraFullTransactionsDataServiceNeoLegacy = new DoraFullTransactionsDataServiceNeoLegacy(service)
   })
 
   describe('getFullTransactionsByAddress', () => {
     it("Shouldn't be able to get transactions when is using a testnet network", async () => {
-      bdsNeoLegacy = new DoraBDSNeoLegacy(new BSNeoLegacy('test', BSNeoLegacyConstants.TESTNET_NETWORK))
+      doraFullTransactionsDataServiceNeoLegacy = new DoraFullTransactionsDataServiceNeoLegacy(
+        new BSNeoLegacy('test', BSNeoLegacyConstants.TESTNET_NETWORK)
+      )
 
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress(params)).rejects.toThrow('Network not supported')
+      await expect(doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress(params)).rejects.toThrow(
+        'Network not supported'
+      )
     })
 
     it("Shouldn't be able to get transactions when missing one of the dates", async () => {
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, dateFrom: '' })).rejects.toThrow(
-        'Missing dateFrom param'
-      )
+      await expect(
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, dateFrom: '' })
+      ).rejects.toThrow('Missing dateFrom param')
 
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, dateTo: '' })).rejects.toThrow(
-        'Missing dateTo param'
-      )
+      await expect(
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, dateTo: '' })
+      ).rejects.toThrow('Missing dateTo param')
     })
 
     it("Shouldn't be able to get transactions when one of the dates is invalid", async () => {
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, dateFrom: 'invalid' })).rejects.toThrow(
-        'Invalid dateFrom param'
-      )
+      await expect(
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, dateFrom: 'invalid' })
+      ).rejects.toThrow('Invalid dateFrom param')
 
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, dateTo: 'invalid' })).rejects.toThrow(
-        'Invalid dateTo param'
-      )
+      await expect(
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, dateTo: 'invalid' })
+      ).rejects.toThrow('Invalid dateTo param')
     })
 
     it("Shouldn't be able to get transactions when dateFrom is greater than dateTo", async () => {
@@ -72,7 +76,7 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
       dateTo.setDate(dateTo.getDate() - 1)
 
       await expect(
-        bdsNeoLegacy.getFullTransactionsByAddress({
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: dateTo.toJSON(),
@@ -81,9 +85,9 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
     })
 
     it("Shouldn't be able to get full transactions when address is wrong", async () => {
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, address: 'invalid' })).rejects.toThrow(
-        'Invalid address param'
-      )
+      await expect(
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, address: 'invalid' })
+      ).rejects.toThrow('Invalid address param')
     })
 
     it("Shouldn't be able to get transactions when the range dates are greater than one year", async () => {
@@ -91,7 +95,10 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
       dateFrom.setSeconds(dateFrom.getSeconds() - 1)
 
       await expect(
-        bdsNeoLegacy.getFullTransactionsByAddress({ ...params, dateFrom: dateFrom.toJSON() })
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({
+          ...params,
+          dateFrom: dateFrom.toJSON(),
+        })
       ).rejects.toThrow('Date range greater than one year')
     })
 
@@ -103,7 +110,7 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
       dateTo.setDate(dateTo.getDate() + 2)
 
       await expect(
-        bdsNeoLegacy.getFullTransactionsByAddress({
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: new Date().toJSON(),
@@ -111,7 +118,7 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
 
       await expect(
-        bdsNeoLegacy.getFullTransactionsByAddress({
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({
           ...params,
           dateFrom: new Date().toJSON(),
           dateTo: dateTo.toJSON(),
@@ -119,7 +126,7 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
       ).rejects.toThrow('The dateFrom and/or dateTo are in future')
 
       await expect(
-        bdsNeoLegacy.getFullTransactionsByAddress({
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({
           ...params,
           dateFrom: dateFrom.toJSON(),
           dateTo: dateTo.toJSON(),
@@ -128,28 +135,28 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
     })
 
     it("Shouldn't be able to get transactions when pageSize param was invalid", async () => {
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 0 })).rejects.toThrow(
-        'Page size should be between 1 and 30'
-      )
+      await expect(
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 0 })
+      ).rejects.toThrow('Page size should be between 1 and 30')
 
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 31 })).rejects.toThrow(
-        'Page size should be between 1 and 30'
-      )
+      await expect(
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 31 })
+      ).rejects.toThrow('Page size should be between 1 and 30')
 
-      await expect(bdsNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: NaN })).rejects.toThrow(
-        'Page size should be between 1 and 30'
-      )
+      await expect(
+        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: NaN })
+      ).rejects.toThrow('Page size should be between 1 and 30')
     })
 
     it('Should be able to get transactions when is using a Mainnet network', async () => {
-      const response = await bdsNeoLegacy.getFullTransactionsByAddress({
+      const response = await doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({
         ...params,
         dateFrom: new Date('2025-04-24T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       })
 
       expect(response).toEqual({
-        nextCursor: expect.anything(),
+        nextPageParams: expect.anything(),
         data: expect.arrayContaining([
           expect.objectContaining({
             txId: expect.any(String),
@@ -186,21 +193,21 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
       })
     })
 
-    it('Should be able to get transactions when send the nextCursor param', async () => {
+    it('Should be able to get transactions when send the nextPageParams param', async () => {
       const newParams = {
         ...params,
         dateFrom: new Date('2025-04-20T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       }
 
-      const response = await bdsNeoLegacy.getFullTransactionsByAddress(newParams)
+      const response = await doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress(newParams)
 
-      const nextResponse = await bdsNeoLegacy.getFullTransactionsByAddress({
+      const nextResponse = await doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({
         ...newParams,
-        nextCursor: response.nextCursor,
+        nextPageParams: response.nextPageParams,
       })
 
-      expect(response.nextCursor).toBeTruthy()
+      expect(response.nextPageParams).toBeTruthy()
       expect(response.data.length).toBeTruthy()
       expect(nextResponse.data.length).toBeTruthy()
     })
@@ -212,16 +219,16 @@ describe('DoraBDSNeoLegacy - fullTransactionsByAddress', () => {
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       }
 
-      const response = await bdsNeoLegacy.getFullTransactionsByAddress(newParams)
+      const response = await doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress(newParams)
 
-      expect(response.nextCursor).toBeTruthy()
+      expect(response.nextPageParams).toBeTruthy()
       expect(response.data.length).toBe(30)
     })
   })
 
   describe('exportFullTransactionsByAddress', () => {
     it('Should be able to export transactions when is using a Mainnet network', async () => {
-      const response = await bdsNeoLegacy.exportFullTransactionsByAddress({
+      const response = await doraFullTransactionsDataServiceNeoLegacy.exportFullTransactionsByAddress({
         address: params.address,
         dateFrom: new Date('2025-04-24T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),

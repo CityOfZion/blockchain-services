@@ -12,6 +12,7 @@ import {
   BSUtilsHelper,
   BSKeychainHelper,
   TPingNetworkResponse,
+  type IFullTransactionsDataService,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
 import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
@@ -23,6 +24,7 @@ import { IBSNeoLegacy, TBSNeoLegacyNetworkId, TSigningCallback } from './types'
 import { DoraCDSNeoLegacy } from './services/claim-data/DoraCDSNeoLegacy'
 import { BSNeoLegacyNeonJsSingletonHelper } from './helpers/BSNeoLegacyNeonJsSingletonHelper'
 import axios from 'axios'
+import { DoraFullTransactionsDataServiceNeoLegacy } from './services/full-transactions-data/DoraFullTransactionsDataServiceNeoLegacy'
 export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   readonly name: N
   readonly bip44DerivationPath: string
@@ -43,10 +45,11 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
 
   blockchainDataService!: IBlockchainDataService
   exchangeDataService!: IExchangeDataService
-  ledgerService: NeonJsLedgerServiceNeoLegacy<N>
+  ledgerService!: NeonJsLedgerServiceNeoLegacy<N>
   explorerService!: IExplorerService
   tokenService!: ITokenService
   claimDataService!: IClaimDataService
+  fullTransactionsDataService!: IFullTransactionsDataService
 
   constructor(name: N, network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -192,11 +195,13 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     this.blockchainDataService = new DoraBDSNeoLegacy(this)
     this.exchangeDataService = new CryptoCompareEDSNeoLegacy(this)
     this.claimDataService = new DoraCDSNeoLegacy(this)
+    this.fullTransactionsDataService = new DoraFullTransactionsDataServiceNeoLegacy(this)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
   async pingNode(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
+
     const timeout = setTimeout(() => {
       abortController.abort()
     }, 5000)

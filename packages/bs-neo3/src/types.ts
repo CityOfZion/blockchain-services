@@ -11,6 +11,7 @@ import {
   IBSWithNft,
   TBSNetworkId,
   IBSWithWalletConnect,
+  type IBSWithFullTransactions,
 } from '@cityofzion/blockchain-service'
 import { wallet, api } from './helpers/BSNeo3NeonJsSingletonHelper'
 
@@ -26,7 +27,8 @@ export interface IBSNeo3<N extends string = string>
     IBSWithLedger<N>,
     IBSWithNeo3NeoXBridge<N>,
     IBSWithEncryption<N>,
-    IBSWithWalletConnect {
+    IBSWithWalletConnect,
+    IBSWithFullTransactions {
   generateSigningCallback(account: TBSAccount<N>): Promise<{
     neonJsAccount: wallet.Account
     signingCallback: api.SigningFunction
@@ -113,4 +115,15 @@ export enum ENeonDappKitLedgerServiceNeo3Command {
 export enum ENeonDappKitLedgerServiceNeo3SecondParameter {
   MORE_DATA = 0x80,
   LAST_DATA = 0x00,
+}
+
+export type TRpcBDSNeo3NotificationState = {
+  type: string
+  value?: any | undefined
+}
+
+export type TRpcBDSNeo3Notification = {
+  contract: string
+  eventname: string
+  state: TRpcBDSNeo3NotificationState | TRpcBDSNeo3NotificationState[] | undefined
 }

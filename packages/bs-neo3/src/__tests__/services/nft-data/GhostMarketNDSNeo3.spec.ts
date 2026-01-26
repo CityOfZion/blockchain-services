@@ -51,6 +51,7 @@ describe('GhostMarketNDSNeo3', () => {
       symbol: 'GHOST',
       image: expect.any(String),
       isSVG: expect.any(Boolean),
+      explorerUri: expect.any(String),
       name: 'GAS Icon',
       creator: {
         address: expect.any(String),

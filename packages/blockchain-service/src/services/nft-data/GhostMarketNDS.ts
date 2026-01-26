@@ -19,34 +19,11 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
 
   _service: T
 
+  #nftsCacheMap: Map<string, TNftResponse> = new Map()
+
   constructor(service: T) {
     this._service = service
   }
-
-  async getNftsByAddress({ address, size = 18, cursor }: TGetNftsByAddressParams): Promise<TNftsResponse> {
-    const url = this.#getUrlWithParams({
-      size,
-      owners: [address],
-      cursor: cursor,
-    })
-    const { data } = await axios.get<TGhostMarketNDSNeo3GetAssetsApiResponse>(url)
-    const nfts = data.assets ?? []
-
-    return { nextCursor: data.next, items: nfts.map(this.#parse.bind(this)) }
-  }
-
-  async getNft({ collectionHash, tokenHash }: TGetNftParam): Promise<TNftResponse> {
-    const url = this.#getUrlWithParams({
-      contract: collectionHash,
-      tokenIds: [tokenHash],
-    })
-    const { data } = await axios.get<TGhostMarketNDSNeo3GetAssetsApiResponse>(url)
-    return this.#parse(data.assets[0])
-  }
-
-  abstract hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean>
-
-  abstract getChain(): string
 
   #treatGhostMarketImage(srcImage?: string) {
     if (!srcImage) {
@@ -113,4 +90,50 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
 
     return nftResponse
   }
+
+  #buildNftsCacheKey(collectionHash: string, tokenHash: string): string {
+    return `${collectionHash}-${tokenHash}`
+  }
+
+  async getNftsByAddress({ address, size = 18, cursor }: TGetNftsByAddressParams): Promise<TNftsResponse> {
+    const url = this.#getUrlWithParams({
+      size,
+      owners: [address],
+      cursor: cursor,
+    })
+    const { data } = await axios.get<TGhostMarketNDSNeo3GetAssetsApiResponse>(url)
+    const nfts = data.assets ?? []
+
+    const items = nfts.map(nft => {
+      const item = this.#parse(nft)
+      this.#nftsCacheMap.set(this.#buildNftsCacheKey(nft.contract.hash, nft.tokenId), item)
+      return item
+    })
+
+    return { nextCursor: data.next, items }
+  }
+
+  async getNft({ collectionHash, tokenHash }: TGetNftParam): Promise<TNftResponse> {
+    const cacheKey = this.#buildNftsCacheKey(collectionHash, tokenHash)
+    const nftFromCache = this.#nftsCacheMap.get(cacheKey)
+    if (nftFromCache) {
+      return nftFromCache
+    }
+
+    const url = this.#getUrlWithParams({
+      contract: collectionHash,
+      tokenIds: [tokenHash],
+    })
+    const { data } = await axios.get<TGhostMarketNDSNeo3GetAssetsApiResponse>(url)
+
+    const nft = this.#parse(data.assets[0])
+
+    this.#nftsCacheMap.set(cacheKey, nft)
+
+    return nft
+  }
+
+  abstract hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean>
+
+  abstract getChain(): string
 }

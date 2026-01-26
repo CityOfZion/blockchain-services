@@ -1,30 +1,20 @@
 import {
   TBalanceResponse,
   TContractMethod,
-  ContractResponse,
   TBSToken,
-  TTransactionResponse,
-  TTransactionTransferAsset,
-  TTransactionTransferNft,
-  TTransactionsByAddressParams,
-  TTransactionsByAddressResponse,
   BSCommonConstants,
-  TFullTransactionsByAddressParams,
-  TFullTransactionsByAddressResponse,
-  TExportTransactionsByAddressParams,
   TBSNetwork,
   TBSNetworkId,
-  BSFullTransactionsByAddressHelper,
-  TFullTransactionsItem,
-  BSBigNumberHelper,
-  BSPromisesHelper,
-  TNftResponse,
+  type TContractResponse,
+  type TTransaction,
+  type TGetTransactionsByAddressResponse,
+  type TGetTransactionsByAddressParams,
+  BSUtilsHelper,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
-import { api } from '@cityofzion/dora-ts'
 import {
   IBSEthereum,
   TBSEthereumNetworkId,
@@ -39,10 +29,7 @@ import { RpcBDSEthereum } from './RpcBDSEthereum'
 
 export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extends RpcBDSEthereum<N, A> {
   static readonly BASE_URL = `${BSCommonConstants.COZ_API_URL}/api/v2/meta`
-  static readonly FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = ['1', '42161', '8453', '137']
-  static readonly FULL_TRANSACTIONS_ERC721_STANDARDS = ['erc721', 'erc-721']
-  static readonly FULL_TRANSACTIONS_ERC1155_STANDARDS = ['erc1155', 'erc-1155']
-  static readonly FULL_TRANSACTIONS_ERC20_STANDARDS = ['erc20', 'erc-20']
+
   // prettier-ignore
   static readonly MORALIS_SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = [
     '1', '11155111', '17000', '137', '80002', '56', '97', '42161', '421614',
@@ -151,25 +138,39 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     return token
   }
 
-  async getTransaction(hash: string): Promise<TTransactionResponse> {
+  async getTransaction(hash: string): Promise<TTransaction> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransaction(hash)
     }
 
     const { data } = await this.#api.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
 
-    const transfers: (TTransactionTransferAsset | TTransactionTransferNft)[] = []
+    const events: TTransaction['events'] = []
+
+    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
+    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
+    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
+    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
 
     if (data.value && Number(data.value) > 0) {
       const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
 
-      transfers.push({
-        amount: ethers.utils.formatUnits(data.value, nativeToken.decimals),
+      const fromUrl = addressTemplateUrl?.replace('{address}', data.from_address)
+      const toUrl = addressTemplateUrl?.replace('{address}', data.to_address)
+      const contractHashUrl = contractTemplateUrl?.replace('{hash}', nativeToken.hash)
+
+      events.push({
+        eventType: 'token',
+        amount: ethers.utils.formatEther(data.value),
         from: data.from_address,
         to: data.to_address,
-        type: 'token',
         token: nativeToken,
         contractHash: nativeToken.hash,
+        tokenType: 'native',
+        methodName: 'transfer',
+        contractHashUrl,
+        fromUrl,
+        toUrl,
       })
     }
 
@@ -182,47 +183,80 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         const amount = log.decoded_event.params.find((param: any) => param.name === 'value')?.value
         const from = log.decoded_event.params.find((param: any) => param.name === 'from')?.value
         const to = log.decoded_event.params.find((param: any) => param.name === 'to')?.value
+
         if (!from || !to) return
+
+        const fromUrl = addressTemplateUrl?.replace('{address}', data.from_address)
+        const toUrl = addressTemplateUrl?.replace('{address}', data.to_address)
+        const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
         if (amount) {
           const token = await this.getTokenInfo(contractHash)
 
-          transfers.push({
+          events.push({
             contractHash,
             amount: ethers.utils.formatUnits(amount, token.decimals),
             from,
+            fromUrl,
             to,
-            type: 'token',
+            toUrl,
+            eventType: 'token',
+            methodName: 'transfer',
+            tokenType: 'erc-20',
+            contractHashUrl,
           })
         }
 
         const tokenHash = log.decoded_event.params.find((param: any) => param.name === 'tokenId')?.value
         if (!tokenHash) return
 
-        transfers.push({
+        const [nft] = await BSUtilsHelper.tryCatch(() =>
+          this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
+        )
+
+        const nftUrl = contractHash
+          ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
+          : undefined
+
+        events.push({
           collectionHash: contractHash,
           tokenHash,
           from,
+          fromUrl,
           to,
-          type: 'nft',
+          toUrl,
+          eventType: 'nft',
+          methodName: 'transfer',
+          tokenType: 'erc-721',
+          amount: '1',
+          nftImageUrl: nft?.image,
+          nftUrl,
+          name: nft?.name,
+          collectionName: nft?.collection?.name,
+          collectionHashUrl: contractHashUrl,
         })
       })
 
       await Promise.allSettled(promises)
     }
 
+    const txIdUrl = txTemplateUrl?.replace('{txId}', hash)
+
     return {
+      txId: hash,
       block: Number(data.block_number),
-      hash,
-      notifications: [],
-      time: new Date(data.block_timestamp).getTime() / 1000,
-      transfers,
-      fee: data.transaction_fee,
+      date: new Date(data.block_timestamp).toISOString(),
+      invocationCount: 0,
+      notificationCount: 0,
+      networkFeeAmount: data.transaction_fee,
+      systemFeeAmount: ethers.utils.formatEther('0'),
+      txIdUrl,
+      events,
       type: 'default',
     }
   }
 
-  async getTransactionsByAddress(params: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse> {
+  async getTransactionsByAddress(params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransactionsByAddress(params)
     }
@@ -234,32 +268,53 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       },
     })
 
-    const transactions: TTransactionResponse[] = []
+    const transactions: TTransaction[] = []
 
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
 
+    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
+    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
+    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
+    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
+
     const promises = data.result.map(async item => {
-      const transfers: (TTransactionTransferAsset | TTransactionTransferNft)[] = []
+      const events: TTransaction['events'] = []
+
+      const nativeContractHashUrl = contractTemplateUrl?.replace('{hash}', nativeAsset.hash)
 
       item.native_transfers.forEach(transfer => {
-        transfers.push({
+        const fromUrl = addressTemplateUrl?.replace('{address}', transfer.from_address)
+        const toUrl = addressTemplateUrl?.replace('{address}', transfer.to_address)
+
+        events.push({
           amount: ethers.utils.formatUnits(transfer.value, nativeAsset.decimals),
           from: transfer.from_address,
+          fromUrl,
           to: transfer.to_address,
-          type: 'token',
+          toUrl,
+          eventType: 'token',
           token: nativeAsset,
           contractHash: nativeAsset.hash,
+          methodName: 'transfer',
+          tokenType: 'native',
+          contractHashUrl: nativeContractHashUrl,
         })
       })
 
       item.erc20_transfers.forEach(transfer => {
         if (transfer.possible_spam) return
 
-        transfers.push({
+        const fromUrl = addressTemplateUrl?.replace('{address}', transfer.from_address)
+        const toUrl = addressTemplateUrl?.replace('{address}', transfer.to_address)
+        const contractHashUrl = contractTemplateUrl?.replace('{hash}', transfer.address)
+
+        events.push({
           amount: ethers.utils.formatUnits(transfer.value, transfer.token_decimals),
           from: transfer.from_address,
+          fromUrl,
           to: transfer.to_address,
-          type: 'token',
+          toUrl,
+          eventType: 'token',
           token: this._service.tokenService.normalizeToken({
             decimals: Number(transfer.token_decimals),
             hash: transfer.address,
@@ -267,26 +322,58 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
             symbol: transfer.token_symbol,
           }),
           contractHash: transfer.address,
+          methodName: 'transfer',
+          tokenType: 'erc-20',
+          contractHashUrl,
         })
       })
 
-      item.nft_transfers.forEach(transfer => {
-        transfers.push({
+      const nftPromises = item.nft_transfers.map(async transfer => {
+        const fromUrl = addressTemplateUrl?.replace('{address}', transfer.from_address)
+        const toUrl = addressTemplateUrl?.replace('{address}', transfer.to_address)
+        const collectionHashUrl = contractTemplateUrl?.replace('{contractHash}', transfer.token_address)
+
+        const [nft] = await BSUtilsHelper.tryCatch(() =>
+          this._service.nftDataService.getNft({ collectionHash: transfer.token_address, tokenHash: transfer.token_id })
+        )
+
+        const nftUrl = nftTemplateUrl
+          ?.replace('{collectionHash}', transfer.token_address)
+          .replace('{tokenHash}', transfer.token_id)
+
+        events.push({
           collectionHash: transfer.token_address,
+          collectionHashUrl,
           tokenHash: transfer.token_id,
           from: transfer.from_address,
+          fromUrl,
           to: transfer.to_address,
-          type: 'nft',
+          toUrl,
+          eventType: 'nft',
+          methodName: 'transfer',
+          tokenType: 'erc-721',
+          amount: '1',
+          nftImageUrl: nft?.image,
+          nftUrl,
+          name: nft?.name,
+          collectionName: nft?.collection?.name,
         })
       })
+
+      await Promise.allSettled(nftPromises)
+
+      const txIdUrl = txTemplateUrl?.replace('{txId}', item.hash)
 
       transactions.push({
         block: Number(item.block_number),
-        hash: item.hash,
-        notifications: [],
-        time: new Date(item.block_timestamp).getTime() / 1000,
-        transfers,
-        fee: item.transaction_fee,
+        txId: item.hash,
+        txIdUrl,
+        notificationCount: 0,
+        invocationCount: 0,
+        networkFeeAmount: item.transaction_fee,
+        systemFeeAmount: ethers.utils.formatEther('0'),
+        date: new Date(item.block_timestamp).toISOString(),
+        events,
         type: 'default',
       })
     })
@@ -295,146 +382,11 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
     return {
       nextPageParams: data.cursor,
-      transactions,
+      data: transactions,
     }
   }
 
-  async getFullTransactionsByAddress({
-    nextCursor,
-    ...params
-  }: TFullTransactionsByAddressParams): Promise<TFullTransactionsByAddressResponse> {
-    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
-      service: this._service,
-      supportedNetworksIds: MoralisBDSEthereum.FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS,
-      ...params,
-    })
-
-    const data: TFullTransactionsItem[] = []
-
-    const response = await api.EthereumREST.getFullTransactionsByAddress({
-      address: params.address,
-      timestampFrom: params.dateFrom,
-      timestampTo: params.dateTo,
-      network: this._service.network.id,
-      cursor: nextCursor,
-      pageLimit: params.pageSize ?? 50,
-    })
-
-    const items = response.data ?? []
-
-    const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
-
-    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
-    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
-    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
-
-    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
-      const txId = item.transactionID
-      const newItem: TFullTransactionsItem = {
-        txId,
-        txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
-        block: item.block,
-        date: item.date,
-        invocationCount: item.invocationCount,
-        notificationCount: item.notificationCount,
-        networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: nativeToken.decimals })
-          : undefined,
-        systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: nativeToken.decimals })
-          : undefined,
-        events: [],
-        type: 'default',
-      }
-
-      const eventPromises = item.events.map(async (event, eventIndex) => {
-        const { methodName, tokenID: tokenHash, contractHash } = event
-        const from = event.from ?? undefined
-        const to = event.to ?? undefined
-        const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
-        const isErc1155 = MoralisBDSEthereum.FULL_TRANSACTIONS_ERC1155_STANDARDS.includes(standard)
-        const isErc721 = MoralisBDSEthereum.FULL_TRANSACTIONS_ERC721_STANDARDS.includes(standard)
-        const isErc20 = MoralisBDSEthereum.FULL_TRANSACTIONS_ERC20_STANDARDS.includes(standard)
-        const isNft = (isErc1155 || isErc721) && !!tokenHash
-        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
-        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
-
-        if (isNft) {
-          const [nft] = await BSPromisesHelper.tryCatch<TNftResponse>(() =>
-            this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
-          )
-
-          const nftUrl = contractHash
-            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
-            : undefined
-
-          newItem.events.splice(eventIndex, 0, {
-            eventType: 'nft',
-            amount: undefined,
-            methodName,
-            from,
-            fromUrl,
-            to,
-            toUrl,
-            collectionHash: contractHash,
-            collectionHashUrl: contractHashUrl,
-            tokenHash,
-            tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
-            nftImageUrl: nft?.image,
-            nftUrl,
-            name: nft?.name,
-            collectionName: nft?.collection?.name,
-          })
-
-          return
-        }
-        const [token] = await BSPromisesHelper.tryCatch<TBSToken>(() => this.getTokenInfo(contractHash))
-
-        newItem.events.splice(eventIndex, 0, {
-          eventType: 'token',
-          amount: event.amount
-            ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
-            : undefined,
-          methodName,
-          from,
-          fromUrl,
-          to,
-          toUrl,
-          contractHash,
-          contractHashUrl,
-          token: token ?? undefined,
-          tokenType: isErc20 ? 'erc-20' : 'generic',
-        })
-      })
-
-      await Promise.allSettled(eventPromises)
-
-      data.splice(index, 0, newItem)
-    })
-
-    await Promise.allSettled(itemPromises)
-
-    return { nextCursor: response.nextCursor, data }
-  }
-
-  async exportFullTransactionsByAddress(params: TExportTransactionsByAddressParams): Promise<string> {
-    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
-      service: this._service,
-      supportedNetworksIds: MoralisBDSEthereum.FULL_TRANSACTIONS_SUPPORTED_NETWORKS_IDS,
-      ...params,
-    })
-
-    return await api.EthereumREST.exportFullTransactionsByAddress({
-      address: params.address,
-      timestampFrom: params.dateFrom,
-      timestampTo: params.dateTo,
-      network: this._service.network.id,
-    })
-  }
-
-  async getContract(hash: string): Promise<ContractResponse> {
+  async getContract(hash: string): Promise<TContractResponse> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getContract(hash)
     }

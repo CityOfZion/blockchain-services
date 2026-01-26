@@ -1,10 +1,10 @@
-import { TFullTransactionsByAddressParams, IBlockchainService, TBSNetworkId } from '../interfaces'
-import { differenceInYears, isAfter, isFuture, isValid, parseISO } from 'date-fns'
+import { TGetFullTransactionsByAddressParams, IBlockchainService, TBSNetworkId } from '../interfaces'
+import { addYears, isAfter, isFuture, isValid, parseISO } from 'date-fns'
 
 type TValidateFullTransactionsByAddressParams<
   N extends string,
   A extends TBSNetworkId,
-> = TFullTransactionsByAddressParams & {
+> = TGetFullTransactionsByAddressParams & {
   service: IBlockchainService<N, A>
   supportedNetworksIds?: string[]
   maxPageSize?: number
@@ -24,7 +24,7 @@ export class BSFullTransactionsByAddressHelper {
     if (!isValid(dateTo)) throw new Error('Invalid dateTo param')
     if (isFuture(dateFrom) || isFuture(dateTo)) throw new Error('The dateFrom and/or dateTo are in future')
     if (isAfter(dateFrom, dateTo)) throw new Error('Invalid date order because dateFrom is greater than dateTo')
-    if (differenceInYears(dateTo, dateFrom) >= 1) throw new Error('Date range greater than one year')
+    if (isAfter(dateTo, addYears(dateFrom, 1))) throw new Error('Date range greater than one year')
 
     const maxPageSize = params.maxPageSize ?? 500
 

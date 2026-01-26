@@ -2,17 +2,17 @@ import {
   TBalanceResponse,
   TContractMethod,
   TContractParameter,
-  ContractResponse,
-  TExportTransactionsByAddressParams,
-  TFullTransactionsByAddressParams,
-  TFullTransactionsByAddressResponse,
   IBlockchainDataService,
   TBSToken,
-  TTransactionResponse,
-  TTransactionsByAddressParams,
-  TTransactionsByAddressResponse,
+  type TTransaction,
+  BSBigNumberHelper,
+  type TGetTransactionsByAddressParams,
+  type TGetTransactionsByAddressResponse,
+  type TContractResponse,
+  type TBridgeToken,
+  BSUtilsHelper,
 } from '@cityofzion/blockchain-service'
-import { IBSNeo3 } from '../../types'
+import { IBSNeo3, type TRpcBDSNeo3Notification, type TRpcBDSNeo3NotificationState } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
@@ -25,43 +25,175 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
     this._service = service
   }
 
-  async getTransaction(hash: string): Promise<TTransactionResponse> {
+  #convertByteStringToAddress(byteString: string): string {
+    const { wallet, u } = BSNeo3NeonJsSingletonHelper.getInstance()
+    const account = new wallet.Account(u.reverseHex(u.HexString.fromBase64(byteString).toString()))
+    return account.address
+  }
+
+  async _extractEventsFromNotifications(notifications: TRpcBDSNeo3Notification[] = []) {
+    const events: TTransaction['events'] = []
+
+    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
+    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
+    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
+
+    const promises = notifications.map(async ({ contract: contractHash, state, eventname }) => {
+      const properties = (Array.isArray(state) ? state : (state?.value ?? [])) as TRpcBDSNeo3NotificationState[]
+
+      if (eventname !== 'Transfer' || (properties.length !== 3 && properties.length !== 4)) return
+
+      const isAsset = properties.length === 3
+      const from = properties[0].value as string
+      const to = properties[1].value as string
+      const convertedFrom = from ? this.#convertByteStringToAddress(from) : 'Mint'
+      const convertedTo = to ? this.#convertByteStringToAddress(to) : 'Burn'
+
+      const fromUrl = addressTemplateUrl?.replace('{address}', convertedFrom)
+      const toUrl = addressTemplateUrl?.replace('{address}', convertedTo)
+      const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+
+      if (isAsset) {
+        const token = await this.getTokenInfo(contractHash)
+        const amount = properties[2].value as string
+
+        events.push({
+          amount: BSBigNumberHelper.format(amount ?? 0, { decimals: token.decimals }),
+          from: convertedFrom,
+          fromUrl,
+          to: convertedTo,
+          toUrl,
+          contractHash,
+          contractHashUrl,
+          eventType: 'token',
+          token,
+          tokenType: 'nep-17',
+          methodName: 'transfer',
+        })
+
+        return
+      }
+
+      const tokenHash = properties[3].value as string
+
+      const [nft] = await BSUtilsHelper.tryCatch(() =>
+        this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
+      )
+
+      const nftUrl = nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
+
+      events.push({
+        from: convertedFrom,
+        fromUrl,
+        to: convertedTo,
+        toUrl,
+        tokenHash,
+        collectionHash: contractHash,
+        collectionHashUrl: contractHashUrl,
+        eventType: 'nft',
+        methodName: 'transfer',
+        tokenType: 'nep-11',
+        amount: '1',
+        nftImageUrl: nft?.image,
+        nftUrl,
+        name: nft?.name,
+        collectionName: nft?.collection?.name,
+      })
+    })
+
+    await Promise.allSettled(promises)
+
+    return events
+  }
+
+  getBridgeNeo3NeoXDataByNotifications(notifications: TRpcBDSNeo3Notification[]) {
+    const gasNotification = notifications.find(({ eventname }) => eventname === 'NativeDeposit')
+    const isNativeToken = !!gasNotification
+
+    const neoNotification = !isNativeToken
+      ? notifications.find(({ eventname }) => eventname === 'TokenDeposit')
+      : undefined
+
+    const notification = isNativeToken ? gasNotification : neoNotification
+    const notificationStateValue = (notification?.state as TRpcBDSNeo3NotificationState)
+      ?.value as TRpcBDSNeo3NotificationState[]
+
+    if (!notificationStateValue) return undefined
+
+    let token: TBridgeToken | undefined
+    let amountInDecimals: string | undefined
+    let byteStringReceiverAddress: string | undefined
+
+    if (isNativeToken) {
+      token = this._service.neo3NeoXBridgeService.gasToken
+      amountInDecimals = notificationStateValue[2]?.value as string
+      byteStringReceiverAddress = notificationStateValue[1]?.value as string
+    } else {
+      token = this._service.neo3NeoXBridgeService.neoToken
+      amountInDecimals = notificationStateValue[4]?.value as string
+      byteStringReceiverAddress = notificationStateValue[3]?.value as string
+    }
+
+    if (!token || !amountInDecimals || !byteStringReceiverAddress) return undefined
+
+    const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
+
+    return {
+      amount: BSBigNumberHelper.toNumber(BSBigNumberHelper.fromDecimals(amountInDecimals, token.decimals)),
+      token,
+      receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
+    }
+  }
+
+  async getTransaction(hash: string): Promise<TTransaction> {
     try {
-      const { rpc, u } = BSNeo3NeonJsSingletonHelper.getInstance()
+      const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
       const rpcClient = new rpc.RPCClient(this._service.network.url)
       const response = await rpcClient.getRawTransaction(hash, true)
 
-      return {
-        hash: response.hash,
+      const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
+
+      const applicationLog = await rpcClient.getApplicationLog(hash)
+      const notifications = applicationLog.executions.flatMap(execution => execution.notifications)
+
+      const events = await this._extractEventsFromNotifications(notifications)
+
+      const txIdUrl = txTemplateUrl?.replace('{txId}', response.hash)
+
+      let transaction: TTransaction = {
+        txId: response.hash,
+        txIdUrl,
         block: response.validuntilblock,
-        fee: u.BigInteger.fromNumber(response.netfee ?? 0)
-          .add(u.BigInteger.fromNumber(response.sysfee ?? 0))
-          .toDecimal(this._service.feeToken.decimals),
-        notifications: [],
-        transfers: [],
-        time: response.blocktime,
-        type: 'default', // It's not possible to set the correct type because we don't have notifications here
+        systemFeeAmount: BSBigNumberHelper.format(response.sysfee ?? 0, {
+          decimals: this._service.feeToken.decimals,
+        }),
+        networkFeeAmount: BSBigNumberHelper.format(response.netfee ?? 0, {
+          decimals: this._service.feeToken.decimals,
+        }),
+        invocationCount: 0,
+        notificationCount: notifications.length,
+        events,
+        date: new Date(Number(response.blocktime) * 1000).toISOString(),
+        type: 'default',
       }
+
+      const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)
+
+      if (bridgeNeo3NeoXData) {
+        transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
+      }
+
+      return transaction
     } catch {
       throw new Error(`Transaction not found: ${hash}`)
     }
   }
 
-  async getTransactionsByAddress(_params: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse> {
+  async getTransactionsByAddress(_params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
     throw new Error('Method not supported.')
   }
 
-  async getFullTransactionsByAddress(
-    _params: TFullTransactionsByAddressParams
-  ): Promise<TFullTransactionsByAddressResponse> {
-    throw new Error('Method not supported.')
-  }
-
-  async exportFullTransactionsByAddress(_params: TExportTransactionsByAddressParams): Promise<string> {
-    throw new Error('Method not implemented.')
-  }
-
-  async getContract(contractHash: string): Promise<ContractResponse> {
+  async getContract(contractHash: string): Promise<TContractResponse> {
     try {
       const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
 

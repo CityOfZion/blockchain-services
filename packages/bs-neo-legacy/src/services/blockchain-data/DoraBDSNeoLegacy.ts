@@ -1,29 +1,19 @@
 import {
   TBalanceResponse,
   BSBigNumberHelper,
-  BSFullTransactionsByAddressHelper,
-  BSPromisesHelper,
-  ContractResponse,
-  TExportTransactionsByAddressParams,
-  TFullTransactionAssetEvent,
-  TFullTransactionsByAddressParams,
-  TFullTransactionsByAddressResponse,
-  TFullTransactionsItem,
   IBlockchainDataService,
   TBSToken,
-  TTransactionResponse,
-  TTransactionsByAddressParams,
-  TTransactionsByAddressResponse,
-  TTransactionTransferAsset,
+  type TContractResponse,
+  type TTransaction,
+  type TGetTransactionsByAddressParams,
+  type TGetTransactionsByAddressResponse,
+  type TTransactionTokenEvent,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { IBSNeoLegacy, TBSNeoLegacyNetworkId } from '../../types'
+import { IBSNeoLegacy } from '../../types'
 import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
 export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataService {
-  static readonly SUPPORTED_NEP5_STANDARDS: string[] = ['nep5', 'nep-5']
-  static readonly FULL_TRANSACTIONS_API_SUPPORTED_NETWORKS_IDS: TBSNeoLegacyNetworkId[] = ['mainnet']
-
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly #tokenCache: Map<string, TBSToken> = new Map()
   readonly #service: IBSNeoLegacy<N>
@@ -32,35 +22,62 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     this.#service = service
   }
 
-  async getTransaction(hash: string): Promise<TTransactionResponse> {
+  async getTransaction(hash: string): Promise<TTransaction> {
     const data = await api.NeoLegacyREST.transaction(hash, this.#service.network.id)
     if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
 
     const vout: any[] = data.vout ?? []
+    const events: TTransaction['events'] = []
 
-    const promises = vout.map<Promise<TTransactionTransferAsset>>(async (transfer, _index, array) => {
+    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
+    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
+    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
+
+    const from = vout[vout.length - 1]?.address
+
+    const promises = vout.map(async (transfer, _index) => {
       const token = await this.getTokenInfo(transfer.asset)
-      return {
+
+      const to = transfer.address
+      const contractHash = transfer.asset
+
+      const fromUrl = addressTemplateUrl?.replace('{address}', from)
+      const toUrl = addressTemplateUrl?.replace('{address}', to)
+      const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+
+      events.push({
         amount: String(transfer.value),
-        from: array[array.length - 1]?.address,
-        contractHash: transfer.asset,
-        to: transfer.address,
-        type: 'token',
+        from,
+        fromUrl,
+        to,
+        toUrl,
+        contractHash,
+        contractHashUrl: contractHashUrl,
+        eventType: 'token',
         token,
-      }
+        methodName: 'transfer',
+        tokenType: 'nep-5',
+      })
     })
-    const transfers = await Promise.all(promises)
+
+    await Promise.allSettled(promises)
+
+    const txIdUrl = txTemplateUrl?.replace('{txId}', data.txid)
 
     return {
-      hash: data.txid,
+      txId: data.txid,
+      txIdUrl,
       block: data.block,
-      fee: BSBigNumberHelper.toNumber(
-        BSBigNumberHelper.fromNumber(data.sys_fee ?? 0).plus(data.net_fee ?? 0),
-        this.#service.feeToken.decimals
-      ),
-      time: Number(data.time),
-      notifications: [], //neoLegacy doesn't have notifications
-      transfers,
+      networkFeeAmount: BSBigNumberHelper.format(data.net_fee ?? 0, {
+        decimals: this.#service.feeToken.decimals,
+      }),
+      systemFeeAmount: BSBigNumberHelper.format(data.sys_fee ?? 0, {
+        decimals: this.#service.feeToken.decimals,
+      }),
+      date: new Date(Number(data.time) * 1000).toISOString(),
+      invocationCount: 0,
+      notificationCount: 0,
+      events,
       type: 'default',
     }
   }
@@ -68,150 +85,73 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse> {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
     const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#service.network.id)
-    const transactions = new Map<string, TTransactionResponse>()
+    const transactions = new Map<string, TTransaction>()
+
+    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
+    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
+    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
 
     const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return
 
+      const from = entry.address_from ?? address
+      const to = entry.address_to ?? address
+
+      const fromUrl = addressTemplateUrl?.replace('{address}', from)
+      const toUrl = addressTemplateUrl?.replace('{address}', to)
+      const contractHashUrl = contractTemplateUrl?.replace('{hash}', entry.asset)
+
       const token = await this.getTokenInfo(entry.asset)
-      const transfer: TTransactionTransferAsset = {
+
+      const event: TTransactionTokenEvent = {
         amount: String(entry.amount),
-        from: entry.address_from ?? 'Mint',
-        to: entry.address_to ?? 'Burn',
-        type: 'token',
+        from,
+        fromUrl,
+        to,
+        toUrl,
+        eventType: 'token',
         contractHash: entry.asset,
+        contractHashUrl,
         token,
+        methodName: 'transfer',
+        tokenType: 'nep-5',
       }
+
       const existingTransaction = transactions.get(entry.txid)
       if (existingTransaction) {
-        existingTransaction.transfers.push(transfer)
+        existingTransaction.events.push(event)
         return
       }
 
       transactions.set(entry.txid, {
         block: entry.block_height,
-        hash: entry.txid,
-        time: entry.time,
-        transfers: [transfer],
-        notifications: [],
+        txId: entry.txid,
+        date: new Date(entry.time).toISOString(),
+        events: [event],
+        invocationCount: 0,
+        notificationCount: 0,
+        networkFeeAmount: BSBigNumberHelper.format(0, {
+          decimals: this.#service.feeToken.decimals,
+        }),
+        systemFeeAmount: BSBigNumberHelper.format(0, { decimals: this.#service.feeToken.decimals }),
+        txIdUrl: txTemplateUrl?.replace('{txId}', entry.txid),
         type: 'default',
       })
     })
-    await Promise.all(promises)
+
+    await Promise.allSettled(promises)
 
     const totalPages = Math.ceil(data.total_entries / data.page_size)
 
     return {
       nextPageParams: nextPageParams < totalPages ? nextPageParams + 1 : undefined,
-      transactions: Array.from(transactions.values()),
+      data: Array.from(transactions.values()),
     }
   }
 
-  async getFullTransactionsByAddress({
-    nextCursor,
-    ...params
-  }: TFullTransactionsByAddressParams): Promise<TFullTransactionsByAddressResponse> {
-    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
-      ...params,
-      service: this.#service,
-      supportedNetworksIds: DoraBDSNeoLegacy.FULL_TRANSACTIONS_API_SUPPORTED_NETWORKS_IDS,
-      maxPageSize: 30,
-    })
-
-    const data: TFullTransactionsItem[] = []
-
-    const response = await api.NeoLegacyREST.getFullTransactionsByAddress({
-      address: params.address,
-      timestampFrom: params.dateFrom,
-      timestampTo: params.dateTo,
-      network: 'mainnet',
-      cursor: nextCursor,
-      pageLimit: params.pageSize ?? 30,
-    })
-
-    const items = response.data ?? []
-
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
-
-    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
-      const txId = item.transactionID
-
-      const newItem: TFullTransactionsItem = {
-        txId,
-        txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
-        block: item.block,
-        date: item.date,
-        invocationCount: item.invocationCount,
-        notificationCount: item.notificationCount,
-        networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#service.feeToken.decimals })
-          : undefined,
-        systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
-          : undefined,
-        events: [],
-        type: 'default',
-      }
-
-      const eventPromises = item.events.map(async (event, eventIndex) => {
-        const { contractHash, amount, from, to } = event
-        const [token] = await BSPromisesHelper.tryCatch<TBSToken>(() => this.getTokenInfo(contractHash))
-        const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
-        const isNep5 = DoraBDSNeoLegacy.SUPPORTED_NEP5_STANDARDS.includes(standard)
-        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
-        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
-
-        const assetEvent: TFullTransactionAssetEvent = {
-          eventType: 'token',
-          amount: amount
-            ? BSBigNumberHelper.format(amount, { decimals: token?.decimals ?? event.tokenDecimals })
-            : undefined,
-          methodName: event.methodName,
-          from: from ?? undefined,
-          fromUrl,
-          to: to ?? undefined,
-          toUrl,
-          contractHash,
-          contractHashUrl,
-          token: token ?? undefined,
-          tokenType: isNep5 ? 'nep-5' : 'generic',
-        }
-
-        newItem.events.splice(eventIndex, 0, assetEvent)
-      })
-
-      await Promise.allSettled(eventPromises)
-
-      data.splice(index, 0, newItem)
-    })
-
-    await Promise.allSettled(itemPromises)
-
-    return { nextCursor: response.nextCursor, data }
-  }
-
-  async exportFullTransactionsByAddress(params: TExportTransactionsByAddressParams): Promise<string> {
-    BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
-      ...params,
-      service: this.#service,
-      supportedNetworksIds: DoraBDSNeoLegacy.FULL_TRANSACTIONS_API_SUPPORTED_NETWORKS_IDS,
-      maxPageSize: 30,
-    })
-
-    return await api.NeoLegacyREST.exportFullTransactionsByAddress({
-      address: params.address,
-      timestampFrom: params.dateFrom,
-      timestampTo: params.dateTo,
-      network: 'mainnet',
-    })
-  }
-
-  async getContract(contractHash: string): Promise<ContractResponse> {
+  async getContract(contractHash: string): Promise<TContractResponse> {
     const response = await api.NeoLegacyREST.contract(contractHash, this.#service.network.id)
     if (!response || 'error' in response) throw new Error(`Contract ${contractHash} not found`)
 
