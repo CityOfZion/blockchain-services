@@ -156,7 +156,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
       const approveTransactionParam = await this.#buildApproveTransactionParam(params)
 
       if (approveTransactionParam) {
-        const transactionHash = await this.#service._sendTransaction({
+        const transactionHash = await this.#service.sendTransaction({
           signer,
           gasPrice,
           params: approveTransactionParam,
@@ -179,7 +179,7 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
       Object.assign(transactionParams, populatedTransactionParams, { value: bridgeFee })
     }
 
-    return await this.#service._sendTransaction({ signer, gasPrice, params: transactionParams })
+    return await this.#service.sendTransaction({ signer, gasPrice, params: transactionParams })
   }
 
   async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<BSName>): Promise<string> {

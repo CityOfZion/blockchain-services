@@ -63,7 +63,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.fullTransactionsDataService = new BlockscoutFullTransactionsDataService(this)
   }
 
-  async _sendTransaction({ signer, gasPrice, params }: TSendTransactionParams) {
+  async sendTransaction({ signer, gasPrice, params }: TSendTransactionParams) {
     const chainId = parseInt(this.network.id)
 
     if (isNaN(chainId)) {
@@ -189,7 +189,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     for (const intent of params.intents) {
       try {
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
-        const transactionHash = await this._sendTransaction({ signer, gasPrice, params: transactionParams })
+        const transactionHash = await this.sendTransaction({ signer, gasPrice, params: transactionParams })
 
         transactionHashes.push(transactionHash)
       } catch (newError: any) {

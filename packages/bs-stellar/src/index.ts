@@ -2,7 +2,7 @@ export * from './constants/BSStellarConstants'
 
 export * from './services/blockchain-data/HorizonBDSStellar'
 
-export * from './services/exchange/EDSStellar'
+export * from './services/exchange/RpcEDSStellar'
 
 export * from './services/explorer/StellarChainESStellar'
 

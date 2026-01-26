@@ -18,20 +18,37 @@ describe('HorizonBDSStellar', () => {
     const transaction = await horizonBDSStellar.getTransaction(hash)
     expect(transaction).toEqual(
       expect.objectContaining({
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
         block: expect.any(Number),
-        hash,
-        notifications: [],
-        time: expect.any(Number),
+        date: expect.any(String),
+        invocationCount: expect.any(Number),
+        notificationCount: expect.any(Number),
+        networkFeeAmount: expect.anything(),
+        systemFeeAmount: expect.anything(),
+        type: expect.any(String),
       })
     )
-    transaction.transfers.forEach(transfer => {
-      expect(transfer).toEqual(
+
+    transaction.events.forEach(event => {
+      expect(event).toEqual(
         expect.objectContaining({
-          from: expect.any(String),
-          to: expect.any(String),
+          eventType: expect.any(String),
+          amount: expect.anything(),
+          methodName: expect.any(String),
+          from: expect.anything(),
+          fromUrl: expect.anything(),
+          to: expect.anything(),
+          toUrl: expect.anything(),
           contractHash: expect.any(String),
-          amount: expect.any(String),
-          type: expect.any(String),
+          contractHashUrl: expect.any(String),
+          token: expect.objectContaining({
+            decimals: expect.any(Number),
+            symbol: expect.any(String),
+            name: expect.any(String),
+            hash: expect.any(String),
+          }),
+          tokenType: expect.any(String),
         })
       )
     })
@@ -41,26 +58,41 @@ describe('HorizonBDSStellar', () => {
     const address = 'GD3N5SWQIWHIDPXTLIOHVMWQ7U6T3LIONHD6XZZLXZLIHEZIOFNS3MQZ'
     const response = await horizonBDSStellar.getTransactionsByAddress({ address: address })
 
-    expect(response.transactions.length).toBeGreaterThan(0)
-    response.transactions.forEach(transaction => {
+    expect(response.data.length).toBeGreaterThan(0)
+    response.data.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
+          txId: expect.any(String),
+          txIdUrl: expect.any(String),
           block: expect.any(Number),
-          hash: expect.any(String),
-          notifications: [],
-          time: expect.any(Number),
-          fee: expect.any(String),
+          date: expect.any(String),
+          invocationCount: expect.any(Number),
+          notificationCount: expect.any(Number),
+          networkFeeAmount: expect.anything(),
+          systemFeeAmount: expect.anything(),
+          type: expect.any(String),
         })
       )
 
-      transaction.transfers.forEach(transfer => {
-        expect(transfer).toEqual(
+      transaction.events.forEach(event => {
+        expect(event).toEqual(
           expect.objectContaining({
-            from: expect.any(String),
-            to: expect.any(String),
+            eventType: expect.any(String),
+            amount: expect.anything(),
+            methodName: expect.any(String),
+            from: expect.anything(),
+            fromUrl: expect.anything(),
+            to: expect.anything(),
+            toUrl: expect.anything(),
             contractHash: expect.any(String),
-            amount: expect.any(String),
-            type: expect.any(String),
+            contractHashUrl: expect.any(String),
+            token: expect.objectContaining({
+              decimals: expect.any(Number),
+              symbol: expect.any(String),
+              name: expect.any(String),
+              hash: expect.any(String),
+            }),
+            tokenType: expect.any(String),
           })
         )
       })
@@ -76,8 +108,8 @@ describe('HorizonBDSStellar', () => {
     const tokenInfo = await horizonBDSStellar.getTokenInfo('GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5')
     expect(tokenInfo).toEqual({
       hash: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
-      name: 'EURC',
-      symbol: 'EURC',
+      name: 'BTC',
+      symbol: 'BTC',
       decimals: 7,
     })
   })

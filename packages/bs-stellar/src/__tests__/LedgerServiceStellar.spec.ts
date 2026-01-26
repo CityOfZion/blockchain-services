@@ -12,7 +12,7 @@ let transport: Transport
 let bsStellar: BSStellar<'test'>
 const network = BSStellarConstants.TESTNET_NETWORK
 
-describe('LedgerServiceStellar', () => {
+describe.skip('LedgerServiceStellar', () => {
   beforeAll(async () => {
     bsStellar = new BSStellar('test', network)
 

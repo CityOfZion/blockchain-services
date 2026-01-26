@@ -7,7 +7,7 @@ let rpcEDSSolana: RpcEDSStellar<'test'>
 
 describe('RpcEDSStellar', () => {
   beforeAll(() => {
-    const service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK)
+    const service = new BSStellar('test', BSStellarConstants.MAINNET_NETWORK)
     rpcEDSSolana = new RpcEDSStellar(service)
   })
 

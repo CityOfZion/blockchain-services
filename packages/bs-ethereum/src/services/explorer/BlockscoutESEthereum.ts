@@ -18,9 +18,9 @@ export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> impl
 
   readonly _service: IBSEthereum<N, A>
 
-  constructor(service: IBSEthereum<N, A>) {
+  constructor(service: IBSEthereum<N, A>, baseUrl?: string) {
     this._service = service
-    this.#baseUrl = BlockscoutESEthereum.DEFAULT_BASE_URL_BY_NETWORK_ID[this._service.network.id]
+    this.#baseUrl = baseUrl ?? BlockscoutESEthereum.DEFAULT_BASE_URL_BY_NETWORK_ID[this._service.network.id]
   }
 
   buildTransactionUrl(hash: string): string | undefined {

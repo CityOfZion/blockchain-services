@@ -60,14 +60,10 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
     let explorerUri: string | undefined
 
     if (hasExplorerService(this._service)) {
-      try {
-        explorerUri = this._service.explorerService.buildNftUrl({
-          tokenHash: data.tokenId,
-          collectionHash: data.contract.hash,
-        })
-      } catch {
-        /* empty */
-      }
+      explorerUri = this._service.explorerService.buildNftUrl({
+        tokenHash: data.tokenId,
+        collectionHash: data.contract.hash,
+      })
     }
 
     const nftResponse: TNftResponse = {

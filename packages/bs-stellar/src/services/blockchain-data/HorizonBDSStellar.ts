@@ -1,18 +1,13 @@
 import {
   BSBigNumberHelper,
-  type ContractResponse,
+  type TContractResponse,
   type IBlockchainDataService,
   type TBalanceResponse,
   type TBSBigNumber,
   type TBSToken,
-  type TExportTransactionsByAddressParams,
-  type TFullTransactionsByAddressParams,
-  type TFullTransactionsByAddressResponse,
-  type TTransactionResponse,
-  type TTransactionsByAddressParams,
-  type TTransactionsByAddressResponse,
-  type TTransactionTransferAsset,
-  type TTransactionTransferNft,
+  type TGetTransactionsByAddressParams,
+  type TGetTransactionsByAddressResponse,
+  type TTransaction,
 } from '@cityofzion/blockchain-service'
 import type { IBSStellar } from '../../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
@@ -27,9 +22,14 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     this.#service = service
   }
 
-  async #parseTransaction(transaction: stellarSDK.Horizon.ServerApi.TransactionRecord): Promise<TTransactionResponse> {
-    const transfers: (TTransactionTransferAsset | TTransactionTransferNft)[] = []
+  async #parseTransaction(transaction: stellarSDK.Horizon.ServerApi.TransactionRecord): Promise<TTransaction> {
+    const events: TTransaction['events'] = []
+
     const operations = await transaction.operations()
+
+    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
+    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
+    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
 
     const promises = operations.records.map(async operation => {
       if (
@@ -44,17 +44,23 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
       let amountBn: TBSBigNumber
       let to: string
       let from: string
+      let methodName: string
+      let tokenType: string
 
       if (operation.type === stellarSDK.Horizon.HorizonApi.OperationResponseType.createAccount) {
         token = BSStellarConstants.NATIVE_TOKEN
         amountBn = BSBigNumberHelper.fromNumber(operation.starting_balance)
         to = operation.account
         from = operation.funder
+        methodName = stellarSDK.Horizon.HorizonApi.OperationResponseType.createAccount
+        tokenType = 'native'
       } else if (operation.asset_type === 'native') {
         token = BSStellarConstants.NATIVE_TOKEN
         amountBn = BSBigNumberHelper.fromNumber(operation.amount)
         to = operation.to
         from = operation.from
+        methodName = operation.type
+        tokenType = 'native'
       } else if (
         (operation.asset_type === 'credit_alphanum4' || operation.asset_type === 'credit_alphanum12') &&
         operation.asset_code &&
@@ -69,43 +75,59 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
         amountBn = BSBigNumberHelper.fromNumber(operation.amount)
         to = operation.to
         from = operation.from
+        methodName = operation.type
+        tokenType = 'sac'
       } else {
         // TODO: Implement support for nft
         return
       }
 
-      transfers.push({
-        type: 'token',
+      const toUrl = addressTemplateUrl?.replace('{address}', to)
+      const fromUrl = addressTemplateUrl?.replace('{address}', from)
+      const contractHashUrl = contractTemplateUrl?.replace('{contractHash}', token.hash)
+
+      events.push({
+        eventType: 'token',
         amount: BSBigNumberHelper.toNumber(amountBn, token.decimals),
         to,
+        toUrl,
         from,
+        fromUrl,
         contractHash: token.hash,
+        contractHashUrl,
+        methodName,
+        tokenType,
         token,
       })
     })
 
     await Promise.allSettled(promises)
 
-    const feeBn = BSBigNumberHelper.fromDecimals(transaction.fee_charged, this.#service.feeToken.decimals)
-    const fee = BSBigNumberHelper.toNumber(feeBn)
+    const txIdUrl = txTemplateUrl?.replace('{txId}', transaction.hash)
 
     return {
       block: transaction.ledger_attr,
-      hash: transaction.hash,
-      time: new Date(transaction.created_at).getTime() / 1000,
-      notifications: [],
+      txId: transaction.hash,
+      txIdUrl,
+      date: new Date(transaction.created_at).toISOString(),
+      notificationCount: 0,
+      invocationCount: 0,
       type: 'default',
-      transfers,
-      fee,
+      events,
+      networkFeeAmount: BSBigNumberHelper.format(
+        BSBigNumberHelper.fromDecimals(transaction.fee_charged, this.#service.feeToken.decimals),
+        { decimals: this.#service.feeToken.decimals }
+      ),
+      systemFeeAmount: BSBigNumberHelper.format(0, { decimals: this.#service.feeToken.decimals }),
     }
   }
 
-  async getTransaction(txid: string): Promise<TTransactionResponse> {
+  async getTransaction(txid: string): Promise<TTransaction> {
     const transaction = await this.#service.horizonServer.transactions().transaction(txid).call()
     return this.#parseTransaction(transaction)
   }
 
-  async getTransactionsByAddress(params: TTransactionsByAddressParams): Promise<TTransactionsByAddressResponse> {
+  async getTransactionsByAddress(params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
     const query = this.#service.horizonServer.transactions().forAccount(params.address)
     if (params.nextPageParams) {
       query.cursor(params.nextPageParams)
@@ -116,7 +138,7 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     const nextPageParams =
       response.records.length > 0 ? response.records[response.records.length - 1].paging_token : undefined
 
-    const transactions: TTransactionResponse[] = []
+    const transactions: TTransaction[] = []
 
     const promises = response.records.map(async record => {
       const parsedTransaction = await this.#parseTransaction(record)
@@ -126,22 +148,12 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     await Promise.allSettled(promises)
 
     return {
-      transactions,
+      data: transactions,
       nextPageParams,
     }
   }
 
-  async getFullTransactionsByAddress(
-    _params: TFullTransactionsByAddressParams
-  ): Promise<TFullTransactionsByAddressResponse> {
-    throw new Error('Method not implemented.')
-  }
-
-  async exportFullTransactionsByAddress(_params: TExportTransactionsByAddressParams): Promise<string> {
-    throw new Error('Method not implemented.')
-  }
-
-  async getContract(_contractHash: string): Promise<ContractResponse> {
+  async getContract(_contractHash: string): Promise<TContractResponse> {
     throw new Error('Method not supported')
   }
 
