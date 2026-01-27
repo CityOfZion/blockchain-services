@@ -8,15 +8,6 @@ export class BlockscoutESNeoX<N extends string> extends BlockscoutESEthereum<N, 
   }
 
   constructor(service: IBSNeoX<N>) {
-    super(service)
-  }
-
-  getBaseUrl(): string {
-    const baseUrl = BlockscoutESNeoX.DEFAULT_BASE_URL_BY_NETWORK_ID[this._service.network.id]
-    if (!baseUrl) {
-      throw new Error('Network not supported')
-    }
-
-    return baseUrl
+    super(service, BlockscoutESNeoX.DEFAULT_BASE_URL_BY_NETWORK_ID[service.network.id])
   }
 }

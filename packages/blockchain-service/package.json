@@ -17,7 +17,7 @@
     "package": "npm run build && npm pack"
   },
   "dependencies": {
-    "axios": "1.12.2",
+    "axios": "1.13.2",
     "bignumber.js": "~9.3.1",
     "bip39": "~3.1.0",
     "date-fns": "~4.1.0",
@@ -26,7 +26,7 @@
     "query-string": "7.1.3"
   },
   "devDependencies": {
-    "@ledgerhq/hw-transport": "~6.31.11",
+    "@ledgerhq/hw-transport": "~6.32.0",
     "@types/elliptic": "~6.4.18",
     "@types/jest": "~30.0.0",
     "@types/lodash.isequal": "~4.5.8",

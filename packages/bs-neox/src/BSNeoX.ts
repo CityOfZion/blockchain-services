@@ -13,7 +13,7 @@ import { WalletConnectServiceNeoX } from './services/wallet-connect/WalletConnec
 import { FlamingoForthewinEDSNeoX } from './services/exchange-data/FlamingoForthewinEDSNeoX'
 import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
 import { GhostMarketNDSNeoX } from './services/nft-data/GhostMarketNDSNeoX'
-import { Neo3NeoXBridgeService } from './services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
 import { IBSNeoX, TBSNeoXNetworkId, TSendTransactionParams } from './types'
 import { ethers } from 'ethers'
 import axios from 'axios'

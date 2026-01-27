@@ -25,13 +25,13 @@
     "bs58": "~6.0.0",
     "@solana/spl-token": "~0.4.14",
     "@bonfida/spl-name-service": "~3.0.16",
-    "@ledgerhq/hw-app-solana": "~7.5.4",
-    "@ledgerhq/hw-transport": "~6.31.11",
+    "@ledgerhq/hw-app-solana": "~7.7.0",
+    "@ledgerhq/hw-transport": "~6.32.0",
     "@metaplex-foundation/js": "~0.20.1",
     "date-fns": "~4.1.0"
   },
   "devDependencies": {
-    "@ledgerhq/hw-transport-node-hid": "~6.29.12",
+    "@ledgerhq/hw-transport-node-hid": "~6.30.0",
     "@types/jest": "~30.0.0",
     "eslint": "~9.36.0",
     "jest": "~30.1.3",

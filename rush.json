@@ -46,6 +46,11 @@
       "packageName": "@cityofzion/bs-solana",
       "projectFolder": "packages/bs-solana",
       "shouldPublish": true
+    },
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "projectFolder": "packages/bs-stellar",
+      "shouldPublish": true
     }
   ]
 }

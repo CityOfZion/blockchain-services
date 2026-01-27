@@ -14,71 +14,56 @@ export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> impl
     '11155111': 'https://eth-sepolia.blockscout.com',
   }
 
+  #baseUrl: string | undefined
+
   readonly _service: IBSEthereum<N, A>
 
-  constructor(service: IBSEthereum<N, A>) {
+  constructor(service: IBSEthereum<N, A>, baseUrl?: string) {
     this._service = service
+    this.#baseUrl = baseUrl ?? BlockscoutESEthereum.DEFAULT_BASE_URL_BY_NETWORK_ID[this._service.network.id]
   }
 
-  getBaseUrl() {
-    const baseUrl = BlockscoutESEthereum.DEFAULT_BASE_URL_BY_NETWORK_ID[this._service.network.id]
-    if (!baseUrl) {
-      throw new Error('Network not supported')
-    }
+  buildTransactionUrl(hash: string): string | undefined {
+    if (!this.#baseUrl) return undefined
 
-    return baseUrl
+    return `${this.#baseUrl}/tx/${this._service.tokenService.normalizeHash(hash)}`
   }
 
-  buildTransactionUrl(hash: string): string {
-    const baseURL = this.getBaseUrl()
-    return `${baseURL}/tx/${this._service.tokenService.normalizeHash(hash)}`
+  buildContractUrl(contractHash: string): string | undefined {
+    if (!this.#baseUrl) return undefined
+
+    return `${this.#baseUrl}/address/${this._service.tokenService.normalizeHash(contractHash)}`
   }
 
-  buildContractUrl(contractHash: string): string {
-    const baseURL = this.getBaseUrl()
-    return `${baseURL}/address/${this._service.tokenService.normalizeHash(contractHash)}`
-  }
+  buildNftUrl(params: TBuildNftUrlParams): string | undefined {
+    if (!this.#baseUrl) return undefined
 
-  buildNftUrl(params: TBuildNftUrlParams): string {
-    const baseURL = this.getBaseUrl()
-    return `${baseURL}/token/${this._service.tokenService.normalizeHash(params.collectionHash)}/instance/${
+    return `${this.#baseUrl}/token/${this._service.tokenService.normalizeHash(params.collectionHash)}/instance/${
       params.tokenHash
     }`
   }
 
   getAddressTemplateUrl() {
-    try {
-      const baseUrl = this.getBaseUrl()
-      return `${baseUrl}/address/{address}`
-    } catch {
-      return undefined
-    }
+    if (!this.#baseUrl) return undefined
+
+    return `${this.#baseUrl}/address/{address}`
   }
 
   getTxTemplateUrl() {
-    try {
-      const baseUrl = this.getBaseUrl()
-      return `${baseUrl}/tx/{txId}`
-    } catch {
-      return undefined
-    }
+    if (!this.#baseUrl) return undefined
+
+    return `${this.#baseUrl}/tx/{txId}`
   }
 
   getNftTemplateUrl() {
-    try {
-      const baseUrl = this.getBaseUrl()
-      return `${baseUrl}/token/{collectionHash}/instance/{tokenHash}`
-    } catch {
-      return undefined
-    }
+    if (!this.#baseUrl) return undefined
+
+    return `${this.#baseUrl}/token/{collectionHash}/instance/{tokenHash}`
   }
 
   getContractTemplateUrl() {
-    try {
-      const baseUrl = this.getBaseUrl()
-      return `${baseUrl}/address/{hash}`
-    } catch {
-      return undefined
-    }
+    if (!this.#baseUrl) return undefined
+
+    return `${this.#baseUrl}/address/{hash}`
   }
 }

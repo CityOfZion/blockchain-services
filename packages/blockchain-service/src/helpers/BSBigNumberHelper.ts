@@ -47,6 +47,6 @@ export class BSBigNumberHelper {
   }
 }
 
-export type TBigNumber = BigNumber
+export type TBSBigNumber = BigNumber
 
 export const BSBigNumber = BigNumber

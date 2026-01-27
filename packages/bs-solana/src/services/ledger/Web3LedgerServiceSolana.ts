@@ -6,12 +6,12 @@ import {
   generateAccountForBlockchainService,
   BSUtilsHelper,
   ILedgerService,
+  BSKeychainHelper,
 } from '@cityofzion/blockchain-service'
 import LedgerSolanaApp from '@ledgerhq/hw-app-solana'
 import EventEmitter from 'events'
 import Transport from '@ledgerhq/hw-transport'
 import solanaSDK from '@solana/web3.js'
-import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
 import { IBSSolana } from '../../types'
 
 export class Web3LedgerServiceSolana<N extends string = string> implements ILedgerService<N> {
@@ -43,7 +43,10 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const ledgerApp = new LedgerSolanaApp(transport)
-    const bip44Path = BSSolanaHelper.getBip44Path(this.#service.bip44DerivationPath, index)
+    const bip44Path = BSKeychainHelper.getBip44Path(
+      BSKeychainHelper.fixBip44Path(this.#service.bip44DerivationPath),
+      index
+    )
 
     const publicKey = await BSUtilsHelper.retry(async () => {
       const response = await ledgerApp.getAddress(bip44Path)
@@ -70,7 +73,7 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
 
     this.emitter?.emit('getSignatureStart')
 
-    const bip44Path = BSSolanaHelper.fixBip44Path(account.bip44Path)
+    const bip44Path = BSKeychainHelper.fixBip44Path(account.bip44Path)
     const { signature } = await ledgerApp.signTransaction(bip44Path, serializedTransaction)
 
     this.emitter?.emit('getSignatureEnd')

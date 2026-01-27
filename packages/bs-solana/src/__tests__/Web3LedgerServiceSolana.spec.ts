@@ -5,7 +5,7 @@ import { Web3LedgerServiceSolana } from '../services/ledger/Web3LedgerServiceSol
 import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import solanaSDK from '@solana/web3.js'
-import { BSSolanaHelper } from '../helpers/BSSolanaHelper'
+import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
 let ledgerService: Web3LedgerServiceSolana<'test'>
 let transport: Transport
@@ -30,7 +30,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: BSSolanaHelper.getBip44Path(bsSolana.bip44DerivationPath, index),
+          bip44Path: BSKeychainHelper.getBip44Path(BSKeychainHelper.fixBip44Path(bsSolana.bip44DerivationPath), index),
         })
       )
     })
@@ -44,7 +44,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         address: expect.any(String),
         key: expect.any(String),
         type: 'publicKey',
-        bip44Path: BSSolanaHelper.getBip44Path(bsSolana.bip44DerivationPath, 0),
+        bip44Path: BSKeychainHelper.getBip44Path(BSKeychainHelper.fixBip44Path(bsSolana.bip44DerivationPath), 0),
       })
     )
   })

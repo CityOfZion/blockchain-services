@@ -3,42 +3,40 @@ import { IBSNeoLegacy } from '../../types'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
 export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
-  static readonly BASE_URL: string = 'https://neo2.neotube.io'
+  #baseUrl: string | undefined
 
   readonly #service: IBSNeoLegacy<N>
 
   constructor(service: IBSNeoLegacy<N>) {
     this.#service = service
+
+    if (BSNeoLegacyHelper.isMainnetNetwork(this.#service.network)) {
+      this.#baseUrl = 'https://neo2.neotube.io'
+    }
   }
 
-  buildTransactionUrl(hash: string): string {
-    if (!BSNeoLegacyHelper.isMainnetNetwork(this.#service.network))
-      throw new Error('NeoTube is only available on mainnet')
-
-    return `${NeoTubeESNeoLegacy.BASE_URL}/transaction/${this.#service.tokenService.normalizeHash(hash)}`
+  buildTransactionUrl(hash: string): string | undefined {
+    if (!this.#baseUrl) return undefined
+    return `${this.#baseUrl}/transaction/${this.#service.tokenService.normalizeHash(hash)}`
   }
 
-  buildContractUrl(contractHash: string): string {
-    if (!BSNeoLegacyHelper.isMainnetNetwork(this.#service.network))
-      throw new Error('NeoTube is only available on mainnet')
-
-    return `${NeoTubeESNeoLegacy.BASE_URL}/asset/${this.#service.tokenService.normalizeHash(contractHash)}/page/1`
+  buildContractUrl(contractHash: string): string | undefined {
+    if (!this.#baseUrl) return undefined
+    return `${this.#baseUrl}/asset/${this.#service.tokenService.normalizeHash(contractHash)}/page/1`
   }
 
-  buildNftUrl(_params: TBuildNftUrlParams): string {
-    throw new Error('NeoTube does not support nft')
+  buildNftUrl(_params: TBuildNftUrlParams): string | undefined {
+    return undefined
   }
 
   getAddressTemplateUrl() {
-    if (!BSNeoLegacyHelper.isMainnetNetwork(this.#service.network)) return undefined
-
-    return `${NeoTubeESNeoLegacy.BASE_URL}/address/{address}`
+    if (!this.#baseUrl) return undefined
+    return `${this.#baseUrl}/address/{address}`
   }
 
   getTxTemplateUrl() {
-    if (!BSNeoLegacyHelper.isMainnetNetwork(this.#service.network)) return undefined
-
-    return `${NeoTubeESNeoLegacy.BASE_URL}/transaction/{txId}`
+    if (!this.#baseUrl) return undefined
+    return `${this.#baseUrl}/transaction/{txId}`
   }
 
   getNftTemplateUrl() {
@@ -46,8 +44,7 @@ export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
   }
 
   getContractTemplateUrl() {
-    if (!BSNeoLegacyHelper.isMainnetNetwork(this.#service.network)) return undefined
-
-    return `${NeoTubeESNeoLegacy.BASE_URL}/asset/{hash}/page/1`
+    if (!this.#baseUrl) return undefined
+    return `${this.#baseUrl}/asset/{hash}/page/1`
   }
 }

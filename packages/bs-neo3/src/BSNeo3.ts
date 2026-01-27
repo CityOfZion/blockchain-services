@@ -25,7 +25,7 @@ import { DoraESNeo3 } from './services/explorer/DoraESNeo3'
 import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedgerServiceNeo3'
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
 import { BSNeo3Constants } from './constants/BSNeo3Constants'
-import { Neo3NeoXBridgeService } from './services/neo3neoXBridge/Neo3NeoXBridgeService'
+import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
 import { DoraVoteServiceNeo3 } from './services/vote/DoraVoteServiceNeo3'
 import { IBSNeo3, IVoteService, TBSNeo3NetworkId } from './types'
 import { TokenServiceNeo3 } from './services/token/TokenServiceNeo3'
@@ -86,34 +86,19 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     this.tokens = BSNeo3Helper.getTokens(network)
   }
 
-  async #buildTransferInvocation(
-    { intents, tipIntent }: TTransferParam,
-    account: wallet.Account
-  ): Promise<ContractInvocation[]> {
-    const concatIntents = [...intents, ...(tipIntent ? [tipIntent] : [])]
-
+  async #buildTransferInvocation({ intents }: TTransferParam, account: wallet.Account): Promise<ContractInvocation[]> {
     const invocations: ContractInvocation[] = []
 
-    for (const intent of concatIntents) {
-      let decimals = intent.tokenDecimals
-      if (!decimals) {
-        try {
-          const token = await this.blockchainDataService.getTokenInfo(intent.tokenHash)
-          decimals = token.decimals
-        } catch {
-          decimals = 8
-        }
-      }
-
+    for (const intent of intents) {
       invocations.push({
         operation: 'transfer',
-        scriptHash: intent.tokenHash,
+        scriptHash: intent.token.hash,
         args: [
           { type: 'Hash160', value: account.address },
           { type: 'Hash160', value: intent.receiverAddress },
           {
             type: 'Integer',
-            value: BSBigNumberHelper.toDecimals(BSBigNumberHelper.fromNumber(intent.amount), decimals),
+            value: BSBigNumberHelper.toDecimals(BSBigNumberHelper.fromNumber(intent.amount), intent.token.decimals),
           },
           { type: 'Any', value: null },
         ],

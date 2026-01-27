@@ -2,7 +2,8 @@
   "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/pnpm-config.schema.json",
   "useWorkspaces": true,
   "globalOverrides": {
-    "axios": "1.12.2",
-    "node-hid": "~3.2.0"
+    "axios": "1.13.2",
+    "node-hid": "~3.2.0",
+    "@ledgerhq/hw-transport": "~6.32.0"
   }
 }

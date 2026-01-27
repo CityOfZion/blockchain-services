@@ -111,9 +111,9 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
 
     for (const intent of param.intents) {
       const amountBn = BSBigNumberHelper.fromNumber(intent.amount)
-      const amount = Number(BSBigNumberHelper.toDecimals(amountBn, intent.tokenDecimals ?? 0))
+      const amount = Number(BSBigNumberHelper.toDecimals(amountBn, intent.token.decimals))
       const receiverPublicKey = new solanaSDK.PublicKey(intent.receiverAddress)
-      const normalizedTokenHash = this.tokenService.normalizeHash(intent.tokenHash)
+      const normalizedTokenHash = this.tokenService.normalizeHash(intent.token.hash)
 
       const isNative = normalizedTokenHash === this.tokenService.normalizeHash(BSSolanaConstants.NATIVE_TOKEN.hash)
       if (isNative) {
@@ -159,7 +159,6 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     return {
       transaction,
       senderPublicKey,
-      latestBlockhash,
     }
   }
 
@@ -275,19 +274,10 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   async transfer(param: TTransferParam<N>): Promise<string[]> {
-    const { transaction, latestBlockhash } = await this.#buildTransferParams(param)
+    const { transaction } = await this.#buildTransferParams(param)
 
     const signedTransaction = await this.#signTransaction(transaction, param.senderAccount)
     const signature = await this.#connection.sendRawTransaction(signedTransaction)
-    const status = await this.#connection.confirmTransaction({
-      blockhash: latestBlockhash.blockhash,
-      lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-      signature,
-    })
-
-    if (status.value.err) {
-      throw new Error('Transaction failed: ' + status.value.err)
-    }
 
     return [signature]
   }

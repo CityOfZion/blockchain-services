@@ -19,12 +19,12 @@
     "@cityofzion/blockchain-service": "workspace:*",
     "@cityofzion/dora-ts": "0.6.2",
     "@cityofzion/neon-js": "4.8.3",
-    "axios": "~1.12.2"
+    "axios": "~1.13.2"
   },
   "devDependencies": {
     "@types/jest": "~30.0.0",
-    "@ledgerhq/hw-transport": "~6.31.11",
-    "@ledgerhq/hw-transport-node-hid": "~6.29.12",
+    "@ledgerhq/hw-transport": "~6.32.0",
+    "@ledgerhq/hw-transport-node-hid": "~6.30.0",
     "date-fns": "~4.1.0",
     "dotenv": "~17.2.2",
     "eslint": "~9.36.0",

@@ -19,7 +19,7 @@ export * from './services/nft-data/GhostMarketNDSNeo3'
 
 export * from './services/vote/DoraVoteServiceNeo3'
 
-export * from './services/neo3neoXBridge/Neo3NeoXBridgeService'
+export * from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
 
 export * from './services/token/TokenServiceNeo3'
 

@@ -16,7 +16,10 @@ const antiMevNetwork: TBSNetwork<TBSNeoXNetworkId> = {
   url: BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.TESTNET_NETWORK.id][0],
 }
 
-const neoTokenTestNet = { hash: '0xab0a26b8d903f36acb4bf9663f8d2de0672433cd', decimals: 18 }
+const neoToken = {
+  ...BSNeoXConstants.NEO_TOKEN,
+  hash: '0xab0a26b8d903f36acb4bf9663f8d2de0672433cd',
+}
 
 describe('BSNeoX', () => {
   let bsNeoX: BSNeoX<'test'>
@@ -32,14 +35,12 @@ describe('BSNeoX', () => {
         {
           amount: '0.00000044',
           receiverAddress: account.address,
-          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
-          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+          token: BSNeoXConstants.NATIVE_ASSET,
         },
         {
           amount: '0.0000008',
           receiverAddress: account.address,
-          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
-          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+          token: BSNeoXConstants.NATIVE_ASSET,
         },
       ],
     })
@@ -59,14 +60,12 @@ describe('BSNeoX', () => {
         {
           amount: '0.1',
           receiverAddress: account.address,
-          tokenDecimals: neoTokenTestNet.decimals,
-          tokenHash: neoTokenTestNet.hash,
+          token: neoToken,
         },
         {
           amount: '0.1',
           receiverAddress: account.address,
-          tokenDecimals: neoTokenTestNet.decimals,
-          tokenHash: neoTokenTestNet.hash,
+          token: neoToken,
         },
       ],
     })
@@ -88,14 +87,12 @@ describe('BSNeoX', () => {
         {
           amount: '0.00000005',
           receiverAddress: account.address,
-          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
-          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+          token: BSNeoXConstants.NATIVE_ASSET,
         },
         {
           amount: '0.00000006',
           receiverAddress: account.address,
-          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
-          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+          token: BSNeoXConstants.NATIVE_ASSET,
         },
       ],
     })
@@ -119,14 +116,12 @@ describe('BSNeoX', () => {
         {
           amount: '0.1',
           receiverAddress: account.address,
-          tokenDecimals: neoTokenTestNet.decimals,
-          tokenHash: neoTokenTestNet.hash,
+          token: neoToken,
         },
         {
           amount: '0.1',
           receiverAddress: account.address,
-          tokenDecimals: neoTokenTestNet.decimals,
-          tokenHash: neoTokenTestNet.hash,
+          token: neoToken,
         },
       ],
     })
@@ -148,14 +143,12 @@ describe('BSNeoX', () => {
         {
           amount: '0.00000044',
           receiverAddress: account.address,
-          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
-          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+          token: BSNeoXConstants.NATIVE_ASSET,
         },
         {
           amount: '0.0000008',
           receiverAddress: account.address,
-          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
-          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+          token: BSNeoXConstants.NATIVE_ASSET,
         },
       ],
     })
@@ -175,14 +168,12 @@ describe('BSNeoX', () => {
         {
           amount: '0.1',
           receiverAddress: account.address,
-          tokenDecimals: neoTokenTestNet.decimals,
-          tokenHash: neoTokenTestNet.hash,
+          token: neoToken,
         },
         {
           amount: '0.1',
           receiverAddress: account.address,
-          tokenDecimals: neoTokenTestNet.decimals,
-          tokenHash: neoTokenTestNet.hash,
+          token: neoToken,
         },
       ],
     })
@@ -204,14 +195,12 @@ describe('BSNeoX', () => {
         {
           amount: '0.00000005',
           receiverAddress: account.address,
-          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
-          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+          token: BSNeoXConstants.NATIVE_ASSET,
         },
         {
           amount: '0.00000006',
           receiverAddress: account.address,
-          tokenDecimals: BSNeoXConstants.NATIVE_ASSET.decimals,
-          tokenHash: BSNeoXConstants.NATIVE_ASSET.hash,
+          token: BSNeoXConstants.NATIVE_ASSET,
         },
       ],
     })
@@ -235,14 +224,12 @@ describe('BSNeoX', () => {
         {
           amount: '0.1',
           receiverAddress: account.address,
-          tokenDecimals: neoTokenTestNet.decimals,
-          tokenHash: neoTokenTestNet.hash,
+          token: neoToken,
         },
         {
           amount: '0.1',
           receiverAddress: account.address,
-          tokenDecimals: neoTokenTestNet.decimals,
-          tokenHash: neoTokenTestNet.hash,
+          token: neoToken,
         },
       ],
     })
