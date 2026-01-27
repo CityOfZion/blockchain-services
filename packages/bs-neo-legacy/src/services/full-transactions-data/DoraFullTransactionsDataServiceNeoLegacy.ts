@@ -27,11 +27,17 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
     nextPageParams,
     ...params
   }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+    const pageSize =
+      params.pageSize && params.pageSize > DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
+        ? DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
+        : params.pageSize
+
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       ...params,
       service: this.#service,
       supportedNetworksIds: DoraFullTransactionsDataServiceNeoLegacy.SUPPORTED_NETWORKS_IDS,
       maxPageSize: DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE,
+      pageSize,
     })
 
     const data: TTransaction[] = []
