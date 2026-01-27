@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Tue, 27 Jan 2026 18:42:09 GMT and should not be manually modified.
+This log was last generated on Tue, 27 Jan 2026 20:18:37 GMT and should not be manually modified.
+
+## 1.15.1
+Tue, 27 Jan 2026 20:18:37 GMT
+
+### Patches
+
+- Fix pageSize to maxPageSize when pageSize exceeds maxPageSize
 
 ## 1.15.0
 Tue, 27 Jan 2026 18:42:09 GMT

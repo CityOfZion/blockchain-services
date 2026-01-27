@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "1.15.1",
+      "tag": "@cityofzion/bs-neo-legacy_v1.15.1",
+      "date": "Tue, 27 Jan 2026 20:18:37 GMT",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix pageSize to maxPageSize when pageSize exceeds maxPageSize"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.15.0",
       "tag": "@cityofzion/bs-neo-legacy_v1.15.0",
       "date": "Tue, 27 Jan 2026 18:42:09 GMT",
