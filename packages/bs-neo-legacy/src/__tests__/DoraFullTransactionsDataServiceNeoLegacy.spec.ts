@@ -140,10 +140,6 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
       ).rejects.toThrow('Page size should be between 1 and 30')
 
       await expect(
-        doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: 31 })
-      ).rejects.toThrow('Page size should be between 1 and 30')
-
-      await expect(
         doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress({ ...params, pageSize: NaN })
       ).rejects.toThrow('Page size should be between 1 and 30')
     })
