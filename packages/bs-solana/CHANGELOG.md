@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-solana
 
-This log was last generated on Fri, 09 Jan 2026 18:51:04 GMT and should not be manually modified.
+This log was last generated on Tue, 27 Jan 2026 18:42:09 GMT and should not be manually modified.
+
+## 2.1.0
+Tue, 27 Jan 2026 18:42:09 GMT
+
+### Minor changes
+
+- Change the implementations to fit new blockchain-service interfaces
+- Unify transaction interface
 
 ## 2.0.11
 Fri, 09 Jan 2026 18:51:04 GMT

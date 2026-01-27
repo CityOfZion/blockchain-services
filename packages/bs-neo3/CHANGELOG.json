@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "1.18.0",
+      "tag": "@cityofzion/bs-neo3_v1.18.0",
+      "date": "Tue, 27 Jan 2026 18:42:09 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Change the implementations to fit new blockchain-service interfaces"
+          },
+          {
+            "comment": "Unify transaction interface"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.23.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.17.9",
       "tag": "@cityofzion/bs-neo3_v1.17.9",
       "date": "Fri, 09 Jan 2026 18:51:04 GMT",

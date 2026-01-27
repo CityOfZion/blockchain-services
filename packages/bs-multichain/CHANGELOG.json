@@ -2,6 +2,32 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "1.2.0",
+      "tag": "@cityofzion/bs-multichain_v1.2.0",
+      "date": "Tue, 27 Jan 2026 18:42:09 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Change the implementations to fit new blockchain-service interfaces"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.23.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.18.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.16.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neox\" to `1.8.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.1.15",
       "tag": "@cityofzion/bs-multichain_v1.1.15",
       "date": "Fri, 09 Jan 2026 18:51:04 GMT",

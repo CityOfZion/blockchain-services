@@ -2,6 +2,26 @@
   "name": "@cityofzion/bs-solana",
   "entries": [
     {
+      "version": "2.1.0",
+      "tag": "@cityofzion/bs-solana_v2.1.0",
+      "date": "Tue, 27 Jan 2026 18:42:09 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Change the implementations to fit new blockchain-service interfaces"
+          },
+          {
+            "comment": "Unify transaction interface"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.23.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "2.0.11",
       "tag": "@cityofzion/bs-solana_v2.0.11",
       "date": "Fri, 09 Jan 2026 18:51:04 GMT",

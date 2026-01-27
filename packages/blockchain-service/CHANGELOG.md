@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Fri, 09 Jan 2026 18:51:04 GMT and should not be manually modified.
+This log was last generated on Tue, 27 Jan 2026 18:42:09 GMT and should not be manually modified.
+
+## 1.23.0
+Tue, 27 Jan 2026 18:42:09 GMT
+
+### Minor changes
+
+- Change interface to fit with Stellar implementation
+- Unify transaction interfaces
 
 ## 1.22.8
 Fri, 09 Jan 2026 18:51:04 GMT

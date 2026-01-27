@@ -2,6 +2,32 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "1.8.0",
+      "tag": "@cityofzion/bs-neox_v1.8.0",
+      "date": "Tue, 27 Jan 2026 18:42:09 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Change the implementations to fit new blockchain-service interfaces"
+          },
+          {
+            "comment": "Unify transaction interface"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.23.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-ethereum\" to `2.16.0`"
+          },
+          {
+            "comment": "Updating dependency \"@cityofzion/bs-neo3\" to `1.18.0`"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.7.0",
       "tag": "@cityofzion/bs-neox_v1.7.0",
       "date": "Fri, 09 Jan 2026 18:51:04 GMT",

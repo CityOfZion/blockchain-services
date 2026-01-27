@@ -2,6 +2,21 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "1.23.0",
+      "tag": "@cityofzion/blockchain-service_v1.23.0",
+      "date": "Tue, 27 Jan 2026 18:42:09 GMT",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Change interface to fit with Stellar implementation"
+          },
+          {
+            "comment": "Unify transaction interfaces"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.22.8",
       "tag": "@cityofzion/blockchain-service_v1.22.8",
       "date": "Fri, 09 Jan 2026 18:51:04 GMT",

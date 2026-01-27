@@ -1,6 +1,6 @@
 {
   "name": "@cityofzion/blockchain-service",
-  "version": "1.22.8",
+  "version": "1.23.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/CityOfZion/blockchain-services",

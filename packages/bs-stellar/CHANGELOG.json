@@ -1,0 +1,22 @@
+{
+  "name": "@cityofzion/bs-stellar",
+  "entries": [
+    {
+      "version": "1.0.0",
+      "tag": "@cityofzion/bs-stellar_v1.0.0",
+      "date": "Tue, 27 Jan 2026 18:42:09 GMT",
+      "comments": {
+        "major": [
+          {
+            "comment": "Add Stellar initial implementation"
+          }
+        ],
+        "dependency": [
+          {
+            "comment": "Updating dependency \"@cityofzion/blockchain-service\" to `1.23.0`"
+          }
+        ]
+      }
+    }
+  ]
+}
