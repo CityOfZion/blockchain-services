@@ -13,7 +13,7 @@ import { api } from '@cityofzion/dora-ts'
 import { IBSNeoLegacy } from '../../types'
 import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
-export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataService {
+export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataService<N> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly #tokenCache: Map<string, TBSToken> = new Map()
   readonly #service: IBSNeoLegacy<N>
@@ -22,12 +22,12 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     this.#service = service
   }
 
-  async getTransaction(hash: string): Promise<TTransaction> {
+  async getTransaction(hash: string): Promise<TTransaction<N>> {
     const data = await api.NeoLegacyREST.transaction(hash, this.#service.network.id)
     if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
 
     const vout: any[] = data.vout ?? []
-    const events: TTransaction['events'] = []
+    const events: TTransaction<N>['events'] = []
 
     const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
@@ -85,9 +85,9 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
     const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#service.network.id)
-    const transactions = new Map<string, TTransaction>()
+    const transactions = new Map<string, TTransaction<N>>()
 
     const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
@@ -147,7 +147,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
 
     return {
       nextPageParams: nextPageParams < totalPages ? nextPageParams + 1 : undefined,
-      data: Array.from(transactions.values()),
+      transactions: Array.from(transactions.values()),
     }
   }
 

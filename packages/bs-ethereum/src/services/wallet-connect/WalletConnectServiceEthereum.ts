@@ -7,7 +7,9 @@ import { IBSEthereum } from '../../types'
 import { ethers } from 'ethers'
 import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
 
-export class WalletConnectServiceEthereum<N extends string, A extends TBSNetworkId> implements IWalletConnectService {
+export class WalletConnectServiceEthereum<N extends string, A extends TBSNetworkId>
+  implements IWalletConnectService<N>
+{
   readonly namespace: string = 'eip155'
   readonly chain: string
   readonly supportedMethods: string[] = [

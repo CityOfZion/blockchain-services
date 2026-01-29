@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Adapt to new interfaces",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

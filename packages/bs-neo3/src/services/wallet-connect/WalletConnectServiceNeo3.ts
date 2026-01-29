@@ -4,7 +4,7 @@ import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 
-export class WalletConnectServiceNeo3<N extends string> implements IWalletConnectService {
+export class WalletConnectServiceNeo3<N extends string> implements IWalletConnectService<N> {
   readonly namespace: string = 'neo3'
   readonly chain: string
   readonly supportedMethods: string[] = [

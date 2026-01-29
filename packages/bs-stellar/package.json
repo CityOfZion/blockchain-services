@@ -10,11 +10,12 @@
     "/dist"
   ],
   "scripts": {
-    "build": "rm -rf ./dist && tsc --project tsconfig.build.json",
+    "build": "rm -rf ./dist && npm run typecheck && tsc --project tsconfig.build.json",
     "test": "jest -i --config jest.config.ts",
     "lint": "eslint .",
     "format": "eslint --fix",
-    "package": "npm run build && npm pack"
+    "package": "npm run build && npm pack",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",

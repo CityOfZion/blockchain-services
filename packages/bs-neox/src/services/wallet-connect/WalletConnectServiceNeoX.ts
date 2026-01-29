@@ -12,7 +12,7 @@ import axios from 'axios'
 
 export class WalletConnectServiceNeoX<N extends string, A extends TBSNetworkId>
   extends WalletConnectServiceEthereum<N, A>
-  implements IWalletConnectService
+  implements IWalletConnectService<N>
 {
   constructor(service: IBSEthereum<N, A>) {
     super(service)

@@ -239,4 +239,9 @@ export class Neo3NeoXBridgeService<BSName extends string> implements INeo3NeoXBr
       throw new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND', error)
     }
   }
+
+  getTokenByMultichainId(multichainId: string): TBridgeToken<BSName> | undefined {
+    const tokens = [this.gasToken, this.neoToken]
+    return tokens.find(token => token.multichainId === multichainId)
+  }
 }

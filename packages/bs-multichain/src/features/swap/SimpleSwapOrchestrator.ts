@@ -44,7 +44,7 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
   #internalAmountToReceive: TSwapLoadableValue<string> = { loading: false, value: null }
 
   constructor(params: TSimpleSwapOrchestratorInitParams<N>) {
-    this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents>
+    this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents<N>>
     this.#api = new SimpleSwapApi()
     this.#blockchainServicesByName = params.blockchainServicesByName
     this.#chainsByServiceName = params.chainsByServiceName

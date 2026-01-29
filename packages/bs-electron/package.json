@@ -8,10 +8,11 @@
     "/dist"
   ],
   "scripts": {
-    "build": "rm -rf ./dist && tsc",
+    "build": "rm -rf ./dist && npm run typecheck && tsc",
     "lint": "eslint .",
     "format": "eslint --fix",
-    "package": "npm run build && npm pack"
+    "package": "npm run build && npm pack",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",

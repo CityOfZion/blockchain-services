@@ -7,7 +7,7 @@ import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 
 let bsEthereum: BSEthereum<'test'>
 let wallet: ethers.Wallet
-let account: TBSAccount
+let account: TBSAccount<'test'>
 let nativeToken: TBSToken
 
 const usdcToken: TBSToken = {

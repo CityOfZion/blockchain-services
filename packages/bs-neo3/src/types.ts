@@ -27,8 +27,8 @@ export interface IBSNeo3<N extends string = string>
     IBSWithLedger<N>,
     IBSWithNeo3NeoXBridge<N>,
     IBSWithEncryption<N>,
-    IBSWithWalletConnect,
-    IBSWithFullTransactions {
+    IBSWithWalletConnect<N>,
+    IBSWithFullTransactions<N> {
   generateSigningCallback(account: TBSAccount<N>): Promise<{
     neonJsAccount: wallet.Account
     signingCallback: api.SigningFunction

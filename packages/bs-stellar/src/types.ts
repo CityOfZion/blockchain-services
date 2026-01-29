@@ -18,7 +18,7 @@ export interface IBSStellar<N extends string = string>
     IBSWithFee<N>,
     IBSWithExplorer,
     IBSWithLedger<N>,
-    IBSWithWalletConnect {
+    IBSWithWalletConnect<N> {
   sorobanServer: rpc.Server
   horizonServer: Horizon.Server
 

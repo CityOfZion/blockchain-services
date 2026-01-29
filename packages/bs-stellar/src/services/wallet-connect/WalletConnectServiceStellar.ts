@@ -8,7 +8,7 @@ import type { IBSStellar } from '../../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
 
-export class WalletConnectServiceStellar<N extends string> implements IWalletConnectService {
+export class WalletConnectServiceStellar<N extends string> implements IWalletConnectService<N> {
   readonly namespace: string = 'stellar'
   readonly chain: string
   readonly supportedMethods: string[] = ['stellar_signXDR', 'stellar_signAndSubmitXDR']

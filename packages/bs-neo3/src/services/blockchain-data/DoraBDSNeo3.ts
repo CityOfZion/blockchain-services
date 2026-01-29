@@ -22,7 +22,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
     return new api.NeoRESTApi({ url: BSCommonConstants.COZ_API_URL, endpoint: '/api/v2/neo3' })
   }
 
-  static getBridgeNeo3NeoXDataByNotifications(notifications: Notification[], service: IBSNeo3<any>) {
+  static getBridgeNeo3NeoXDataByNotifications<N extends string>(notifications: Notification[], service: IBSNeo3<N>) {
     const gasNotification = notifications.find(({ event_name }) => event_name === 'NativeDeposit')
     const isNativeToken = !!gasNotification
 
@@ -35,27 +35,27 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
     if (!notificationStateValue) return undefined
 
-    let token: TBridgeToken | undefined
+    let tokenToUse: TBridgeToken<N> | undefined
     let amountInDecimals: string | undefined
     let byteStringReceiverAddress: string | undefined
 
     if (isNativeToken) {
-      token = service.neo3NeoXBridgeService.gasToken
+      tokenToUse = service.neo3NeoXBridgeService.gasToken
       amountInDecimals = notificationStateValue[2]?.value as string
       byteStringReceiverAddress = notificationStateValue[1]?.value as string
     } else {
-      token = service.neo3NeoXBridgeService.neoToken
+      tokenToUse = service.neo3NeoXBridgeService.neoToken
       amountInDecimals = notificationStateValue[4]?.value as string
       byteStringReceiverAddress = notificationStateValue[3]?.value as string
     }
 
-    if (!token || !amountInDecimals || !byteStringReceiverAddress) return undefined
+    if (!tokenToUse || !amountInDecimals || !byteStringReceiverAddress) return undefined
 
     const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     return {
-      amount: BSBigNumberHelper.toNumber(BSBigNumberHelper.fromDecimals(amountInDecimals, token.decimals)),
-      token,
+      amount: BSBigNumberHelper.toNumber(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals)),
+      tokenToUse,
       receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
     }
   }
@@ -74,7 +74,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
     return this.#apiInstance
   }
 
-  async getTransaction(hash: string): Promise<TTransaction> {
+  async getTransaction(hash: string): Promise<TTransaction<N>> {
     if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
       return await super.getTransaction(hash)
     }
@@ -93,7 +93,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
     const events = await this._extractEventsFromNotifications(notifications)
 
-    let transaction: TTransaction = {
+    let transaction: TTransaction<N> = {
       block: response.block,
       date: new Date(Number(response.time) * 1000).toISOString(),
       txId: response.hash,
@@ -118,7 +118,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
     if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
       return await super.getTransactionsByAddress({ address, nextPageParams })
     }
@@ -127,7 +127,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
     const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
 
-    const transactions: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const promises = data.items.map(async item => {
       const notifications = item.notifications?.map<TRpcBDSNeo3Notification>(({ contract, state, event_name }) => ({
@@ -140,7 +140,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
       const txIdUrl = txTemplateUrl?.replace('{txId}', item.hash)
 
-      let transaction: TTransaction = {
+      let transaction: TTransaction<N> = {
         block: item.block,
         date: new Date(Number(item.time) * 1000).toISOString(),
         txId: item.hash,
@@ -168,7 +168,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
     return {
       nextPageParams: nextPageParams < totalPages ? nextPageParams + 1 : undefined,
-      data: transactions,
+      transactions,
     }
   }
 

@@ -40,7 +40,7 @@ export class SimpleSwapApi<N extends string> {
   }
 
   #createAddressTemplateUrl(
-    blockchainService: IBlockchainService | undefined,
+    blockchainService: IBlockchainService<N> | undefined,
     explorer: string | null | undefined
   ): string | undefined {
     explorer = !explorer ? undefined : explorer.replace('{}', '{address}')
@@ -52,7 +52,7 @@ export class SimpleSwapApi<N extends string> {
   }
 
   #createTxTemplateUrl(
-    blockchainService: IBlockchainService | undefined,
+    blockchainService: IBlockchainService<N> | undefined,
     explorer: string | null | undefined
   ): string | undefined {
     explorer = !explorer ? undefined : explorer.replace('{}', '{txId}')
@@ -81,7 +81,7 @@ export class SimpleSwapApi<N extends string> {
     )
 
     let blockchain: N | undefined
-    let blockchainService: IBlockchainService | undefined
+    let blockchainService: IBlockchainService<N> | undefined
     let decimals = precision ?? undefined
     let hash = currency.contractAddress ?? undefined
     const lowerCaseSymbol = symbol!.toLowerCase()

@@ -15,7 +15,7 @@ const arbitrumAddress = '0x0b07f64ABc342B68AEc57c0936E4B6fD4452967E'
 
 const expectedResponse = {
   nextPageParams: expect.anything(),
-  data: expect.arrayContaining([
+  transactions: expect.arrayContaining([
     expect.objectContaining({
       txId: expect.any(String),
       txIdUrl: expect.anything(),
@@ -265,8 +265,8 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
       })
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBeTruthy()
-      expect(nextResponse.data.length).toBeTruthy()
+      expect(response.transactions.length).toBeTruthy()
+      expect(nextResponse.transactions.length).toBeTruthy()
     })
 
     it('Should be able to get transactions when send the nextPageParams param using Polygon Mainnet network (EVM)', async () => {
@@ -287,8 +287,8 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
       })
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBeTruthy()
-      expect(nextResponse.data.length).toBeTruthy()
+      expect(response.transactions.length).toBeTruthy()
+      expect(nextResponse.transactions.length).toBeTruthy()
     })
 
     it('Should be able to get transactions when send the nextPageParams param using Base Mainnet network (EVM)', async () => {
@@ -309,8 +309,8 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
       })
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBeTruthy()
-      expect(nextResponse.data.length).toBeTruthy()
+      expect(response.transactions.length).toBeTruthy()
+      expect(nextResponse.transactions.length).toBeTruthy()
     })
 
     it('Should be able to get transactions when send the nextPageParams param using Arbitrum Mainnet network (EVM)', async () => {
@@ -334,8 +334,8 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
       })
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBeTruthy()
-      expect(nextResponse.data.length).toBeTruthy()
+      expect(response.transactions.length).toBeTruthy()
+      expect(nextResponse.transactions.length).toBeTruthy()
     })
 
     it('Should be able to get transactions with NFTs when it was called using Polygon Mainnet network', async () => {
@@ -349,7 +349,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
         dateTo: new Date('2025-02-30T12:00:00').toJSON(),
       })
 
-      const nftEvents = response.data
+      const nftEvents = response.transactions
         .flatMap(({ events }) => events)
         .filter(({ eventType }) => eventType === 'nft') as TTransactionNftEvent[]
 

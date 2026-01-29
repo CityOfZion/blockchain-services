@@ -53,7 +53,7 @@ describe('DoraBDSNeoLegacy', () => {
     const address = 'AeGgZTTWPzyVtNiQRcpngkV75Xip1hznmi'
 
     const response = await doraBDSNeoLegacy.getTransactionsByAddress({ address })
-    response.data.forEach(transaction => {
+    response.transactions.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
           txId: expect.any(String),

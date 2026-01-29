@@ -71,7 +71,7 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
 
   getSigningCallback(
     transport: Transport,
-    account: TBSAccount
+    account: TBSAccount<N>
   ): (transaction: string, publicKey: string) => Promise<string | string[]> {
     return async (transaction, publicKey) => {
       try {

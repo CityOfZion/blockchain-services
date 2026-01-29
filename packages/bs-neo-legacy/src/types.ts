@@ -19,7 +19,7 @@ export interface IBSNeoLegacy<N extends string = string>
     IBSWithExplorer,
     IBSWithLedger<N>,
     IBSWithEncryption<N>,
-    IBSWithFullTransactions {
+    IBSWithFullTransactions<N> {
   generateSigningCallback(account: TBSAccount<N>): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }>
   sendTransfer(config: any, nep5ScriptBuilder?: any): Promise<string>
 }

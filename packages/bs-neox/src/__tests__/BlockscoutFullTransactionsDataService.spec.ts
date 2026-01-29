@@ -167,7 +167,7 @@ describe('BlockscoutFullTransactionsDataService', () => {
 
       expect(response).toEqual({
         nextPageParams: expect.anything(),
-        data: expect.arrayContaining([
+        transactions: expect.arrayContaining([
           expect.objectContaining({
             txId: expect.any(String),
             txIdUrl: expect.any(String),
@@ -203,7 +203,7 @@ describe('BlockscoutFullTransactionsDataService', () => {
 
       expect(response).toEqual({
         nextPageParams: expect.anything(),
-        data: expect.arrayContaining([
+        transactions: expect.arrayContaining([
           expect.objectContaining({
             txId: expect.any(String),
             txIdUrl: expect.any(String),
@@ -245,8 +245,8 @@ describe('BlockscoutFullTransactionsDataService', () => {
       })
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBeTruthy()
-      expect(nextResponse.data.length).toBeTruthy()
+      expect(response.transactions.length).toBeTruthy()
+      expect(nextResponse.transactions.length).toBeTruthy()
     })
 
     // The NFTs on Neo X should be implemented in future in Dora (remove mock to test)
@@ -258,7 +258,7 @@ describe('BlockscoutFullTransactionsDataService', () => {
         dateTo: new Date('2024-12-31T12:00:00').toJSON(),
       })
 
-      const nftEvents = response.data
+      const nftEvents = response.transactions
         .flatMap(({ events }) => events)
         .filter(({ eventType }) => eventType === 'nft') as TTransactionNftEvent[]
 
@@ -294,7 +294,7 @@ describe('BlockscoutFullTransactionsDataService', () => {
       const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress(newParams)
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBe(50)
+      expect(response.transactions.length).toBe(50)
     })
 
     it('Should be able to get transactions that are marked as bridge (GAS)', async () => {
@@ -307,13 +307,13 @@ describe('BlockscoutFullTransactionsDataService', () => {
 
       const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress(newParams)
 
-      const transaction = response.data.find(
+      const transaction = response.transactions.find(
         ({ txId }) => txId === '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-      ) as TTransaction & TTransactionBridgeNeo3NeoX
+      ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.gasToken)
+      expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.gasToken)
       expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
     })
 
@@ -327,13 +327,13 @@ describe('BlockscoutFullTransactionsDataService', () => {
 
       const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress(newParams)
 
-      const transaction = response.data.find(
+      const transaction = response.transactions.find(
         ({ txId }) => txId === '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-      ) as TTransaction & TTransactionBridgeNeo3NeoX
+      ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.neoToken)
+      expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.neoToken)
       expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
     })
   })

@@ -65,13 +65,13 @@ export function hasEncryption<N extends string = string, A extends string = stri
 
 export function hasWalletConnect<N extends string = string, A extends string = string>(
   service: IBlockchainService<N, A>
-): service is IBlockchainService<N, A> & IBSWithWalletConnect {
+): service is IBlockchainService<N, A> & IBSWithWalletConnect<N> {
   return 'walletConnectService' in service
 }
 
 export function hasFullTransactions<N extends string = string, A extends string = string>(
   service: IBlockchainService<N, A>
-): service is IBlockchainService<N, A> & IBSWithFullTransactions {
+): service is IBlockchainService<N, A> & IBSWithFullTransactions<N> {
   return 'fullTransactionsDataService' in service
 }
 
@@ -115,7 +115,7 @@ export async function waitForAccountTransaction<N extends string = string, A ext
 
     try {
       const response = await service.blockchainDataService.getTransactionsByAddress({ address })
-      const isTransactionConfirmed = response.data.some(transaction => transaction.txId === txId)
+      const isTransactionConfirmed = response.transactions.some(transaction => transaction.txId === txId)
 
       if (isTransactionConfirmed) return true
     } catch {
@@ -142,11 +142,11 @@ export async function fetchAccounts<N extends string = string, A extends string 
     const generatedAccount = await getAccountCallback(service, index)
 
     try {
-      const { data } = await service.blockchainDataService.getTransactionsByAddress({
+      const { transactions } = await service.blockchainDataService.getTransactionsByAddress({
         address: generatedAccount.address,
       })
 
-      if (!data || data.length <= 0) shouldBreak = true
+      if (!transactions || transactions.length <= 0) shouldBreak = true
     } catch {
       shouldBreak = true
     }

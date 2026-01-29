@@ -1,6 +1,6 @@
 {
   "name": "@cityofzion/bs-solana",
-  "version": "2.1.0",
+  "version": "1.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "https://github.com/CityOfZion/blockchain-services",
@@ -10,11 +10,12 @@
     "/dist"
   ],
   "scripts": {
-    "build": "rm -rf ./dist && tsc --project tsconfig.build.json",
+    "build": "rm -rf ./dist && npm run typecheck && tsc --project tsconfig.build.json",
     "test": "jest -i --config jest.config.ts",
     "lint": "eslint .",
     "format": "eslint --fix",
-    "package": "npm run build && npm pack"
+    "package": "npm run build && npm pack",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",

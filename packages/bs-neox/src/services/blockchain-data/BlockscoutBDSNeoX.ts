@@ -60,7 +60,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     return this.#apiInstance
   }
 
-  async getTransaction(txid: string): Promise<TTransaction> {
+  async getTransaction(txid: string): Promise<TTransaction<N>> {
     const { data: response } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
     if (!response || 'message' in response) {
@@ -69,7 +69,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
     const to = response.to?.hash
-    const events: TTransaction['events'] = []
+    const events: TTransaction<N>['events'] = []
 
     const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
@@ -169,7 +169,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     const txId = response.hash
     const txIdUrl = txTemplateUrl?.replace('{tx}', txId)
 
-    let transaction: TTransaction = {
+    let transaction: TTransaction<N> = {
       block: response.block,
       txId,
       txIdUrl,
@@ -195,7 +195,9 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     return transaction
   }
 
-  async getTransactionsByAddress(params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  async getTransactionsByAddress(
+    params: TGetTransactionsByAddressParams
+  ): Promise<TGetTransactionsByAddressResponse<N>> {
     const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionByAddressApiResponse>(
       `/addresses/${params.address}/transactions`,
       {
@@ -211,14 +213,14 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
 
-    const transactions: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
     const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
 
     const promises = data.items.map(async item => {
-      const events: TTransaction['events'] = []
+      const events: TTransaction<N>['events'] = []
 
       const hasNativeTokenBeingTransferred = item.value !== '0'
 
@@ -290,7 +292,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       const txId = item.hash
       const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
 
-      let transaction: TTransaction = {
+      let transaction: TTransaction<N> = {
         block: item.block,
         txId,
         txIdUrl,
@@ -321,7 +323,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     await Promise.allSettled(promises)
 
     return {
-      data: transactions,
+      transactions,
       nextPageParams: data.next_page_params,
     }
   }
@@ -454,7 +456,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
   #getBridgeNeo3NeoXDataByBlockscoutTransaction(
     transactionResponse: TBlockscoutBDSNeoXTransactionApiResponse
-  ): TTransactionBridgeNeo3NeoX['data'] | undefined {
+  ): TTransactionBridgeNeo3NeoX<N>['data'] | undefined {
     const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
     const input = BridgeInterface.parseTransaction({ data: transactionResponse.raw_input })
 
@@ -463,23 +465,23 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     const to = input.args._to
     const receiverAddress = wallet.getAddressFromScriptHash(to.startsWith('0x') ? to.slice(2) : to)
 
-    let token: TBridgeToken | undefined
+    let tokenToUse: TBridgeToken<N> | undefined
     let amountBn: TBSBigNumber | undefined
 
     if (input.name === 'withdrawNative') {
-      token = this._service.neo3NeoXBridgeService.gasToken
-      amountBn = BSBigNumberHelper.fromDecimals(transactionResponse.value, token.decimals).minus(
+      tokenToUse = this._service.neo3NeoXBridgeService.gasToken
+      amountBn = BSBigNumberHelper.fromDecimals(transactionResponse.value, tokenToUse.decimals).minus(
         Neo3NeoXBridgeService.BRIDGE_FEE
       )
     } else if (input.name === 'withdrawToken') {
-      token = this._service.neo3NeoXBridgeService.neoToken
-      amountBn = BSBigNumberHelper.fromDecimals(input.args._amount.toString(), token.decimals)
+      tokenToUse = this._service.neo3NeoXBridgeService.neoToken
+      amountBn = BSBigNumberHelper.fromDecimals(input.args._amount.toString(), tokenToUse.decimals)
     }
 
-    if (!token || !amountBn) return undefined
+    if (!tokenToUse || !amountBn) return undefined
 
     return {
-      token,
+      tokenToUse,
       receiverAddress,
       amount: BSBigNumberHelper.toNumber(amountBn),
     }

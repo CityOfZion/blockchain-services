@@ -12,7 +12,7 @@ import type { IBSNeoX, TBSNeoXNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 
-export class BlockscoutFullTransactionsDataService<N extends string> implements IFullTransactionsDataService {
+export class BlockscoutFullTransactionsDataService<N extends string> implements IFullTransactionsDataService<N> {
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeoXNetworkId[] = ['47763', '12227332']
   static readonly ERC721_STANDARDS = ['erc721', 'erc-721']
   static readonly ERC1155_STANDARDS = ['erc1155', 'erc-1155']
@@ -27,7 +27,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: BlockscoutFullTransactionsDataService.SUPPORTED_NETWORKS_IDS,
@@ -43,7 +43,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
       pageLimit: params.pageSize ?? 50,
     })
 
-    const data: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const items = response.data ?? []
 
@@ -56,7 +56,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
       const txId = item.transactionID
       const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
 
-      let newItem: TTransaction = {
+      let newItem: TTransaction<N> = {
         txId,
         txIdUrl,
         block: item.block,
@@ -144,7 +144,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
         const bridgeData = eventData?.bridgeData
 
         if (bridgeData) {
-          const token =
+          const tokenToUse =
             bridgeData.method === 'withdrawNative'
               ? this.#service.neo3NeoXBridgeService.gasToken
               : this.#service.neo3NeoXBridgeService.neoToken
@@ -153,8 +153,8 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
             ...newItem,
             type: 'bridgeNeo3NeoX',
             data: {
-              amount: BSBigNumberHelper.format(bridgeData.amount, { decimals: token.decimals }),
-              token,
+              amount: BSBigNumberHelper.format(bridgeData.amount, { decimals: tokenToUse.decimals }),
+              tokenToUse,
               receiverAddress: bridgeData.receiverBridgeAddress,
             },
           }
@@ -163,12 +163,12 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
 
       await Promise.allSettled(eventPromises)
 
-      data.splice(index, 0, newItem)
+      transactions.splice(index, 0, newItem)
     })
 
     await Promise.allSettled(itemPromises)
 
-    return { nextPageParams: response.nextCursor, data }
+    return { nextPageParams: response.nextCursor, transactions }
   }
 
   async exportFullTransactionsByAddress(params: TExportFullTransactionsByAddressParams): Promise<string> {

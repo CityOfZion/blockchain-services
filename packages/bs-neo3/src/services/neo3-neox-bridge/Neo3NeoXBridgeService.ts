@@ -232,4 +232,9 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
 
     return data.result.txid
   }
+
+  getTokenByMultichainId(multichainId: string): TBridgeToken<N> | undefined {
+    const tokens = [this.gasToken, this.neoToken]
+    return tokens.find(token => token.multichainId === multichainId)
+  }
 }

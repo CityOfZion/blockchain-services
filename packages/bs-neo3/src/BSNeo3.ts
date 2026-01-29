@@ -54,7 +54,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   readonly defaultNetwork: TBSNetwork<TBSNeo3NetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeo3NetworkId>[]
 
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<N>
   nftDataService!: INftDataService
   ledgerService!: NeonDappKitLedgerServiceNeo3<N>
   exchangeDataService!: IExchangeDataService
@@ -63,8 +63,8 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   neo3NeoXBridgeService!: INeo3NeoXBridgeService<N>
   tokenService!: ITokenService
   claimDataService!: IClaimDataService
-  walletConnectService!: IWalletConnectService
-  fullTransactionsDataService!: IFullTransactionsDataService
+  walletConnectService!: IWalletConnectService<N>
+  fullTransactionsDataService!: IFullTransactionsDataService<N>
 
   constructor(name: N, network?: TBSNetwork<TBSNeo3NetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -86,7 +86,10 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     this.tokens = BSNeo3Helper.getTokens(network)
   }
 
-  async #buildTransferInvocation({ intents }: TTransferParam, account: wallet.Account): Promise<ContractInvocation[]> {
+  async #buildTransferInvocation(
+    { intents }: TTransferParam<N>,
+    account: wallet.Account
+  ): Promise<ContractInvocation[]> {
     const invocations: ContractInvocation[] = []
 
     for (const intent of intents) {

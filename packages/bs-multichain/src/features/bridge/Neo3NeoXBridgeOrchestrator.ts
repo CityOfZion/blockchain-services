@@ -42,7 +42,7 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
   #internalBridgeFee: TBridgeValue<string> = { value: null, loading: false, error: null }
 
   constructor(params: TNeo3NeoXBridgeOrchestratorInitParams<N>) {
-    this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents>
+    this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents<N>>
 
     const isInitialNeoX = params.initialFromServiceName === params.neoXService.name
 
