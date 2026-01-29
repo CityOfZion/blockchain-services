@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Tue, 27 Jan 2026 18:42:09 GMT and should not be manually modified.
+This log was last generated on Thu, 29 Jan 2026 15:41:42 GMT and should not be manually modified.
+
+## 1.24.0
+Thu, 29 Jan 2026 15:41:42 GMT
+
+### Minor changes
+
+- Remove generic type default value
+- New method in BridgeNeo3NeoxService to get the token from multichainId
 
 ## 1.23.0
 Tue, 27 Jan 2026 18:42:09 GMT
