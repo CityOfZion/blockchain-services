@@ -10,47 +10,56 @@
     {
       "packageName": "@cityofzion/bs-electron",
       "projectFolder": "packages/bs-electron",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     },
     {
       "packageName": "@cityofzion/bs-ethereum",
       "projectFolder": "packages/bs-ethereum",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     },
     {
       "packageName": "@cityofzion/bs-neo3",
       "projectFolder": "packages/bs-neo3",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     },
     {
       "packageName": "@cityofzion/bs-neo-legacy",
       "projectFolder": "packages/bs-neo-legacy",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     },
     {
       "packageName": "@cityofzion/blockchain-service",
       "projectFolder": "packages/blockchain-service",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     },
     {
       "packageName": "@cityofzion/bs-multichain",
       "projectFolder": "packages/bs-multichain",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     },
     {
       "packageName": "@cityofzion/bs-neox",
       "projectFolder": "packages/bs-neox",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     },
     {
       "packageName": "@cityofzion/bs-solana",
       "projectFolder": "packages/bs-solana",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     },
     {
       "packageName": "@cityofzion/bs-stellar",
       "projectFolder": "packages/bs-stellar",
-      "shouldPublish": true
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     }
   ]
 }
