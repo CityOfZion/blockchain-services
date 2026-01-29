@@ -14,7 +14,7 @@ import { api } from '@cityofzion/dora-ts'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 
 export class MoralisFullTransactionsDataServiceEthereum<N extends string, A extends TBSNetworkId>
-  implements IFullTransactionsDataService
+  implements IFullTransactionsDataService<N>
 {
   static readonly SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = ['1', '42161', '8453', '137']
   static readonly ERC721_STANDARDS = ['erc721', 'erc-721']
@@ -30,14 +30,14 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: MoralisFullTransactionsDataServiceEthereum.SUPPORTED_NETWORKS_IDS,
       ...params,
     })
 
-    const data: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const response = await api.EthereumREST.getFullTransactionsByAddress({
       address: params.address,
@@ -60,7 +60,7 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
 
-      const newItem: TTransaction = {
+      const newItem: TTransaction<N> = {
         txId,
         txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
         block: item.block,
@@ -142,12 +142,12 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
 
       await Promise.allSettled(eventPromises)
 
-      data.splice(index, 0, newItem)
+      transactions.splice(index, 0, newItem)
     })
 
     await Promise.allSettled(itemPromises)
 
-    return { nextPageParams: response.nextCursor, data }
+    return { nextPageParams: response.nextCursor, transactions }
   }
 
   async exportFullTransactionsByAddress(params: TExportFullTransactionsByAddressParams): Promise<string> {

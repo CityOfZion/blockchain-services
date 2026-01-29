@@ -32,6 +32,14 @@
       "enableParallelism": false,
       "ignoreMissingScript": true,
       "safeForSimultaneousRushProcesses": true
+    },
+    {
+      "commandKind": "bulk",
+      "name": "typecheck",
+      "summary": "Exec all packages typecheck",
+      "enableParallelism": false,
+      "ignoreMissingScript": true,
+      "safeForSimultaneousRushProcesses": true
     }
   ]
 }

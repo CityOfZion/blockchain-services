@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Adapt to new interfaces",
+      "type": "minor"
+    },
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Fix version",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

@@ -13,7 +13,7 @@ import type { IBSStellar } from '../../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
 
-export class HorizonBDSStellar<N extends string> implements IBlockchainDataService {
+export class HorizonBDSStellar<N extends string> implements IBlockchainDataService<N> {
   maxTimeToConfirmTransactionInMs: number = 1 * 60 * 1000 // 1 minute
 
   #service: IBSStellar<N>
@@ -22,8 +22,8 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     this.#service = service
   }
 
-  async #parseTransaction(transaction: stellarSDK.Horizon.ServerApi.TransactionRecord): Promise<TTransaction> {
-    const events: TTransaction['events'] = []
+  async #parseTransaction(transaction: stellarSDK.Horizon.ServerApi.TransactionRecord): Promise<TTransaction<N>> {
+    const events: TTransaction<N>['events'] = []
 
     const operations = await transaction.operations()
 
@@ -122,12 +122,14 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     }
   }
 
-  async getTransaction(txid: string): Promise<TTransaction> {
+  async getTransaction(txid: string): Promise<TTransaction<N>> {
     const transaction = await this.#service.horizonServer.transactions().transaction(txid).call()
     return this.#parseTransaction(transaction)
   }
 
-  async getTransactionsByAddress(params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  async getTransactionsByAddress(
+    params: TGetTransactionsByAddressParams
+  ): Promise<TGetTransactionsByAddressResponse<N>> {
     const query = this.#service.horizonServer.transactions().forAccount(params.address)
     if (params.nextPageParams) {
       query.cursor(params.nextPageParams)
@@ -138,7 +140,7 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     const nextPageParams =
       response.records.length > 0 ? response.records[response.records.length - 1].paging_token : undefined
 
-    const transactions: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const promises = response.records.map(async record => {
       const parsedTransaction = await this.#parseTransaction(record)
@@ -148,7 +150,7 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     await Promise.allSettled(promises)
 
     return {
-      data: transactions,
+      transactions,
       nextPageParams,
     }
   }

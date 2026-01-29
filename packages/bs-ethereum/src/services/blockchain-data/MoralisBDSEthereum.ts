@@ -138,14 +138,14 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     return token
   }
 
-  async getTransaction(hash: string): Promise<TTransaction> {
+  async getTransaction(hash: string): Promise<TTransaction<N>> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransaction(hash)
     }
 
     const { data } = await this.#api.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
 
-    const events: TTransaction['events'] = []
+    const events: TTransaction<N>['events'] = []
 
     const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
@@ -256,7 +256,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     }
   }
 
-  async getTransactionsByAddress(params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  async getTransactionsByAddress(
+    params: TGetTransactionsByAddressParams
+  ): Promise<TGetTransactionsByAddressResponse<N>> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransactionsByAddress(params)
     }
@@ -268,7 +270,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       },
     })
 
-    const transactions: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
 
@@ -278,7 +280,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
 
     const promises = data.result.map(async item => {
-      const events: TTransaction['events'] = []
+      const events: TTransaction<N>['events'] = []
 
       const nativeContractHashUrl = contractTemplateUrl?.replace('{hash}', nativeAsset.hash)
 
@@ -382,7 +384,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
     return {
       nextPageParams: data.cursor,
-      data: transactions,
+      transactions,
     }
   }
 

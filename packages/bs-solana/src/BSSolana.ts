@@ -49,7 +49,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
 
   ledgerService: Web3LedgerServiceSolana<N>
   exchangeDataService!: IExchangeDataService
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<N>
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
@@ -99,7 +99,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     return transaction.serialize()
   }
 
-  async #buildTransferParams(param: TTransferParam) {
+  async #buildTransferParams(param: TTransferParam<N>) {
     const latestBlockhash = await this.#connection.getLatestBlockhash()
 
     const senderPublicKey = new solanaSDK.PublicKey(param.senderAccount.address)

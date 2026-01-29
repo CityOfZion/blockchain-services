@@ -186,7 +186,7 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
 
       expect(response).toEqual({
         nextPageParams: expect.anything(),
-        data: expect.arrayContaining([
+        transactions: expect.arrayContaining([
           expect.objectContaining({
             txId: expect.any(String),
             txIdUrl: expect.any(String),
@@ -219,7 +219,7 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
 
       expect(response).toEqual({
         nextPageParams: expect.anything(),
-        data: expect.arrayContaining([
+        transactions: expect.arrayContaining([
           expect.objectContaining({
             txId: expect.any(String),
             txIdUrl: expect.any(String),
@@ -271,8 +271,8 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
       })
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBeTruthy()
-      expect(nextResponse.data.length).toBeTruthy()
+      expect(response.transactions.length).toBeTruthy()
+      expect(nextResponse.transactions.length).toBeTruthy()
     })
 
     it('Should be able to get transactions with NFTs when it was called', async () => {
@@ -284,7 +284,7 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
         nextPageParams: 'NTcyNTEwOA==',
       })
 
-      const nftEvents = response.data
+      const nftEvents = response.transactions
         .flatMap(({ events }) => events)
         .filter(({ eventType }) => eventType === 'nft') as TTransactionNftEvent[]
 
@@ -322,7 +322,7 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
       const response = await doraFullTransactionsDataServiceNeo3.getFullTransactionsByAddress(newParams)
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBe(50)
+      expect(response.transactions.length).toBe(50)
     })
 
     it('Should be able to get transactions that are marked as bridge (GAS)', async () => {
@@ -335,14 +335,14 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
 
       const response = await doraFullTransactionsDataServiceNeo3.getFullTransactionsByAddress(newParams)
 
-      const transaction = response.data.find(
+      const transaction = response.transactions.find(
         ({ txId }) => txId === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
-      ) as TTransaction & TTransactionBridgeNeo3NeoX
+      ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.events.find(event => event.methodName === 'NativeDeposit')).toBeTruthy()
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.gasToken)
+      expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.gasToken)
       expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
     })
 
@@ -356,14 +356,14 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
 
       const response = await doraFullTransactionsDataServiceNeo3.getFullTransactionsByAddress(newParams)
 
-      const transaction = response.data.find(
+      const transaction = response.transactions.find(
         ({ txId }) => txId === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
-      ) as TTransaction & TTransactionBridgeNeo3NeoX
+      ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
 
       expect(transaction.type).toBe('bridgeNeo3NeoX')
       expect(transaction.events.find(event => event.methodName === 'TokenDeposit')).toBeTruthy()
       expect(transaction.data.amount).toBe('1')
-      expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.neoToken)
+      expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.neoToken)
       expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
     })
   })

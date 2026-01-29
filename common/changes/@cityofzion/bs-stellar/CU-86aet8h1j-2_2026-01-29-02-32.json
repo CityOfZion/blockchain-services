@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Adapt to new interfaces",
+      "type": "minor"
+    }
+  ],
+  "packageName": "@cityofzion/bs-stellar"
+}

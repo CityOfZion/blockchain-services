@@ -15,7 +15,7 @@ export type TWalletKitHelperGetProposalServicesParams<N extends string = string>
 export type TWalletKitHelperProposalDetails<N extends string = string> = {
   methods: string[]
   approvedNamespaces: SessionTypes.Namespaces
-  service: IBlockchainService<N> & IBSWithWalletConnect
+  service: IBlockchainService<N> & IBSWithWalletConnect<N>
   blockchain: N
 }
 
@@ -27,7 +27,7 @@ export type TWalletKitHelperGetSessionDetailsParams<N extends string = string> =
 export type TWalletKitHelperSessionDetails<N extends string = string> = {
   address: string
   methods: string[]
-  service: IBlockchainService<N> & IBSWithWalletConnect
+  service: IBlockchainService<N> & IBSWithWalletConnect<N>
   blockchain: N
 }
 

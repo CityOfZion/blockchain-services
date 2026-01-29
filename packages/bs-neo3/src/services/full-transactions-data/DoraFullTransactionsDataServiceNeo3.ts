@@ -12,7 +12,7 @@ import type { IBSNeo3, TBSNeo3NetworkId } from '../../types'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import type { api } from '@cityofzion/dora-ts'
 
-export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IFullTransactionsDataService {
+export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IFullTransactionsDataService<N> {
   static readonly SUPPORTED_NEP11_STANDARDS: string[] = ['nep11', 'nep-11']
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeo3NetworkId[] = ['mainnet', 'testnet']
 
@@ -35,7 +35,7 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: DoraFullTransactionsDataServiceNeo3.SUPPORTED_NETWORKS_IDS,
@@ -52,7 +52,7 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
     })
 
     const items = response.data ?? []
-    const data: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
     const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
@@ -63,7 +63,7 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
       const txId = item.transactionID
       const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
 
-      let newItem: TTransaction = {
+      let newItem: TTransaction<N> = {
         txId,
         txIdUrl,
         block: item.block,
@@ -145,7 +145,6 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
 
           if (!!log && log.vmstate === 'HALT') {
             const data = DoraBDSNeo3.getBridgeNeo3NeoXDataByNotifications(log.notifications || [], this.#service)
-
             if (data) newItem = { ...newItem, type: 'bridgeNeo3NeoX', data }
           }
         }
@@ -153,12 +152,12 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
 
       await Promise.allSettled(eventPromises)
 
-      data.splice(index, 0, newItem)
+      transactions.splice(index, 0, newItem)
     })
 
     await Promise.allSettled(itemPromises)
 
-    return { nextPageParams: response.nextCursor, data }
+    return { nextPageParams: response.nextCursor, transactions }
   }
 
   async exportFullTransactionsByAddress(params: TExportFullTransactionsByAddressParams): Promise<string> {

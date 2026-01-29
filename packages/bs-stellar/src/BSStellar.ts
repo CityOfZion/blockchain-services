@@ -45,11 +45,11 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   readonly nativeTokens: TBSToken[]
 
   exchangeDataService: IExchangeDataService
-  blockchainDataService: IBlockchainDataService
+  blockchainDataService: IBlockchainDataService<N>
   tokenService: ITokenService
   explorerService: IExplorerService
   ledgerService: LedgerServiceStellar<N>
-  walletConnectService: IWalletConnectService
+  walletConnectService: IWalletConnectService<N>
 
   constructor(name: N, network?: TBSNetwork<TBSStellarNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -109,7 +109,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  async #buildTransferTransaction({ intents, senderAccount }: TTransferParam) {
+  async #buildTransferTransaction({ intents, senderAccount }: TTransferParam<N>) {
     const sourceAccount = await this.#ensureAccountOnChain(senderAccount.address)
 
     const feeBn = await this.getFeeEstimate(intents.length)

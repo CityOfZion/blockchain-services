@@ -57,7 +57,7 @@ describe('DoraBDSNeo3', () => {
     const address = 'NRwXs5yZRMuuXUo7AqvetHQ4GDHe3pV7Mb'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address, nextPageParams: 1 })
 
-    response.data.forEach(transaction => {
+    response.transactions.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
           txId: expect.any(String),
@@ -148,13 +148,13 @@ describe('DoraBDSNeo3', () => {
     const address = 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address })
 
-    const transaction = response.data.find(
+    const transaction = response.transactions.find(
       ({ txId }) => txId === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
-    ) as TTransaction & TTransactionBridgeNeo3NeoX
+    ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.gasToken)
+    expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.gasToken)
     expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
   })
 
@@ -165,13 +165,13 @@ describe('DoraBDSNeo3', () => {
     const address = 'NcTRyXXr2viSowk913dMTvws6sDNbmt8tj'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address })
 
-    const transaction = response.data.find(
+    const transaction = response.transactions.find(
       ({ txId }) => txId === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
-    ) as TTransaction & TTransactionBridgeNeo3NeoX
+    ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.token).toEqual(service.neo3NeoXBridgeService.neoToken)
+    expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.neoToken)
     expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
   })
 })

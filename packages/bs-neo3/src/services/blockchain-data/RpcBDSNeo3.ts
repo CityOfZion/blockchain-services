@@ -16,7 +16,7 @@ import { IBSNeo3, type TRpcBDSNeo3Notification, type TRpcBDSNeo3NotificationStat
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
-export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
+export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
   readonly _service: IBSNeo3<N>
@@ -32,7 +32,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
   }
 
   async _extractEventsFromNotifications(notifications: TRpcBDSNeo3Notification[] = []) {
-    const events: TTransaction['events'] = []
+    const events: TTransaction<N>['events'] = []
 
     const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
     const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
@@ -120,32 +120,32 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
 
     if (!notificationStateValue) return undefined
 
-    let token: TBridgeToken | undefined
+    let tokenToUse: TBridgeToken<N> | undefined
     let amountInDecimals: string | undefined
     let byteStringReceiverAddress: string | undefined
 
     if (isNativeToken) {
-      token = this._service.neo3NeoXBridgeService.gasToken
+      tokenToUse = this._service.neo3NeoXBridgeService.gasToken
       amountInDecimals = notificationStateValue[2]?.value as string
       byteStringReceiverAddress = notificationStateValue[1]?.value as string
     } else {
-      token = this._service.neo3NeoXBridgeService.neoToken
+      tokenToUse = this._service.neo3NeoXBridgeService.neoToken
       amountInDecimals = notificationStateValue[4]?.value as string
       byteStringReceiverAddress = notificationStateValue[3]?.value as string
     }
 
-    if (!token || !amountInDecimals || !byteStringReceiverAddress) return undefined
+    if (!tokenToUse || !amountInDecimals || !byteStringReceiverAddress) return undefined
 
     const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     return {
-      amount: BSBigNumberHelper.toNumber(BSBigNumberHelper.fromDecimals(amountInDecimals, token.decimals)),
-      token,
+      amount: BSBigNumberHelper.toNumber(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals)),
+      tokenToUse,
       receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
     }
   }
 
-  async getTransaction(hash: string): Promise<TTransaction> {
+  async getTransaction(hash: string): Promise<TTransaction<N>> {
     try {
       const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
       const rpcClient = new rpc.RPCClient(this._service.network.url)
@@ -160,7 +160,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
 
       const txIdUrl = txTemplateUrl?.replace('{txId}', response.hash)
 
-      let transaction: TTransaction = {
+      let transaction: TTransaction<N> = {
         txId: response.hash,
         txIdUrl,
         block: response.validuntilblock,
@@ -189,7 +189,9 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService {
     }
   }
 
-  async getTransactionsByAddress(_params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  async getTransactionsByAddress(
+    _params: TGetTransactionsByAddressParams
+  ): Promise<TGetTransactionsByAddressResponse<N>> {
     throw new Error('Method not supported.')
   }
 

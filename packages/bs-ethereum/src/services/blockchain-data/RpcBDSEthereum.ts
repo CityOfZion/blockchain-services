@@ -14,7 +14,7 @@ import { ERC20_ABI } from '../../assets/abis/ERC20'
 import { IBSEthereum } from '../../types'
 
 export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends IBSEthereum<N, A> = IBSEthereum<N, A>>
-  implements IBlockchainDataService
+  implements IBlockchainDataService<N>
 {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5 // 5 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
@@ -33,7 +33,7 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
     return this.#providerInstance
   }
 
-  async getTransaction(hash: string): Promise<TTransaction> {
+  async getTransaction(hash: string): Promise<TTransaction<N>> {
     const transaction = await this.#provider.getTransaction(hash)
     if (!transaction || !transaction.to) throw new Error('Transaction not found')
 
@@ -84,7 +84,9 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
     }
   }
 
-  async getTransactionsByAddress(_params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  async getTransactionsByAddress(
+    _params: TGetTransactionsByAddressParams
+  ): Promise<TGetTransactionsByAddressResponse<N>> {
     throw new Error('Method not supported.')
   }
 

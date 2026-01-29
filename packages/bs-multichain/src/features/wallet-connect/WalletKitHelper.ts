@@ -71,7 +71,7 @@ export class WalletKitHelper {
     const allChains = new Set(getChainsFromRequiredNamespaces(mergedNamespacesObject))
 
     const proposalServices = services.filter(
-      (service): service is IBlockchainService<N> & IBSWithWalletConnect =>
+      (service): service is IBlockchainService<N> & IBSWithWalletConnect<N> =>
         hasWalletConnect(service) && allChains.has(service.walletConnectService.chain)
     )
 
@@ -89,7 +89,7 @@ export class WalletKitHelper {
     const chains = getChainsFromNamespaces(session.namespaces)
 
     const service = services.find(
-      (service): service is IBlockchainService<N> & IBSWithWalletConnect =>
+      (service): service is IBlockchainService<N> & IBSWithWalletConnect<N> =>
         hasWalletConnect(service) && chains.includes(service.walletConnectService.chain)
     )
     if (!service) throw new BSError('Requested chain not supported by any service', 'NO_SERVICE')
@@ -127,7 +127,7 @@ export class WalletKitHelper {
     }
 
     const serviceMethod = sessionDetails.service.walletConnectService[method] as
-      | TWalletConnectServiceRequestMethod
+      | TWalletConnectServiceRequestMethod<N>
       | undefined
 
     if (!serviceMethod || typeof serviceMethod !== 'function')

@@ -43,13 +43,13 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   readonly defaultNetwork: TBSNetwork<TBSNeoLegacyNetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeoLegacyNetworkId>[]
 
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<N>
   exchangeDataService!: IExchangeDataService
   ledgerService!: NeonJsLedgerServiceNeoLegacy<N>
   explorerService!: IExplorerService
   tokenService!: ITokenService
   claimDataService!: IClaimDataService
-  fullTransactionsDataService!: IFullTransactionsDataService
+  fullTransactionsDataService!: IFullTransactionsDataService<N>
 
   constructor(name: N, network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name

@@ -62,8 +62,8 @@ describe('TatumRpcBDSSolana', () => {
     const address = '8X35rQUK2u9hfn8rMPwwr6ZSEUhbmfDPEapp589XyoM1'
     const response = await rpcBDSSolana.getTransactionsByAddress({ address: address })
 
-    expect(response.data.length).toBeGreaterThan(0)
-    response.data.forEach(transaction => {
+    expect(response.transactions.length).toBeGreaterThan(0)
+    response.transactions.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
           txId: expect.any(String),

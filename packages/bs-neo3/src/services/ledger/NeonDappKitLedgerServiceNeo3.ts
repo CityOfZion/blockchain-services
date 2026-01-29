@@ -94,7 +94,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
     return accounts ?? []
   }
 
-  getSigningCallback(transport: Transport, account: TBSAccount): api.SigningFunction {
+  getSigningCallback(transport: Transport, account: TBSAccount<N>): api.SigningFunction {
     return async (transaction, { witnessIndex, network }) => {
       const isNeoN3App = await this.verifyAppName(transport)
       if (!isNeoN3App) throw new Error('App is not NEO N3')

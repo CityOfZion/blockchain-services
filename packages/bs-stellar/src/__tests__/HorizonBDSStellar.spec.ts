@@ -58,8 +58,8 @@ describe('HorizonBDSStellar', () => {
     const address = 'GD3N5SWQIWHIDPXTLIOHVMWQ7U6T3LIONHD6XZZLXZLIHEZIOFNS3MQZ'
     const response = await horizonBDSStellar.getTransactionsByAddress({ address: address })
 
-    expect(response.data.length).toBeGreaterThan(0)
-    response.data.forEach(transaction => {
+    expect(response.transactions.length).toBeGreaterThan(0)
+    response.transactions.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
           txId: expect.any(String),

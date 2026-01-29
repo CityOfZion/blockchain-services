@@ -51,14 +51,14 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   readonly defaultNetwork!: TBSNetwork<A>
   readonly availableNetworks!: TBSNetwork<A>[]
 
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<N>
   exchangeDataService!: IExchangeDataService
   ledgerService: EthersLedgerServiceEthereum<N>
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
-  walletConnectService!: IWalletConnectService
-  fullTransactionsDataService!: IFullTransactionsDataService
+  walletConnectService!: IWalletConnectService<N>
+  fullTransactionsDataService!: IFullTransactionsDataService<N>
 
   constructor(name: N, evm?: TSupportedEVM, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name

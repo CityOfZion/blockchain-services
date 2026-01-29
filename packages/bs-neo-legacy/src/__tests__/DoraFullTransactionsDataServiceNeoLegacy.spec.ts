@@ -153,7 +153,7 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
 
       expect(response).toEqual({
         nextPageParams: expect.anything(),
-        data: expect.arrayContaining([
+        transactions: expect.arrayContaining([
           expect.objectContaining({
             txId: expect.any(String),
             txIdUrl: expect.any(String),
@@ -204,8 +204,8 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
       })
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBeTruthy()
-      expect(nextResponse.data.length).toBeTruthy()
+      expect(response.transactions.length).toBeTruthy()
+      expect(nextResponse.transactions.length).toBeTruthy()
     })
 
     it('Should be able to get transactions with default pageSize param', async () => {
@@ -218,7 +218,7 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
       const response = await doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress(newParams)
 
       expect(response.nextPageParams).toBeTruthy()
-      expect(response.data.length).toBe(30)
+      expect(response.transactions.length).toBe(30)
     })
   })
 

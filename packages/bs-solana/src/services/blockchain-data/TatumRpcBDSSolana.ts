@@ -17,7 +17,7 @@ import * as solanaSplSDK from '@solana/spl-token'
 import { BSSolanaCachedMethodsHelper } from '../../helpers/BSSolanaCachedMethodsHelper'
 import { IBSSolana, TBSSolanaNetworkId } from '../../types'
 
-export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataService {
+export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataService<N> {
   static URL_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string> = {
     'mainnet-beta': 'https://api.coz.io/api/v2/solana/meta/mainnet',
     devnet: 'https://api.coz.io/api/v2/solana/meta/devnet',
@@ -318,7 +318,7 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
     throw new Error('Unsupported instruction')
   }
 
-  async getTransaction(txid: string): Promise<TTransaction> {
+  async getTransaction(txid: string): Promise<TTransaction<N>> {
     const transaction = await this.#connection.getParsedTransaction(txid, {
       maxSupportedTransactionVersion: 0,
     })
@@ -328,7 +328,7 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
     if (!transaction.blockTime) throw new Error('Block time not found')
     if (!transaction.meta) throw new Error('Transaction meta not found')
 
-    const events: TTransaction['events'] = []
+    const events: TTransaction<N>['events'] = []
 
     const allInstructions = [
       ...transaction.transaction.message.instructions,
@@ -366,7 +366,9 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
     }
   }
 
-  async getTransactionsByAddress(params: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  async getTransactionsByAddress(
+    params: TGetTransactionsByAddressParams
+  ): Promise<TGetTransactionsByAddressResponse<N>> {
     const publicKey = new solanaSDK.PublicKey(params.address)
 
     const signaturesResponse = await this.#connection.getSignaturesForAddress(publicKey, {
@@ -374,7 +376,7 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
       before: params.nextPageParams,
     })
 
-    const transactions: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const promises = signaturesResponse.map(async signatureResponse => {
       const transaction = await this.getTransaction(signatureResponse.signature)
@@ -384,7 +386,7 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
     await Promise.allSettled(promises)
 
     return {
-      data: transactions,
+      transactions,
       nextPageParams: signaturesResponse.length === 15 ? signaturesResponse.at(-1)?.signature : undefined,
     }
   }

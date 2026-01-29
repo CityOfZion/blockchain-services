@@ -12,7 +12,7 @@ import {
 import type { IBSNeoLegacy, TBSNeoLegacyNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 
-export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implements IFullTransactionsDataService {
+export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implements IFullTransactionsDataService<N> {
   static readonly SUPPORTED_NEP5_STANDARDS: string[] = ['nep5', 'nep-5']
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeoLegacyNetworkId[] = ['mainnet']
   static readonly MAX_PAGE_SIZE = 30
@@ -26,7 +26,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
     const pageSize =
       params.pageSize && params.pageSize > DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
         ? DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
@@ -40,7 +40,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
       pageSize,
     })
 
-    const data: TTransaction[] = []
+    const transactions: TTransaction<N>[] = []
 
     const response = await api.NeoLegacyREST.getFullTransactionsByAddress({
       address: params.address,
@@ -60,7 +60,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
-      const newItem: TTransaction = {
+      const newItem: TTransaction<N> = {
         txId,
         txIdUrl,
         block: item.block,
@@ -111,12 +111,12 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
 
       await Promise.allSettled(eventPromises)
 
-      data.splice(index, 0, newItem)
+      transactions.splice(index, 0, newItem)
     })
 
     await Promise.allSettled(itemPromises)
 
-    return { nextPageParams: response.nextCursor, data }
+    return { nextPageParams: response.nextCursor, transactions }
   }
 
   async exportFullTransactionsByAddress(params: TExportFullTransactionsByAddressParams): Promise<string> {
