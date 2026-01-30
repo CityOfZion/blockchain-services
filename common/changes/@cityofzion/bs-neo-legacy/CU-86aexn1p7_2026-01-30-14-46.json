@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Remove priorityFee parameter from Transfer methods",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

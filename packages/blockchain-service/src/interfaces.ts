@@ -40,7 +40,6 @@ export type TIntentTransferParam = {
 export type TTransferParam<N extends string> = {
   senderAccount: TBSAccount<N>
   intents: TIntentTransferParam[]
-  priorityFee?: string
 }
 
 export type TPingNetworkResponse = {
