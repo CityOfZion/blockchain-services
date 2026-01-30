@@ -295,13 +295,12 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     return wallet.encrypt(key, password)
   }
 
-  async transfer({ intents, senderAccount, ...params }: TTransferParam<N>): Promise<string[]> {
+  async transfer({ intents, senderAccount }: TTransferParam<N>): Promise<string[]> {
     const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
 
     const { api, sc, u, wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 
     const apiProvider = new api.neoCli.instance(this.network.url)
-    const priorityFee = Number(params.priorityFee ?? 0)
 
     const nativeIntents: ReturnType<typeof api.makeIntent> = []
     const nep5ScriptBuilder = new sc.ScriptBuilder()
@@ -335,7 +334,6 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
         url: this.network.url,
         intents: nativeIntents.length > 0 ? nativeIntents : undefined,
         signingFunction: signingCallback,
-        fees: priorityFee,
       },
       nep5ScriptBuilder
     )
