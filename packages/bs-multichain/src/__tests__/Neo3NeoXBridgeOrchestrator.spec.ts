@@ -1,12 +1,12 @@
 import {
-  TBSAccount,
-  TBalanceResponse,
   BSBigNumberHelper,
   BSError,
   BSUtilsHelper,
-  TBridgeToken,
-  TBridgeValidateValue,
-  TBridgeValue,
+  type TBSAccount,
+  type TBalanceResponse,
+  type TBridgeToken,
+  type TBridgeValidateValue,
+  type TBridgeValue,
 } from '@cityofzion/blockchain-service'
 import { Neo3NeoXBridgeOrchestrator } from '../features/bridge'
 import { BSNeo3 } from '@cityofzion/bs-neo3'

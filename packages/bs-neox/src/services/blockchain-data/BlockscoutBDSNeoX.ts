@@ -1,13 +1,13 @@
 import {
-  TBalanceResponse,
   BSBigNumberHelper,
   BSCommonConstants,
-  TContractMethod,
-  TBridgeToken,
-  TBSNetwork,
-  TBSToken,
-  type TTransaction,
   BSUtilsHelper,
+  type TBalanceResponse,
+  type TContractMethod,
+  type TBridgeToken,
+  type TBSNetwork,
+  type TBSToken,
+  type TTransaction,
   type TTransactionBridgeNeo3NeoX,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
@@ -20,7 +20,7 @@ import { BSEthereumConstants, ERC20_ABI, RpcBDSEthereum } from '@cityofzion/bs-e
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import { BRIDGE_ABI } from '../../assets/abis/bridge'
 import { Neo3NeoXBridgeService } from '../neo3-neox-bridge/Neo3NeoXBridgeService'
-import {
+import type {
   IBSNeoX,
   TBlockscoutBDSNeoXBalanceApiResponse,
   TBlockscoutBDSNeoXBlocksApiResponse,
@@ -70,22 +70,16 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
     const to = response.to?.hash
     const events: TTransaction<N>['events'] = []
-
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
-    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
 
     const hasNativeTokenBeingTransferred = response.value !== '0'
     if (hasNativeTokenBeingTransferred) {
       const from = response.from.hash
       const to = response.to.hash
-      const fromUrl = addressTemplateUrl?.replace('{address}', from)
-      const toUrl = addressTemplateUrl?.replace('{address}', to)
+      const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+      const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
 
-      const contractHashUrl = contractTemplateUrl?.replace('{hash}', nativeToken.hash)
-
-      events.push({
+      events.splice(0, 0, {
         amount: ethers.utils.formatUnits(response.value, nativeToken.decimals),
         from,
         fromUrl,
@@ -93,7 +87,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         toUrl,
         eventType: 'token',
         contractHash: nativeToken.hash,
-        contractHashUrl,
+        contractHashUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
         token: nativeToken,
         methodName: 'transfer',
         tokenType: 'native',
@@ -102,17 +96,16 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const hasTokenTransfers = response.token_transfers && response.token_transfers.length > 0
     if (hasTokenTransfers) {
-      const promises = response.token_transfers.map(async tokenTransfer => {
+      const promises = response.token_transfers.map(async (tokenTransfer, currentIndex) => {
+        const index = hasNativeTokenBeingTransferred ? currentIndex + 1 : currentIndex
         const from = tokenTransfer.from.hash
         const to = tokenTransfer.to.hash
         const contractHash = tokenTransfer.token.address
-
-        const fromUrl = addressTemplateUrl?.replace('{address}', from)
-        const toUrl = addressTemplateUrl?.replace('{address}', to)
-        const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
 
         if (tokenTransfer.token.type === 'ERC-20') {
-          events.push({
+          events.splice(index, 0, {
             amount: ethers.utils.formatUnits(tokenTransfer.total.value, tokenTransfer.total.decimals),
             from,
             fromUrl,
@@ -120,7 +113,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             toUrl,
             eventType: 'token',
             contractHash,
-            contractHashUrl,
+            contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
             methodName: 'transfer',
             tokenType: 'erc-20',
             token: this._service.tokenService.normalizeToken({
@@ -134,16 +127,14 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
           return
         }
 
-        const tokenHash = tokenTransfer.total.token_id
-
-        const [nft] = await BSUtilsHelper.tryCatch(() =>
-          this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
-        )
-
-        const nftUrl = nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
-
         if (tokenTransfer.token.type === 'ERC-721') {
-          events.push({
+          const tokenHash = tokenTransfer.total.token_id
+
+          const [nft] = await BSUtilsHelper.tryCatch(() =>
+            this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
+          )
+
+          events.splice(index, 0, {
             tokenHash,
             from,
             fromUrl,
@@ -154,11 +145,11 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             tokenType: 'erc-721',
             amount: '1',
             collectionHash: tokenTransfer.token.address,
-            collectionHashUrl: contractHashUrl,
+            collectionHashUrl: nft?.collection?.url,
             collectionName: nft?.collection?.name,
             name: nft?.name,
             nftImageUrl: nft?.image,
-            nftUrl,
+            nftUrl: nft?.explorerUri,
           })
         }
       })
@@ -167,16 +158,15 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     }
 
     const txId = response.hash
-    const txIdUrl = txTemplateUrl?.replace('{tx}', txId)
 
     let transaction: TTransaction<N> = {
       block: response.block,
       txId,
-      txIdUrl,
+      txIdUrl: this._service.explorerService.buildContractUrl(txId),
       events,
       networkFeeAmount: ethers.utils.formatEther(response.fee.value),
       systemFeeAmount: ethers.utils.formatEther(0),
-      date: new Date(response.timestamp).toISOString(),
+      date: new Date(response.timestamp).toJSON(),
       invocationCount: 0,
       notificationCount: 0,
       type: 'default',
@@ -212,26 +202,19 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
-
     const transactions: TTransaction<N>[] = []
-
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
 
-    const promises = data.items.map(async item => {
+    const promises = data.items.map(async (item, index) => {
       const events: TTransaction<N>['events'] = []
-
       const hasNativeTokenBeingTransferred = item.value !== '0'
 
       if (hasNativeTokenBeingTransferred) {
         const to = item.to?.hash
         const from = item.from.hash
         const contractHash = nativeToken.hash
-
-        const fromUrl = addressTemplateUrl?.replace('{address}', from)
-        const toUrl = addressTemplateUrl?.replace('{address}', to)
-        const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
 
         events.push({
           amount: ethers.utils.formatUnits(item.value, nativeToken.decimals),
@@ -243,7 +226,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
           methodName: 'transfer',
           tokenType: 'native',
           contractHash: nativeToken.hash,
-          contractHashUrl,
+          contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
           token: nativeToken,
         })
       }
@@ -263,9 +246,8 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
           const to = result[0]
           const value = result[1]
 
-          const fromUrl = addressTemplateUrl?.replace('{address}', from)
-          const toUrl = addressTemplateUrl?.replace('{address}', to)
-          const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+          const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+          const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
 
           events.push({
             amount: ethers.utils.formatUnits(value, token.decimals),
@@ -277,7 +259,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             methodName: 'transfer',
             tokenType: 'erc-20',
             contractHash: token.hash,
-            contractHashUrl,
+            contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
             token,
           })
         } catch {
@@ -290,13 +272,12 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       }
 
       const txId = item.hash
-      const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
 
       let transaction: TTransaction<N> = {
         block: item.block,
         txId,
-        txIdUrl,
-        date: new Date(item.timestamp).toISOString(),
+        txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
+        date: new Date(item.timestamp).toJSON(),
         invocationCount: 0,
         notificationCount: 0,
         networkFeeAmount: ethers.utils.formatEther(item.fee.value),
@@ -317,7 +298,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         }
       }
 
-      transactions.push(transaction)
+      transactions.splice(index, 0, transaction)
     })
 
     await Promise.allSettled(promises)

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Solve tests, imports, interfaces, transactions, BIP path and types",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

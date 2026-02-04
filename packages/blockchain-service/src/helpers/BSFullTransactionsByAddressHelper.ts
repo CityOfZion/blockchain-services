@@ -1,4 +1,4 @@
-import { TGetFullTransactionsByAddressParams, IBlockchainService, TBSNetworkId } from '../interfaces'
+import type { TGetFullTransactionsByAddressParams, IBlockchainService, TBSNetworkId } from '../interfaces'
 import { addYears, isAfter, isFuture, isValid, parseISO } from 'date-fns'
 
 type TValidateFullTransactionsByAddressParams<

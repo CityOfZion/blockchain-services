@@ -1,4 +1,4 @@
-import { IBlockchainService, TSwapToken } from '@cityofzion/blockchain-service'
+import type { IBlockchainService, TSwapToken } from '@cityofzion/blockchain-service'
 
 export type TSimpleSwapOrchestratorInitParams<N extends string = string> = {
   blockchainServicesByName: Record<N, IBlockchainService<N>>

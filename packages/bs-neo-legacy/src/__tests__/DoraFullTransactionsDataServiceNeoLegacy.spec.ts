@@ -1,5 +1,4 @@
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
-import { isLeapYear } from 'date-fns'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import type { TGetFullTransactionsByAddressParams } from '@cityofzion/blockchain-service'
 import { DoraFullTransactionsDataServiceNeoLegacy } from '../services/full-transactions-data/DoraFullTransactionsDataServiceNeoLegacy'
@@ -12,6 +11,8 @@ jest.mock('../services/explorer/NeoTubeESNeoLegacy', () => {
         getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
         getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
         getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
+        buildTransactionUrl: jest.fn().mockReturnValue('transactionUrl'),
+        buildContractUrl: jest.fn().mockReturnValue('contractUrl'),
       }
     }),
   }
@@ -29,8 +30,7 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
     dateTo = new Date()
 
     dateFrom.setFullYear(dateFrom.getFullYear() - 1)
-
-    if (isLeapYear(dateFrom)) dateFrom.setDate(dateFrom.getDate() + 1)
+    dateFrom.setDate(dateFrom.getDate() + 1)
 
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 

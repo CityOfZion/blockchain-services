@@ -1,15 +1,15 @@
 import axios from 'axios'
-import {
-  TGetNftParam,
+import type {
   TGetNftsByAddressParams,
-  THasTokenParam,
   INftDataService,
   TNftResponse,
   TNftsResponse,
-  type IBlockchainService,
+  TGetNftParams,
+  THasTokenParams,
+  IBlockchainService,
 } from '../../interfaces'
 import qs from 'query-string'
-import { TGhostMarketNDSNeo3AssetApiResponse, TGhostMarketNDSNeo3GetAssetsApiResponse } from '../../types'
+import type { TGhostMarketNDSNeo3AssetApiResponse, TGhostMarketNDSNeo3GetAssetsApiResponse } from '../../types'
 import { hasExplorerService } from '../../functions'
 import { BSError } from '../../error'
 
@@ -59,20 +59,21 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
 
   #parse(data: TGhostMarketNDSNeo3AssetApiResponse): TNftResponse {
     let explorerUri: string | undefined
+    let collectionUrl: string | undefined
+    const contractHash = data.contract.hash
 
     if (hasExplorerService(this._service)) {
-      explorerUri = this._service.explorerService.buildNftUrl({
-        tokenHash: data.tokenId,
-        collectionHash: data.contract.hash,
-      })
+      explorerUri = this._service.explorerService.buildNftUrl({ tokenHash: data.tokenId, collectionHash: contractHash })
+      collectionUrl = this._service.explorerService.buildContractUrl(contractHash)
     }
 
     const nftResponse: TNftResponse = {
       hash: data.tokenId,
       collection: {
-        hash: data.contract.hash,
+        hash: contractHash,
         name: data.collection?.name,
         image: this.#treatGhostMarketImage(data.collection?.logoUrl),
+        url: collectionUrl,
       },
       symbol: data.contract.symbol,
       image: this.#treatGhostMarketImage(data.metadata.mediaUri),
@@ -110,7 +111,7 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
     return { nextPageParams: data.next, items }
   }
 
-  async getNft({ collectionHash, tokenHash }: TGetNftParam): Promise<TNftResponse> {
+  async getNft({ collectionHash, tokenHash }: TGetNftParams): Promise<TNftResponse> {
     if (!collectionHash) {
       throw new BSError('collectionHash is required to get NFT from GhostMarketNDSNeo3', 'REQUIRED_PARAMETER_MISSING')
     }
@@ -134,7 +135,7 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
     return nft
   }
 
-  abstract hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean>
+  abstract hasToken({ collectionHash, address }: THasTokenParams): Promise<boolean>
 
   abstract getChain(): string
 }

@@ -1,6 +1,6 @@
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
-import { IBSNeoLegacy } from '../types'
+import type { IBSNeoLegacy } from '../types'
 import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
 
 let service: IBSNeoLegacy<'test'>

@@ -1,5 +1,5 @@
 import { GhostMarketNDSEthereum } from '@cityofzion/bs-ethereum'
-import { IBSNeoX, TBSNeoXNetworkId } from '../../types'
+import type { IBSNeoX, TBSNeoXNetworkId } from '../../types'
 
 export class GhostMarketNDSNeoX<N extends string> extends GhostMarketNDSEthereum<N, TBSNeoXNetworkId> {
   static readonly CHAIN_BY_NETWORK_ID: Partial<Record<TBSNeoXNetworkId, string>> = {
