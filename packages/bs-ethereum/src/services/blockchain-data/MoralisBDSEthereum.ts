@@ -1,21 +1,21 @@
 import {
-  TBalanceResponse,
-  TContractMethod,
-  TBSToken,
+  BSBigNumberHelper,
   BSCommonConstants,
-  TBSNetwork,
-  TBSNetworkId,
+  BSUtilsHelper,
+  type TBalanceResponse,
+  type TContractMethod,
+  type TBSToken,
+  type TBSNetwork,
+  type TBSNetworkId,
   type TContractResponse,
   type TTransaction,
   type TGetTransactionsByAddressResponse,
   type TGetTransactionsByAddressParams,
-  BSUtilsHelper,
-  BSBigNumberHelper,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
-import {
+import type {
   IBSEthereum,
   TBSEthereumNetworkId,
   TMoralisBDSEthereumERC20BalanceApiResponse,
@@ -148,20 +148,13 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     }
 
     const { data } = await this.#api.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
-
     const events: TTransaction<N>['events'] = []
-
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
-    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
 
     if (data.value && Number(data.value) > 0) {
       const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
-
-      const fromUrl = addressTemplateUrl?.replace('{address}', data.from_address)
-      const toUrl = addressTemplateUrl?.replace('{address}', data.to_address)
-      const contractHashUrl = contractTemplateUrl?.replace('{hash}', nativeToken.hash)
+      const fromUrl = data.from_address ? addressTemplateUrl?.replace('{address}', data.from_address) : undefined
+      const toUrl = data.to_address ? addressTemplateUrl?.replace('{address}', data.to_address) : undefined
 
       events.push({
         eventType: 'token',
@@ -174,7 +167,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         contractHash: nativeToken.hash,
         tokenType: 'native',
         methodName: 'transfer',
-        contractHashUrl,
+        contractHashUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
         fromUrl,
         toUrl,
       })
@@ -192,9 +185,8 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         if (!from || !to) return
 
-        const fromUrl = addressTemplateUrl?.replace('{address}', data.from_address)
-        const toUrl = addressTemplateUrl?.replace('{address}', data.to_address)
-        const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+        const fromUrl = data.from_address ? addressTemplateUrl?.replace('{address}', data.from_address) : undefined
+        const toUrl = data.to_address ? addressTemplateUrl?.replace('{address}', data.to_address) : undefined
 
         if (amount) {
           const token = await this.getTokenInfo(contractHash)
@@ -211,7 +203,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
             eventType: 'token',
             methodName: 'transfer',
             tokenType: 'erc-20',
-            contractHashUrl,
+            contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
           })
         }
 
@@ -221,10 +213,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         const [nft] = await BSUtilsHelper.tryCatch(() =>
           this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
         )
-
-        const nftUrl = contractHash
-          ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
-          : undefined
 
         events.push({
           collectionHash: contractHash,
@@ -238,28 +226,26 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           tokenType: 'erc-721',
           amount: '1',
           nftImageUrl: nft?.image,
-          nftUrl,
+          nftUrl: nft?.explorerUri,
           name: nft?.name,
           collectionName: nft?.collection?.name,
-          collectionHashUrl: contractHashUrl,
+          collectionHashUrl: nft?.collection?.url,
         })
       })
 
       await Promise.allSettled(promises)
     }
 
-    const txIdUrl = txTemplateUrl?.replace('{txId}', hash)
-
     return {
       txId: hash,
       block: Number(data.block_number),
-      date: new Date(data.block_timestamp).toISOString(),
+      date: new Date(data.block_timestamp).toJSON(),
       invocationCount: 0,
       notificationCount: 0,
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.transaction_fee), {
         decimals: this._service.feeToken.decimals,
       }),
-      txIdUrl,
+      txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       events,
       type: 'default',
     }
@@ -280,22 +266,18 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     })
 
     const transactions: TTransaction<N>[] = []
-
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
-
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
     const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
-    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
 
-    const promises = data.result.map(async item => {
+    const promises = data.result.map(async (item, index) => {
       const events: TTransaction<N>['events'] = []
 
-      const nativeContractHashUrl = contractTemplateUrl?.replace('{hash}', nativeAsset.hash)
-
       item.native_transfers.forEach(transfer => {
-        const fromUrl = addressTemplateUrl?.replace('{address}', transfer.from_address)
-        const toUrl = addressTemplateUrl?.replace('{address}', transfer.to_address)
+        const fromUrl = transfer.from_address
+          ? addressTemplateUrl?.replace('{address}', transfer.from_address)
+          : undefined
+
+        const toUrl = transfer.to_address ? addressTemplateUrl?.replace('{address}', transfer.to_address) : undefined
 
         events.push({
           amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, nativeAsset.decimals), {
@@ -310,16 +292,18 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           contractHash: nativeAsset.hash,
           methodName: 'transfer',
           tokenType: 'native',
-          contractHashUrl: nativeContractHashUrl,
+          contractHashUrl: this._service.explorerService.buildContractUrl(nativeAsset.hash),
         })
       })
 
       item.erc20_transfers.forEach(transfer => {
         if (transfer.possible_spam) return
 
-        const fromUrl = addressTemplateUrl?.replace('{address}', transfer.from_address)
-        const toUrl = addressTemplateUrl?.replace('{address}', transfer.to_address)
-        const contractHashUrl = contractTemplateUrl?.replace('{hash}', transfer.address)
+        const fromUrl = transfer.from_address
+          ? addressTemplateUrl?.replace('{address}', transfer.from_address)
+          : undefined
+
+        const toUrl = transfer.to_address ? addressTemplateUrl?.replace('{address}', transfer.to_address) : undefined
 
         events.push({
           amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, transfer.token_decimals), {
@@ -339,26 +323,24 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           contractHash: transfer.address,
           methodName: 'transfer',
           tokenType: 'erc-20',
-          contractHashUrl,
+          contractHashUrl: this._service.explorerService.buildContractUrl(transfer.address),
         })
       })
 
       const nftPromises = item.nft_transfers.map(async transfer => {
-        const fromUrl = addressTemplateUrl?.replace('{address}', transfer.from_address)
-        const toUrl = addressTemplateUrl?.replace('{address}', transfer.to_address)
-        const collectionHashUrl = contractTemplateUrl?.replace('{contractHash}', transfer.token_address)
+        const fromUrl = transfer.from_address
+          ? addressTemplateUrl?.replace('{address}', transfer.from_address)
+          : undefined
+
+        const toUrl = transfer.to_address ? addressTemplateUrl?.replace('{address}', transfer.to_address) : undefined
 
         const [nft] = await BSUtilsHelper.tryCatch(() =>
           this._service.nftDataService.getNft({ collectionHash: transfer.token_address, tokenHash: transfer.token_id })
         )
 
-        const nftUrl = nftTemplateUrl
-          ?.replace('{collectionHash}', transfer.token_address)
-          .replace('{tokenHash}', transfer.token_id)
-
         events.push({
           collectionHash: transfer.token_address,
-          collectionHashUrl,
+          collectionHashUrl: nft?.collection?.url,
           tokenHash: transfer.token_id,
           from: transfer.from_address,
           fromUrl,
@@ -369,7 +351,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           tokenType: 'erc-721',
           amount: '1',
           nftImageUrl: nft?.image,
-          nftUrl,
+          nftUrl: nft?.explorerUri,
           name: nft?.name,
           collectionName: nft?.collection?.name,
         })
@@ -377,18 +359,16 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
       await Promise.allSettled(nftPromises)
 
-      const txIdUrl = txTemplateUrl?.replace('{txId}', item.hash)
-
-      transactions.push({
+      transactions.splice(index, 0, {
         block: Number(item.block_number),
         txId: item.hash,
-        txIdUrl,
+        txIdUrl: this._service.explorerService.buildTransactionUrl(item.hash),
         notificationCount: 0,
         invocationCount: 0,
         networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(item.transaction_fee), {
           decimals: this._service.feeToken.decimals,
         }),
-        date: new Date(item.block_timestamp).toISOString(),
+        date: new Date(item.block_timestamp).toJSON(),
         events,
         type: 'default',
       })

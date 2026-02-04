@@ -1,6 +1,6 @@
-import { TBSNetwork } from '@cityofzion/blockchain-service'
+import type { TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
-import { TBSSolanaNetworkId } from '../types'
+import type { TBSSolanaNetworkId } from '../types'
 
 export class BSSolanaHelper {
   static isMainnetNetwork(network: TBSNetwork<TBSSolanaNetworkId>) {

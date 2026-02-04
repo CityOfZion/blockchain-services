@@ -1,6 +1,6 @@
 import { MoralisBDSEthereum } from '../services/blockchain-data/MoralisBDSEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
-import { TBSNetworkId } from '@cityofzion/blockchain-service'
+import type { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereum } from '../BSEthereum'
 
 let service: BSEthereum<'test', TBSNetworkId>

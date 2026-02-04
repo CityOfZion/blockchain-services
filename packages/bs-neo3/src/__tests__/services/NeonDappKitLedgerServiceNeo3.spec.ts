@@ -3,6 +3,7 @@ import { NeonDappKitLedgerServiceNeo3 } from '../../services/ledger/NeonDappKitL
 import { BSNeo3 } from '../../BSNeo3'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
+import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
 let ledgerService: NeonDappKitLedgerServiceNeo3<'test'>
 let transport: Transport
@@ -27,7 +28,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: bsNeo3.bip44DerivationPath.replace('?', index.toString()),
+          bipPath: BSKeychainHelper.getBipPath(bsNeo3.bipDerivationPath, index),
         })
       )
     })
@@ -48,7 +49,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: bsNeo3.bip44DerivationPath.replace('?', index.toString()),
+          bipPath: BSKeychainHelper.getBipPath(bsNeo3.bipDerivationPath, index),
         })
       )
     })
@@ -61,7 +62,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         address: expect.any(String),
         key: expect.any(String),
         type: 'publicKey',
-        bip44Path: bsNeo3.bip44DerivationPath.replace('?', '0'),
+        bipPath: BSKeychainHelper.getBipPath(bsNeo3.bipDerivationPath, 0),
       })
     )
   })

@@ -1,5 +1,5 @@
 import { SimpleSwapApi } from '../features/swap'
-import { TSimpleSwapApiCurrency } from '../features/swap'
+import type { TSimpleSwapApiCurrency } from '../features/swap'
 import { BSCommonConstants } from '@cityofzion/blockchain-service'
 
 describe('SimpleSwapApi', () => {

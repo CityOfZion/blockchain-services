@@ -20,7 +20,7 @@ describe('BSSolana', () => {
   beforeEach(async () => {
     bsSolana = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
 
-    const bip44Path = bsSolana.bip44DerivationPath.replace('?', '0')
+    const bip44Path = BSKeychainHelper.getBipPath(bsSolana.bipDerivationPath, 0)
     const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
     const keypair = solanaSDK.Keypair.fromSeed(key)
 
@@ -55,29 +55,30 @@ describe('BSSolana', () => {
     expect(bsSolana.validateKey(anotherInvalidKey)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', () => {
+  it('Should be able to generate an account from mnemonic', () => {
     const generatedAccount = bsSolana.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(generatedAccount.address).toEqual(accountKeypair.base58Address)
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
   })
 
-  it('Should be able to generate a account from key', () => {
+  it('Should be able to generate an account from key', () => {
     const generatedAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
 
     expect(generatedAccount.address).toEqual(accountKeypair.base58Address)
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
   })
 
-  it('Should be able to generate a account from buffer key', () => {
+  it('Should be able to generate an account from buffer key', () => {
     const generatedAccount = bsSolana.generateAccountFromKey(accountKeypair.bufferKey)
 
     expect(generatedAccount.address).toEqual(accountKeypair.base58Address)
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
   })
 
-  it('Should be able to ping a node', async () => {
-    const response = await bsSolana.pingNode(BSSolanaConstants.MAINNET_NETWORK.url)
+  it('Should be able to ping network', async () => {
+    const response = await bsSolana.pingNetwork(BSSolanaConstants.MAINNET_NETWORK.url)
+
     expect(response).toEqual({
       latency: expect.any(Number),
       url: BSSolanaConstants.MAINNET_NETWORK.url,

@@ -1,5 +1,5 @@
-import { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
-import { TBSSolanaNetworkId } from '../types'
+import { BSCommonConstants, TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
+import type { TBSSolanaNetworkId } from '../types'
 
 export class BSSolanaConstants {
   static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/501'/?'/0'"
@@ -14,8 +14,8 @@ export class BSSolanaConstants {
   }
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string[]> = {
-    'mainnet-beta': ['https://api.coz.io/api/v2/solana/meta/mainnet'],
-    devnet: ['https://api.coz.io/api/v2/solana/meta/devnet'],
+    'mainnet-beta': [`${BSCommonConstants.COZ_API_URL}/api/v2/solana/meta/mainnet`],
+    devnet: [`${BSCommonConstants.COZ_API_URL}/api/v2/solana/meta/devnet`],
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSSolanaNetworkId> = {

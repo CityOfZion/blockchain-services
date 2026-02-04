@@ -1,9 +1,12 @@
-import BigNumber from 'bignumber.js'
 import crypto from 'crypto'
 import * as bip39 from 'bip39'
 import elliptic from 'elliptic'
+import { BSError } from '../error'
+import { BSBigNumber } from './BSBigNumberHelper'
 
 export class BSKeychainHelper {
+  static readonly #alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+
   static generateNeoPrivateKeyFromMnemonic(mnemonic: string, path: string) {
     const seed = bip39.mnemonicToSeedSync(mnemonic)
 
@@ -26,16 +29,17 @@ export class BSKeychainHelper {
         childIdx = parseInt(stringIdx.slice(0, stringIdx.length - 1), 10) + 0x80000000
       } else {
         const pk = curve.keyFromPrivate(key, 'hex')
+
         data = Buffer.from(pk.getPublic().encodeCompressed())
         childIdx = parseInt(stringIdx, 10)
       }
 
       data = Buffer.concat([data, Buffer.from(childIdx.toString(16).padStart(8, '0'), 'hex')])
-      const intermediary = crypto.createHmac('sha512', chainCode).update(data).digest()
 
-      const k1 = new BigNumber(intermediary.subarray(0, 32).toString('hex'), 16)
-      const k2 = new BigNumber(key.toString('hex'), 16)
-      const c = new BigNumber(curve.n!.toString())
+      const intermediary = crypto.createHmac('sha512', chainCode).update(data).digest()
+      const k1 = new BSBigNumber(intermediary.subarray(0, 32).toString('hex'), 16)
+      const k2 = new BSBigNumber(key.toString('hex'), 16)
+      const c = new BSBigNumber(curve.n!.toString())
       const protoKey = k1.plus(k2).mod(c).toString(16)
 
       key = Buffer.from(protoKey.padStart(64, '0'), 'hex')
@@ -64,6 +68,7 @@ export class BSKeychainHelper {
         // Add 0x80000000 for hardened derivation
         return isHardened ? index + 0x80000000 : index
       })
+
     const { key } = segments.reduce(
       (parentKeys, index) => {
         const indexBuffer = Buffer.alloc(4)
@@ -89,23 +94,56 @@ export class BSKeychainHelper {
 
   static isValidMnemonic(word: string | string[]) {
     const wordArray = Array.isArray(word) ? word : word.trim().split(' ')
+
     return wordArray.length === 12 || wordArray.length === 24
   }
 
   static isMnemonic(word: string | string[]) {
     const wordArray = Array.isArray(word) ? word : word.trim().split(' ')
+
     return wordArray.length > 1
   }
 
-  static extractIndexFromPath(bip44Path: string): number {
-    return parseInt(bip44Path.split('/').pop()!)
+  static extractIndexFromPath(bipPath: string): number {
+    return parseInt(bipPath.split('/').pop()!)
   }
 
-  static getBip44Path(path: string, order = 0) {
+  static getBipPath(path: string, order = 0) {
     return path.replace('?', order.toString())
   }
 
-  static fixBip44Path(bip44Path: string) {
-    return bip44Path.replace('m/', '')
+  static removeMasterKeyFromBipPath(path: string) {
+    return path.replace('m/', '')
+  }
+
+  static decodeBase58Check(base58: string): Buffer {
+    let num = BigInt(0)
+
+    for (let index = 0; index < base58.length; index++) {
+      const char = base58[index]
+      const foundIndex = this.#alphabet.indexOf(char)
+
+      if (foundIndex === -1) {
+        throw new BSError('Invalid base58 character', 'INVALID_BASE58_CHAR')
+      }
+
+      num = num * BigInt(58) + BigInt(foundIndex)
+    }
+
+    const hex = num.toString(16)
+    const paddedHex = hex.length % 2 === 0 ? hex : `0${hex}`
+    const decoded = Buffer.from(paddedHex, 'hex')
+    const leadingOnes = base58.match(/^1*/)?.[0]?.length || 0
+    const leadingZeros = Buffer.alloc(leadingOnes)
+    const fullDecoded = Buffer.concat([leadingZeros, decoded])
+    const payload = fullDecoded.subarray(0, -4)
+    const checksum = fullDecoded.subarray(-4)
+    const hash = crypto.createHash('sha256').update(crypto.createHash('sha256').update(payload).digest()).digest()
+
+    if (!hash.subarray(0, 4).equals(checksum)) {
+      throw new BSError('Invalid checksum', 'INVALID_CHECKSUM')
+    }
+
+    return payload
   }
 }

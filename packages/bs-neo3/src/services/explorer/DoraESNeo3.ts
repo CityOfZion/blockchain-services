@@ -1,5 +1,5 @@
-import { TBuildNftUrlParams, BSCommonConstants, IExplorerService } from '@cityofzion/blockchain-service'
-import { IBSNeo3 } from '../../types'
+import { BSCommonConstants, type TBuildNftUrlParams, type IExplorerService } from '@cityofzion/blockchain-service'
+import type { IBSNeo3 } from '../../types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 
 export class DoraESNeo3<N extends string> implements IExplorerService {
@@ -15,7 +15,7 @@ export class DoraESNeo3<N extends string> implements IExplorerService {
   }
 
   buildTransactionUrl(hash: string): string | undefined {
-    if (!this.#baseUrl) return undefined
+    if (!this.#baseUrl || !hash) return undefined
 
     return `${this.#baseUrl}/transaction/neo3/${
       this.#service.network.id
@@ -23,15 +23,15 @@ export class DoraESNeo3<N extends string> implements IExplorerService {
   }
 
   buildContractUrl(contractHash: string): string | undefined {
-    if (!this.#baseUrl) return undefined
+    if (!this.#baseUrl || !contractHash) return undefined
 
     return `${this.#baseUrl}/contract/neo3/${
       this.#service.network.id
     }/${this.#service.tokenService.normalizeHash(contractHash)}`
   }
 
-  buildNftUrl({ collectionHash, tokenHash }: TBuildNftUrlParams): string | undefined {
-    if (!this.#baseUrl) return undefined
+  buildNftUrl({ tokenHash, collectionHash }: TBuildNftUrlParams): string | undefined {
+    if (!this.#baseUrl || !tokenHash || !collectionHash) return undefined
     return `${this.#baseUrl}/nft/neo3/${this.#service.network.id}/${collectionHash}/${tokenHash}`
   }
 

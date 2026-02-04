@@ -1,7 +1,12 @@
-import { TGetTokenPricesParams, IBlockchainService, IExchangeDataService, TTokenPricesResponse } from '../../interfaces'
+import type {
+  TGetTokenPricesParams,
+  IBlockchainService,
+  IExchangeDataService,
+  TTokenPricesResponse,
+} from '../../interfaces'
 import axios, { AxiosInstance } from 'axios'
 import { CryptoCompareEDS } from './CryptoCompareEDS'
-import {
+import type {
   TFlamingoForthewinEDSFlamingoPricesApiResponse,
   TFlamingoForthewinEDSForthewinPricesApiResponse,
 } from '../../types'

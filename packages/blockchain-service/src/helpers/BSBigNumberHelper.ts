@@ -1,37 +1,42 @@
 import BigNumber from 'bignumber.js'
+import { TBSBigNumberHelperFormatOptions } from '../types'
 
-type FormatNumberOptions = {
-  decimals?: number | string
-}
+export type TBSBigNumber = BigNumber
+
+export const BSBigNumber = BigNumber
 
 export class BSBigNumberHelper {
   static #ensureNumber(value?: string | number): number {
     if (!value) return 0
+
     return +value || 0
   }
 
-  static toDecimals(value: BigNumber, decimals?: number | string): string {
+  static toDecimals(value: BigNumber, decimals: number | string): string {
     const decimalsNumber = this.#ensureNumber(decimals)
-    return new BigNumber(value).shiftedBy(decimalsNumber).toString()
+
+    return new BSBigNumber(value).shiftedBy(decimalsNumber).toString()
   }
 
-  static toNumber(value: BigNumber, decimals?: number | string): string {
+  static toNumber(value: TBSBigNumber, decimals?: number | string): string {
     const decimalsNumber = this.#ensureNumber(decimals)
-    return typeof decimals !== 'undefined' ? value.toFixed(decimalsNumber) : value.toFixed()
+
+    return typeof decimals === 'number' || typeof decimals === 'string'
+      ? value.toFixed(decimalsNumber)
+      : value.toFixed()
   }
 
-  static fromNumber(value: string | number | undefined): BigNumber {
-    return new BigNumber(value || 0)
+  static fromNumber(value?: string | number): TBSBigNumber {
+    return new BSBigNumber(value || 0)
   }
 
-  static fromDecimals(value: string | number | undefined, decimals?: number | string): BigNumber {
+  static fromDecimals(value?: string | number | TBSBigNumber, decimals?: number | string): TBSBigNumber {
     const decimalsNumber = this.#ensureNumber(decimals)
-    return new BigNumber(value || 0).shiftedBy(-decimalsNumber)
+
+    return new BSBigNumber(value || 0).shiftedBy(-decimalsNumber)
   }
 
-  static format(value?: string | number | BigNumber, options?: FormatNumberOptions) {
-    const fixedDecimals = this.#ensureNumber(options?.decimals)
-
+  static format(value?: string | number | TBSBigNumber, options?: TBSBigNumberHelperFormatOptions) {
     if (!value) return '0'
 
     if (typeof value === 'string') {
@@ -41,20 +46,19 @@ export class BSBigNumberHelper {
     }
 
     try {
-      const bigValue = new BigNumber(value)
+      const bigValue = new BSBigNumber(value)
       if (bigValue.isNaN()) {
         return '0'
       }
 
-      const formattedValue = bigValue.decimalPlaces(fixedDecimals, BigNumber.ROUND_DOWN)
+      const decimals = this.#ensureNumber(options?.decimals)
+      const formattedValue = bigValue.decimalPlaces(decimals, BSBigNumber.ROUND_DOWN)
+
       return formattedValue.toFixed()
     } catch (error) {
       console.error(error)
+
       return '0'
     }
   }
 }
-
-export type TBSBigNumber = BigNumber
-
-export const BSBigNumber = BigNumber

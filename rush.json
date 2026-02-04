@@ -60,6 +60,12 @@
       "projectFolder": "packages/bs-stellar",
       "shouldPublish": true,
       "versionPolicyName": "lockstep-all"
+    },
+    {
+      "packageName": "@cityofzion/bs-bitcoin",
+      "projectFolder": "packages/bs-bitcoin",
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     }
   ]
 }

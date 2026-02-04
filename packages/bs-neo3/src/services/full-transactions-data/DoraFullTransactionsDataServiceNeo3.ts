@@ -55,13 +55,10 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
     const transactions: TTransaction<N>[] = []
 
     const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-    const nftTemplateUrl = this.#service.explorerService.getNftTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
-      const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
+      const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
       let newItem: TTransaction<N> = {
         txId,
@@ -86,7 +83,6 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
         const to = event.to ?? undefined
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isNft = DoraFullTransactionsDataServiceNeo3.SUPPORTED_NEP11_STANDARDS.includes(standard) && !!tokenHash
 
@@ -94,10 +90,6 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
           const [nft] = await BSUtilsHelper.tryCatch(() =>
             this.#service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
-
-          const nftUrl = contractHash
-            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
-            : undefined
 
           newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
@@ -108,11 +100,11 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
             to,
             toUrl,
             collectionHash: contractHash,
-            collectionHashUrl: contractHashUrl,
+            collectionHashUrl: nft?.collection?.url,
             tokenHash,
             tokenType: 'nep-11',
             nftImageUrl: nft?.image,
-            nftUrl,
+            nftUrl: nft?.explorerUri,
             name: nft?.name,
             collectionName: nft?.collection?.name,
           })
@@ -135,7 +127,7 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
           to,
           toUrl,
           contractHash,
-          contractHashUrl,
+          contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
           token: token ?? undefined,
           tokenType: 'nep-17',
         })

@@ -22,7 +22,7 @@
     "@cityofzion/bs-ethereum": "workspace:*",
     "@cityofzion/bs-neo3": "workspace:*",
     "@cityofzion/dora-ts": "0.6.2",
-    "axios": "~1.12.2",
+    "axios": "~1.13.5",
     "ethers": "~5.7.2",
     "neox-tpke": "~1.0.5",
     "viem": "~2.38.5"

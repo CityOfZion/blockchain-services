@@ -1,6 +1,6 @@
-import { TBSNetwork } from '@cityofzion/blockchain-service'
+import type { TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
-import { TBSNeoLegacyNetworkId } from '../types'
+import type { TBSNeoLegacyNetworkId } from '../types'
 
 export class BSNeoLegacyHelper {
   static getLegacyNetwork(network: TBSNetwork<TBSNeoLegacyNetworkId>) {
