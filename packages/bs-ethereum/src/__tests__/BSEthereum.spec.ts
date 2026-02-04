@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 import { BSEthereum } from '../BSEthereum'
-import { TBSAccount, TBSToken } from '@cityofzion/blockchain-service'
+import type { TBSAccount, TBSToken } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
@@ -70,14 +70,14 @@ describe('BSEthereum', () => {
     expect(bsEthereum.validateNameServiceDomainFormat(invalidDomain)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', async () => {
+  it('Should be able to generate an account from mnemonic', async () => {
     const account = await bsEthereum.generateAccountFromMnemonic(wallet.mnemonic.phrase, 0)
 
     expect(bsEthereum.validateAddress(account.address)).toBeTruthy()
     expect(bsEthereum.validateKey(account.key)).toBeTruthy()
   })
 
-  it('Should be able to generate a account from wif', async () => {
+  it('Should be able to generate an account from wif', async () => {
     const accountFromWif = await bsEthereum.generateAccountFromKey(wallet.privateKey)
     expect(accountFromWif).toEqual(account)
   })
@@ -97,9 +97,10 @@ describe('BSEthereum', () => {
     )
   })
 
-  it('Should be able to ping a node', async () => {
+  it('Should be able to ping network', async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(net => net.type === 'mainnet')!
-    const response = await bsEthereum.pingNode(network.url)
+    const response = await bsEthereum.pingNetwork(network.url)
+
     expect(response).toEqual({
       latency: expect.any(Number),
       url: network.url,

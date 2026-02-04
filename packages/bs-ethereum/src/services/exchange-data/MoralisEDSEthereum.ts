@@ -1,16 +1,16 @@
 import {
   CryptoCompareEDS,
-  TGetTokenPriceHistoryParams,
-  TGetTokenPricesParams,
-  TBSNetworkId,
-  TBSToken,
-  TTokenPricesHistoryResponse,
-  TTokenPricesResponse,
+  type TGetTokenPriceHistoryParams,
+  type TGetTokenPricesParams,
+  type TBSNetworkId,
+  type TBSToken,
+  type TTokenPricesHistoryResponse,
+  type TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
 import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from '../blockchain-data/MoralisBDSEthereum'
-import { IBSEthereum, TMoralisEDSEthereumERC20PriceApiResponse } from '../../types'
+import type { IBSEthereum, TMoralisEDSEthereumERC20PriceApiResponse } from '../../types'
 import { AxiosInstance } from 'axios'
 
 export class MoralisEDSEthereum<N extends string, A extends TBSNetworkId> extends CryptoCompareEDS {

@@ -1,11 +1,11 @@
 import {
   CryptoCompareEDS,
-  TGetTokenPriceHistoryParams,
-  TGetTokenPricesParams,
-  TTokenPricesHistoryResponse,
-  TTokenPricesResponse,
+  type TGetTokenPriceHistoryParams,
+  type TGetTokenPricesParams,
+  type TTokenPricesHistoryResponse,
+  type TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { IBSNeoLegacy } from '../../types'
+import type { IBSNeoLegacy } from '../../types'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
 export class CryptoCompareEDSNeoLegacy<N extends string> extends CryptoCompareEDS {

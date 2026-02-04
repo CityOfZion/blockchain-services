@@ -20,12 +20,12 @@ describe('BSStellar', () => {
   beforeAll(async () => {
     bsStellar = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK)
 
-    const bip44Path = bsStellar.bip44DerivationPath.replace('?', '0')
-    const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
+    const bipPath = BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, 0)
+    const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath)
     keypair = stellarSDK.Keypair.fromRawEd25519Seed(key)
 
-    const bip44Path2 = bsStellar.bip44DerivationPath.replace('?', '1')
-    const key2 = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path2)
+    const bipPath2 = BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, 1)
+    const key2 = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath2)
     keypair2 = stellarSDK.Keypair.fromRawEd25519Seed(key2)
   })
 
@@ -49,14 +49,14 @@ describe('BSStellar', () => {
     expect(bsStellar.validateKey(anotherInvalidKey)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', async () => {
+  it('Should be able to generate an account from mnemonic', async () => {
     const generatedAccount = await bsStellar.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(generatedAccount.address).toEqual(keypair.publicKey())
     expect(generatedAccount.key).toEqual(keypair.secret())
   })
 
-  it('Should be able to generate a account from key', async () => {
+  it('Should be able to generate an account from key', async () => {
     const secret = keypair.secret()
     const generatedAccount = await bsStellar.generateAccountFromKey(secret)
 
@@ -64,8 +64,9 @@ describe('BSStellar', () => {
     expect(generatedAccount.key).toEqual(keypair.secret())
   })
 
-  it('Should be able to ping a node', async () => {
-    const response = await bsStellar.pingNode(BSStellarConstants.MAINNET_NETWORK.url)
+  it('Should be able to ping network', async () => {
+    const response = await bsStellar.pingNetwork(BSStellarConstants.MAINNET_NETWORK.url)
+
     expect(response).toEqual({
       latency: expect.any(Number),
       url: BSStellarConstants.MAINNET_NETWORK.url,

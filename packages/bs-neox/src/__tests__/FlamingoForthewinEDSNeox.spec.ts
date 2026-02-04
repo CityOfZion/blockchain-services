@@ -1,4 +1,4 @@
-import { TGetTokenPricesParams } from '@cityofzion/blockchain-service'
+import type { TGetTokenPricesParams } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { FlamingoForthewinEDSNeoX } from '../services/exchange-data/FlamingoForthewinEDSNeoX'
 import { BSNeoX } from '../BSNeoX'

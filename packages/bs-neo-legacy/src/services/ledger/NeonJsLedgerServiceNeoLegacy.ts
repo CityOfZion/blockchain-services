@@ -1,10 +1,11 @@
 import {
-  TBSAccount,
+  BSKeychainHelper,
   generateAccountForBlockchainService,
-  TGetLedgerTransport,
-  ILedgerService,
-  TLedgerServiceEmitter,
-  TUntilIndexRecord,
+  type TBSAccount,
+  type TGetLedgerTransport,
+  type ILedgerService,
+  type TLedgerServiceEmitter,
+  type TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacy } from '../../BSNeoLegacy'
 import EventEmitter from 'events'
@@ -27,8 +28,8 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
   }
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
-    const bip44Path = this.#service.bip44DerivationPath.replace('?', index.toString())
-    const bip44PathHex = this.#bip44PathToHex(bip44Path)
+    const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
+    const bip44PathHex = this.#bip44PathToHex(bipPath)
 
     const result = await this.#sendChunk(
       transport,
@@ -47,7 +48,7 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
       address,
       key: publicKey,
       type: 'publicKey',
-      bip44Path,
+      bipPath,
       blockchain: this.#service.name,
       isHardware: true,
     }
@@ -77,7 +78,7 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
       try {
         this.emitter.emit('getSignatureStart')
 
-        if (!account.bip44Path) {
+        if (!account.bipPath) {
           throw new Error('Account must have a bip 44 path to sign with Ledger')
         }
 
@@ -91,7 +92,7 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
           throw new Error('Public key does not match the account key')
         }
 
-        const bip44PathHex = this.#bip44PathToHex(account.bip44Path)
+        const bip44PathHex = this.#bip44PathToHex(account.bipPath)
 
         const payload = transaction + bip44PathHex
 

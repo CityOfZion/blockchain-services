@@ -40,7 +40,7 @@ describe('BSNeoLegacy', () => {
     expect(service.validateKey(invalidWif)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', async () => {
+  it('Should be able to generate an account from mnemonic', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = await service.generateAccountFromMnemonic(mnemonic, 0)
 
@@ -48,7 +48,7 @@ describe('BSNeoLegacy', () => {
     expect(service.validateKey(account.key)).toBeTruthy()
   })
 
-  it('Should be able to generate a account from wif', async () => {
+  it('Should be able to generate an account from wif', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = await service.generateAccountFromMnemonic(mnemonic, 0)
 
@@ -73,8 +73,9 @@ describe('BSNeoLegacy', () => {
     expect(encryptedKey).toEqual(expect.any(String))
   })
 
-  it.skip('Should be able to ping a node', async () => {
-    const response = await service.pingNode(BSNeoLegacyConstants.MAINNET_NETWORK.url)
+  it.skip('Should be able to ping network', async () => {
+    const response = await service.pingNetwork(BSNeoLegacyConstants.MAINNET_NETWORK.url)
+
     expect(response).toEqual({
       latency: expect.any(Number),
       url: BSNeoLegacyConstants.MAINNET_NETWORK.url,

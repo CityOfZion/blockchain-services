@@ -1,4 +1,4 @@
-import {
+import type {
   IBlockchainService,
   IBSWithEncryption,
   IBSWithExplorer,
@@ -9,7 +9,7 @@ import {
   IBSWithWalletConnect,
   TBSAccount,
   TBSNetworkId,
-  type IBSWithFullTransactions,
+  IBSWithFullTransactions,
 } from '@cityofzion/blockchain-service'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { ethers } from 'ethers'
@@ -35,8 +35,8 @@ export type TSupportedEVM = 'ethereum' | 'polygon' | 'base' | 'arbitrum'
 
 export interface IBSEthereum<N extends string = string, A extends string = TBSEthereumNetworkId>
   extends IBlockchainService<N, A>,
-    IBSWithNft,
     IBSWithNameService,
+    IBSWithNft,
     IBSWithFee<N>,
     IBSWithLedger<N>,
     IBSWithExplorer,

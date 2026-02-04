@@ -4,6 +4,7 @@ import { EthersLedgerServiceEthereum } from '../services/ledger/EthersLedgerServ
 import Transport from '@ledgerhq/hw-transport'
 import { BSEthereum } from '../BSEthereum'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
+import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
 let ledgerService: EthersLedgerServiceEthereum<'test'>
 let transport: Transport
@@ -20,14 +21,14 @@ describe.skip('EthersLedgerServiceEthereum', () => {
 
   it('Should be able to get address', async () => {
     const account = await ledgerService.getAccount(transport, 0)
-    const signer = ledgerService.getSigner(transport, account.bip44Path!)
+    const signer = ledgerService.getSigner(transport, account.bipPath!)
     const address = await signer.getAddress()
     expect(address).toBeDefined()
   })
 
   it('Should be able to sign a message', async () => {
     const account = await ledgerService.getAccount(transport, 0)
-    const signer = ledgerService.getSigner(transport, account.bip44Path!)
+    const signer = ledgerService.getSigner(transport, account.bipPath!)
 
     const message = 'Hello, World!'
     const signedMessage = await signer.signMessage(message)
@@ -36,7 +37,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
 
   it('Should be able to sign a transaction', async () => {
     const account = await ledgerService.getAccount(transport, 0)
-    const signer = ledgerService.getSigner(transport, account.bip44Path!)
+    const signer = ledgerService.getSigner(transport, account.bipPath!)
 
     const transaction = {
       from: '0xD833aBAa9fF467A1Ea1b999316F0b33117df08Fc',
@@ -55,7 +56,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
 
   it('Should be able to sign a typed data', async () => {
     const account = await ledgerService.getAccount(transport, 0)
-    const signer = ledgerService.getSigner(transport, account.bip44Path!)
+    const signer = ledgerService.getSigner(transport, account.bipPath!)
 
     const typedData = {
       types: {
@@ -129,7 +130,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: bsEthereum.bip44DerivationPath.replace('?', index.toString()),
+          bipPath: BSKeychainHelper.getBipPath(bsEthereum.bipDerivationPath, index),
         })
       )
     })
@@ -151,7 +152,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: bsEthereum.bip44DerivationPath.replace('?', index.toString()),
+          bipPath: BSKeychainHelper.getBipPath(bsEthereum.bipDerivationPath, index),
         })
       )
     })
@@ -164,7 +165,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
         address: expect.any(String),
         key: expect.any(String),
         type: 'publicKey',
-        bip44Path: bsEthereum.bip44DerivationPath.replace('?', '0'),
+        bipPath: BSKeychainHelper.getBipPath(bsEthereum.bipDerivationPath, 0),
       })
     )
   })

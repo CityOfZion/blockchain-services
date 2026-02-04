@@ -1,18 +1,18 @@
 import {
-  TBalanceResponse,
-  IBlockchainDataService,
-  TBSNetworkId,
-  TBSToken,
+  BSBigNumberHelper,
+  type TBalanceResponse,
+  type IBlockchainDataService,
+  type TBSNetworkId,
+  type TBSToken,
   type TContractResponse,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TTransaction,
-  BSBigNumberHelper,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
-import { IBSEthereum } from '../../types'
+import type { IBSEthereum } from '../../types'
 
 export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends IBSEthereum<N, A> = IBSEthereum<N, A>>
   implements IBlockchainDataService<N>
@@ -46,22 +46,16 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
 
     const token = BSEthereumHelper.getNativeAsset(this._service.network)
 
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
-    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
-
-    const fromUrl = addressTemplateUrl?.replace('{address}', transaction.from)
-    const toUrl = addressTemplateUrl?.replace('{address}', transaction.to)
-    const contractHashUrl = contractTemplateUrl?.replace('{hash}', token.hash)
-    const txIdUrl = txTemplateUrl?.replace('{txId}', hash)
+    const fromUrl = this._service.explorerService.buildAddressUrl(transaction.from)
+    const toUrl = this._service.explorerService.buildAddressUrl(transaction.to)
 
     const timestamp = transaction.timestamp ?? 0
 
     return {
       txId: hash,
-      txIdUrl,
+      txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       block: receipt.blockNumber,
-      date: new Date(timestamp).toISOString(),
+      date: new Date(timestamp).toJSON(),
       invocationCount: 0,
       notificationCount: 0,
       networkFeeAmount: BSBigNumberHelper.format(
@@ -85,7 +79,7 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
           to: transaction.to,
           toUrl,
           contractHash: token.hash,
-          contractHashUrl,
+          contractHashUrl: this._service.explorerService.buildContractUrl(token.hash),
           token: token ?? undefined,
           tokenType: 'native',
         },

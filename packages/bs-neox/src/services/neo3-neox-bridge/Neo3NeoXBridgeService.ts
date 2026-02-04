@@ -18,10 +18,10 @@ import { ERC20_ABI } from '@cityofzion/bs-ethereum'
 import axios from 'axios'
 import { BlockscoutBDSNeoX } from '../blockchain-data/BlockscoutBDSNeoX'
 import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
-import {
+import type {
   TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse,
   TNeo3NeoXBridgeServiceTransactionLogApiResponse,
-  type IBSNeoX,
+  IBSNeoX,
 } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '@cityofzion/bs-neo3'
 

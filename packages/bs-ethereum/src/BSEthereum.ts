@@ -1,18 +1,19 @@
 import {
-  TBSAccount,
-  TIntentTransferParam,
-  TBSToken,
-  TTransferParam,
-  TGetLedgerTransport,
-  ITokenService,
-  TBSNetwork,
-  IBlockchainDataService,
-  IExchangeDataService,
-  INftDataService,
-  IExplorerService,
+  BSKeychainHelper,
   BSUtilsHelper,
-  TPingNetworkResponse,
-  IWalletConnectService,
+  type TBSAccount,
+  type TTransferIntent,
+  type TBSToken,
+  type TTransferParams,
+  type TGetLedgerTransport,
+  type ITokenService,
+  type TBSNetwork,
+  type IBlockchainDataService,
+  type IExchangeDataService,
+  type INftDataService,
+  type IExplorerService,
+  type TPingNetworkResponse,
+  type IWalletConnectService,
   type IFullTransactionsDataService,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
@@ -27,7 +28,7 @@ import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
 import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
-import { IBSEthereum, TBSEthereumNetworkId, TSupportedEVM } from './types'
+import type { IBSEthereum, TBSEthereumNetworkId, TSupportedEVM } from './types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { WalletConnectServiceEthereum } from './services/wallet-connect/WalletConnectServiceEthereum'
 import axios from 'axios'
@@ -37,7 +38,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   implements IBSEthereum<N, A>
 {
   readonly name: N
-  readonly bip44DerivationPath: string
+  readonly bipDerivationPath: string
 
   readonly isMultiTransferSupported = false
   readonly isCustomNetworkSupported = false
@@ -47,7 +48,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   feeToken!: TBSToken
 
   network!: TBSNetwork<A>
-  rpcNetworkUrls!: string[]
+  networkUrls!: string[]
   readonly defaultNetwork!: TBSNetwork<A>
   readonly availableNetworks!: TBSNetwork<A>[]
 
@@ -63,7 +64,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   constructor(name: N, evm?: TSupportedEVM, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
-    this.bip44DerivationPath = BSEthereumConstants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSEthereumConstants.DEFAULT_BIP44_DERIVATION_PATH
 
     if (!evm) return
 
@@ -73,7 +74,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  protected async _buildTransferParams(intent: TIntentTransferParam) {
+  protected async _buildTransferParams(intent: TTransferIntent) {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
     const amount = ethersBigNumber.parseFixed(intent.amount, intent.token.decimals)
@@ -120,18 +121,18 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
 
-      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+      if (typeof account.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
 
       const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
-      return this.ledgerService.getSigner(ledgerTransport, account.bip44Path, provider)
+      return this.ledgerService.getSigner(ledgerTransport, account.bipPath, provider)
     }
 
     return new ethers.Wallet(account.key, provider)
   }
 
   setNetwork(network: TBSNetwork<A>) {
-    const rpcNetworkUrls = BSEthereumConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
+    const networkUrls = BSEthereumConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
@@ -140,7 +141,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     this.#setTokens(network)
 
     this.network = network
-    this.rpcNetworkUrls = rpcNetworkUrls
+    this.networkUrls = networkUrls
 
     this.nftDataService = new GhostMarketNDSEthereum(this)
     this.explorerService = new BlockscoutESEthereum(this)
@@ -152,7 +153,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
-  async pingNode(url: string): Promise<TPingNetworkResponse> {
+  async pingNetwork(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
     const timeout = setTimeout(() => {
       abortController.abort()
@@ -202,16 +203,16 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   }
 
   async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
-    const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
+    const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
     const hd = ethers.utils.HDNode.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic).derivePath(
-      bip44Path
+      bipPath
     )
 
     return {
       address: hd.address,
       key: hd.privateKey,
       type: 'privateKey',
-      bip44Path,
+      bipPath,
       blockchain: this.name,
     }
   }
@@ -252,7 +253,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     return wallet.encrypt(password)
   }
 
-  async transfer(param: TTransferParam<N>): Promise<string[]> {
+  async transfer(param: TTransferParams<N>): Promise<string[]> {
     const signer = await this.generateSigner(param.senderAccount)
     const sentTransactionHashes: string[] = []
     let error: Error | undefined
@@ -293,7 +294,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     return sentTransactionHashes
   }
 
-  async calculateTransferFee(param: TTransferParam<N>): Promise<string> {
+  async calculateTransferFee(param: TTransferParams<N>): Promise<string> {
     const signer = await this.generateSigner(param.senderAccount)
     let fee = ethers.utils.parseEther('0')
 

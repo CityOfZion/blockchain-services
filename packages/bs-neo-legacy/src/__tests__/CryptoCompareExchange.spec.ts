@@ -1,7 +1,7 @@
 import { CryptoCompareEDSNeoLegacy } from '../services/exchange-data/CryptoCompareEDSNeoLegacy'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacy } from '../BSNeoLegacy'
-import { IBSNeoLegacy } from '../types'
+import type { IBSNeoLegacy } from '../types'
 
 let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy<'test'>
 let service: IBSNeoLegacy<'test'>

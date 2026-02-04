@@ -1,5 +1,5 @@
 import { BSCommonConstants, TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
-import { TBSSolanaNetworkId } from '../types'
+import type { TBSSolanaNetworkId } from '../types'
 
 export class BSSolanaConstants {
   static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/501'/?'/0'"

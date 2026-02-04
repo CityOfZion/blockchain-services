@@ -19,9 +19,9 @@
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "@walletconnect/jsonrpc-utils": "~1.0.8",
     "@walletconnect/utils": "~2.21.9",
-    "axios": "~1.12.2"
+    "@walletconnect/jsonrpc-utils": "~1.0.8",
+    "axios": "~1.13.5"
   },
   "devDependencies": {
     "@cityofzion/bs-ethereum": "workspace:*",

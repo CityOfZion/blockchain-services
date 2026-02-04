@@ -1,20 +1,20 @@
-import {
+import type {
   IBlockchainService,
   IBSWithFee,
   TBSNetworkId,
-  type IBSWithExplorer,
-  type IBSWithLedger,
-  type IBSWithWalletConnect,
-  type TBSAccount,
-  type TBSBigNumber,
-  type TBSToken,
+  IBSWithExplorer,
+  IBSWithLedger,
+  IBSWithWalletConnect,
+  TBSAccount,
+  TBSBigNumber,
+  TBSToken,
 } from '@cityofzion/blockchain-service'
 import type { Horizon, rpc, Transaction } from '@stellar/stellar-sdk'
 
 export type TBSStellarNetworkId = TBSNetworkId<'pubnet' | 'testnet'>
 
-export interface IBSStellar<N extends string = string>
-  extends IBlockchainService<N, TBSStellarNetworkId>,
+export interface IBSStellar<N extends string = string, A extends string = TBSStellarNetworkId>
+  extends IBlockchainService<N, A>,
     IBSWithFee<N>,
     IBSWithExplorer,
     IBSWithLedger<N>,

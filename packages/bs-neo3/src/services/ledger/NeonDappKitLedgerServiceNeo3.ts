@@ -1,10 +1,11 @@
 import {
-  TBSAccount,
   generateAccountForBlockchainService,
-  TGetLedgerTransport,
-  ILedgerService,
-  TLedgerServiceEmitter,
-  TUntilIndexRecord,
+  BSKeychainHelper,
+  type TBSAccount,
+  type TGetLedgerTransport,
+  type ILedgerService,
+  type TLedgerServiceEmitter,
+  type TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import EventEmitter from 'events'
@@ -12,7 +13,7 @@ import {
   ENeonDappKitLedgerServiceNeo3Command,
   ENeonDappKitLedgerServiceNeo3SecondParameter,
   ENeonDappKitLedgerServiceNeo3Status,
-  IBSNeo3,
+  type IBSNeo3,
 } from '../../types'
 import { api, BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
@@ -41,17 +42,15 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
       const version = response.toString('ascii')
       const appName = version.substring(0, version.length - 2)
 
-      if (appName !== 'NEO N3') return false
-
-      return true
+      return appName === 'NEO N3'
     } catch {
       return false
     }
   }
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
-    const bip44Path = this.#service.bip44DerivationPath.replace('?', index.toString())
-    const bip44PathHex = this.#bip44PathToHex(bip44Path)
+    const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
+    const bip44PathHex = this.#bip44PathToHex(bipPath)
 
     const isNeoN3App = await this.verifyAppName(transport)
     if (!isNeoN3App) throw new Error('App is not NEO N3')
@@ -72,7 +71,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
       address,
       key: publicKey,
       type: 'publicKey',
-      bip44Path,
+      bipPath,
       blockchain: this.#service.name,
       isHardware: true,
     }
@@ -102,7 +101,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
       try {
         this.emitter.emit('getSignatureStart')
 
-        if (!account.bip44Path) {
+        if (!account.bipPath) {
           throw new Error('TBSAccount must have a bip 44 path to sign with Ledger')
         }
 
@@ -118,7 +117,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
           throw new Error('Invalid witness script hash')
         }
 
-        const bip44PathHex = this.#bip44PathToHex(account.bip44Path)
+        const bip44PathHex = this.#bip44PathToHex(account.bipPath)
 
         // Send the BIP44 account as first chunk
         await this.#sendChunk(

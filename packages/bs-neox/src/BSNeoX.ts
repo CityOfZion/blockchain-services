@@ -2,11 +2,11 @@ import { BSEthereum, BSEthereumConstants, TokenServiceEthereum } from '@cityofzi
 import { BSNeoXConstants } from './constants/BSNeoXConstants'
 import {
   BSUtilsHelper,
-  INeo3NeoXBridgeService,
-  TBSNetwork,
-  TGetLedgerTransport,
-  THexString,
-  TTransferParam,
+  type INeo3NeoXBridgeService,
+  type TBSNetwork,
+  type TGetLedgerTransport,
+  type THexString,
+  type TTransferParams,
 } from '@cityofzion/blockchain-service'
 import { BlockscoutBDSNeoX } from './services/blockchain-data/BlockscoutBDSNeoX'
 import { WalletConnectServiceNeoX } from './services/wallet-connect/WalletConnectServiceNeoX'
@@ -14,7 +14,7 @@ import { FlamingoForthewinEDSNeoX } from './services/exchange-data/FlamingoForth
 import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
 import { GhostMarketNDSNeoX } from './services/nft-data/GhostMarketNDSNeoX'
 import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
-import { IBSNeoX, TBSNeoXNetworkId, TSendTransactionParams } from './types'
+import type { IBSNeoX, TBSNeoXNetworkId, TSendTransactionParams } from './types'
 import { ethers } from 'ethers'
 import axios from 'axios'
 import { CONSENSUS_ABI } from './assets/abis/consensus'
@@ -43,15 +43,15 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
   }
 
   setNetwork(network: TBSNetwork<TBSNeoXNetworkId>) {
-    const rpcNetworkUrls = BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
+    const networkUrls = BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
     this.network = network
-    this.rpcNetworkUrls = rpcNetworkUrls
+    this.networkUrls = networkUrls
 
     this.nftDataService = new GhostMarketNDSNeoX(this)
     this.explorerService = new BlockscoutESNeoX(this)
@@ -181,7 +181,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     return transactionHash
   }
 
-  async transfer(params: TTransferParam<N>): Promise<string[]> {
+  async transfer(params: TTransferParams<N>): Promise<string[]> {
     const signer = await this.generateSigner(params.senderAccount)
     const transactionHashes: string[] = []
     let error: Error | undefined

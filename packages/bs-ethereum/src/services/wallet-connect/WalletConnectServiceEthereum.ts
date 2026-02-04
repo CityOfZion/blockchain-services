@@ -1,9 +1,9 @@
-import {
+import type {
   IWalletConnectService,
   TBSNetworkId,
   TWalletConnectServiceRequestMethodParams,
 } from '@cityofzion/blockchain-service'
-import { IBSEthereum } from '../../types'
+import type { IBSEthereum } from '../../types'
 import { ethers } from 'ethers'
 import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
 
