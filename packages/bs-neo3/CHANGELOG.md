@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Thu, 29 Jan 2026 15:41:42 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Feb 2026 15:34:13 GMT and should not be manually modified.
+
+## 3.0.1
+Fri, 06 Feb 2026 15:34:13 GMT
+
+### Updates
+
+- New version policy to align with other blockchain packages.
+- Fit into the new NFT interfaces
 
 ## 1.19.0
 Thu, 29 Jan 2026 15:41:42 GMT
@@ -188,6 +196,10 @@ Thu, 22 May 2025 23:10:38 GMT
 
 - Add pageSize param for getFullTransactionsByAddress
 
+### Updates
+
+- Update tests with pagination
+
 ## 1.12.2
 Thu, 15 May 2025 16:10:56 GMT
 
@@ -305,7 +317,9 @@ Tue, 07 Jan 2025 14:34:40 GMT
 ## 1.8.10
 Mon, 06 Jan 2025 15:08:15 GMT
 
-_Version update only_
+### Updates
+
+- Fix getTransactionsByAddress test expect
 
 ## 1.8.9
 Wed, 18 Dec 2024 11:11:37 GMT
@@ -562,6 +576,10 @@ Thu, 27 Jun 2024 21:15:08 GMT
 ### Minor changes
 
 - Including flamingo swap feature
+
+### Updates
+
+- Lint project
 
 ## 0.13.1
 Thu, 20 Jun 2024 16:23:59 GMT

@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "3.0.1",
+      "tag": "@cityofzion/bs-neo-legacy_v3.0.1",
+      "date": "Fri, 06 Feb 2026 15:34:13 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Remove priorityFee parameter from Transfer methods"
+          },
+          {
+            "comment": "New version policy to align with other blockchain packages."
+          }
+        ]
+      }
+    },
+    {
       "version": "1.16.0",
       "tag": "@cityofzion/bs-neo-legacy_v1.16.0",
       "date": "Thu, 29 Jan 2026 15:41:42 GMT",

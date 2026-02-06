@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-solana",
   "entries": [
     {
+      "version": "3.0.1",
+      "tag": "@cityofzion/bs-solana_v3.0.1",
+      "date": "Fri, 06 Feb 2026 15:34:13 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "New version policy to align with other blockchain packages."
+          },
+          {
+            "comment": "Fit into the new NFT interfaces and remove Metaplex Sdk from the API"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.2.0",
       "tag": "@cityofzion/bs-solana_v1.2.0",
       "date": "Thu, 29 Jan 2026 15:41:42 GMT",

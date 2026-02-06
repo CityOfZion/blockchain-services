@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-electron
 
-This log was last generated on Thu, 29 Jan 2026 15:41:42 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Feb 2026 15:34:13 GMT and should not be manually modified.
+
+## 3.0.1
+Fri, 06 Feb 2026 15:34:13 GMT
+
+### Updates
+
+- New version policy to align with other blockchain packages.
 
 ## 0.2.0
 Thu, 29 Jan 2026 15:41:42 GMT

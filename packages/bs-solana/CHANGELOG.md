@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-solana
 
-This log was last generated on Thu, 29 Jan 2026 15:41:42 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Feb 2026 15:34:13 GMT and should not be manually modified.
+
+## 3.0.1
+Fri, 06 Feb 2026 15:34:13 GMT
+
+### Updates
+
+- New version policy to align with other blockchain packages.
+- Fit into the new NFT interfaces and remove Metaplex Sdk from the API
 
 ## 1.2.0
 Thu, 29 Jan 2026 15:41:42 GMT
@@ -89,4 +97,8 @@ Tue, 02 Sep 2025 22:47:47 GMT
 ### Breaking changes
 
 - Add Solana initial implementation
+
+### Updates
+
+- Update ts-node and Axios dependency
 

@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Thu, 29 Jan 2026 15:41:42 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Feb 2026 15:34:13 GMT and should not be manually modified.
+
+## 3.0.1
+Fri, 06 Feb 2026 15:34:13 GMT
+
+### Updates
+
+- New version policy to align with other blockchain packages.
+- Fit into the new NFT interfaces
 
 ## 2.17.0
 Thu, 29 Jan 2026 15:41:42 GMT
@@ -381,7 +389,9 @@ Mon, 04 Nov 2024 22:49:56 GMT
 ## 2.6.2
 Fri, 11 Oct 2024 19:26:03 GMT
 
-_Version update only_
+### Updates
+
+- Adjust integration tests
 
 ## 2.6.1
 Wed, 09 Oct 2024 18:36:56 GMT
@@ -604,6 +614,10 @@ Tue, 11 Jun 2024 19:22:55 GMT
 
 - Added Has Token method
 - Extend new CryptoCompareEDS class to get support to token price history
+
+### Updates
+
+- Added Has Token method interface
 
 ## 1.2.3
 Thu, 06 Jun 2024 14:55:18 GMT

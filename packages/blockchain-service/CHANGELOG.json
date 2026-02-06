@@ -2,6 +2,24 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "3.0.1",
+      "tag": "@cityofzion/blockchain-service_v3.0.1",
+      "date": "Fri, 06 Feb 2026 15:34:13 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Remove priorityFee parameter from Transfer methods"
+          },
+          {
+            "comment": "New version policy to align with other blockchain packages."
+          },
+          {
+            "comment": "Remove the collection requirement from NFT interfaces"
+          }
+        ]
+      }
+    },
+    {
       "version": "1.24.0",
       "tag": "@cityofzion/blockchain-service_v1.24.0",
       "date": "Thu, 29 Jan 2026 15:41:42 GMT",

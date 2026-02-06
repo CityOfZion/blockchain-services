@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Thu, 29 Jan 2026 15:41:42 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Feb 2026 15:34:13 GMT and should not be manually modified.
+
+## 3.0.1
+Fri, 06 Feb 2026 15:34:13 GMT
+
+### Updates
+
+- New version policy to align with other blockchain packages.
 
 ## 1.3.0
 Thu, 29 Jan 2026 15:41:42 GMT
@@ -56,6 +63,10 @@ Mon, 17 Nov 2025 15:12:54 GMT
 ### Patches
 
 - Update Dora TS SDK and create COZ_API_URL variable
+
+### Updates
+
+- Fix SimpleSwap tests
 
 ## 1.1.8
 Thu, 06 Nov 2025 11:54:56 GMT
@@ -243,7 +254,9 @@ _Version update only_
 ## 0.5.27
 Mon, 09 Jun 2025 18:48:47 GMT
 
-_Version update only_
+### Updates
+
+- Add tests for calculate fee
 
 ## 0.5.26
 Thu, 05 Jun 2025 20:30:53 GMT

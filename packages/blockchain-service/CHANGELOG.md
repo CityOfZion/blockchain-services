@@ -1,6 +1,15 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Thu, 29 Jan 2026 15:41:42 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Feb 2026 15:34:13 GMT and should not be manually modified.
+
+## 3.0.1
+Fri, 06 Feb 2026 15:34:13 GMT
+
+### Updates
+
+- Remove priorityFee parameter from Transfer methods
+- New version policy to align with other blockchain packages.
+- Remove the collection requirement from NFT interfaces
 
 ## 1.24.0
 Thu, 29 Jan 2026 15:41:42 GMT
@@ -417,6 +426,10 @@ Thu, 27 Jun 2024 21:15:08 GMT
 ### Minor changes
 
 - Including flamingo swap feature
+
+### Updates
+
+- Lint project
 
 ## 0.12.0
 Wed, 19 Jun 2024 15:40:02 GMT

@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Thu, 29 Jan 2026 15:41:42 GMT and should not be manually modified.
+This log was last generated on Fri, 06 Feb 2026 15:34:13 GMT and should not be manually modified.
+
+## 3.0.1
+Fri, 06 Feb 2026 15:34:13 GMT
+
+### Updates
+
+- Remove priorityFee parameter from Transfer methods
+- New version policy to align with other blockchain packages.
 
 ## 1.16.0
 Thu, 29 Jan 2026 15:41:42 GMT
@@ -119,6 +127,10 @@ Tue, 02 Sep 2025 22:47:47 GMT
 ### Patches
 
 - Add Solana initial implementation
+
+### Updates
+
+- Create a variable for TokenServiceNeoLegacy
 
 ## 1.13.0
 Mon, 01 Sep 2025 18:24:15 GMT
@@ -254,6 +266,10 @@ Wed, 26 Mar 2025 18:20:32 GMT
 
 - Export native tokens
 
+### Updates
+
+- Add test with Ledger when migrate to Neo 3
+
 ## 1.10.3
 Fri, 14 Mar 2025 20:31:57 GMT
 
@@ -370,7 +386,9 @@ Mon, 04 Nov 2024 22:49:56 GMT
 ## 1.5.1
 Fri, 11 Oct 2024 19:26:03 GMT
 
-_Version update only_
+### Updates
+
+- Adjust integration tests
 
 ## 1.5.0
 Tue, 01 Oct 2024 20:21:36 GMT
