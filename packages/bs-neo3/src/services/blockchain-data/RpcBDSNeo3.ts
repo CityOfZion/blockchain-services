@@ -164,12 +164,18 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
         txId: response.hash,
         txIdUrl,
         block: response.validuntilblock,
-        systemFeeAmount: BSBigNumberHelper.format(response.sysfee ?? 0, {
-          decimals: this._service.feeToken.decimals,
-        }),
-        networkFeeAmount: BSBigNumberHelper.format(response.netfee ?? 0, {
-          decimals: this._service.feeToken.decimals,
-        }),
+        systemFeeAmount: BSBigNumberHelper.format(
+          BSBigNumberHelper.fromDecimals(response.sysfee ?? 0, this._service.feeToken.decimals),
+          {
+            decimals: this._service.feeToken.decimals,
+          }
+        ),
+        networkFeeAmount: BSBigNumberHelper.format(
+          BSBigNumberHelper.fromDecimals(response.netfee ?? 0, this._service.feeToken.decimals),
+          {
+            decimals: this._service.feeToken.decimals,
+          }
+        ),
         invocationCount: 0,
         notificationCount: notifications.length,
         events,

@@ -2,7 +2,6 @@ import {
   TBalanceResponse,
   BSBigNumberHelper,
   IBlockchainDataService,
-  TBSNetwork,
   TBSToken,
   type TContractResponse,
   type TTransactionTokenEvent,
@@ -10,48 +9,88 @@ import {
   type TTransaction,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
+  BSUtilsHelper,
 } from '@cityofzion/blockchain-service'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
-import solanaSDK from '@solana/web3.js'
+import solanaSDK, { PublicKey } from '@solana/web3.js'
 import * as solanaSplSDK from '@solana/spl-token'
-import { BSSolanaCachedMethodsHelper } from '../../helpers/BSSolanaCachedMethodsHelper'
-import { IBSSolana, TBSSolanaNetworkId } from '../../types'
+import { IBSSolana, type TMetaplexAssetResponse } from '../../types'
+import axios from 'axios'
 
-export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataService<N> {
-  static URL_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string> = {
-    'mainnet-beta': 'https://api.coz.io/api/v2/solana/meta/mainnet',
-    devnet: 'https://api.coz.io/api/v2/solana/meta/devnet',
-  }
-
-  static getConnection(network: TBSNetwork<TBSSolanaNetworkId>) {
-    return new solanaSDK.Connection(TatumRpcBDSSolana.URL_BY_NETWORK_ID[network.id])
-  }
-
+export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 // 1 minutes
   readonly #service: IBSSolana<N>
-  readonly #connection: solanaSDK.Connection
-  readonly #functionByProgramIdAndMethod: Record<
-    string,
-    Record<
-      string,
-      (
-        instruction: solanaSDK.ParsedInstruction,
-        allInstructions: solanaSDK.ParsedInstruction[]
-      ) => Promise<TTransactionTokenEvent | TTransactionNftEvent>
-    >
-  > = {
-    [solanaSplSDK.TOKEN_PROGRAM_ID.toString()]: {
-      transferChecked: this.#parseSplTransferCheckedInstruction.bind(this),
-      transfer: this.#parseSplTransferInstruction.bind(this),
-    },
-    [solanaSDK.SystemProgram.programId.toString()]: {
-      transfer: this.#parseSystemInstruction.bind(this),
-    },
-  }
+  #tokenCache: Map<string, TBSToken> = new Map()
+  #splAccountCache: Map<string, solanaSplSDK.Account | null> = new Map()
+  #splAddressCache: Map<string, solanaSDK.PublicKey | null> = new Map()
 
   constructor(service: IBSSolana<N>) {
     this.#service = service
-    this.#connection = TatumRpcBDSSolana.getConnection(service.network)
+  }
+
+  async #getSplAddress(
+    address: string,
+    mint: string,
+    instructions: solanaSDK.ParsedInstruction[],
+    connection: solanaSDK.Connection
+  ) {
+    const splAddress = this.#splAddressCache.get(address)
+    if (splAddress !== undefined) {
+      return splAddress
+    }
+
+    let owner: solanaSDK.PublicKey | null = null
+
+    // find owner in instructions, it may found a wrong address,
+    // but it is necessary in some cases where the token account is closed and can`t found
+    for (const instruction of instructions) {
+      const info = instruction.parsed.info
+
+      if (
+        instruction.parsed.type.startsWith('initializeAccount') &&
+        info.account === address &&
+        info.owner &&
+        info.mint === mint
+      ) {
+        owner = new solanaSDK.PublicKey(info.owner)
+        break
+      }
+
+      if (instruction.parsed.type === 'closeAccount' && info.account === address && info.owner) {
+        owner = new solanaSDK.PublicKey(info.owner)
+        break
+      }
+    }
+
+    if (!owner) {
+      const account = await this.#getSplAccount(address, connection)
+      if (account) {
+        owner = account.owner
+      }
+    }
+
+    this.#splAddressCache.set(address, owner)
+
+    return owner
+  }
+
+  async #getSplAccount(address: string, connection: solanaSDK.Connection) {
+    const account = this.#splAccountCache.get(address)
+    if (account !== undefined) {
+      return account
+    }
+
+    let tokenAccount: solanaSplSDK.Account | null = null
+
+    try {
+      tokenAccount = await solanaSplSDK.getAccount(connection, new solanaSDK.PublicKey(address))
+    } catch {
+      /* empty */
+    }
+
+    this.#splAccountCache.set(address, tokenAccount)
+
+    return tokenAccount
   }
 
   async #parseSplTransferCheckedInstruction(
@@ -64,29 +103,44 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
       throw new Error('Unsupported instruction format')
     }
 
-    const contractHash = info.mint
+    const mintPubkey = new PublicKey(info.mint)
+    const contractHash = mintPubkey.toBase58()
 
-    const metaplex = await BSSolanaCachedMethodsHelper.getMetaplexMetadata(contractHash, this.#connection)
-    if (!metaplex) {
-      throw new Error('Metaplex metadata not found')
+    const mintInfo = await this.#service.connection.getParsedAccountInfo(mintPubkey)
+
+    let mintData: any | null = null
+
+    if (mintInfo.value?.data && 'parsed' in mintInfo.value.data) {
+      mintData = mintInfo.value.data.parsed.info
     }
 
-    const toTokenAddress = await BSSolanaCachedMethodsHelper.getSplAddress(
+    if (!mintData) {
+      throw new Error('Mint info not found')
+    }
+
+    const decimals: number = mintData.decimals
+    const supply: string = mintData.supply
+    const rawAmount: string = info.amount
+
+    const isNft = decimals === 0 && rawAmount === '1' && supply === '1'
+
+    const toTokenAddress = await this.#getSplAddress(
       info.destination,
       contractHash,
       allInstructions,
-      this.#connection
+      this.#service.connection
     )
     if (!toTokenAddress) {
       throw new Error('To account not found')
     }
+
     const to = toTokenAddress.toBase58()
 
-    const fromTokenAddress = await BSSolanaCachedMethodsHelper.getSplAddress(
+    const fromTokenAddress = await this.#getSplAddress(
       info.source,
       contractHash,
       allInstructions,
-      this.#connection
+      this.#service.connection
     )
     if (!fromTokenAddress) {
       throw new Error('From account not found')
@@ -100,15 +154,14 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
 
     const fromUrl = addressTemplateUrl?.replace('{address}', from)
     const toUrl = addressTemplateUrl?.replace('{address}', to)
-    const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
-    if (metaplex?.model === 'nft') {
-      if (!metaplex.collection?.address) {
-        throw new Error('Collection address not found')
-      }
+    if (isNft) {
+      const [nft] = await BSUtilsHelper.tryCatch(() => this.#service.nftDataService.getNft({ tokenHash: contractHash }))
 
-      const collectionHash = metaplex.collection.address.toBase58()
-      const nftUrl = nftTemplateUrl?.replace('{tokenHash}', contractHash).replace('{collectionHash}', contractHash)
+      const nftUrl = nftTemplateUrl?.replace('{tokenHash}', contractHash)
+      const collectionHashUrl = nft?.collection?.hash
+        ? contractTemplateUrl?.replace('{hash}', nft.collection.hash)
+        : undefined
 
       return {
         eventType: 'nft',
@@ -117,26 +170,23 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
         to,
         toUrl,
         tokenHash: contractHash,
-        collectionHash,
-        collectionHashUrl: contractHashUrl,
+        collectionHash: nft?.collection?.hash,
+        collectionHashUrl,
         methodName: 'transferChecked',
         tokenType: 'spl',
         amount: '1',
-        nftImageUrl: metaplex?.json?.image,
-        name: metaplex.name,
+        collectionName: nft?.collection?.name,
+        nftImageUrl: nft?.image,
+        name: nft?.name,
         nftUrl,
       }
     }
 
-    const token: TBSToken = {
-      symbol: metaplex.currency.symbol,
-      name: metaplex.name,
-      decimals: metaplex.decimals,
-      hash: contractHash,
-    }
+    const [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
 
-    const amountBn = BSBigNumberHelper.fromDecimals(info.tokenAmount.amount, token.decimals)
+    const amountBn = BSBigNumberHelper.fromDecimals(info.tokenAmount.amount, decimals)
     const amount = BSBigNumberHelper.toNumber(amountBn)
+    const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
     return {
       eventType: 'token',
@@ -163,99 +213,114 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
       throw new Error('Unsupported instruction format')
     }
 
-    const toTokenAccount = await BSSolanaCachedMethodsHelper.getSplAccount(info.destination, this.#connection)
+    const toTokenAccount = await this.#getSplAccount(info.destination, this.#service.connection)
     if (!toTokenAccount) {
       throw new Error('To account not found')
     }
-    const contractHash = toTokenAccount.mint.toBase58()
 
-    const metaplex = await BSSolanaCachedMethodsHelper.getMetaplexMetadata(contractHash, this.#connection)
-    if (!metaplex) {
-      throw new Error('Metaplex metadata not found')
+    const mintPubkey = toTokenAccount.mint
+    const contractHash = mintPubkey.toBase58()
+
+    const mintInfo = await this.#service.connection.getParsedAccountInfo(mintPubkey)
+
+    let mintData: any | null = null
+
+    if (mintInfo.value?.data && 'parsed' in mintInfo.value.data) {
+      mintData = mintInfo.value.data.parsed.info
     }
+
+    if (!mintData) {
+      throw new Error('Mint info not found')
+    }
+
+    const decimals: number = mintData.decimals
+    const supply: string = mintData.supply
+    const rawAmount: string = info.amount
+
+    const isNft = decimals === 0 && rawAmount === '1' && supply === '1'
 
     let to: string
 
     if (info.destination === toTokenAccount.address.toBase58()) {
-      const toTokenAddress = await BSSolanaCachedMethodsHelper.getSplAddress(
+      const toTokenAddress = await this.#getSplAddress(
         info.destination,
         contractHash,
         allInstructions,
-        this.#connection
+        this.#service.connection
       )
+
       if (!toTokenAddress) {
         throw new Error('To account not found')
       }
+
       to = toTokenAddress.toBase58()
     } else {
       to = toTokenAccount.address.toBase58()
     }
 
-    const fromTokenAddress = await BSSolanaCachedMethodsHelper.getSplAddress(
+    const fromTokenAddress = await this.#getSplAddress(
       info.source,
       contractHash,
       allInstructions,
-      this.#connection
+      this.#service.connection
     )
     if (!fromTokenAddress) {
       throw new Error('From account not found')
     }
 
+    const from = fromTokenAddress.toBase58()
+
     const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
     const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
     const nftTemplateUrl = this.#service.explorerService.getNftTemplateUrl()
 
-    const from = fromTokenAddress.toBase58()
-
     const fromUrl = addressTemplateUrl?.replace('{address}', from)
     const toUrl = addressTemplateUrl?.replace('{address}', to)
-    const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
-    if (metaplex?.model === 'nft') {
-      if (!metaplex.collection?.address) {
-        throw new Error('Collection address not found')
-      }
+    if (isNft) {
+      const [nft] = await BSUtilsHelper.tryCatch(() => this.#service.nftDataService.getNft({ tokenHash: contractHash }))
 
-      const nftUrl = nftTemplateUrl?.replace('{tokenHash}', contractHash).replace('{collectionHash}', contractHash)
+      const nftUrl = nftTemplateUrl?.replace('{tokenHash}', contractHash)
+      const collectionHashUrl = nft?.collection?.hash
+        ? contractTemplateUrl?.replace('{hash}', nft.collection.hash)
+        : undefined
 
       return {
         eventType: 'nft',
+        tokenType: 'spl',
+        methodName: 'transfer',
         from,
         fromUrl,
         to,
         toUrl,
-        tokenType: 'spl',
-        methodName: 'transfer',
-        nftImageUrl: metaplex?.json?.image,
-        name: metaplex.name,
-        nftUrl,
-        collectionHash: metaplex.collection.address.toBase58(),
-        collectionHashUrl: contractHashUrl,
-        amount: '1',
         tokenHash: contractHash,
+        amount: '1',
+        name: nft?.name,
+        nftImageUrl: nft?.image,
+        collectionHash: nft?.collection?.hash,
+        collectionHashUrl,
+        nftUrl,
+        collectionName: nft?.collection?.name,
       }
     }
 
-    const token: TBSToken = {
-      symbol: metaplex.currency.symbol,
-      name: metaplex.name,
-      decimals: metaplex.decimals,
-      hash: contractHash,
-    }
-    const amountBn = BSBigNumberHelper.fromDecimals(info.tokenAmount.amount, token.decimals)
+    const [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
+
+    const amountBn = BSBigNumberHelper.fromDecimals(info.tokenAmount.amount, decimals)
     const amount = BSBigNumberHelper.toNumber(amountBn)
+    const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
     return {
       eventType: 'token',
-      amount,
-      contractHash,
+      tokenType: 'spl',
+      methodName: 'transfer',
       from,
       fromUrl,
       to,
       toUrl,
-      methodName: 'transfer',
-      tokenType: 'spl',
+      contractHash,
       contractHashUrl,
+      amount,
       token,
     }
   }
@@ -310,23 +375,23 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
     const programId = instruction.programId.toString()
     const method = instruction.parsed.type
 
-    const func = this.#functionByProgramIdAndMethod[programId]?.[method]
-    if (func) {
-      return await func(instruction, allInstructions)
+    if (programId === solanaSDK.SystemProgram.programId.toString()) {
+      return await this.#parseSystemInstruction(instruction)
+    }
+
+    if (programId === solanaSplSDK.TOKEN_PROGRAM_ID.toString() && method === 'transfer') {
+      return await this.#parseSplTransferInstruction(instruction, allInstructions)
+    }
+
+    if (programId === solanaSplSDK.TOKEN_PROGRAM_ID.toString() && method === 'transferChecked') {
+      return await this.#parseSplTransferCheckedInstruction(instruction, allInstructions)
     }
 
     throw new Error('Unsupported instruction')
   }
 
-  async getTransaction(txid: string): Promise<TTransaction<N>> {
-    const transaction = await this.#connection.getParsedTransaction(txid, {
-      maxSupportedTransactionVersion: 0,
-    })
-
-    if (!transaction) throw new Error('Transaction not found')
-
-    if (!transaction.blockTime) throw new Error('Block time not found')
-    if (!transaction.meta) throw new Error('Transaction meta not found')
+  async #parseTransaction(transaction: solanaSDK.ParsedTransactionWithMeta): Promise<TTransaction<N> | undefined> {
+    if (!transaction.blockTime || !transaction.meta) return
 
     const events: TTransaction<N>['events'] = []
 
@@ -366,21 +431,46 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
     }
   }
 
+  async getTransaction(txid: string): Promise<TTransaction<N>> {
+    const transaction = await this.#service.connection.getParsedTransaction(txid, {
+      maxSupportedTransactionVersion: 0,
+    })
+
+    if (!transaction) throw new Error('Transaction not found')
+
+    const parsedTransaction = await this.#parseTransaction(transaction)
+    if (!parsedTransaction) throw new Error('Transaction not found')
+
+    return parsedTransaction
+  }
+
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
   ): Promise<TGetTransactionsByAddressResponse<N>> {
     const publicKey = new solanaSDK.PublicKey(params.address)
 
-    const signaturesResponse = await this.#connection.getSignaturesForAddress(publicKey, {
+    const signaturesResponse = await this.#service.connection.getSignaturesForAddress(publicKey, {
       limit: 15,
       before: params.nextPageParams,
     })
 
+    const response = await axios.post(
+      this.#service.network.url,
+      signaturesResponse.map((signature, index) => ({
+        jsonrpc: '2.0',
+        id: index + 1,
+        method: 'getTransaction',
+        params: [signature.signature, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }],
+      }))
+    )
+
     const transactions: TTransaction<N>[] = []
 
-    const promises = signaturesResponse.map(async signatureResponse => {
-      const transaction = await this.getTransaction(signatureResponse.signature)
-      transactions.push(transaction)
+    const promises = response.data.map(async (response: any) => {
+      const parsedTransaction = await this.#parseTransaction(response.result)
+      if (!parsedTransaction) return
+
+      transactions.push(parsedTransaction)
     })
 
     await Promise.allSettled(promises)
@@ -400,25 +490,49 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
       return BSSolanaConstants.NATIVE_TOKEN
     }
 
-    const token = await BSSolanaCachedMethodsHelper.getMetaplexMetadata(tokenHash, this.#connection)
+    const cachedToken = this.#tokenCache.get(tokenHash)
+    if (cachedToken) {
+      return cachedToken
+    }
 
-    if (!token || token.model === 'nft') {
+    const url = BSSolanaConstants.PUBLIC_RPC_LIST_BY_NETWORK_ID[this.#service.network.id]
+
+    const response = await axios.post<TMetaplexAssetResponse>(url, {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'getAsset',
+      params: {
+        id: tokenHash,
+        options: {
+          showFungible: true,
+          showZeroBalance: true,
+        },
+      },
+    })
+
+    const result = response.data.result
+
+    if (result.interface !== 'FungibleToken') {
       throw new Error(`Token not found: ${tokenHash}`)
     }
 
-    return {
-      symbol: token.currency.symbol,
-      name: token.name,
-      decimals: token.decimals,
+    const token: TBSToken = {
+      symbol: result.content.metadata.symbol,
+      name: result.content.metadata.name,
+      decimals: result.token_info.decimals,
       hash: tokenHash,
     }
+
+    this.#tokenCache.set(tokenHash, token)
+
+    return token
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
     const publicKey = new solanaSDK.PublicKey(address)
 
-    const nativeBalance = await this.#connection.getBalance(publicKey)
-    const splBalance = await this.#connection.getParsedTokenAccountsByOwner(publicKey, {
+    const nativeBalance = await this.#service.connection.getBalance(publicKey)
+    const splBalance = await this.#service.connection.getParsedTokenAccountsByOwner(publicKey, {
       programId: solanaSplSDK.TOKEN_PROGRAM_ID,
     })
 
@@ -452,6 +566,6 @@ export class TatumRpcBDSSolana<N extends string> implements IBlockchainDataServi
   }
 
   async getBlockHeight(): Promise<number> {
-    return await this.#connection.getBlockHeight()
+    return await this.#service.connection.getBlockHeight()
   }
 }

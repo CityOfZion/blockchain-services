@@ -98,8 +98,14 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
       date: new Date(Number(response.time) * 1000).toISOString(),
       txId: response.hash,
       txIdUrl,
-      systemFeeAmount: BSBigNumberHelper.format(response.sysfee ?? 0, { decimals: this._service.feeToken.decimals }),
-      networkFeeAmount: BSBigNumberHelper.format(response.netfee ?? 0, { decimals: this._service.feeToken.decimals }),
+      systemFeeAmount: BSBigNumberHelper.format(
+        BSBigNumberHelper.fromDecimals(response.sysfee ?? 0, this._service.feeToken.decimals),
+        { decimals: this._service.feeToken.decimals }
+      ),
+      networkFeeAmount: BSBigNumberHelper.format(
+        BSBigNumberHelper.fromDecimals(response.netfee ?? 0, this._service.feeToken.decimals),
+        { decimals: this._service.feeToken.decimals }
+      ),
       events,
       invocationCount: 0,
       notificationCount: 0,
@@ -145,8 +151,14 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
         date: new Date(Number(item.time) * 1000).toISOString(),
         txId: item.hash,
         txIdUrl,
-        systemFeeAmount: BSBigNumberHelper.format(item.sysfee ?? 0, { decimals: this._service.feeToken.decimals }),
-        networkFeeAmount: BSBigNumberHelper.format(item.netfee ?? 0, { decimals: this._service.feeToken.decimals }),
+        systemFeeAmount: BSBigNumberHelper.format(
+          BSBigNumberHelper.fromDecimals(item.sysfee ?? 0, this._service.feeToken.decimals),
+          { decimals: this._service.feeToken.decimals }
+        ),
+        networkFeeAmount: BSBigNumberHelper.format(
+          BSBigNumberHelper.fromDecimals(item.netfee ?? 0, this._service.feeToken.decimals),
+          { decimals: this._service.feeToken.decimals }
+        ),
         events,
         invocationCount: 0,
         notificationCount: notifications?.length ?? 0,

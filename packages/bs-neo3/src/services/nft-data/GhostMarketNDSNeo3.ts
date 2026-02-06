@@ -1,4 +1,4 @@
-import { GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
+import { BSError, GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
 
 import { IBSNeo3, TBSNeo3NetworkId } from '../../types'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
@@ -14,6 +14,10 @@ export class GhostMarketNDSNeo3<N extends string> extends GhostMarketNDS<N, TBSN
   }
 
   async hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean> {
+    if (!collectionHash) {
+      throw new BSError('collectionHash is required to get NFT from GhostMarketNDSNeo3', 'REQUIRED_PARAMETER_MISSING')
+    }
+
     const { NeonParser, NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
     const invoker = await NeonInvoker.init({ rpcAddress: this._service.network.url })

@@ -59,7 +59,7 @@ describe.skip('GhostMarketNDSEthereum', () => {
     for (const { collection } of nfts.items) {
       const hasToken: boolean = await ghostMarketNDSEthereum.hasToken({
         address,
-        collectionHash: collection.hash,
+        collectionHash: collection?.hash,
       })
       expect(hasToken).toBeTruthy()
     }

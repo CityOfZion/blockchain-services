@@ -1,11 +1,9 @@
 import { BSSolana } from '../BSSolana'
-import * as bip39 from 'bip39'
 import solanaSDK from '@solana/web3.js'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
-import HDKey from 'micro-key-producer/slip10.js'
 import bs58 from 'bs58'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import { BSUtilsHelper } from '@cityofzion/blockchain-service'
+import { BSKeychainHelper, BSUtilsHelper } from '@cityofzion/blockchain-service'
 
 let bsSolana: BSSolana<'test'>
 const mnemonic = process.env.TEST_MNEMONIC as string
@@ -23,9 +21,8 @@ describe('BSSolana', () => {
     bsSolana = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
 
     const bip44Path = bsSolana.bip44DerivationPath.replace('?', '0')
-    const seed = bip39.mnemonicToSeedSync(mnemonic)
-    const hd = HDKey.fromMasterSeed(seed)
-    const keypair = solanaSDK.Keypair.fromSeed(hd.derive(bip44Path).privateKey)
+    const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
+    const keypair = solanaSDK.Keypair.fromSeed(key)
 
     accountKeypair = {
       base58Key: bs58.encode(keypair.secretKey),

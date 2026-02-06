@@ -1,21 +1,21 @@
 import { BSUtilsHelper } from '@cityofzion/blockchain-service'
 import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
-import { TatumRpcBDSSolana } from '../services/blockchain-data/TatumRpcBDSSolana'
+import { RpcBDSSolana } from '../services/blockchain-data/RpcBDSSolana'
 
-let rpcBDSSolana: TatumRpcBDSSolana<'test'>
+let rpcBDSSolana: RpcBDSSolana<'test'>
 
-describe('TatumRpcBDSSolana', () => {
+describe('RpcBDSSolana', () => {
   beforeEach(async () => {
     const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
-    rpcBDSSolana = new TatumRpcBDSSolana(service)
+    rpcBDSSolana = new RpcBDSSolana(service)
 
     await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit
   })
 
-  // It may throw an error as the tatum devnet only returns transaction made in less than 10 days
+  // It may throw an error as the devnet only returns transaction made in less than 10 days
   it('Should be able to get transaction', async () => {
-    const hash = 'eagpXrR1TP9H9jRyPcGaaAksJuyoSiK76aQyJT92uYJ2MDK7hy1e7bi9krHhTLEaSNEKU7cSUGwyoUFugR4ysrw'
+    const hash = 'mi5ZqR7ouXzeq43W4gZpzuw4LnybKbSMJMiCL69zjcrMAytuH3mqSAzp4QyagfPqH4yBYLg2imgbsrkgTPvkuNo'
 
     const transaction = await rpcBDSSolana.getTransaction(hash)
 
@@ -57,7 +57,7 @@ describe('TatumRpcBDSSolana', () => {
     })
   })
 
-  // It may throw an error as the tatum devnet only returns transaction made in less than 10 days
+  // It may throw an error as the devnet only returns transaction made in less than 10 days
   it('Should be able to get transactions of address', async () => {
     const address = '8X35rQUK2u9hfn8rMPwwr6ZSEUhbmfDPEapp589XyoM1'
     const response = await rpcBDSSolana.getTransactionsByAddress({ address: address })
@@ -127,8 +127,7 @@ describe('TatumRpcBDSSolana', () => {
     })
   })
 
-  // TODO: Needs paid plan on Tatum to work
-  it.skip('Should be able to get balance', async () => {
+  it('Should be able to get balance', async () => {
     const address = 'F6pwhbYdsEso1yhAihxLxiWtHKS7vhnEVnLakNn4L3tN'
     const balance = await rpcBDSSolana.getBalance(address)
 
