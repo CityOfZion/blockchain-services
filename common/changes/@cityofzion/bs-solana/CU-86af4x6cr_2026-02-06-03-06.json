@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Fit into the new NFT interfaces and remove Metaplex Sdk from the API",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

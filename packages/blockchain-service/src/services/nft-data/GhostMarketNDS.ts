@@ -11,6 +11,7 @@ import {
 import qs from 'query-string'
 import { TGhostMarketNDSNeo3AssetApiResponse, TGhostMarketNDSNeo3GetAssetsApiResponse } from '../../types'
 import { hasExplorerService } from '../../functions'
+import { BSError } from '../../error'
 
 export abstract class GhostMarketNDS<N extends string, A extends string, T extends IBlockchainService<N, A>>
   implements INftDataService
@@ -106,10 +107,14 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
       return item
     })
 
-    return { nextCursor: data.next, items }
+    return { nextPageParams: data.next, items }
   }
 
   async getNft({ collectionHash, tokenHash }: TGetNftParam): Promise<TNftResponse> {
+    if (!collectionHash) {
+      throw new BSError('collectionHash is required to get NFT from GhostMarketNDSNeo3', 'REQUIRED_PARAMETER_MISSING')
+    }
+
     const cacheKey = this.#buildNftsCacheKey(collectionHash, tokenHash)
     const nftFromCache = this.#nftsCacheMap.get(cacheKey)
     if (nftFromCache) {

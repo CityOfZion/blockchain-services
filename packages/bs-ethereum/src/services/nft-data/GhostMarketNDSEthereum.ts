@@ -23,14 +23,19 @@ export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> ex
 
   async hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean> {
     try {
+      if (!collectionHash) return false
+
       const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+
       const contract = new ethers.Contract(collectionHash, ERC20_ABI, provider)
+
       const response = await contract.balanceOf(address)
-      if (!response) throw new Error()
+      if (!response) return false
+
       const parsedResponse = response as BigNumber
       return parsedResponse.gt(0)
     } catch {
-      throw new Error(`Token not found: ${collectionHash}`)
+      return false
     }
   }
 

@@ -89,7 +89,7 @@ describe('GhostMarketNDSNeo3', () => {
 
     const hasToken: boolean = await ghostMarketNDSNeo3.hasToken({
       address,
-      collectionHash: nfts.items[0].collection.hash,
+      collectionHash: nfts.items[0].collection?.hash,
     })
 
     expect(hasToken).toBeTruthy()

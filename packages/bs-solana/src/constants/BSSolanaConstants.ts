@@ -8,9 +8,14 @@ export class BSSolanaConstants {
 
   static readonly NATIVE_WRAPPED_HASH = 'So11111111111111111111111111111111111111112'
 
+  static readonly PUBLIC_RPC_LIST_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string> = {
+    'mainnet-beta': 'https://api.mainnet-beta.solana.com',
+    devnet: 'https://api.devnet.solana.com',
+  }
+
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string[]> = {
-    'mainnet-beta': ['https://api.mainnet-beta.solana.com'],
-    devnet: ['https://api.devnet.solana.com'],
+    'mainnet-beta': ['https://api.coz.io/api/v2/solana/meta/mainnet'],
+    devnet: ['https://api.coz.io/api/v2/solana/meta/devnet'],
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSSolanaNetworkId> = {

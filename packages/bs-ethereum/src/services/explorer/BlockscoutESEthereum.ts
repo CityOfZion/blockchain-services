@@ -36,7 +36,7 @@ export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> impl
   }
 
   buildNftUrl(params: TBuildNftUrlParams): string | undefined {
-    if (!this.#baseUrl) return undefined
+    if (!this.#baseUrl || !params.collectionHash) return undefined
 
     return `${this.#baseUrl}/token/${this._service.tokenService.normalizeHash(params.collectionHash)}/instance/${
       params.tokenHash

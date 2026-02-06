@@ -12,17 +12,16 @@ import {
   TBSToken,
   TTransferParam,
   TPingNetworkResponse,
+  BSKeychainHelper,
 } from '@cityofzion/blockchain-service'
 import solanaSDK from '@solana/web3.js'
 import * as solanaSplSDK from '@solana/spl-token'
-import * as bip39 from 'bip39'
 import solanaSnsSDK from '@bonfida/spl-name-service'
-import HDKey from 'micro-key-producer/slip10.js'
 import { BSSolanaConstants } from './constants/BSSolanaConstants'
 import bs58 from 'bs58'
 import { Web3LedgerServiceSolana } from './services/ledger/Web3LedgerServiceSolana'
-import { TatumRpcBDSSolana } from './services/blockchain-data/TatumRpcBDSSolana'
-import { TatumRpcNDSSolana } from './services/nft-data/TatumRpcNDSSolana'
+import { RpcBDSSolana } from './services/blockchain-data/RpcBDSSolana'
+import { RpcNDSSolana } from './services/nft-data/RpcNDSSolana'
 import { SolScanESSolana } from './services/explorer/SolScanESSolana'
 import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
@@ -54,7 +53,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   explorerService!: IExplorerService
   tokenService!: ITokenService
 
-  #connection!: solanaSDK.Connection
+  connection!: solanaSDK.Connection
 
   constructor(name: N, network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -100,7 +99,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   async #buildTransferParams(param: TTransferParam<N>) {
-    const latestBlockhash = await this.#connection.getLatestBlockhash()
+    const latestBlockhash = await this.connection.getLatestBlockhash()
 
     const senderPublicKey = new solanaSDK.PublicKey(param.senderAccount.address)
 
@@ -132,7 +131,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
       const receiverTokenAddress = await solanaSplSDK.getAssociatedTokenAddress(tokenMintPublicKey, receiverPublicKey)
 
       try {
-        await solanaSplSDK.getAccount(this.#connection, receiverTokenAddress)
+        await solanaSplSDK.getAccount(this.connection, receiverTokenAddress)
       } catch (error) {
         if (
           error instanceof solanaSplSDK.TokenAccountNotFoundError ||
@@ -174,12 +173,12 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     this.rpcNetworkUrls = rpcNetworkUrls
 
     this.tokenService = new TokenServiceSolana()
-    this.blockchainDataService = new TatumRpcBDSSolana(this)
-    this.nftDataService = new TatumRpcNDSSolana(this)
+    this.blockchainDataService = new RpcBDSSolana(this)
+    this.nftDataService = new RpcNDSSolana(this)
     this.explorerService = new SolScanESSolana(this)
     this.exchangeDataService = new MoralisEDSSolana(this)
 
-    this.#connection = new solanaSDK.Connection(this.network.url)
+    this.connection = new solanaSDK.Connection(this.network.url)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
@@ -235,10 +234,10 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N> {
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
 
-    const seed = bip39.mnemonicToSeedSync(mnemonic)
-    const hd = HDKey.fromMasterSeed(seed)
-    const keypair = solanaSDK.Keypair.fromSeed(hd.derive(bip44Path).privateKey)
+    const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
+    const keypair = solanaSDK.Keypair.fromSeed(keyBuffer)
     const key = bs58.encode(keypair.secretKey)
+
     const address = keypair.publicKey.toBase58()
 
     return {
@@ -277,7 +276,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     const { transaction } = await this.#buildTransferParams(param)
 
     const signedTransaction = await this.#signTransaction(transaction, param.senderAccount)
-    const signature = await this.#connection.sendRawTransaction(signedTransaction)
+    const signature = await this.connection.sendRawTransaction(signedTransaction)
 
     return [signature]
   }
@@ -285,14 +284,14 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   async calculateTransferFee(param: TTransferParam<N>): Promise<string> {
     const { senderPublicKey, transaction } = await this.#buildTransferParams(param)
 
-    const { blockhash } = await this.#connection.getLatestBlockhash()
+    const { blockhash } = await this.connection.getLatestBlockhash()
     transaction.recentBlockhash = blockhash
 
     transaction.feePayer = senderPublicKey
 
     const message = transaction.compileMessage()
 
-    const fee = await this.#connection.getFeeForMessage(message)
+    const fee = await this.connection.getFeeForMessage(message)
     if (!fee.value) {
       throw new Error('Failed to calculate fee')
     }
@@ -302,7 +301,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {
-    const address = await solanaSnsSDK.resolve(this.#connection, domainName)
+    const address = await solanaSnsSDK.resolve(this.connection, domainName)
     return address.toBase58()
   }
 

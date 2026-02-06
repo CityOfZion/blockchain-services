@@ -133,7 +133,7 @@ export type TTransactionNftEvent = {
   eventType: 'nft'
   amount?: string
   methodName: string
-  collectionHash: string
+  collectionHash?: string
   collectionHashUrl?: string
   to?: string
   toUrl?: string
@@ -271,12 +271,12 @@ export interface IExchangeDataService {
 export type TNftResponse = {
   hash: string
   explorerUri?: string
-  collection: {
+  collection?: {
     name?: string
     image?: string
     hash: string
   }
-  creator: {
+  creator?: {
     address: string
     name?: string
   }
@@ -287,8 +287,7 @@ export type TNftResponse = {
 }
 export type TNftsResponse = {
   items: TNftResponse[]
-  nextCursor?: string
-  total?: number
+  nextPageParams?: any
 }
 
 export type TGetNftsByAddressParams = {
@@ -299,12 +298,14 @@ export type TGetNftsByAddressParams = {
 }
 export type TGetNftParam = {
   tokenHash: string
-  collectionHash: string
+  collectionHash?: string
 }
+
 export type THasTokenParam = {
   address: string
-  collectionHash: string
+  collectionHash?: string
 }
+
 export interface INftDataService {
   getNftsByAddress(params: TGetNftsByAddressParams): Promise<TNftsResponse>
   getNft(params: TGetNftParam): Promise<TNftResponse>
@@ -312,7 +313,7 @@ export interface INftDataService {
 }
 
 export type TBuildNftUrlParams = {
-  collectionHash: string
+  collectionHash?: string
   tokenHash: string
 }
 export interface IExplorerService {

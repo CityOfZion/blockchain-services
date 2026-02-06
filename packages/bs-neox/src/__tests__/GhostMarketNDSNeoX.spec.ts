@@ -37,7 +37,7 @@ describe('Neo X Blockchain', () => {
     })
 
     it('Should get NFTs by address', async () => {
-      const { items, nextCursor } = await ghostMarketNDSEthereum.getNftsByAddress({ address })
+      const { items, nextPageParams } = await ghostMarketNDSEthereum.getNftsByAddress({ address })
 
       items.forEach(nft => {
         expect(nft).toMatchObject({
@@ -59,14 +59,14 @@ describe('Neo X Blockchain', () => {
       })
 
       expect(items.length).toBeGreaterThan(0)
-      expect(nextCursor).toBeTruthy()
+      expect(nextPageParams).toBeTruthy()
     })
 
     it('Should check if address has specific token when get by address', async () => {
       const { items } = await ghostMarketNDSEthereum.getNftsByAddress({ address })
 
       for (const { collection } of items) {
-        const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection.hash })
+        const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection?.hash })
 
         expect(hasToken).toBeTruthy()
       }
@@ -100,7 +100,7 @@ describe('Neo X Blockchain', () => {
     })
 
     it('Should get NFTS by address', async () => {
-      const { items, nextCursor } = await ghostMarketNDSEthereum.getNftsByAddress({ address })
+      const { items, nextPageParams } = await ghostMarketNDSEthereum.getNftsByAddress({ address })
 
       items.forEach(nft => {
         expect(nft).toMatchObject({
@@ -121,7 +121,7 @@ describe('Neo X Blockchain', () => {
       })
 
       expect(items.length).toBeGreaterThan(0)
-      expect(nextCursor).toBeTruthy()
+      expect(nextPageParams).toBeTruthy()
     })
 
     it('Should check if address has specific token when get by address', async () => {
@@ -130,7 +130,7 @@ describe('Neo X Blockchain', () => {
       for (const { collection } of items) {
         // Try and catch to ignore ERC1155 error in hasToken
         try {
-          const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection.hash })
+          const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection?.hash })
 
           expect(hasToken).toBeTruthy()
         } catch {

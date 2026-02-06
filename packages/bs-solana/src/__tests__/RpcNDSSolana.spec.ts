@@ -1,20 +1,19 @@
 import { BSUtilsHelper } from '@cityofzion/blockchain-service'
 import { BSSolana } from '../BSSolana'
-import { TatumRpcNDSSolana } from '../services/nft-data/TatumRpcNDSSolana'
+import { RpcNDSSolana } from '../services/nft-data/RpcNDSSolana'
 
-let tatumRpcNDSSolana: TatumRpcNDSSolana<'test'>
+let rpcNDSSolana: RpcNDSSolana<'test'>
 
-describe('TatumRpcNDSSolana.spec', () => {
+describe('RpcNDSSolana.spec', () => {
   beforeEach(async () => {
     const service = new BSSolana('test')
-    tatumRpcNDSSolana = new TatumRpcNDSSolana(service)
+    rpcNDSSolana = new RpcNDSSolana(service)
 
     await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit
   })
 
   it('Get NFT', async () => {
-    const nft = await tatumRpcNDSSolana.getNft({
-      collectionHash: 'J1S9H3QjnRtBbbuD4HjPV6RpRhwuk4zKbxsnCHuTgh9w',
+    const nft = await rpcNDSSolana.getNft({
       tokenHash: 'CnB32foaJLZTc2LZACC9h9Mef97WLFkvBXVGuqcpGxLZ',
     })
 
@@ -36,9 +35,8 @@ describe('TatumRpcNDSSolana.spec', () => {
     )
   })
 
-  // TODO: Needs paid plan on Tatum to work
   it.skip('Get NFTS by address', async () => {
-    const nfts = await tatumRpcNDSSolana.getNftsByAddress({
+    const nfts = await rpcNDSSolana.getNftsByAddress({
       address: '47iUSSiZnp2grSXJNpN19qYQYLZ8Kdfxpf318w48Ydxo',
     })
 
@@ -54,11 +52,11 @@ describe('TatumRpcNDSSolana.spec', () => {
     })
   })
 
-  // TODO: Needs paid plan on Tatum to work
+  // TODO: Needs paid plan on  to work
   it.skip('Check if address has specific Token', async () => {
     const address: string = '2RtGg6fsFiiF1EQzHqbd66AhW7R5bWeQGpTbv2UMkCdW'
 
-    const hasToken: boolean = await tatumRpcNDSSolana.hasToken({
+    const hasToken: boolean = await rpcNDSSolana.hasToken({
       address,
       collectionHash: 'FCk24cq1pYhQo5MQYKHf5N9VnY8tdrToF7u6gvvsnGrn',
     })
