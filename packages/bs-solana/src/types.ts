@@ -5,6 +5,7 @@ import type {
   IBSWithLedger,
   IBSWithNameService,
   IBSWithNft,
+  IBSWithWalletConnect,
   TBSNetworkId,
 } from '@cityofzion/blockchain-service'
 import type solanaSDK from '@solana/web3.js'
@@ -17,8 +18,10 @@ export interface IBSSolana<N extends string = string>
     IBSWithNameService,
     IBSWithLedger<N>,
     IBSWithNft,
-    IBSWithExplorer {
+    IBSWithExplorer,
+    IBSWithWalletConnect<N> {
   connection: solanaSDK.Connection
+  generateKeyPairFromKey(key: string): solanaSDK.Keypair
 }
 
 export type TMetaplexAssetByOwnerResponse = {
