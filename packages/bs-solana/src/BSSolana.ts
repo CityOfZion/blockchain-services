@@ -13,6 +13,7 @@ import {
   TTransferParam,
   TPingNetworkResponse,
   BSKeychainHelper,
+  type IWalletConnectService,
 } from '@cityofzion/blockchain-service'
 import solanaSDK from '@solana/web3.js'
 import * as solanaSplSDK from '@solana/spl-token'
@@ -27,6 +28,7 @@ import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
 import { IBSSolana, TBSSolanaNetworkId } from './types'
 import axios from 'axios'
+import { WalletConnectServiceSolana } from './services/wallet-connect/WalletConnectServiceSolana'
 
 const KEY_BYTES_LENGTH = 64
 
@@ -52,6 +54,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
+  walletConnectService!: IWalletConnectService<N>
 
   connection!: solanaSDK.Connection
 
@@ -70,7 +73,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  #generateKeyPairFromKey(key: string): solanaSDK.Keypair {
+  generateKeyPairFromKey(key: string): solanaSDK.Keypair {
     let keyBuffer: Uint8Array | undefined
 
     try {
@@ -94,7 +97,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
       return await this.ledgerService.signTransaction(transport, transaction, senderAccount)
     }
 
-    transaction.sign(this.#generateKeyPairFromKey(senderAccount.key))
+    transaction.sign(this.generateKeyPairFromKey(senderAccount.key))
     return transaction.serialize()
   }
 
@@ -177,6 +180,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     this.nftDataService = new RpcNDSSolana(this)
     this.explorerService = new SolScanESSolana(this)
     this.exchangeDataService = new MoralisEDSSolana(this)
+    this.walletConnectService = new WalletConnectServiceSolana(this)
 
     this.connection = new solanaSDK.Connection(this.network.url)
   }
@@ -250,7 +254,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   generateAccountFromKey(key: string): TBSAccount<N> {
-    const keypair = this.#generateKeyPairFromKey(key)
+    const keypair = this.generateKeyPairFromKey(key)
 
     const address = keypair.publicKey.toBase58()
     const base58Key = bs58.encode(keypair.secretKey)
