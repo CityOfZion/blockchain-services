@@ -2,6 +2,12 @@
   "name": "@cityofzion/bs-stellar",
   "entries": [
     {
+      "version": "3.0.2",
+      "tag": "@cityofzion/bs-stellar_v3.0.2",
+      "date": "Tue, 10 Feb 2026 14:48:23 GMT",
+      "comments": {}
+    },
+    {
       "version": "3.0.1",
       "tag": "@cityofzion/bs-stellar_v3.0.1",
       "date": "Fri, 06 Feb 2026 15:34:13 GMT",

@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-solana",
   "entries": [
     {
+      "version": "3.0.2",
+      "tag": "@cityofzion/bs-solana_v3.0.2",
+      "date": "Tue, 10 Feb 2026 14:48:23 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Implement WalletConnect support"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.0.1",
       "tag": "@cityofzion/bs-solana_v3.0.1",
       "date": "Fri, 06 Feb 2026 15:34:13 GMT",
