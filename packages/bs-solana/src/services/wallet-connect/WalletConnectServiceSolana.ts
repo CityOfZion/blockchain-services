@@ -17,17 +17,24 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
 
   readonly namespace = 'solana'
   readonly chain: string
-  readonly supportedMethods: string[] = []
+  readonly supportedMethods: string[] = [
+    'solana_getAccounts',
+    'solana_requestAccounts',
+    'solana_signMessage',
+    'solana_signTransaction',
+    'solana_signAllTransactions',
+    'solana_signAndSendTransaction',
+  ]
   readonly supportedEvents: string[] = []
-  readonly calculableMethods: string[] = []
-  readonly autoApproveMethods: string[] = []
+  readonly calculableMethods: string[] = ['solana_signAndSendTransaction']
+  readonly autoApproveMethods: string[] = ['solana_getAccounts', 'solana_requestAccounts']
 
   readonly #service: IBSSolana<N>
 
   constructor(service: IBSSolana<N>) {
     this.#service = service
 
-    const networkId = WalletConnectServiceSolana.networkIdByNetworkType[this.#service.network.type]
+    const networkId = WalletConnectServiceSolana.networkIdByNetworkType[this.#service.network.id]
 
     this.chain = `${this.namespace}:${networkId}`
   }
@@ -77,11 +84,11 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
   }
 
   async solana_signMessage(args: TWalletConnectServiceRequestMethodParams<N>) {
-    if (typeof args.params.message !== 'string' || typeof args.params.pubKey !== 'string') {
+    if (typeof args.params.message !== 'string' || typeof args.params.pubkey !== 'string') {
       throw new Error('Invalid params')
     }
 
-    if (args.params.pubKey !== args.account.address) {
+    if (args.params.pubkey !== args.account.address) {
       throw new Error('Public key does not match account address')
     }
 

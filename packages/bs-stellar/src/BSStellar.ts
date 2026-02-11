@@ -246,6 +246,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
       address: keypair.publicKey(),
       key: keypair.secret(),
       type: 'privateKey',
+      bip44Path,
       blockchain: this.name,
     }
   }
