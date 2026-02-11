@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-solana",
   "entries": [
     {
+      "version": "3.0.3",
+      "tag": "@cityofzion/bs-solana_v3.0.3",
+      "date": "Wed, 11 Feb 2026 21:38:14 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix Wallet Connect implementation"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.0.2",
       "tag": "@cityofzion/bs-solana_v3.0.2",
       "date": "Tue, 10 Feb 2026 14:48:23 GMT",

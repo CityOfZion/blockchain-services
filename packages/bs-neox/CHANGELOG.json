@@ -2,6 +2,12 @@
   "name": "@cityofzion/bs-neox",
   "entries": [
     {
+      "version": "3.0.3",
+      "tag": "@cityofzion/bs-neox_v3.0.3",
+      "date": "Wed, 11 Feb 2026 21:38:14 GMT",
+      "comments": {}
+    },
+    {
       "version": "3.0.2",
       "tag": "@cityofzion/bs-neox_v3.0.2",
       "date": "Tue, 10 Feb 2026 14:48:23 GMT",

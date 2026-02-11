@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-solana
 
-This log was last generated on Tue, 10 Feb 2026 14:48:23 GMT and should not be manually modified.
+This log was last generated on Wed, 11 Feb 2026 21:38:14 GMT and should not be manually modified.
+
+## 3.0.3
+Wed, 11 Feb 2026 21:38:14 GMT
+
+### Updates
+
+- Fix Wallet Connect implementation
 
 ## 3.0.2
 Tue, 10 Feb 2026 14:48:23 GMT
