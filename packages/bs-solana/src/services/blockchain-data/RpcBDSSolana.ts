@@ -185,7 +185,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     const [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
 
     const amountBn = BSBigNumberHelper.fromDecimals(info.tokenAmount.amount, decimals)
-    const amount = BSBigNumberHelper.toNumber(amountBn)
+    const amount = BSBigNumberHelper.format(amountBn, { decimals })
     const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
     return {
@@ -307,7 +307,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     const [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
 
     const amountBn = BSBigNumberHelper.fromDecimals(info.tokenAmount.amount, decimals)
-    const amount = BSBigNumberHelper.toNumber(amountBn)
+    const amount = BSBigNumberHelper.format(amountBn, { decimals })
     const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
     return {
@@ -336,7 +336,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     }
 
     const amountBn = BSBigNumberHelper.fromDecimals(info.lamports, BSSolanaConstants.NATIVE_TOKEN.decimals)
-    const amount = BSBigNumberHelper.toNumber(amountBn)
+    const amount = BSBigNumberHelper.format(amountBn, { decimals: BSSolanaConstants.NATIVE_TOKEN.decimals })
 
     const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
     const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
@@ -424,7 +424,6 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
         BSBigNumberHelper.fromDecimals(transaction.meta.fee, this.#service.feeToken.decimals),
         { decimals: this.#service.feeToken.decimals }
       ),
-      systemFeeAmount: BSBigNumberHelper.format(0, { decimals: this.#service.feeToken.decimals }),
       date: new Date(transaction.blockTime).toISOString(),
       events,
       type: 'default',
@@ -552,7 +551,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       const amountBn = BSBigNumberHelper.fromDecimals(item.account.data.parsed.info.tokenAmount.amount, token.decimals)
       if (amountBn.isNaN() || amountBn.isLessThanOrEqualTo(0)) return
 
-      const amount = BSBigNumberHelper.toNumber(amountBn)
+      const amount = BSBigNumberHelper.format(amountBn, { decimals: token.decimals })
 
       balances.push({
         amount,

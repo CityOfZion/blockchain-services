@@ -14,7 +14,7 @@ describe('RpcBDSSolana', () => {
   })
 
   // It may throw an error as the devnet only returns transaction made in less than 10 days
-  it('Should be able to get transaction', async () => {
+  it.skip('Should be able to get transaction', async () => {
     const hash = 'mi5ZqR7ouXzeq43W4gZpzuw4LnybKbSMJMiCL69zjcrMAytuH3mqSAzp4QyagfPqH4yBYLg2imgbsrkgTPvkuNo'
 
     const transaction = await rpcBDSSolana.getTransaction(hash)
@@ -28,7 +28,6 @@ describe('RpcBDSSolana', () => {
         invocationCount: expect.any(Number),
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
-        systemFeeAmount: expect.anything(),
         type: expect.any(String),
       })
     )
@@ -73,7 +72,6 @@ describe('RpcBDSSolana', () => {
           invocationCount: expect.any(Number),
           notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
-          systemFeeAmount: expect.anything(),
           type: expect.any(String),
         })
       )

@@ -10,9 +10,9 @@ import {
   type TGetTransactionsByAddressResponse,
   type TGetTransactionsByAddressParams,
   BSUtilsHelper,
+  BSBigNumberHelper,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
-import { ethers } from 'ethers'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import {
@@ -79,7 +79,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
     const balances: TBalanceResponse[] = [
       {
-        amount: ethers.utils.formatUnits(nativeBalance, nativeToken.decimals),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(nativeBalance, nativeToken.decimals), {
+          decimals: nativeToken.decimals,
+        }),
         token: nativeToken,
       },
     ]
@@ -92,7 +94,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       if (balance.possible_spam || !balance.decimals || !balance.token_address || !balance.symbol) return
 
       balances.push({
-        amount: ethers.utils.formatUnits(balance.balance, balance.decimals),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(balance.balance, balance.decimals), {
+          decimals: balance.decimals,
+        }),
         token: this._service.tokenService.normalizeToken({
           decimals: balance.decimals,
           hash: balance.token_address,
@@ -161,7 +165,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
       events.push({
         eventType: 'token',
-        amount: ethers.utils.formatEther(data.value),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(data.value, nativeToken.decimals), {
+          decimals: nativeToken.decimals,
+        }),
         from: data.from_address,
         to: data.to_address,
         token: nativeToken,
@@ -195,7 +201,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
           events.push({
             contractHash,
-            amount: ethers.utils.formatUnits(amount, token.decimals),
+            amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount, token.decimals), {
+              decimals: token.decimals,
+            }),
             from,
             fromUrl,
             to,
@@ -248,8 +256,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       date: new Date(data.block_timestamp).toISOString(),
       invocationCount: 0,
       notificationCount: 0,
-      networkFeeAmount: data.transaction_fee,
-      systemFeeAmount: ethers.utils.formatEther('0'),
+      networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.transaction_fee), {
+        decimals: this._service.feeToken.decimals,
+      }),
       txIdUrl,
       events,
       type: 'default',
@@ -289,7 +298,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         const toUrl = addressTemplateUrl?.replace('{address}', transfer.to_address)
 
         events.push({
-          amount: ethers.utils.formatUnits(transfer.value, nativeAsset.decimals),
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, nativeAsset.decimals), {
+            decimals: nativeAsset.decimals,
+          }),
           from: transfer.from_address,
           fromUrl,
           to: transfer.to_address,
@@ -311,7 +322,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         const contractHashUrl = contractTemplateUrl?.replace('{hash}', transfer.address)
 
         events.push({
-          amount: ethers.utils.formatUnits(transfer.value, transfer.token_decimals),
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, transfer.token_decimals), {
+            decimals: transfer.token_decimals,
+          }),
           from: transfer.from_address,
           fromUrl,
           to: transfer.to_address,
@@ -372,8 +385,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         txIdUrl,
         notificationCount: 0,
         invocationCount: 0,
-        networkFeeAmount: item.transaction_fee,
-        systemFeeAmount: ethers.utils.formatEther('0'),
+        networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(item.transaction_fee), {
+          decimals: this._service.feeToken.decimals,
+        }),
         date: new Date(item.block_timestamp).toISOString(),
         events,
         type: 'default',

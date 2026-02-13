@@ -40,7 +40,6 @@ describe('BlockscoutBDSNeoX', () => {
           },
         ],
         networkFeeAmount: '0.00084',
-        systemFeeAmount: '0.0',
         invocationCount: 0,
         notificationCount: 0,
         txIdUrl: expect.any(String),
@@ -62,7 +61,7 @@ describe('BlockscoutBDSNeoX', () => {
         date: expect.any(String),
         events: [
           {
-            amount: '500000.0',
+            amount: '500000',
             contractHash: '0xE816deE05cf6D0F2a57EB4C489241D8326B5d106',
             from: '0x1C3ac630a715Aa8fFbb5e182716196F0153C372D',
             to: '0xE78FD95780d54E63cC4c1D0Df7DbC4487a6C72D4',
@@ -81,7 +80,6 @@ describe('BlockscoutBDSNeoX', () => {
           },
         ],
         networkFeeAmount: '0.00218104',
-        systemFeeAmount: '0.0',
         invocationCount: 0,
         notificationCount: 0,
         type: 'default',
@@ -126,7 +124,6 @@ describe('BlockscoutBDSNeoX', () => {
           invocationCount: expect.any(Number),
           notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
-          systemFeeAmount: expect.anything(),
           type: expect.any(String),
           events: expect.arrayContaining([
             expect.objectContaining({

@@ -88,7 +88,7 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
 
       events.push({
         eventType: 'token',
-        amount: BSBigNumberHelper.toNumber(amountBn, token.decimals),
+        amount: BSBigNumberHelper.format(amountBn, { decimals: token.decimals }),
         to,
         toUrl,
         from,
@@ -118,7 +118,6 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
         BSBigNumberHelper.fromDecimals(transaction.fee_charged, this.#service.feeToken.decimals),
         { decimals: this.#service.feeToken.decimals }
       ),
-      systemFeeAmount: BSBigNumberHelper.format(0, { decimals: this.#service.feeToken.decimals }),
     }
   }
 
@@ -195,7 +194,9 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
             name: balance.asset_code,
             symbol: balance.asset_code,
           },
-          amount: balance.balance,
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(balance.balance), {
+            decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
+          }),
         })
       }
     })
