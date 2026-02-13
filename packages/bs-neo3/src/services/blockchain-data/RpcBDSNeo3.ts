@@ -58,7 +58,9 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
         const amount = properties[2].value as string
 
         events.push({
-          amount: BSBigNumberHelper.format(amount ?? 0, { decimals: token.decimals }),
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount ?? 0, token.decimals), {
+            decimals: token.decimals,
+          }),
           from: convertedFrom,
           fromUrl,
           to: convertedTo,
@@ -139,7 +141,9 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
     const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     return {
-      amount: BSBigNumberHelper.toNumber(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals)),
+      amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals), {
+        decimals: tokenToUse.decimals,
+      }),
       tokenToUse,
       receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
     }
@@ -279,7 +283,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
-    const { rpc, u } = BSNeo3NeonJsSingletonHelper.getInstance()
+    const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     const rpcClient = new rpc.RPCClient(this._service.network.url)
     const response = await rpcClient.getNep17Balances(address)
@@ -298,7 +302,9 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
       }
 
       return {
-        amount: u.BigInteger.fromNumber(balance.amount).toDecimal(token?.decimals ?? 8),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(balance.amount, token.decimals), {
+          decimals: token.decimals,
+        }),
         token,
       }
     })

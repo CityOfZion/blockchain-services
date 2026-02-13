@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Fix transaction amount format",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

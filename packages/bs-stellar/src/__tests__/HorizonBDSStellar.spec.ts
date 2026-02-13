@@ -25,7 +25,6 @@ describe('HorizonBDSStellar', () => {
         invocationCount: expect.any(Number),
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
-        systemFeeAmount: expect.anything(),
         type: expect.any(String),
       })
     )
@@ -69,7 +68,6 @@ describe('HorizonBDSStellar', () => {
           invocationCount: expect.any(Number),
           notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
-          systemFeeAmount: expect.anything(),
           type: expect.any(String),
         })
       )

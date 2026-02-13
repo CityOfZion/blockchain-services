@@ -54,7 +54,9 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
     const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     return {
-      amount: BSBigNumberHelper.toNumber(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals)),
+      amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals), {
+        decimals: tokenToUse.decimals,
+      }),
       tokenToUse,
       receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
     }
@@ -243,7 +245,9 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
       try {
         const token = await this.getTokenInfo(balance.asset)
         return {
-          amount: balance.balance.toString(),
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(balance.balance), {
+            decimals: token.decimals,
+          }),
           token,
         }
       } catch {

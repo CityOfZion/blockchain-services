@@ -7,6 +7,7 @@ import {
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TTransaction,
+  BSBigNumberHelper,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
@@ -63,12 +64,21 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
       date: new Date(timestamp).toISOString(),
       invocationCount: 0,
       notificationCount: 0,
-      networkFeeAmount: ethers.utils.formatEther(fee),
-      systemFeeAmount: ethers.utils.formatEther(0),
+      networkFeeAmount: BSBigNumberHelper.format(
+        BSBigNumberHelper.fromDecimals(fee.toString(), this._service.feeToken.decimals),
+        {
+          decimals: this._service.feeToken.decimals,
+        }
+      ),
       events: [
         {
           eventType: 'token',
-          amount: ethers.utils.formatEther(transaction.value),
+          amount: BSBigNumberHelper.format(
+            BSBigNumberHelper.fromDecimals(transaction.value.toString(), token.decimals),
+            {
+              decimals: token.decimals,
+            }
+          ),
           methodName: 'transfer',
           from: transaction.from,
           fromUrl,
@@ -127,7 +137,9 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
 
     return [
       {
-        amount: ethers.utils.formatEther(balance),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(balance.toString(), token.decimals), {
+          decimals: token.decimals,
+        }),
         token,
       },
     ]

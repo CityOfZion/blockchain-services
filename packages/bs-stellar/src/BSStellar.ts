@@ -44,12 +44,12 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   readonly tokens: TBSToken[]
   readonly nativeTokens: TBSToken[]
 
-  exchangeDataService: IExchangeDataService
-  blockchainDataService: IBlockchainDataService<N>
-  tokenService: ITokenService
-  explorerService: IExplorerService
-  ledgerService: LedgerServiceStellar<N>
-  walletConnectService: IWalletConnectService<N>
+  exchangeDataService!: IExchangeDataService
+  blockchainDataService!: IBlockchainDataService<N>
+  tokenService!: ITokenService
+  explorerService!: IExplorerService
+  ledgerService!: LedgerServiceStellar<N>
+  walletConnectService!: IWalletConnectService<N>
 
   constructor(name: N, network?: TBSNetwork<TBSStellarNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -64,12 +64,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
 
     this.setNetwork(network || this.defaultNetwork)
 
-    this.tokenService = new TokenServiceStellar()
-    this.blockchainDataService = new HorizonBDSStellar(this)
-    this.exchangeDataService = new RpcEDSStellar(this)
-    this.explorerService = new StellarChainESStellar(this)
     this.ledgerService = new LedgerServiceStellar(this, getLedgerTransport)
-    this.walletConnectService = new WalletConnectServiceStellar(this)
   }
 
   async getFeeEstimate(length: number): Promise<TBSBigNumber> {
@@ -162,11 +157,16 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   }
 
   async createTrustline(senderAccount: TBSAccount<N>, token: TBSToken): Promise<string> {
+    let alreadyHaveTrustline = false
     try {
       await this.#ensureAccountOnChain(token.hash)
-      throw new Error('Trustline already exists')
+      alreadyHaveTrustline = true
     } catch {
       /* empty */
+    }
+
+    if (alreadyHaveTrustline) {
+      throw new Error('Trustline already exists')
     }
 
     const sourceAccount = await this.#ensureAccountOnChain(senderAccount.address)
@@ -204,6 +204,12 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     this.rpcNetworkUrls = rpcNetworkUrls
     this.sorobanServer = new stellarSDK.rpc.Server(this.network.url)
     this.horizonServer = new stellarSDK.Horizon.Server(BSStellarConstants.HORIZON_URL_BY_NETWORK_ID[network.id])
+
+    this.tokenService = new TokenServiceStellar()
+    this.blockchainDataService = new HorizonBDSStellar(this)
+    this.exchangeDataService = new RpcEDSStellar(this)
+    this.explorerService = new StellarChainESStellar(this)
+    this.walletConnectService = new WalletConnectServiceStellar(this)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout

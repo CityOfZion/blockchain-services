@@ -46,7 +46,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
       events.push({
-        amount: String(transfer.value),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(transfer.value), { decimals: token.decimals }),
         from,
         fromUrl,
         to,
@@ -68,10 +68,10 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       txId: data.txid,
       txIdUrl,
       block: data.block,
-      networkFeeAmount: BSBigNumberHelper.format(data.net_fee ?? 0, {
+      networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.net_fee), {
         decimals: this.#service.feeToken.decimals,
       }),
-      systemFeeAmount: BSBigNumberHelper.format(data.sys_fee ?? 0, {
+      systemFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.sys_fee), {
         decimals: this.#service.feeToken.decimals,
       }),
       date: new Date(Number(data.time) * 1000).toISOString(),
@@ -106,7 +106,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       const token = await this.getTokenInfo(entry.asset)
 
       const event: TTransactionTokenEvent = {
-        amount: String(entry.amount),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(entry.amount), { decimals: token.decimals }),
         from,
         fromUrl,
         to,
@@ -132,10 +132,6 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
         events: [event],
         invocationCount: 0,
         notificationCount: 0,
-        networkFeeAmount: BSBigNumberHelper.format(0, {
-          decimals: this.#service.feeToken.decimals,
-        }),
-        systemFeeAmount: BSBigNumberHelper.format(0, { decimals: this.#service.feeToken.decimals }),
         txIdUrl: txTemplateUrl?.replace('{txId}', entry.txid),
         type: 'default',
       })
@@ -206,7 +202,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       }
 
       return {
-        amount: BSBigNumberHelper.format(balance.balance, { decimals: token.decimals }),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(balance.balance), { decimals: token.decimals }),
         token,
       }
     })

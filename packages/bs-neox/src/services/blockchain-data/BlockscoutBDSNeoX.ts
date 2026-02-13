@@ -86,7 +86,9 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       const contractHashUrl = contractTemplateUrl?.replace('{hash}', nativeToken.hash)
 
       events.push({
-        amount: ethers.utils.formatUnits(response.value, nativeToken.decimals),
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(response.value, nativeToken.decimals), {
+          decimals: nativeToken.decimals,
+        }),
         from,
         fromUrl,
         to,
@@ -113,7 +115,12 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
         if (tokenTransfer.token.type === 'ERC-20') {
           events.push({
-            amount: ethers.utils.formatUnits(tokenTransfer.total.value, tokenTransfer.total.decimals),
+            amount: BSBigNumberHelper.format(
+              BSBigNumberHelper.fromDecimals(tokenTransfer.total.value, tokenTransfer.total.decimals),
+              {
+                decimals: tokenTransfer.total.decimals,
+              }
+            ),
             from,
             fromUrl,
             to,
@@ -174,8 +181,12 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       txId,
       txIdUrl,
       events,
-      networkFeeAmount: ethers.utils.formatEther(response.fee.value),
-      systemFeeAmount: ethers.utils.formatEther(0),
+      networkFeeAmount: BSBigNumberHelper.format(
+        BSBigNumberHelper.fromDecimals(response.fee.value, this._service.feeToken.decimals),
+        {
+          decimals: this._service.feeToken.decimals,
+        }
+      ),
       date: new Date(response.timestamp).toISOString(),
       invocationCount: 0,
       notificationCount: 0,
@@ -234,7 +245,9 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
         events.push({
-          amount: ethers.utils.formatUnits(item.value, nativeToken.decimals),
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(item.value, nativeToken.decimals), {
+            decimals: nativeToken.decimals,
+          }),
           from: item.from.hash,
           fromUrl,
           to,
@@ -268,7 +281,9 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
           const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
           events.push({
-            amount: ethers.utils.formatUnits(value, token.decimals),
+            amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(value, token.decimals), {
+              decimals: token.decimals,
+            }),
             from: item.from.hash,
             fromUrl,
             to,
@@ -299,8 +314,12 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         date: new Date(item.timestamp).toISOString(),
         invocationCount: 0,
         notificationCount: 0,
-        networkFeeAmount: ethers.utils.formatEther(item.fee.value),
-        systemFeeAmount: ethers.utils.formatEther(0),
+        networkFeeAmount: BSBigNumberHelper.format(
+          BSBigNumberHelper.fromDecimals(item.fee.value, this._service.feeToken.decimals),
+          {
+            decimals: this._service.feeToken.decimals,
+          }
+        ),
         events,
         type: 'default',
       }
@@ -408,7 +427,12 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const balances: TBalanceResponse[] = [
       {
-        amount: ethers.utils.formatUnits(nativeBalance.coin_balance, nativeToken.decimals),
+        amount: BSBigNumberHelper.format(
+          BSBigNumberHelper.fromDecimals(nativeBalance.coin_balance, nativeToken.decimals),
+          {
+            decimals: nativeToken.decimals,
+          }
+        ),
         token: nativeToken,
       },
     ]
@@ -434,7 +458,9 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         })
 
         balances.push({
-          amount: ethers.utils.formatUnits(balance.value, token.decimals),
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(balance.value, token.decimals), {
+            decimals: token.decimals,
+          }),
           token,
         })
       } catch {
@@ -483,7 +509,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     return {
       tokenToUse,
       receiverAddress,
-      amount: BSBigNumberHelper.toNumber(amountBn),
+      amount: BSBigNumberHelper.format(amountBn, { decimals: tokenToUse.decimals }),
     }
   }
 }
