@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-stellar",
   "entries": [
     {
+      "version": "3.0.4",
+      "tag": "@cityofzion/bs-stellar_v3.0.4",
+      "date": "Fri, 13 Feb 2026 22:47:31 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix transaction amount format"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.0.3",
       "tag": "@cityofzion/bs-stellar_v3.0.3",
       "date": "Wed, 11 Feb 2026 21:38:14 GMT",
