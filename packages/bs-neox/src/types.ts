@@ -1,4 +1,4 @@
-import { IBSWithNeo3NeoXBridge, TBSNetworkId } from '@cityofzion/blockchain-service'
+import type { IBSWithNeo3NeoXBridge, TBSNetworkId } from '@cityofzion/blockchain-service'
 import { ERC20_ABI, IBSEthereum } from '@cityofzion/bs-ethereum'
 import { ethers, Signer } from 'ethers'
 

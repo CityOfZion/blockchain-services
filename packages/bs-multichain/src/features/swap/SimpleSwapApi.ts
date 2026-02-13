@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
-import {
+import type {
   TSimpleSwapApiCreateExchangeParams,
   TSimpleSwapApiCreateExchangeResponse,
   TSimpleSwapApiCurrency,
@@ -11,7 +11,7 @@ import {
   TSimpleSwapApiGetRangeResponse,
   TSimpleSwapOrchestratorInitParams,
 } from './types'
-import { IBlockchainService, BSCommonConstants, hasExplorerService } from '@cityofzion/blockchain-service'
+import { BSCommonConstants, hasExplorerService, type IBlockchainService } from '@cityofzion/blockchain-service'
 
 export class SimpleSwapApi<N extends string> {
   readonly #tickersBySimpleSwapBlockchain: Partial<Record<string, Record<string, string>>> = {

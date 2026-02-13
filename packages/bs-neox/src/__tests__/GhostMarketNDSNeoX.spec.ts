@@ -23,6 +23,7 @@ describe('Neo X Blockchain', () => {
           hash: collectionHash,
           name: 'NEONAUTS',
           image: undefined,
+          url: expect.any(String),
         },
         symbol: 'XNAUTS',
         image: expect.any(String),
@@ -46,6 +47,7 @@ describe('Neo X Blockchain', () => {
             image: undefined,
             hash: expect.any(String),
             name: expect.any(String),
+            url: expect.any(String),
           },
           symbol: expect.any(String),
           image: expect.any(String),
@@ -66,7 +68,7 @@ describe('Neo X Blockchain', () => {
       const { items } = await ghostMarketNDSEthereum.getNftsByAddress({ address })
 
       for (const { collection } of items) {
-        const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection?.hash })
+        const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection!.hash })
 
         expect(hasToken).toBeTruthy()
       }
@@ -87,6 +89,7 @@ describe('Neo X Blockchain', () => {
         collection: expect.objectContaining({
           hash: collectionHash,
           name: 'GHOST',
+          url: expect.any(String),
         }),
         symbol: 'GHOST',
         image: expect.any(String),
@@ -108,6 +111,7 @@ describe('Neo X Blockchain', () => {
           collection: expect.objectContaining({
             hash: expect.any(String),
             name: expect.any(String),
+            url: expect.any(String),
           }),
           symbol: expect.any(String),
           image: expect.any(String),
@@ -130,7 +134,7 @@ describe('Neo X Blockchain', () => {
       for (const { collection } of items) {
         // Try and catch to ignore ERC1155 error in hasToken
         try {
-          const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection?.hash })
+          const hasToken = await ghostMarketNDSEthereum.hasToken({ address, collectionHash: collection!.hash })
 
           expect(hasToken).toBeTruthy()
         } catch {

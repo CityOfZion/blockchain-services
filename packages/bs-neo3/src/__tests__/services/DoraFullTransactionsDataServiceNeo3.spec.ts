@@ -33,7 +33,8 @@ jest.mock('../../services/nft-data/GhostMarketNDSNeo3', () => {
         getNft: jest.fn().mockReturnValue({
           image: 'nftImage',
           name: 'nftName',
-          collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+          explorerUri: 'nftUrl',
+          collection: { name: 'nftCollectionName', hash: 'nftCollectionHash', url: 'nftCollectionUrl' },
         }),
       }
     }),
@@ -48,6 +49,8 @@ jest.mock('../../services/explorer/DoraESNeo3', () => {
         getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
         getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
         getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
+        buildTransactionUrl: jest.fn().mockReturnValue('transactionUrl'),
+        buildContractUrl: jest.fn().mockReturnValue('contractUrl'),
       }
     }),
   }
@@ -299,11 +302,11 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             to: expect.anything(),
             toUrl: expect.anything(),
             collectionHash: expect.any(String),
-            collectionHashUrl: expect.any(String),
+            collectionHashUrl: 'nftCollectionUrl',
             tokenHash: expect.any(String),
             tokenType: 'nep-11',
             nftImageUrl: 'nftImage',
-            nftUrl: expect.any(String),
+            nftUrl: 'nftUrl',
             name: 'nftName',
             collectionName: 'nftCollectionName',
           }),

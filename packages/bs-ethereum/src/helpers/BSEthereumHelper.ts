@@ -1,6 +1,6 @@
-import { TBSNetwork, TBSNetworkId } from '@cityofzion/blockchain-service'
+import type { TBSNetwork, TBSNetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
-import { IBSEthereum, TBSEthereumNetworkId } from '../types'
+import type { IBSEthereum, TBSEthereumNetworkId } from '../types'
 
 export class BSEthereumHelper {
   static getNativeAsset(network: TBSNetwork<TBSEthereumNetworkId>) {

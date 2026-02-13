@@ -1,8 +1,8 @@
 import { BSError } from '../error'
 import isEqual from 'lodash.isequal'
-import { TBSNetwork } from '../interfaces'
+import type { TBSNetwork } from '../interfaces'
 
-type RetryOptions = {
+export type TBSUtilsHelperRetryOptions = {
   retries?: number
   delay?: number
   shouldRetry?: (error: any) => boolean
@@ -13,7 +13,7 @@ export class BSUtilsHelper {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
-  static retry<T = any>(callback: () => Promise<T>, options?: RetryOptions): Promise<T> {
+  static retry<T = any>(callback: () => Promise<T>, options?: TBSUtilsHelperRetryOptions): Promise<T> {
     const { retries = 50, delay = 100, shouldRetry } = options || {}
 
     // eslint-disable-next-line no-async-promise-executor
@@ -37,7 +37,7 @@ export class BSUtilsHelper {
     })
   }
 
-  static validateNetwork(network: TBSNetwork, availableNetworks: TBSNetwork[], rpcNetworkUrls: string[]) {
+  static validateNetwork(network: TBSNetwork, availableNetworks: TBSNetwork[], networkUrls: string[]) {
     const isValid = availableNetworks.some(networkItem =>
       isEqual(
         { id: network.id, type: network.type, name: network.name },
@@ -47,7 +47,7 @@ export class BSUtilsHelper {
 
     if (!isValid) return false
 
-    return rpcNetworkUrls.some(url => url === network.url)
+    return networkUrls.some(url => url === network.url)
   }
 
   static tryCatch<T>(

@@ -1,6 +1,6 @@
 import { BSBigNumberHelper, BSCommonConstants } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
-import {
+import type {
   IBSNeo3,
   IVoteService,
   TDoraVoteServiceNeo3GetCommitteeApiResponse,

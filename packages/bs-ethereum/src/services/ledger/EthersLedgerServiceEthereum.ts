@@ -1,11 +1,12 @@
 import {
-  TBSAccount,
-  TLedgerServiceEmitter,
-  TGetLedgerTransport,
-  TUntilIndexRecord,
   generateAccountForBlockchainService,
   BSUtilsHelper,
-  ILedgerService,
+  BSKeychainHelper,
+  type TBSAccount,
+  type TLedgerServiceEmitter,
+  type TGetLedgerTransport,
+  type TUntilIndexRecord,
+  type ILedgerService,
 } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
@@ -191,9 +192,9 @@ export class EthersLedgerServiceEthereum<N extends string> implements ILedgerSer
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const ledgerApp = new LedgerEthereumApp(transport)
-    const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
+    const bipPath = BSKeychainHelper.getBipPath(this.#blockchainService.bipDerivationPath, index)
 
-    const { publicKey, address } = await BSUtilsHelper.retry(() => ledgerApp.getAddress(bip44Path), {
+    const { publicKey, address } = await BSUtilsHelper.retry(() => ledgerApp.getAddress(bipPath), {
       shouldRetry: EthersLedgerSigner.shouldRetry,
     })
 
@@ -203,7 +204,7 @@ export class EthersLedgerServiceEthereum<N extends string> implements ILedgerSer
       address,
       key: publicKeyWithPrefix,
       type: 'publicKey',
-      bip44Path,
+      bipPath,
       blockchain: this.#blockchainService.name,
       isHardware: true,
     }

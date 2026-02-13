@@ -1,20 +1,20 @@
 import {
-  TBSAccount,
-  IBlockchainService,
   BSBigNumberHelper,
   isCalculableFee,
-  ISwapOrchestrator,
-  TSwapOrchestratorEvents,
-  TSwapLoadableValue,
-  TSwapMinMaxAmount,
-  TSwapResult,
-  TSwapToken,
-  TSwapValidateValue,
+  type TBSAccount,
+  type IBlockchainService,
+  type ISwapOrchestrator,
+  type TSwapOrchestratorEvents,
+  type TSwapLoadableValue,
+  type TSwapMinMaxAmount,
+  type TSwapResult,
+  type TSwapToken,
+  type TSwapValidateValue,
 } from '@cityofzion/blockchain-service'
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
 import { SimpleSwapApi } from './SimpleSwapApi'
-import { TSimpleSwapApiCurrency, TSimpleSwapOrchestratorInitParams } from './types'
+import type { TSimpleSwapApiCurrency, TSimpleSwapOrchestratorInitParams } from './types'
 
 type TRecalculateValuesParam<N extends string = string> = (keyof TSwapOrchestratorEvents<N>)[]
 

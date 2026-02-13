@@ -1,9 +1,9 @@
 import {
   BSError,
   hasWalletConnect,
-  IBlockchainService,
-  IBSWithWalletConnect,
-  TWalletConnectServiceRequestMethod,
+  type IBlockchainService,
+  type IBSWithWalletConnect,
+  type TWalletConnectServiceRequestMethod,
 } from '@cityofzion/blockchain-service'
 import { ErrorResponse, formatJsonRpcError, formatJsonRpcResult } from '@walletconnect/jsonrpc-utils'
 import type { PendingRequestTypes, SessionTypes } from '@walletconnect/types'
@@ -18,14 +18,14 @@ import {
   mergeRequiredAndOptionalNamespaces,
   SdkErrorKey,
 } from '@walletconnect/utils'
-import {
-  type TWalletKitHelperFilterSessionsParams,
-  type TWalletKitHelperGetProposalDetailsParams,
-  type TWalletKitHelperGetSessionDetailsParams,
-  type TWalletKitHelperProcessRequestParams,
-  type TWalletKitHelperProposalDetails,
-  type TWalletKitHelperSessionDetails,
-  type TWalletKitHelperGetProposalServicesParams,
+import type {
+  TWalletKitHelperFilterSessionsParams,
+  TWalletKitHelperGetProposalDetailsParams,
+  TWalletKitHelperGetSessionDetailsParams,
+  TWalletKitHelperProcessRequestParams,
+  TWalletKitHelperProposalDetails,
+  TWalletKitHelperSessionDetails,
+  TWalletKitHelperGetProposalServicesParams,
 } from './types'
 
 export class WalletKitHelper {

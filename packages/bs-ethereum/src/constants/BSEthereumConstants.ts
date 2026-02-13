@@ -1,5 +1,5 @@
-import { TBSNetwork } from '@cityofzion/blockchain-service'
-import { TBSEthereumNetworkId, TSupportedEVM } from '../types'
+import type { TBSNetwork } from '@cityofzion/blockchain-service'
+import type { TBSEthereumNetworkId, TSupportedEVM } from '../types'
 
 export class BSEthereumConstants {
   static readonly DEFAULT_DECIMALS = 18

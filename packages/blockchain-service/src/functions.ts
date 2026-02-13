@@ -1,18 +1,19 @@
 import { BSUtilsHelper } from './helpers/BSUtilsHelper'
-import {
-  type TBSAccount,
-  type IBlockchainService,
-  type IBSWithClaim,
-  type IBSWithEncryption,
-  type IBSWithExplorer,
-  type IBSWithFee,
-  type IBSWithLedger,
-  type IBSWithNameService,
-  type IBSWithNeo3NeoXBridge,
-  type IBSWithNft,
-  type TUntilIndexRecord,
-  type IBSWithWalletConnect,
-  type IBSWithFullTransactions,
+import type {
+  TBSAccount,
+  IBlockchainService,
+  IBSWithClaim,
+  IBSWithEncryption,
+  IBSWithExplorer,
+  IBSWithFee,
+  IBSWithLedger,
+  IBSWithNameService,
+  IBSWithNeo3NeoXBridge,
+  IBSWithNft,
+  TUntilIndexRecord,
+  IBSWithWalletConnect,
+  IBSWithFullTransactions,
+  IBSWithNetworkChange,
 } from './interfaces'
 
 export function hasNameService<N extends string = string, A extends string = string>(
@@ -31,6 +32,12 @@ export function isCalculableFee<N extends string = string, A extends string = st
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithFee<N> {
   return 'calculateTransferFee' in service
+}
+
+export function isNetworkChangeable<N extends string = string, A extends string = string>(
+  service: IBlockchainService<N, A>
+): service is IBlockchainService<N, A> & IBSWithNetworkChange<A> {
+  return 'availableNetworks' in service && 'isCustomNetworkSupported' in service && 'setNetwork' in service
 }
 
 export function hasNft<N extends string = string, A extends string = string>(
@@ -85,7 +92,7 @@ export async function waitForTransaction<N extends string = string, A extends st
   const maxAttempts = 30
   const waitMs = service.blockchainDataService.maxTimeToConfirmTransactionInMs / maxAttempts
 
-  let attempts = 1
+  let attempts = 0
   do {
     try {
       await service.blockchainDataService.getTransaction(txId)
@@ -108,7 +115,7 @@ export async function waitForAccountTransaction<N extends string = string, A ext
   maxAttempts?: number
 }): Promise<boolean> {
   const { address, maxAttempts = 10, service, txId } = params
-  let attempts = 1
+  let attempts = 0
 
   do {
     await BSUtilsHelper.wait(60000)

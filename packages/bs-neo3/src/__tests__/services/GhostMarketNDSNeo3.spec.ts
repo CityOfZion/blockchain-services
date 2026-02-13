@@ -24,6 +24,7 @@ describe('GhostMarketNDSNeo3', () => {
           hash: '0xaa4fb927b3fe004e689a278d188689c9f050a8b2',
           name: 'TOTHEMOON',
           image: expect.any(String),
+          url: expect.any(String),
         },
         image: expect.any(String),
         isSVG: expect.any(Boolean),
@@ -43,15 +44,16 @@ describe('GhostMarketNDSNeo3', () => {
 
     expect(nft).toEqual({
       hash: tokenHash,
+      explorerUri: `https://dora.coz.io/nft/neo3/mainnet/${collectionHash}/${tokenHash}`,
       collection: {
         hash: collectionHash,
         name: 'GHOST',
         image: expect.any(String),
+        url: expect.any(String),
       },
       symbol: 'GHOST',
       image: expect.any(String),
       isSVG: expect.any(Boolean),
-      explorerUri: expect.any(String),
       name: 'GAS Icon',
       creator: {
         address: expect.any(String),
@@ -74,6 +76,7 @@ describe('GhostMarketNDSNeo3', () => {
             hash: expect.any(String),
             name: expect.any(String),
             image: expect.anything(),
+            url: expect.any(String),
           },
         })
       )
@@ -89,7 +92,7 @@ describe('GhostMarketNDSNeo3', () => {
 
     const hasToken: boolean = await ghostMarketNDSNeo3.hasToken({
       address,
-      collectionHash: nfts.items[0].collection?.hash,
+      collectionHash: nfts.items[0].collection!.hash,
     })
 
     expect(hasToken).toBeTruthy()
