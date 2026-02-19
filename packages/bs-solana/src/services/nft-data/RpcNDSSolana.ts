@@ -1,12 +1,12 @@
-import {
-  TGetNftParam,
+import type {
+  TGetNftParams,
   TGetNftsByAddressParams,
-  THasTokenParam,
+  THasTokenParams,
   INftDataService,
   TNftResponse,
   TNftsResponse,
 } from '@cityofzion/blockchain-service'
-import { IBSSolana, type TMetaplexAssetByOwnerResponse, type TMetaplexAssetResponse } from '../../types'
+import type { IBSSolana, TMetaplexAssetByOwnerResponse, TMetaplexAssetResponse } from '../../types'
 import axios from 'axios'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 
@@ -33,10 +33,13 @@ export class RpcNDSSolana<N extends string> implements INftDataService {
 
     const group = result.grouping.find(g => g.group_key === 'collection')
     if (group) {
+      const collectionHash = group.group_value
+
       collection = {
-        hash: group.group_value,
+        hash: collectionHash,
         name: group.collection_metadata?.name,
         image: group.collection_metadata?.image,
+        url: this.#service.explorerService.buildContractUrl(collectionHash),
       }
     }
 
@@ -54,11 +57,9 @@ export class RpcNDSSolana<N extends string> implements INftDataService {
       image = imageFile?.uri
     }
 
-    const nftTemplateUrl = this.#service.explorerService.getNftTemplateUrl()
-
     const nft: TNftResponse = {
       hash: result.id,
-      explorerUri: nftTemplateUrl?.replace('{tokenHash}', result.id),
+      explorerUri: this.#service.explorerService.buildNftUrl({ tokenHash: result.id }),
       collection,
       creator,
       symbol: result.content.metadata.symbol,
@@ -69,7 +70,7 @@ export class RpcNDSSolana<N extends string> implements INftDataService {
     return nft
   }
 
-  async getNft(params: TGetNftParam): Promise<TNftResponse> {
+  async getNft(params: TGetNftParams): Promise<TNftResponse> {
     const nftFromCache = this.#nftsCache.get(params.tokenHash)
     if (nftFromCache) {
       return nftFromCache
@@ -135,7 +136,7 @@ export class RpcNDSSolana<N extends string> implements INftDataService {
     }
   }
 
-  async hasToken({ address, collectionHash }: THasTokenParam): Promise<boolean> {
+  async hasToken({ address, collectionHash }: THasTokenParams): Promise<boolean> {
     const response = await axios.post<TMetaplexAssetByOwnerResponse>(this.#rpcUrl, {
       jsonrpc: '2.0',
       id: 1,

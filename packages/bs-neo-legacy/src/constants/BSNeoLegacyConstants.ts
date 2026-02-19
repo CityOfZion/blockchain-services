@@ -1,5 +1,5 @@
-import { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
-import { TBSNeoLegacyNetworkId } from '../types'
+import type { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
+import type { TBSNeoLegacyNetworkId } from '../types'
 
 export class BSNeoLegacyConstants {
   static readonly GAS_ASSET: TBSToken = {

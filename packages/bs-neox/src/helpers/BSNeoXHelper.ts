@@ -1,5 +1,5 @@
-import { TBSNetwork } from '@cityofzion/blockchain-service'
-import { TBSNeoXNetworkId } from '../types'
+import type { TBSNetwork } from '@cityofzion/blockchain-service'
+import type { TBSNeoXNetworkId } from '../types'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 
 export class BSNeoXHelper {

@@ -1,9 +1,9 @@
 import {
-  TBSAccount,
-  IBlockchainService,
   generateAccountForBlockchainService,
   hasEncryption,
-  TUntilIndexRecord,
+  type TBSAccount,
+  type IBlockchainService,
+  type TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 
 export class BSAggregator<N extends string> {

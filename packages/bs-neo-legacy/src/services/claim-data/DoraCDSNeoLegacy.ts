@@ -1,5 +1,5 @@
-import { IClaimDataService } from '@cityofzion/blockchain-service'
-import { IBSNeoLegacy } from '../../types'
+import type { IClaimDataService } from '@cityofzion/blockchain-service'
+import type { IBSNeoLegacy } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 
 export class DoraCDSNeoLegacy<N extends string> implements IClaimDataService {

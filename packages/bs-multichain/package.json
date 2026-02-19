@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "axios": "~1.12.2",
+    "axios": "~1.13.5",
     "@walletconnect/utils": "~2.21.9",
     "@walletconnect/jsonrpc-utils": "~1.0.8"
   },

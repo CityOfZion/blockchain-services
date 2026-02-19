@@ -44,13 +44,11 @@ export class LedgerServiceStellar<N extends string = string> implements ILedgerS
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const ledgerApp = new LedgerStellarApp(transport)
-    const bip44Path = BSKeychainHelper.getBip44Path(
-      BSKeychainHelper.fixBip44Path(this.#service.bip44DerivationPath),
-      index
-    )
+    const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
+    const bip44PathWithoutMasterKey = BSKeychainHelper.removeMasterKeyFromBipPath(bipPath)
 
     const publicKeychain = await BSUtilsHelper.retry(async () => {
-      const { rawPublicKey } = await ledgerApp.getPublicKey(bip44Path)
+      const { rawPublicKey } = await ledgerApp.getPublicKey(bip44PathWithoutMasterKey)
       const publicKeyStr = stellarSDK.StrKey.encodeEd25519PublicKey(rawPublicKey)
       return stellarSDK.Keypair.fromPublicKey(publicKeyStr)
     })
@@ -61,14 +59,14 @@ export class LedgerServiceStellar<N extends string = string> implements ILedgerS
       address: publicKey,
       key: publicKey,
       type: 'publicKey',
-      bip44Path,
+      bipPath,
       isHardware: true,
       blockchain: this.#service.name,
     }
   }
 
   async signTransaction(transport: Transport, transaction: stellarSDK.Transaction, account: TBSAccount<N>) {
-    if (!account.bip44Path)
+    if (!account.bipPath)
       throw new BSError('TBSAccount must have bip44Path to sign with Ledger', 'INVALID_HARDWARE_ACCOUNT')
 
     const ledgerApp = new LedgerStellarApp(transport)
@@ -76,8 +74,10 @@ export class LedgerServiceStellar<N extends string = string> implements ILedgerS
 
     this.emitter?.emit('getSignatureStart')
 
-    const bip44Path = BSKeychainHelper.fixBip44Path(account.bip44Path)
-    const { signature } = await ledgerApp.signTransaction(bip44Path, signatureBase)
+    const { signature } = await ledgerApp.signTransaction(
+      BSKeychainHelper.removeMasterKeyFromBipPath(account.bipPath),
+      signatureBase
+    )
 
     this.emitter?.emit('getSignatureEnd')
 

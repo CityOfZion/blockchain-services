@@ -52,14 +52,12 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
     })
 
     const items = response.data ?? []
-
     const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
-      const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
+      const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
+
       const newItem: TTransaction<N> = {
         txId,
         txIdUrl,
@@ -88,7 +86,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
         const isNep5 = DoraFullTransactionsDataServiceNeoLegacy.SUPPORTED_NEP5_STANDARDS.includes(standard)
         const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
         const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
+        const contractHashUrl = contractHash ? this.#service.explorerService.buildContractUrl(contractHash) : undefined
 
         const assetEvent: TTransactionTokenEvent = {
           eventType: 'token',

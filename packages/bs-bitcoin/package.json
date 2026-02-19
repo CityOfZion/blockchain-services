@@ -1,0 +1,44 @@
+{
+  "name": "@cityofzion/bs-bitcoin",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "https://github.com/CityOfZion/blockchain-services",
+  "author": "Coz",
+  "license": "GPL-3.0-only",
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "build": "rm -rf ./dist && tsc --project tsconfig.build.json",
+    "test": "jest -i --config jest.config.ts",
+    "lint": "eslint .",
+    "format": "eslint --fix",
+    "package": "npm run build && npm pack"
+  },
+  "dependencies": {
+    "@cityofzion/blockchain-service": "workspace:*",
+    "@bitcoinerlab/secp256k1": "~1.2.0",
+    "@ledgerhq/hw-app-btc": "~10.17.0",
+    "@ledgerhq/hw-transport": "~6.32.0",
+    "axios": "~1.13.5",
+    "bip32": "~5.0.0",
+    "bip38": "~3.1.1",
+    "bip39": "~3.1.0",
+    "bitcoinjs-lib": "~7.0.1",
+    "c32check": "~2.0.0",
+    "ecpair": "~3.0.0",
+    "wif": "~5.0.0"
+  },
+  "devDependencies": {
+    "@ledgerhq/hw-transport-node-hid": "~6.29.17",
+    "@types/bip38": "~3.1.2",
+    "@types/jest": "~30.0.0",
+    "dotenv": "~17.2.3",
+    "eslint": "~9.39.2",
+    "jest": "~30.2.0",
+    "ts-jest": "~29.4.6",
+    "ts-node": "~10.9.2",
+    "typescript": "~5.9.3"
+  }
+}

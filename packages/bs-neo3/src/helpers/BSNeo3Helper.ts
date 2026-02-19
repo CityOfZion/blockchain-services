@@ -1,6 +1,6 @@
-import { TBSNetwork } from '@cityofzion/blockchain-service'
+import type { TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../constants/BSNeo3Constants'
-import { TBSNeo3NetworkId } from '../types'
+import type { TBSNeo3NetworkId } from '../types'
 
 export class BSNeo3Helper {
   static getTokens(network: TBSNetwork<TBSNeo3NetworkId>) {

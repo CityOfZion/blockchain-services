@@ -1,18 +1,18 @@
 import {
-  TBSAccount,
-  TLedgerServiceEmitter,
-  TGetLedgerTransport,
-  TUntilIndexRecord,
-  generateAccountForBlockchainService,
   BSUtilsHelper,
-  ILedgerService,
   BSKeychainHelper,
+  generateAccountForBlockchainService,
+  type TBSAccount,
+  type TLedgerServiceEmitter,
+  type TGetLedgerTransport,
+  type TUntilIndexRecord,
+  type ILedgerService,
 } from '@cityofzion/blockchain-service'
 import LedgerSolanaApp from '@ledgerhq/hw-app-solana'
 import EventEmitter from 'events'
 import Transport from '@ledgerhq/hw-transport'
 import solanaSDK from '@solana/web3.js'
-import { IBSSolana } from '../../types'
+import type { IBSSolana } from '../../types'
 
 export class Web3LedgerServiceSolana<N extends string = string> implements ILedgerService<N> {
   readonly #service: IBSSolana<N>
@@ -43,13 +43,11 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const ledgerApp = new LedgerSolanaApp(transport)
-    const bip44Path = BSKeychainHelper.getBip44Path(
-      BSKeychainHelper.fixBip44Path(this.#service.bip44DerivationPath),
-      index
-    )
+    const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
 
     const publicKey = await BSUtilsHelper.retry(async () => {
-      const response = await ledgerApp.getAddress(bip44Path)
+      const response = await ledgerApp.getAddress(BSKeychainHelper.removeMasterKeyFromBipPath(bipPath))
+
       return new solanaSDK.PublicKey(response.address)
     })
 
@@ -59,21 +57,21 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
       address,
       key: address,
       type: 'publicKey',
-      bip44Path,
+      bipPath,
       isHardware: true,
       blockchain: this.#service.name,
     }
   }
 
   async signTransaction(transport: Transport, transaction: solanaSDK.Transaction, account: TBSAccount<N>) {
-    if (!account.bip44Path) throw new Error('TBSAccount must have bip44Path to sign with Ledger')
+    if (!account.bipPath) throw new Error('TBSAccount must have bip44Path to sign with Ledger')
 
     const ledgerApp = new LedgerSolanaApp(transport)
     const serializedTransaction = transaction.compileMessage().serialize()
 
     this.emitter?.emit('getSignatureStart')
 
-    const bip44Path = BSKeychainHelper.fixBip44Path(account.bip44Path)
+    const bip44Path = BSKeychainHelper.removeMasterKeyFromBipPath(account.bipPath)
     const { signature } = await ledgerApp.signTransaction(bip44Path, serializedTransaction)
 
     this.emitter?.emit('getSignatureEnd')
