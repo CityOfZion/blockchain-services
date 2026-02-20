@@ -20,11 +20,11 @@ describe('Neo3NeoXBridgeService', () => {
     bsNeo3Service = new BSNeo3('test', network)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeo3Service)
 
-    account = bsNeo3Service.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
+    account = await bsNeo3Service.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   it('Should not be able to get bridge constants for a invalid `testInvoke` response', async () => {
@@ -36,7 +36,7 @@ describe('Neo3NeoXBridgeService', () => {
       ],
     }
 
-    jest.spyOn(NeonInvoker.prototype, 'testInvoke').mockResolvedValue(invalidResponse as any)
+    vi.spyOn(NeonInvoker.prototype, 'testInvoke').mockResolvedValue(invalidResponse as any)
 
     await expect(neo3NeoXBridgeService.getBridgeConstants(neo3NeoXBridgeService.gasToken)).rejects.toThrow(BSError)
   })
@@ -79,18 +79,26 @@ describe('Neo3NeoXBridgeService', () => {
         token: neo3NeoXBridgeService.gasToken,
         transactionHash: 'invalid-transaction-hash',
       })
-    ).rejects.toThrow(new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('FAILED_TO_GET_NONCE')
+      return true
+    })
   })
 
   it('Should be able to get the nonce of a invalid transaction vmState', async () => {
-    jest.spyOn(api.NeoRESTApi.prototype, 'log').mockResolvedValue({ vmstate: 'FAULT' } as any)
+    vi.spyOn(api.NeoRESTApi.prototype, 'log').mockResolvedValue({ vmstate: 'FAULT' } as any)
 
     await expect(
       neo3NeoXBridgeService.getNonce({
         token: neo3NeoXBridgeService.gasToken,
         transactionHash: 'invalid-transaction-hash',
       })
-    ).rejects.toThrow(new BSError('Transaction invalid', 'INVALID_TRANSACTION'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INVALID_TRANSACTION')
+      return true
+    })
   })
 
   it('Should not be able to get the nonce of a non-bridge transaction', async () => {
@@ -99,7 +107,11 @@ describe('Neo3NeoXBridgeService', () => {
         token: neo3NeoXBridgeService.gasToken,
         transactionHash: '0x0d4daca576d1c8b17d2ed3fc2e33e8bf560af0798c0b46b6b20eab456e36d005',
       })
-    ).rejects.toThrow(new BSError('Nonce not found in transaction log', 'NONCE_NOT_FOUND'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('NONCE_NOT_FOUND')
+      return true
+    })
   })
 
   it('Should be able to get the nonce of a GAS bridge', async () => {
@@ -126,18 +138,26 @@ describe('Neo3NeoXBridgeService', () => {
         token: neo3NeoXBridgeService.gasToken,
         nonce: 'non-existing-nonce',
       })
-    ).rejects.toThrow(new BSError('Failed to get transaction by nonce', 'FAILED_TO_GET_TRANSACTION_BY_NONCE'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('FAILED_TO_GET_TRANSACTION_BY_NONCE')
+      return true
+    })
   })
 
   it('Should be able to get the transaction hash by nonce for a invalid transaction vmState', async () => {
-    jest.spyOn(axios, 'post').mockResolvedValue({ data: { result: { Vmstate: 'FAULT' } } } as any)
+    vi.spyOn(axios, 'post').mockResolvedValue({ data: { result: { Vmstate: 'FAULT' } } } as any)
 
     await expect(
       neo3NeoXBridgeService.getTransactionHashByNonce({
         token: neo3NeoXBridgeService.gasToken,
         nonce: '761',
       })
-    ).rejects.toThrow(new BSError('Transaction invalid', 'INVALID_TRANSACTION'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INVALID_TRANSACTION')
+      return true
+    })
   })
 
   it('Should be able to get the transaction hash by nonce', async () => {

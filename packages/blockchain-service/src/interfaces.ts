@@ -69,8 +69,8 @@ export interface IBlockchainService<N extends string, A extends string = string>
 
   pingNode(url: string): Promise<TPingNetworkResponse>
   setNetwork(network: TBSNetwork<A>): void
-  generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N>
-  generateAccountFromKey(key: string): TBSAccount<N>
+  generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<N>>
+  generateAccountFromKey(key: string): Promise<TBSAccount<N>>
   validateAddress(address: string): boolean
   validateKey(key: string): boolean
   transfer(param: TTransferParam<N>): Promise<string[]>
@@ -108,7 +108,7 @@ export interface IBSWithNft {
 
 export interface IBSWithLedger<N extends string> {
   ledgerService: ILedgerService<N>
-  generateAccountFromPublicKey(publicKey: string): TBSAccount<N>
+  generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>>
 }
 
 export interface IBSWithWalletConnect<N extends string> {
@@ -320,6 +320,7 @@ export interface IExplorerService {
   buildTransactionUrl(hash: string): string | undefined
   buildContractUrl(contractHash: string): string | undefined
   buildNftUrl(params: TBuildNftUrlParams): string | undefined
+  buildAddressUrl(address: string): string | undefined
   getAddressTemplateUrl(): string | undefined
   getTxTemplateUrl(): string | undefined
   getNftTemplateUrl(): string | undefined

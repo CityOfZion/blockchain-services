@@ -1,20 +1,20 @@
 {
   "name": "@cityofzion/blockchain-service",
   "version": "3.0.4",
+  "repository": "https://github.com/CityOfZion/blockchain-services",
+  "license": "GPL-3.0-only",
+  "author": "Coz",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "https://github.com/CityOfZion/blockchain-services",
-  "author": "Coz",
-  "license": "GPL-3.0-only",
   "files": [
     "/dist"
   ],
   "scripts": {
     "build": "rm -rf ./dist && npm run typecheck && tsc --project tsconfig.build.json",
-    "test": "jest -i --config jest.config.ts",
-    "lint": "eslint .",
     "format": "eslint --fix",
+    "lint": "eslint .",
     "package": "npm run build && npm pack",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -29,15 +29,12 @@
   "devDependencies": {
     "@ledgerhq/hw-transport": "~6.32.0",
     "@types/elliptic": "~6.4.18",
-    "@types/jest": "~30.0.0",
     "@types/lodash.isequal": "~4.5.8",
     "@types/node": "~24.5.2",
-    "dotenv": "17.2.2",
+    "dotenv": "~17.3.1",
     "eslint": "~9.36.0",
-    "jest": "30.1.3",
-    "ts-jest": "29.4.4",
-    "ts-node": "~10.9.2",
     "typed-emitter": "~2.1.0",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "~4.0.18"
   }
 }

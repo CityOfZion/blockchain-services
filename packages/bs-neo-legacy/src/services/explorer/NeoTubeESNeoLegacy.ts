@@ -29,6 +29,10 @@ export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
     return undefined
   }
 
+  buildAddressUrl(address: string): string | undefined {
+    return `${this.#baseUrl}/address/${address}`
+  }
+
   getAddressTemplateUrl() {
     if (!this.#baseUrl) return undefined
     return `${this.#baseUrl}/address/{address}`

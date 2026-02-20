@@ -1,14 +1,10 @@
 import {
-  BSBigNumberHelper,
   type IWalletConnectService,
   type TWalletConnectServiceRequestMethodParams,
-  type TBSAccount,
+  BSBigNumberHelper,
 } from '@cityofzion/blockchain-service'
 import type { IBSSolana, TBSSolanaNetworkId } from '../../types'
-import { createPrivateKey, sign } from 'crypto'
-import { Transaction, VersionedTransaction, type Message, type VersionedMessage } from '@solana/web3.js'
-import bs58 from 'bs58'
-
+import * as solanaKit from '@solana/kit'
 export class WalletConnectServiceSolana<N extends string> implements IWalletConnectService<N> {
   static networkIdByNetworkType: Record<TBSSolanaNetworkId, string> = {
     'mainnet-beta': '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
@@ -40,43 +36,16 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
   }
 
   #parseTransaction(encodedTransaction: string) {
-    const buffer = Buffer.from(encodedTransaction, 'base64')
-    let transaction: Transaction | VersionedTransaction
-
-    // Versioned tx starts with version byte >= 0x80
-    if (buffer[0] & 0x80) {
-      transaction = VersionedTransaction.deserialize(buffer)
-    } else {
-      transaction = Transaction.from(buffer)
-    }
-
-    return transaction
-  }
-
-  #signTransaction(encodedTransaction: string, account: TBSAccount<N>) {
-    const transaction = this.#parseTransaction(encodedTransaction)
-
-    const keypair = this.#service.generateKeyPairFromKey(account.key)
-
-    // Versioned tx starts with version byte >= 0x80
-    if (transaction instanceof VersionedTransaction) {
-      transaction.sign([keypair])
-    } else {
-      if (transaction.feePayer && transaction.feePayer.toBase58() !== keypair.publicKey.toBase58()) {
-        throw new Error('Fee payer does not match account address')
-      }
-
-      transaction.partialSign(keypair)
-    }
+    const transactionBytes = solanaKit.getBase64Encoder().encode(encodedTransaction)
+    const transaction = solanaKit.getTransactionCodec().decode(transactionBytes)
 
     return transaction
   }
 
   [methodName: string]: any
 
-  async solana_getAccounts(args: TWalletConnectServiceRequestMethodParams<N>) {
-    const keypair = this.#service.generateKeyPairFromKey(args.account.key)
-    return [{ pubkey: keypair.publicKey.toBase58() }]
+  async solana_getAccounts(args: TWalletConnectServiceRequestMethodParams<N>): Promise<{ pubkey: string }[]> {
+    return [{ pubkey: args.account.address }]
   }
 
   async solana_requestAccounts(args: TWalletConnectServiceRequestMethodParams<N>) {
@@ -92,21 +61,15 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
       throw new Error('Public key does not match account address')
     }
 
-    const messageBytes = bs58.decode(args.params.message)
+    const messageBytes = solanaKit.getBase58Codec().encode(args.params.message)
 
-    const keypair = this.#service.generateKeyPairFromKey(args.account.key)
+    const keypair = await solanaKit.createKeyPairFromBytes(solanaKit.getBase58Encoder().encode(args.account.key))
 
-    const seed = keypair.secretKey.slice(0, 32)
+    const signatureBuffer = await crypto.subtle.sign('Ed25519', keypair.privateKey, new Uint8Array(messageBytes))
 
-    const privateKey = createPrivateKey({
-      key: Buffer.concat([Buffer.from('302e020100300506032b657004220420', 'hex'), seed]),
-      format: 'der',
-      type: 'pkcs8',
-    })
+    const signature = solanaKit.getBase58Codec().decode(new Uint8Array(signatureBuffer))
 
-    const signature = sign(null, messageBytes, privateKey)
-
-    return { signature: bs58.encode(signature) }
+    return { signature }
   }
 
   async solana_signTransaction(args: TWalletConnectServiceRequestMethodParams<N>) {
@@ -114,9 +77,11 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
       throw new Error('Invalid params')
     }
 
-    const transaction = this.#signTransaction(args.params.transaction, args.account)
+    const parsedTransaction = this.#parseTransaction(args.params.transaction)
 
-    return { transaction: transaction.serialize().toString('base64') }
+    const signedTransaction = await this.#service.signTransaction(parsedTransaction, args.account)
+
+    return { transaction: signedTransaction }
   }
 
   async solana_signAllTransactions(args: TWalletConnectServiceRequestMethodParams<N>) {
@@ -124,9 +89,13 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
       throw new Error('Invalid params')
     }
 
-    const signedTransactions = args.params.transactions.map((transaction: string) =>
-      this.#signTransaction(transaction, args.account).serialize().toString('base64')
-    )
+    const signedTransactions: solanaKit.Base64EncodedWireTransaction[] = []
+
+    for (const transaction of args.params.transactions) {
+      const parsedTransaction = this.#parseTransaction(transaction)
+      const signedTransaction = await this.#service.signTransaction(parsedTransaction, args.account)
+      signedTransactions.push(signedTransaction)
+    }
 
     return {
       transactions: signedTransactions,
@@ -140,14 +109,18 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
 
     const options = args.params.sendOptions ?? {}
 
-    const signedTransaction = this.#signTransaction(args.params.transaction, args.account)
+    const parsedTransaction = this.#parseTransaction(args.params.transaction)
 
-    const signature = await this.#service.connection.sendRawTransaction(signedTransaction.serialize(), {
-      maxRetries: options.maxRetries,
-      preflightCommitment: options.preflightCommitment,
-      minContextSlot: options.minContextSlot,
-      skipPreflight: options.skipPreflight,
-    })
+    const signedTransaction = await this.#service.signTransaction(parsedTransaction, args.account)
+
+    const signature = await this.#service.solanaKitRpc
+      .sendTransaction(signedTransaction, {
+        maxRetries: options.maxRetries,
+        preflightCommitment: options.preflightCommitment,
+        minContextSlot: options.minContextSlot,
+        skipPreflight: options.skipPreflight,
+      })
+      .send()
 
     return { signature }
   }
@@ -159,22 +132,17 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
 
     const transaction = this.#parseTransaction(args.params.transaction)
 
-    let message: VersionedMessage | Message
+    const messageBase64 = solanaKit.getBase64Decoder().decode(transaction.messageBytes)
 
-    if (transaction instanceof Transaction) {
-      const { blockhash } = await this.#service.connection.getLatestBlockhash()
-      transaction.recentBlockhash = blockhash
-      message = transaction.compileMessage()
-    } else {
-      message = transaction.message
-    }
+    const feeResponse = await this.#service.solanaKitRpc
+      .getFeeForMessage(messageBase64 as any, { commitment: 'confirmed' })
+      .send()
 
-    const fee = await this.#service.connection.getFeeForMessage(message)
-    if (!fee.value) {
+    if (!feeResponse.value) {
       throw new Error('Failed to calculate fee')
     }
 
-    const feeBn = BSBigNumberHelper.fromDecimals(fee.value, this.#service.feeToken.decimals)
+    const feeBn = BSBigNumberHelper.fromDecimals(feeResponse.value.toString(), this.#service.feeToken.decimals)
     return BSBigNumberHelper.toNumber(feeBn).toString()
   }
 }

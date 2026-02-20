@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Update classes to align with the new generateAccount's function interface",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Replace jest to vitest",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}

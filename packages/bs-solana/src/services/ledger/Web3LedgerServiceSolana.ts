@@ -11,9 +11,8 @@ import {
 import LedgerSolanaApp from '@ledgerhq/hw-app-solana'
 import EventEmitter from 'events'
 import Transport from '@ledgerhq/hw-transport'
-import solanaSDK from '@solana/web3.js'
 import { IBSSolana } from '../../types'
-
+import * as solanaKit from '@solana/kit'
 export class Web3LedgerServiceSolana<N extends string = string> implements ILedgerService<N> {
   readonly #service: IBSSolana<N>
   readonly getLedgerTransport?: TGetLedgerTransport<N>
@@ -50,10 +49,11 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
 
     const publicKey = await BSUtilsHelper.retry(async () => {
       const response = await ledgerApp.getAddress(bip44Path)
-      return new solanaSDK.PublicKey(response.address)
+      const base58Address = solanaKit.getBase58Decoder().decode(response.address)
+      return base58Address
     })
 
-    const address = publicKey.toBase58()
+    const address = publicKey
 
     return {
       address,
@@ -65,20 +65,30 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
     }
   }
 
-  async signTransaction(transport: Transport, transaction: solanaSDK.Transaction, account: TBSAccount<N>) {
+  async signTransaction(
+    transport: Transport,
+    transaction: solanaKit.Transaction,
+    account: TBSAccount<N>
+  ): Promise<solanaKit.Base64EncodedWireTransaction> {
     if (!account.bip44Path) throw new Error('TBSAccount must have bip44Path to sign with Ledger')
 
     const ledgerApp = new LedgerSolanaApp(transport)
-    const serializedTransaction = transaction.compileMessage().serialize()
 
     this.emitter?.emit('getSignatureStart')
 
     const bip44Path = BSKeychainHelper.fixBip44Path(account.bip44Path)
-    const { signature } = await ledgerApp.signTransaction(bip44Path, serializedTransaction)
+    const { signature } = await ledgerApp.signTransaction(bip44Path, Buffer.from(transaction.messageBytes))
 
     this.emitter?.emit('getSignatureEnd')
 
-    transaction.addSignature(new solanaSDK.PublicKey(account.address), signature)
-    return transaction.serialize()
+    const signedTransaction: solanaKit.Transaction = {
+      ...transaction,
+      signatures: {
+        ...transaction.signatures,
+        [account.address]: signature,
+      },
+    }
+
+    return solanaKit.getBase64EncodedWireTransaction(signedTransaction)
   }
 }

@@ -48,16 +48,16 @@ describe('BSStellar', () => {
     expect(bsStellar.validateKey(anotherInvalidKey)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', () => {
-    const generatedAccount = bsStellar.generateAccountFromMnemonic(mnemonic, 0)
+  it('Should be able to generate a account from mnemonic', async () => {
+    const generatedAccount = await bsStellar.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(generatedAccount.address).toEqual(keypair.publicKey())
     expect(generatedAccount.key).toEqual(keypair.secret())
   })
 
-  it('Should be able to generate a account from key', () => {
+  it('Should be able to generate a account from key', async () => {
     const secret = keypair.secret()
-    const generatedAccount = bsStellar.generateAccountFromKey(secret)
+    const generatedAccount = await bsStellar.generateAccountFromKey(secret)
 
     expect(generatedAccount.address).toEqual(keypair.publicKey())
     expect(generatedAccount.key).toEqual(keypair.secret())
@@ -73,7 +73,7 @@ describe('BSStellar', () => {
   })
 
   it('Should be able to calculate transfer fee', async () => {
-    const senderAccount = bsStellar.generateAccountFromKey(keypair.secret())
+    const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
 
     const fee = await bsStellar.calculateTransferFee({
       senderAccount,
@@ -96,7 +96,7 @@ describe('BSStellar', () => {
 
   // Fetch https://friendbot.stellar.org?addr=${address} to fund test accounts
   it.skip('Should be able to transfer the native token', async () => {
-    const senderAccount = bsStellar.generateAccountFromKey(keypair.secret())
+    const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
 
     const [transactionHash] = await bsStellar.transfer({
       senderAccount,
@@ -113,8 +113,8 @@ describe('BSStellar', () => {
   })
 
   it.skip('Should be able to transfer more than one intent', async () => {
-    const senderAccount = bsStellar.generateAccountFromKey(keypair.secret())
-    const receiverAccount = bsStellar.generateAccountFromKey(keypair2.secret())
+    const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
+    const receiverAccount = await bsStellar.generateAccountFromKey(keypair2.secret())
 
     // Uncomment to create the trustline first
     // const createTrustlineTransactionHash = await service._createTrustline(receiverAccount, sacToken)

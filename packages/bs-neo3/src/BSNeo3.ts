@@ -221,7 +221,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     return domainName.endsWith('.neo')
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): TBSAccount<N> {
+  async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
     const mnemonicStr = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
 
@@ -233,7 +233,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     return { address, key: WIF, type: 'wif', bip44Path, blockchain: this.name }
   }
 
-  generateAccountFromPublicKey(publicKey: string): TBSAccount<N> {
+  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
@@ -248,7 +248,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     }
   }
 
-  generateAccountFromKey(key: string): TBSAccount<N> {
+  async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
@@ -262,7 +262,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     const key = await wallet.decrypt(encryptedKey, password)
-    return this.generateAccountFromKey(key)
+    return await this.generateAccountFromKey(key)
   }
 
   async encrypt(key: string, password: string): Promise<string> {

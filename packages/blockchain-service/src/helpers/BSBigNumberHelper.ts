@@ -20,16 +20,16 @@ export class BSBigNumberHelper {
     return typeof decimals !== 'undefined' ? value.toFixed(decimalsNumber) : value.toFixed()
   }
 
-  static fromNumber(value: string | number | undefined): BigNumber {
+  static fromNumber(value: string | number | bigint | undefined): BigNumber {
     return new BigNumber(value || 0)
   }
 
-  static fromDecimals(value: string | number | undefined, decimals?: number | string): BigNumber {
+  static fromDecimals(value: string | number | bigint | undefined, decimals?: number | string): BigNumber {
     const decimalsNumber = this.#ensureNumber(decimals)
     return new BigNumber(value || 0).shiftedBy(-decimalsNumber)
   }
 
-  static format(value?: string | number | BigNumber, options?: FormatNumberOptions) {
+  static format(value?: string | number | bigint | BigNumber, options?: FormatNumberOptions) {
     const fixedDecimals = this.#ensureNumber(options?.decimals)
 
     if (!value) return '0'

@@ -27,7 +27,7 @@ describe('BSNeoX', () => {
   it('Should be able to transfer the native token (GAS) on TestNet', async () => {
     bsNeoX = new BSNeoX('test', defaultNetwork)
 
-    const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const transactionHashes = await bsNeoX.transfer({
       senderAccount: account,
@@ -45,14 +45,14 @@ describe('BSNeoX', () => {
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
     expect(transactionHashes.length).toBe(2)
   })
 
   it('Should be able to transfer the NEO token on TestNet', async () => {
     bsNeoX = new BSNeoX('test', defaultNetwork)
 
-    const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const transactionHashes = await bsNeoX.transfer({
       senderAccount: account,
@@ -70,7 +70,7 @@ describe('BSNeoX', () => {
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
     expect(transactionHashes.length).toBe(2)
   })
 
@@ -97,7 +97,7 @@ describe('BSNeoX', () => {
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
     expect(transactionHashes.length).toBe(2)
 
     await transport.close()
@@ -126,7 +126,7 @@ describe('BSNeoX', () => {
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
     expect(transactionHashes.length).toBe(2)
 
     await transport.close()
@@ -135,7 +135,7 @@ describe('BSNeoX', () => {
   it('Should be able to transfer the native token (GAS) on TestNet using Anti-MEV', async () => {
     bsNeoX = new BSNeoX('test', antiMevNetwork)
 
-    const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const transactionHashes = await bsNeoX.transfer({
       senderAccount: account,
@@ -153,14 +153,14 @@ describe('BSNeoX', () => {
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
     expect(transactionHashes.length).toBe(2)
   })
 
   it('Should be able to transfer the NEO token on TestNet using Anti-MEV', async () => {
     bsNeoX = new BSNeoX('test', antiMevNetwork)
 
-    const account = bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const transactionHashes = await bsNeoX.transfer({
       senderAccount: account,
@@ -178,7 +178,7 @@ describe('BSNeoX', () => {
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
     expect(transactionHashes.length).toBe(2)
   })
 
@@ -205,7 +205,7 @@ describe('BSNeoX', () => {
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
     expect(transactionHashes.length).toBe(2)
 
     await transport.close()
@@ -234,7 +234,7 @@ describe('BSNeoX', () => {
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayOf(expect.any(String)))
+    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
     expect(transactionHashes.length).toBe(2)
 
     await transport.close()

@@ -13,12 +13,13 @@ import axios from 'axios'
 import { IBSNeo3, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
-import { LogResponse } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
+import { LogResponse, type Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 import {
   BSNeo3NeonDappKitSingletonHelper,
   ContractInvocation,
   Signer,
 } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
+import type { StateResponse, TypedResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
 
 export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeService<N> {
   static readonly BRIDGE_SCRIPT_HASH: string = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
@@ -180,12 +181,18 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
 
     let nonce: string | null = null
 
+    const notifications = log?.notifications as unknown as Notification[]
+
     if (isNativeToken) {
-      const notification = log.notifications.find(item => item.event_name === 'NativeDeposit')
-      nonce = notification?.state.value[0].value ?? null
+      const notification = notifications.find(item => item.event_name === 'NativeDeposit')
+      const values = notification?.state as StateResponse
+      const value = values?.value as TypedResponse[]
+      nonce = value?.[0].value ?? null
     } else {
-      const notification = log.notifications.find(item => item.event_name === 'TokenDeposit')
-      nonce = notification?.state.value[2].value ?? null
+      const notification = notifications.find(item => item.event_name === 'TokenDeposit')
+      const values = notification?.state as StateResponse
+      const value = values?.value as TypedResponse[]
+      nonce = value?.[2].value ?? null
     }
 
     if (!nonce) {

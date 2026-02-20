@@ -242,7 +242,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N> {
+  async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<N>> {
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
 
     const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
@@ -257,7 +257,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  generateAccountFromKey(key: string): TBSAccount<N> {
+  async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
     const keypair = stellarSDK.Keypair.fromSecret(key)
 
     return {
@@ -268,7 +268,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  generateAccountFromPublicKey(publicKey: string): TBSAccount<N> {
+  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
     const isPublicKeyValid = this.validateAddress(publicKey)
     if (!isPublicKeyValid) {
       throw new BSError('Invalid public key', 'INVALID_PUBLIC_KEY')

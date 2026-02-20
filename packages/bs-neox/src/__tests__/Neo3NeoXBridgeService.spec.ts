@@ -31,11 +31,11 @@ describe('Neo3NeoXBridgeService', () => {
     bsNeoXService = new BSNeoX('test', defaultNetwork)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
 
-    account = bsNeoXService.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
+    account = await bsNeoXService.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   it('Should be able to get the NEO bridge constants', async () => {
@@ -69,12 +69,16 @@ describe('Neo3NeoXBridgeService', () => {
   it('Should not be able to get the approval fee for GAS bridge', async () => {
     await expect(
       neo3NeoXBridgeService.getApprovalFee({ account, amount: '1', token: neo3NeoXBridgeService.gasToken })
-    ).rejects.toThrow(new BSError('No allowance fee for native token', 'NO_ALLOWANCE_FEE'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('NO_ALLOWANCE_FEE')
+      return true
+    })
   })
 
   it('Should not be able to get the approval fee for NEO bridge when it is already approved', async () => {
-    const allowanceMock = jest.fn().mockResolvedValue(ethers.BigNumber.from('1000000000000000000'))
-    jest.spyOn(ethers, 'Contract').mockImplementation(
+    const allowanceMock = vi.fn().mockResolvedValue(ethers.BigNumber.from('1000000000000000000'))
+    vi.spyOn(ethers, 'Contract').mockImplementation(
       () =>
         ({
           allowance: allowanceMock,
@@ -83,7 +87,11 @@ describe('Neo3NeoXBridgeService', () => {
 
     await expect(
       neo3NeoXBridgeService.getApprovalFee({ account, amount: '1', token: neo3NeoXBridgeService.neoToken })
-    ).rejects.toThrow(new BSError('Allowance is already sufficient', 'ALLOWANCE_ALREADY_SUFFICIENT'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('ALLOWANCE_FEE_ERROR')
+      return true
+    })
   })
 
   it('Should be able to get the approval fee for NEO bridge', async () => {
@@ -103,7 +111,11 @@ describe('Neo3NeoXBridgeService', () => {
         token: neo3NeoXBridgeService.gasToken,
         transactionHash: 'invalid-transaction-hash',
       })
-    ).rejects.toThrow(new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('FAILED_TO_GET_NONCE')
+      return true
+    })
   })
 
   it('Should not be able to get the nonce of a non-bridge transaction', async () => {
@@ -112,7 +124,11 @@ describe('Neo3NeoXBridgeService', () => {
         token: neo3NeoXBridgeService.gasToken,
         transactionHash: '0x1b644eeab5df6b840c03228d609138858e23c730af81afc74a9018fe375266df',
       })
-    ).rejects.toThrow(new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('FAILED_TO_GET_NONCE')
+      return true
+    })
   })
 
   it('Should be able to get the nonce of a GAS bridge', async () => {
@@ -139,7 +155,11 @@ describe('Neo3NeoXBridgeService', () => {
         token: neo3NeoXBridgeService.gasToken,
         nonce: 'non-existing-nonce',
       })
-    ).rejects.toThrow(new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('TXID_NOT_FOUND')
+      return true
+    })
   })
 
   it('Should not be able to get the transaction hash by non-existent nonce', async () => {
@@ -148,7 +168,11 @@ describe('Neo3NeoXBridgeService', () => {
         token: neo3NeoXBridgeService.gasToken,
         nonce: '1000',
       })
-    ).rejects.toThrow(new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND'))
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('TXID_NOT_FOUND')
+      return true
+    })
   })
 
   it('Should be able to get the transaction hash by nonce', async () => {

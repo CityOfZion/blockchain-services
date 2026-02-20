@@ -10,12 +10,12 @@ describe('DoraVoteServiceNeo3', () => {
   const cozCandidatePubKey = '02946248f71bdf14933e6735da9867e81cc9eea0b5895329aa7f71e7745cf40659'
   const testnetNetwork = BSNeo3Constants.TESTNET_NETWORK
 
-  beforeEach(() => {
+  beforeEach(async () => {
     const bsNeo3 = new BSNeo3('test')
 
     doraVoteServiceNeo3 = new DoraVoteServiceNeo3<'test'>(bsNeo3)
 
-    account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
   })
 
   describe('getCandidatesToVote', () => {

@@ -10,193 +10,129 @@ import {
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   BSUtilsHelper,
+  BSError,
 } from '@cityofzion/blockchain-service'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
-import solanaSDK, { PublicKey } from '@solana/web3.js'
-import * as solanaSplSDK from '@solana/spl-token'
-import { IBSSolana, type TMetaplexAssetResponse } from '../../types'
+import * as solanaKit from '@solana/kit'
+import * as solanaToken from '@solana-program/token'
+import * as solanaSystem from '@solana-program/system'
+import { IBSSolana, type TMetaplexAssetResponse, type TRpcBDSSolanaParsedInstruction } from '../../types'
 import axios from 'axios'
 
 export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 // 1 minutes
   readonly #service: IBSSolana<N>
   #tokenCache: Map<string, TBSToken> = new Map()
-  #splAccountCache: Map<string, solanaSplSDK.Account | null> = new Map()
-  #splAddressCache: Map<string, solanaSDK.PublicKey | null> = new Map()
+  #splAccountCache: Map<string, solanaKit.AccountInfoWithJsonData | null> = new Map()
 
   constructor(service: IBSSolana<N>) {
     this.#service = service
   }
 
-  async #getSplAddress(
-    address: string,
-    mint: string,
-    instructions: solanaSDK.ParsedInstruction[],
-    connection: solanaSDK.Connection
-  ) {
-    const splAddress = this.#splAddressCache.get(address)
-    if (splAddress !== undefined) {
-      return splAddress
-    }
-
-    let owner: solanaSDK.PublicKey | null = null
-
-    // find owner in instructions, it may found a wrong address,
-    // but it is necessary in some cases where the token account is closed and can`t found
-    for (const instruction of instructions) {
-      const info = instruction.parsed.info
-
-      if (
-        instruction.parsed.type.startsWith('initializeAccount') &&
-        info.account === address &&
-        info.owner &&
-        info.mint === mint
-      ) {
-        owner = new solanaSDK.PublicKey(info.owner)
-        break
-      }
-
-      if (instruction.parsed.type === 'closeAccount' && info.account === address && info.owner) {
-        owner = new solanaSDK.PublicKey(info.owner)
-        break
-      }
-    }
-
-    if (!owner) {
-      const account = await this.#getSplAccount(address, connection)
-      if (account) {
-        owner = account.owner
-      }
-    }
-
-    this.#splAddressCache.set(address, owner)
-
-    return owner
-  }
-
-  async #getSplAccount(address: string, connection: solanaSDK.Connection) {
+  async #getSplAccount(address: string) {
     const account = this.#splAccountCache.get(address)
     if (account !== undefined) {
       return account
     }
 
-    let tokenAccount: solanaSplSDK.Account | null = null
+    let accountInfoValue: solanaKit.AccountInfoWithJsonData | null = null
 
     try {
-      tokenAccount = await solanaSplSDK.getAccount(connection, new solanaSDK.PublicKey(address))
+      const sourcePubkey = solanaKit.address(address)
+      const accountInfo = await this.#service.solanaKitRpc
+        .getAccountInfo(sourcePubkey, { encoding: 'jsonParsed' })
+        .send()
+      accountInfoValue = accountInfo.value
     } catch {
       /* empty */
     }
 
-    this.#splAccountCache.set(address, tokenAccount)
+    this.#splAccountCache.set(address, accountInfoValue)
 
-    return tokenAccount
+    return accountInfoValue
   }
 
   async #parseSplTransferCheckedInstruction(
-    instruction: solanaSDK.ParsedInstruction,
-    allInstructions: solanaSDK.ParsedInstruction[]
-  ): Promise<TTransactionTokenEvent | TTransactionNftEvent> {
-    const info = instruction.parsed.info
+    instruction: TRpcBDSSolanaParsedInstruction
+  ): Promise<TTransactionTokenEvent | TTransactionNftEvent | undefined> {
+    const info = instruction.parsed.info as any
 
-    if (!info.destination || !info.source || !info.mint) {
-      throw new Error('Unsupported instruction format')
-    }
-
-    const mintPubkey = new PublicKey(info.mint)
-    const contractHash = mintPubkey.toBase58()
-
-    const mintInfo = await this.#service.connection.getParsedAccountInfo(mintPubkey)
-
-    let mintData: any | null = null
-
-    if (mintInfo.value?.data && 'parsed' in mintInfo.value.data) {
-      mintData = mintInfo.value.data.parsed.info
-    }
-
-    if (!mintData) {
-      throw new Error('Mint info not found')
-    }
-
-    const decimals: number = mintData.decimals
-    const supply: string = mintData.supply
-    const rawAmount: string = info.amount
-
-    const isNft = decimals === 0 && rawAmount === '1' && supply === '1'
-
-    const toTokenAddress = await this.#getSplAddress(
-      info.destination,
-      contractHash,
-      allInstructions,
-      this.#service.connection
+    if (
+      !info.destination ||
+      !info.source ||
+      !info.mint ||
+      !info.tokenAmount ||
+      !info.tokenAmount.amount ||
+      !info.tokenAmount.decimals
     )
-    if (!toTokenAddress) {
-      throw new Error('To account not found')
+      return
+
+    const contractHash = info.mint
+    const tokenAmount = info.tokenAmount.amount
+
+    let [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
+    if (!token) {
+      token = {
+        symbol: 'UNKNOWN',
+        name: 'Unknown Token',
+        decimals: BSBigNumberHelper.fromNumber(info.tokenAmount.decimals).toNumber(),
+        hash: contractHash,
+      }
     }
 
-    const to = toTokenAddress.toBase58()
+    const sourceAccountInfo = await this.#getSplAccount(info.source)
+    if (!sourceAccountInfo?.data || !('parsed' in sourceAccountInfo.data)) return
 
-    const fromTokenAddress = await this.#getSplAddress(
-      info.source,
-      contractHash,
-      allInstructions,
-      this.#service.connection
-    )
-    if (!fromTokenAddress) {
-      throw new Error('From account not found')
-    }
+    const sourceAccountInfoParsedData = sourceAccountInfo.data.parsed.info as any
+    if (!sourceAccountInfoParsedData.mint || !sourceAccountInfoParsedData.owner) return
 
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
-    const nftTemplateUrl = this.#service.explorerService.getNftTemplateUrl()
+    const destinationAccountInfo = await this.#getSplAccount(info.destination)
+    if (!destinationAccountInfo?.data || !('parsed' in destinationAccountInfo.data)) return
 
-    const from = fromTokenAddress.toBase58()
+    const destinationAccountInfoParsedData = destinationAccountInfo.data.parsed.info as any
+    if (!destinationAccountInfoParsedData.owner) return
 
-    const fromUrl = addressTemplateUrl?.replace('{address}', from)
-    const toUrl = addressTemplateUrl?.replace('{address}', to)
+    const from = sourceAccountInfoParsedData.owner
+    const to = destinationAccountInfoParsedData.owner
+
+    const isNft = token.decimals === 0 && tokenAmount === '1'
 
     if (isNft) {
       const [nft] = await BSUtilsHelper.tryCatch(() => this.#service.nftDataService.getNft({ tokenHash: contractHash }))
 
-      const nftUrl = nftTemplateUrl?.replace('{tokenHash}', contractHash)
-      const collectionHashUrl = nft?.collection?.hash
-        ? contractTemplateUrl?.replace('{hash}', nft.collection.hash)
-        : undefined
-
       return {
         eventType: 'nft',
-        from,
-        fromUrl,
-        to,
-        toUrl,
-        tokenHash: contractHash,
-        collectionHash: nft?.collection?.hash,
-        collectionHashUrl,
-        methodName: 'transferChecked',
         tokenType: 'spl',
+        methodName: 'transferChecked',
+        from,
+        fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
+        to,
+        toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
+        tokenHash: contractHash,
         amount: '1',
-        collectionName: nft?.collection?.name,
-        nftImageUrl: nft?.image,
         name: nft?.name,
-        nftUrl,
+        nftImageUrl: nft?.image,
+        collectionHash: nft?.collection?.hash,
+        collectionHashUrl: nft?.collection?.hash
+          ? this.#service.explorerService.buildContractUrl(nft.collection.hash)
+          : undefined,
+        nftUrl: this.#service.explorerService.buildNftUrl({ tokenHash: contractHash }),
+        collectionName: nft?.collection?.name,
       }
     }
 
-    const [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
-
-    const amountBn = BSBigNumberHelper.fromDecimals(info.tokenAmount.amount, decimals)
-    const amount = BSBigNumberHelper.format(amountBn, { decimals })
-    const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+    const amountBn = BSBigNumberHelper.fromDecimals(tokenAmount, token.decimals)
+    const amount = BSBigNumberHelper.format(amountBn, { decimals: token.decimals })
 
     return {
       eventType: 'token',
       amount,
       contractHash,
-      contractHashUrl,
+      contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
       from,
-      fromUrl,
+      fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
       to,
-      toUrl,
+      toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
       token,
       methodName: 'transferChecked',
       tokenType: 'spl',
@@ -204,241 +140,186 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
   }
 
   async #parseSplTransferInstruction(
-    instruction: solanaSDK.ParsedInstruction,
-    allInstructions: solanaSDK.ParsedInstruction[]
-  ): Promise<TTransactionTokenEvent | TTransactionNftEvent> {
-    const info = instruction.parsed.info
+    instruction: TRpcBDSSolanaParsedInstruction
+  ): Promise<TTransactionTokenEvent | TTransactionNftEvent | undefined> {
+    const info = instruction.parsed.info as any
 
-    if (!info.destination || !info.source || !info.amount) {
-      throw new Error('Unsupported instruction format')
-    }
+    if (!info || !info.destination || !info.source || !info.amount) return
 
-    const toTokenAccount = await this.#getSplAccount(info.destination, this.#service.connection)
-    if (!toTokenAccount) {
-      throw new Error('To account not found')
-    }
+    const sourceAccountInfo = await this.#getSplAccount(info.source)
+    if (!sourceAccountInfo?.data || !('parsed' in sourceAccountInfo.data)) return
 
-    const mintPubkey = toTokenAccount.mint
-    const contractHash = mintPubkey.toBase58()
+    const sourceAccountInfoParsedData = sourceAccountInfo.data.parsed.info as any
+    if (!sourceAccountInfoParsedData.mint || !sourceAccountInfoParsedData.owner) return
 
-    const mintInfo = await this.#service.connection.getParsedAccountInfo(mintPubkey)
+    const contractHash = sourceAccountInfoParsedData.mint
 
-    let mintData: any | null = null
-
-    if (mintInfo.value?.data && 'parsed' in mintInfo.value.data) {
-      mintData = mintInfo.value.data.parsed.info
-    }
-
-    if (!mintData) {
-      throw new Error('Mint info not found')
-    }
-
-    const decimals: number = mintData.decimals
-    const supply: string = mintData.supply
-    const rawAmount: string = info.amount
-
-    const isNft = decimals === 0 && rawAmount === '1' && supply === '1'
-
-    let to: string
-
-    if (info.destination === toTokenAccount.address.toBase58()) {
-      const toTokenAddress = await this.#getSplAddress(
-        info.destination,
-        contractHash,
-        allInstructions,
-        this.#service.connection
-      )
-
-      if (!toTokenAddress) {
-        throw new Error('To account not found')
+    let [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
+    if (!token) {
+      token = {
+        symbol: 'UNKNOWN',
+        name: 'Unknown Token',
+        decimals: 6,
+        hash: contractHash,
       }
-
-      to = toTokenAddress.toBase58()
-    } else {
-      to = toTokenAccount.address.toBase58()
     }
 
-    const fromTokenAddress = await this.#getSplAddress(
-      info.source,
-      contractHash,
-      allInstructions,
-      this.#service.connection
-    )
-    if (!fromTokenAddress) {
-      throw new Error('From account not found')
-    }
+    const destinationAccountInfo = await this.#getSplAccount(info.destination)
+    if (!destinationAccountInfo?.data || !('parsed' in destinationAccountInfo.data)) return
 
-    const from = fromTokenAddress.toBase58()
+    const destinationAccountInfoParsedData = destinationAccountInfo.data.parsed.info as any
+    if (!destinationAccountInfoParsedData.owner) return
 
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
-    const nftTemplateUrl = this.#service.explorerService.getNftTemplateUrl()
+    const from = sourceAccountInfoParsedData.owner
+    const to = destinationAccountInfoParsedData.owner
 
-    const fromUrl = addressTemplateUrl?.replace('{address}', from)
-    const toUrl = addressTemplateUrl?.replace('{address}', to)
+    const isNft = token.decimals === 0 && info.amount === '1'
 
     if (isNft) {
       const [nft] = await BSUtilsHelper.tryCatch(() => this.#service.nftDataService.getNft({ tokenHash: contractHash }))
-
-      const nftUrl = nftTemplateUrl?.replace('{tokenHash}', contractHash)
-      const collectionHashUrl = nft?.collection?.hash
-        ? contractTemplateUrl?.replace('{hash}', nft.collection.hash)
-        : undefined
 
       return {
         eventType: 'nft',
         tokenType: 'spl',
         methodName: 'transfer',
         from,
-        fromUrl,
+        fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
         to,
-        toUrl,
+        toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
         tokenHash: contractHash,
         amount: '1',
         name: nft?.name,
         nftImageUrl: nft?.image,
         collectionHash: nft?.collection?.hash,
-        collectionHashUrl,
-        nftUrl,
+        collectionHashUrl: nft?.collection?.hash
+          ? this.#service.explorerService.buildContractUrl(nft.collection.hash)
+          : undefined,
+        nftUrl: this.#service.explorerService.buildNftUrl({ tokenHash: contractHash }),
         collectionName: nft?.collection?.name,
       }
     }
 
-    const [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
-
-    const amountBn = BSBigNumberHelper.fromDecimals(info.tokenAmount.amount, decimals)
-    const amount = BSBigNumberHelper.format(amountBn, { decimals })
-    const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+    const amountBn = BSBigNumberHelper.fromDecimals(info.amount, token.decimals)
+    const amount = BSBigNumberHelper.format(amountBn, { decimals: token.decimals })
 
     return {
       eventType: 'token',
       tokenType: 'spl',
       methodName: 'transfer',
       from,
-      fromUrl,
+      fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
       to,
-      toUrl,
+      toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
       contractHash,
-      contractHashUrl,
+      contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
       amount,
       token,
     }
   }
 
   async #parseSystemInstruction(
-    instruction: solanaSDK.ParsedInstruction
-  ): Promise<TTransactionTokenEvent | TTransactionNftEvent> {
-    const info = instruction.parsed.info
+    instruction: TRpcBDSSolanaParsedInstruction
+  ): Promise<TTransactionTokenEvent | TTransactionNftEvent | undefined> {
+    const info = instruction.parsed.info as any
     const method = instruction.parsed.type
 
-    if (info.lamports === undefined || info.source === undefined || method !== 'transfer' || !info.destination) {
-      throw new Error('Unsupported instruction format')
-    }
+    if (!info || method !== 'transfer' || !info.lamports || !info.source || !info.destination) return
 
     const amountBn = BSBigNumberHelper.fromDecimals(info.lamports, BSSolanaConstants.NATIVE_TOKEN.decimals)
     const amount = BSBigNumberHelper.format(amountBn, { decimals: BSSolanaConstants.NATIVE_TOKEN.decimals })
 
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
-
     const from = info.source
     const to = info.destination
     const contractHash = BSSolanaConstants.NATIVE_TOKEN.hash
-
-    const fromUrl = addressTemplateUrl?.replace('{address}', from)
-    const toUrl = addressTemplateUrl?.replace('{address}', to)
-    const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
 
     return {
       eventType: 'token',
       amount,
       methodName: 'transfer',
       tokenType: 'native',
-      from: info.source,
-      fromUrl,
-      to: info.destination,
-      toUrl,
+      from,
+      fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
+      to,
+      toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
       contractHash,
-      contractHashUrl,
+      contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
       token: BSSolanaConstants.NATIVE_TOKEN,
     }
   }
 
   async #parseInstruction(
-    instruction: solanaSDK.ParsedInstruction,
-    allInstructions: solanaSDK.ParsedInstruction[]
-  ): Promise<TTransactionTokenEvent | TTransactionNftEvent> {
-    if (!instruction.parsed.type || !instruction.parsed.info) {
-      throw new Error('Unsupported instruction format')
-    }
+    instruction: solanaKit.TransactionForFullJsonParsed<'legacy'>['transaction']['message']['instructions'][number]
+  ): Promise<TTransactionTokenEvent | TTransactionNftEvent | undefined> {
+    if (!('parsed' in instruction) || !instruction.parsed.type || !instruction.parsed.info) return
 
     const programId = instruction.programId.toString()
     const method = instruction.parsed.type
 
-    if (programId === solanaSDK.SystemProgram.programId.toString()) {
+    if (programId === solanaSystem.SYSTEM_PROGRAM_ADDRESS.toString()) {
       return await this.#parseSystemInstruction(instruction)
     }
 
-    if (programId === solanaSplSDK.TOKEN_PROGRAM_ID.toString() && method === 'transfer') {
-      return await this.#parseSplTransferInstruction(instruction, allInstructions)
+    if (programId === solanaToken.TOKEN_PROGRAM_ADDRESS.toString() && method === 'transfer') {
+      return await this.#parseSplTransferInstruction(instruction)
     }
 
-    if (programId === solanaSplSDK.TOKEN_PROGRAM_ID.toString() && method === 'transferChecked') {
-      return await this.#parseSplTransferCheckedInstruction(instruction, allInstructions)
+    if (programId === solanaToken.TOKEN_PROGRAM_ADDRESS.toString() && method === 'transferChecked') {
+      return await this.#parseSplTransferCheckedInstruction(instruction)
     }
-
-    throw new Error('Unsupported instruction')
   }
 
-  async #parseTransaction(transaction: solanaSDK.ParsedTransactionWithMeta): Promise<TTransaction<N> | undefined> {
-    if (!transaction.blockTime || !transaction.meta) return
+  async #parseTransaction(
+    transaction?: solanaKit.TransactionForFullJsonParsed<'legacy'> | null,
+    blockTime?: bigint | number | null,
+    block?: bigint | number | null
+  ): Promise<TTransaction<N> | undefined> {
+    if (!transaction || !blockTime || !transaction.meta || !block) return
 
     const events: TTransaction<N>['events'] = []
 
     const allInstructions = [
       ...transaction.transaction.message.instructions,
       ...(transaction.meta.innerInstructions?.flatMap(item => item.instructions) ?? []),
-    ].filter((item): item is solanaSDK.ParsedInstruction => 'parsed' in item)
+    ]
 
     for (const instruction of allInstructions) {
-      try {
-        const event = await this.#parseInstruction(instruction, allInstructions)
+      const event = await this.#parseInstruction(instruction).catch(() => undefined)
+      if (event) {
         events.push(event)
-      } catch {
-        /* empty */
       }
     }
 
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-
     const txId = transaction.transaction.signatures[0]
-    const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
 
     return {
-      block: transaction.slot,
-      txId: transaction.transaction.signatures[0],
-      txIdUrl,
+      block: BSBigNumberHelper.fromNumber(block).toNumber(),
+      txId,
+      txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
       invocationCount: 0,
       notificationCount: 0,
       networkFeeAmount: BSBigNumberHelper.format(
         BSBigNumberHelper.fromDecimals(transaction.meta.fee, this.#service.feeToken.decimals),
         { decimals: this.#service.feeToken.decimals }
       ),
-      date: new Date(transaction.blockTime).toISOString(),
+      date: new Date(BSBigNumberHelper.fromNumber(blockTime).multipliedBy(1000).toNumber()).toJSON(),
       events,
       type: 'default',
     }
   }
 
   async getTransaction(txid: string): Promise<TTransaction<N>> {
-    const transaction = await this.#service.connection.getParsedTransaction(txid, {
-      maxSupportedTransactionVersion: 0,
-    })
+    const signature = solanaKit.signature(txid)
+    const transaction = await this.#service.solanaKitRpc
+      .getTransaction(signature, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 })
+      .send()
 
-    if (!transaction) throw new Error('Transaction not found')
+    const parsedTransaction = await this.#parseTransaction(
+      transaction as solanaKit.TransactionForFullJsonParsed<'legacy'> | null,
+      transaction?.blockTime,
+      transaction?.slot
+    )
 
-    const parsedTransaction = await this.#parseTransaction(transaction)
-    if (!parsedTransaction) throw new Error('Transaction not found')
+    if (!parsedTransaction) throw new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND')
 
     return parsedTransaction
   }
@@ -446,12 +327,14 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
   ): Promise<TGetTransactionsByAddressResponse<N>> {
-    const publicKey = new solanaSDK.PublicKey(params.address)
+    const solanaKitAddress = solanaKit.address(params.address)
 
-    const signaturesResponse = await this.#service.connection.getSignaturesForAddress(publicKey, {
-      limit: 15,
-      before: params.nextPageParams,
-    })
+    const signaturesResponse = await this.#service.solanaKitRpc
+      .getSignaturesForAddress(solanaKitAddress, {
+        limit: 15,
+        before: params.nextPageParams,
+      })
+      .send()
 
     const response = await axios.post(
       this.#service.network.url,
@@ -466,7 +349,11 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     const transactions: TTransaction<N>[] = []
 
     const promises = response.data.map(async (response: any) => {
-      const parsedTransaction = await this.#parseTransaction(response.result)
+      const parsedTransaction = await this.#parseTransaction(
+        response.result,
+        response.result?.blockTime,
+        response.result?.slot
+      )
       if (!parsedTransaction) return
 
       transactions.push(parsedTransaction)
@@ -481,7 +368,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
   }
 
   async getContract(_contractHash: string): Promise<TContractResponse> {
-    throw new Error('Method not supported.')
+    throw new BSError('Method not supported.', 'METHOD_NOT_SUPPORTED')
   }
 
   async getTokenInfo(tokenHash: string): Promise<TBSToken> {
@@ -512,7 +399,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     const result = response.data.result
 
     if (result.interface !== 'FungibleToken') {
-      throw new Error(`Token not found: ${tokenHash}`)
+      throw new BSError(`Token not found: ${tokenHash}`, 'TOKEN_NOT_FOUND')
     }
 
     const token: TBSToken = {
@@ -528,22 +415,20 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
-    const publicKey = new solanaSDK.PublicKey(address)
+    const solanaKitAddress = solanaKit.address(address)
+    const nativeBalance = await this.#service.solanaKitRpc.getBalance(solanaKitAddress).send()
+    const splBalance = await this.#service.solanaKitRpc
+      .getTokenAccountsByOwner(
+        solanaKitAddress,
+        { programId: solanaToken.TOKEN_PROGRAM_ADDRESS },
+        { encoding: 'jsonParsed' }
+      )
+      .send()
 
-    const nativeBalance = await this.#service.connection.getBalance(publicKey)
-    const splBalance = await this.#service.connection.getParsedTokenAccountsByOwner(publicKey, {
-      programId: solanaSplSDK.TOKEN_PROGRAM_ID,
-    })
-
-    const nativeBalanceBn = BSBigNumberHelper.fromDecimals(nativeBalance, BSSolanaConstants.NATIVE_TOKEN.decimals)
+    const nativeBalanceBn = BSBigNumberHelper.fromDecimals(nativeBalance.value, BSSolanaConstants.NATIVE_TOKEN.decimals)
     const nativeBalanceAmount = BSBigNumberHelper.toNumber(nativeBalanceBn)
 
-    const balances: TBalanceResponse[] = [
-      {
-        amount: nativeBalanceAmount,
-        token: BSSolanaConstants.NATIVE_TOKEN,
-      },
-    ]
+    const balances: TBalanceResponse[] = [{ amount: nativeBalanceAmount, token: BSSolanaConstants.NATIVE_TOKEN }]
 
     const promises = splBalance.value.map(async item => {
       const token = await this.getTokenInfo(item.account.data.parsed.info.mint)
@@ -565,6 +450,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
   }
 
   async getBlockHeight(): Promise<number> {
-    return await this.#service.connection.getBlockHeight()
+    const blockHeight = await this.#service.solanaKitRpc.getBlockHeight().send()
+    return BSBigNumberHelper.fromNumber(blockHeight).toNumber()
   }
 }

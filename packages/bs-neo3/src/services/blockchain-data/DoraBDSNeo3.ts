@@ -84,11 +84,13 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
     const response = await this.#api.transaction(hash, this._service.network.id)
 
     const applicationLog = await this.#api.log(hash, this._service.network.id)
-    const notifications = applicationLog.notifications?.map(({ contract, state, event_name }) => ({
-      contract,
-      state,
-      eventname: event_name,
-    }))
+    const notifications = (applicationLog.notifications as unknown as Notification[])?.map(
+      ({ contract, state, event_name }) => ({
+        contract,
+        state,
+        eventname: event_name,
+      })
+    )
 
     const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
     const txIdUrl = txTemplateUrl?.replace('{txId}', response.hash)

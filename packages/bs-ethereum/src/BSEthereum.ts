@@ -201,7 +201,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     return domainName.endsWith('.eth')
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): TBSAccount<N> {
+  async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
     const hd = ethers.utils.HDNode.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic).derivePath(
       bip44Path
@@ -216,7 +216,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     }
   }
 
-  generateAccountFromKey(key: string): TBSAccount<N> {
+  async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
     const wallet = new ethers.Wallet(key)
 
     return {
@@ -227,7 +227,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     }
   }
 
-  generateAccountFromPublicKey(publicKey: string): TBSAccount<N> {
+  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
     const address = ethers.utils.computeAddress(publicKey)
     return {
       address,

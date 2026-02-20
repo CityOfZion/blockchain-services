@@ -17,30 +17,17 @@ let params: TGetFullTransactionsByAddressParams
 let blockscoutFullTransactionsDataService: BlockscoutFullTransactionsDataService<'test'>
 let service: BSNeoX<'test'>
 
-jest.mock('../services/nft-data/GhostMarketNDSNeoX', () => {
-  return {
-    GhostMarketNDSNeoX: jest.fn().mockImplementation(() => {
-      return {
-        getNft: jest.fn().mockReturnValue({
-          image: 'nftImage',
-          name: 'nftName',
-          collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
-        }),
-      }
-    }),
-  }
-})
+vi.mock('../services/nft-data/GhostMarketNDSNeoX', () => {
+  const GhostMarketNDSNeoX = vi.fn()
 
-jest.mock('../services/explorer/BlockscoutESNeoX', () => {
+  GhostMarketNDSNeoX.prototype.getNft = vi.fn().mockResolvedValue({
+    image: 'nftImage',
+    name: 'nftName',
+    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+  })
+
   return {
-    BlockscoutESNeoX: jest.fn().mockImplementation(() => {
-      return {
-        getAddressTemplateUrl: jest.fn().mockReturnValue('addressTemplateUrl'),
-        getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
-        getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
-        getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
-      }
-    }),
+    GhostMarketNDSNeoX,
   }
 })
 

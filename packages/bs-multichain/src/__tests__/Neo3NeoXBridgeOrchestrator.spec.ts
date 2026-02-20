@@ -37,7 +37,7 @@ let bridgeFee: TBridgeValue<string>
 
 describe('Neo3NeoXBridgeOrchestrator', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 
     tokenToUse = { value: null, loading: false, error: null }
     accountToUse = { value: null, loading: false, error: null }
@@ -123,8 +123,8 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set token to use', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const setBalanceSpy = jest.spyOn(neo3NeoXBridgeOrchestrator, 'setBalances')
-    const setAmountToUseSpy = jest.spyOn(neo3NeoXBridgeOrchestrator, 'setAmountToUse')
+    const setBalanceSpy = vi.spyOn(neo3NeoXBridgeOrchestrator, 'setBalances')
+    const setAmountToUseSpy = vi.spyOn(neo3NeoXBridgeOrchestrator, 'setAmountToUse')
 
     const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
     const pairToken = neo3NeoXBridgeOrchestrator.toService.neo3NeoXBridgeService.gasToken
@@ -156,7 +156,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should not be able to set account to use if account and service is from different blockchains', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
     account.blockchain = 'neox'
@@ -172,10 +172,10 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set account to use', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const setBalanceSpy = jest.spyOn(neo3NeoXBridgeOrchestrator, 'setBalances')
-    const setAmountToUseSpy = jest.spyOn(neo3NeoXBridgeOrchestrator, 'setAmountToUse')
+    const setBalanceSpy = vi.spyOn(neo3NeoXBridgeOrchestrator, 'setBalances')
+    const setAmountToUseSpy = vi.spyOn(neo3NeoXBridgeOrchestrator, 'setAmountToUse')
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
 
@@ -197,7 +197,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set account to use to null', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
 
@@ -213,7 +213,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set address to receive to a invalid address', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const validateAddressSpy = jest.spyOn(neo3NeoXBridgeOrchestrator.toService, 'validateAddress')
+    const validateAddressSpy = vi.spyOn(neo3NeoXBridgeOrchestrator.toService, 'validateAddress')
 
     const receiverAddress = 'INVALID_ADDRESS'
     await neo3NeoXBridgeOrchestrator.setAddressToReceive(receiverAddress)
@@ -231,9 +231,9 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set address to receive to a valid address', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const validateAddressSpy = jest.spyOn(neo3NeoXBridgeOrchestrator.toService, 'validateAddress')
+    const validateAddressSpy = vi.spyOn(neo3NeoXBridgeOrchestrator.toService, 'validateAddress')
 
-    const toAccount = neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
+    const toAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
     )
 
@@ -252,9 +252,9 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
   it('Should be able to set address to receive to null', async () => {
     await neo3NeoXBridgeOrchestrator.init()
 
-    const validateAddressSpy = jest.spyOn(neo3NeoXBridgeOrchestrator.toService, 'validateAddress')
+    const validateAddressSpy = vi.spyOn(neo3NeoXBridgeOrchestrator.toService, 'validateAddress')
 
-    const toAccount = neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
+    const toAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAddressToReceive(toAccount.address)
@@ -332,7 +332,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
@@ -358,7 +358,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
@@ -385,7 +385,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
@@ -395,7 +395,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     const amount = amountToUseMax.value!
 
-    jest.spyOn(neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService, 'getApprovalFee').mockResolvedValue('1')
+    vi.spyOn(neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService, 'getApprovalFee').mockResolvedValue('1')
 
     await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
 
@@ -416,7 +416,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
@@ -441,7 +441,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
@@ -472,7 +472,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
@@ -516,7 +516,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     await neo3NeoXBridgeOrchestrator.switchTokens()
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
     )
 
@@ -530,9 +530,11 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     await neo3NeoXBridgeOrchestrator.setBalances(balances)
 
-    await neo3NeoXBridgeOrchestrator.setAddressToReceive(
-      neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY).address
+    const toAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
+      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
+
+    await neo3NeoXBridgeOrchestrator.setAddressToReceive(toAccount.address)
 
     const amount = amountToUseMin.value!
     await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
@@ -551,7 +553,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
-    const account = neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
+    const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)

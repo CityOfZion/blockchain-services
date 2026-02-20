@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-electron",
+      "comment": "Replace jest to vitest",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-electron"
+}

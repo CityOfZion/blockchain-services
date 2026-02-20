@@ -50,25 +50,25 @@ describe('BSNeo3', () => {
     expect(bsNeo3.validateNameServiceDomainFormat(invalidDomain)).toBeFalsy()
   })
 
-  it('Should be able to gererate a account from mnemonic', () => {
+  it('Should be able to gererate a account from mnemonic', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
-    const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
+    const account = await bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(bsNeo3.validateAddress(account.address)).toBeTruthy()
     expect(bsNeo3.validateKey(account.key)).toBeTruthy()
   })
 
-  it('Should be able to generate a account from wif', () => {
+  it('Should be able to generate a account from wif', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
-    const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
+    const account = await bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
 
-    const accountFromWif = bsNeo3.generateAccountFromKey(account.key)
+    const accountFromWif = await bsNeo3.generateAccountFromKey(account.key)
     expect(account).toEqual(expect.objectContaining(accountFromWif))
   })
 
   it('Should be able to decrypt a encrypted key', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
-    const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
+    const account = await bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await bsNeo3.encrypt(account.key, password)
     const decryptedAccount = await bsNeo3.decrypt(encryptedKey, password)
@@ -77,7 +77,7 @@ describe('BSNeo3', () => {
 
   it('Should be able to encrypt a key', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
-    const account = bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
+    const account = await bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await bsNeo3.encrypt(account.key, password)
     expect(encryptedKey).toEqual(expect.any(String))
@@ -93,7 +93,7 @@ describe('BSNeo3', () => {
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {
-    const account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const fee = await bsNeo3.calculateTransferFee({
       senderAccount: account,
@@ -110,7 +110,7 @@ describe('BSNeo3', () => {
   })
 
   it.skip('Should be able to transfer', async () => {
-    const account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await bsNeo3.blockchainDataService.getBalance(account.address)
     const gasBalance = balance.find(b => b.token.symbol === bsNeo3.feeToken.symbol)
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
@@ -154,7 +154,7 @@ describe('BSNeo3', () => {
   })
 
   it.skip('Should be able to claim', async () => {
-    const account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const unclaimed = await bsNeo3.claimDataService.getUnclaimed(account.address)
     expect(Number(unclaimed)).toBeGreaterThan(0)
@@ -168,7 +168,7 @@ describe('BSNeo3', () => {
   })
 
   it.skip('Should be able to calculate transfer fee more than one intent', async () => {
-    const account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const fee = await bsNeo3.calculateTransferFee({
       senderAccount: account,
@@ -190,7 +190,7 @@ describe('BSNeo3', () => {
   })
 
   it.skip('Should be able to transfer more than one intent', async () => {
-    const account = bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await bsNeo3.blockchainDataService.getBalance(account.address)
 
     const NEO = BSNeo3Helper.getTokens(network).find(token => token.symbol === 'NEO')!

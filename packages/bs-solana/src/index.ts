@@ -1,7 +1,5 @@
 export * from './constants/BSSolanaConstants'
 
-export * from './helpers/BSSolanaHelper'
-
 export * from './services/blockchain-data/RpcBDSSolana'
 
 export * from './services/exchange/MoralisEDSSolana'

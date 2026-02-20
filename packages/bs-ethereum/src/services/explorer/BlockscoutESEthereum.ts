@@ -43,6 +43,12 @@ export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> impl
     }`
   }
 
+  buildAddressUrl(address: string): string | undefined {
+    if (!this.#baseUrl) return undefined
+
+    return `${this.#baseUrl}/address/${address}`
+  }
+
   getAddressTemplateUrl() {
     if (!this.#baseUrl) return undefined
 

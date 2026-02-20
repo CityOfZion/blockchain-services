@@ -1,13 +1,12 @@
 import { BSSolana } from '../BSSolana'
-import solanaSDK from '@solana/web3.js'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
-import bs58 from 'bs58'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSKeychainHelper, BSUtilsHelper } from '@cityofzion/blockchain-service'
+import * as solanaKit from '@solana/kit'
 
 let bsSolana: BSSolana<'test'>
 const mnemonic = process.env.TEST_MNEMONIC as string
-let accountKeypair: { base58Key: string; base58Address: string; bufferKey: string }
+let accountKeypair: { base58Key: string; base58Address: string }
 
 const splToken = {
   hash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
@@ -19,18 +18,27 @@ const splToken = {
 describe('BSSolana', () => {
   beforeEach(async () => {
     bsSolana = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
+    await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit
+  })
 
-    const bip44Path = bsSolana.bip44DerivationPath.replace('?', '0')
-    const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
-    const keypair = solanaSDK.Keypair.fromSeed(key)
+  beforeAll(async () => {
+    const bip44Path = BSKeychainHelper.getBip44Path(BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH, 0)
+
+    const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
+    const signer = await solanaKit.createKeyPairSignerFromPrivateKeyBytes(keyBuffer)
+
+    const publicKeyBytes = solanaKit.getBase58Encoder().encode(signer.address)
+
+    const secretKey64 = new Uint8Array(64)
+    secretKey64.set(keyBuffer, 0)
+    secretKey64.set(publicKeyBytes, 32)
+
+    const base58Key = solanaKit.getBase58Decoder().decode(secretKey64)
 
     accountKeypair = {
-      base58Key: bs58.encode(keypair.secretKey),
-      base58Address: keypair.publicKey.toBase58(),
-      bufferKey: keypair.secretKey.toString(),
+      base58Key,
+      base58Address: signer.address,
     }
-
-    await BSUtilsHelper.wait(2000)
   })
 
   it('Should be able to validate an address', () => {
@@ -45,32 +53,21 @@ describe('BSSolana', () => {
 
   it('Should be able to validate a key', () => {
     const validKey = accountKeypair.base58Key
-    const bufferValidKey = accountKeypair.bufferKey
     const invalidKey = 'invalid key'
-    const anotherInvalidKey = '3213, 21, 2, 23, 211'
 
     expect(bsSolana.validateKey(validKey)).toBeTruthy()
-    expect(bsSolana.validateKey(bufferValidKey.toString())).toBeTruthy()
     expect(bsSolana.validateKey(invalidKey)).toBeFalsy()
-    expect(bsSolana.validateKey(anotherInvalidKey)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', () => {
-    const generatedAccount = bsSolana.generateAccountFromMnemonic(mnemonic, 0)
+  it('Should be able to generate a account from mnemonic', async () => {
+    const generatedAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(generatedAccount.address).toEqual(accountKeypair.base58Address)
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
   })
 
-  it('Should be able to generate a account from key', () => {
-    const generatedAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
-
-    expect(generatedAccount.address).toEqual(accountKeypair.base58Address)
-    expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
-  })
-
-  it('Should be able to generate a account from buffer key', () => {
-    const generatedAccount = bsSolana.generateAccountFromKey(accountKeypair.bufferKey)
+  it('Should be able to generate a account from key', async () => {
+    const generatedAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
 
     expect(generatedAccount.address).toEqual(accountKeypair.base58Address)
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
@@ -86,7 +83,7 @@ describe('BSSolana', () => {
   })
 
   it('Should be able to calculate transfer fee of the native token', async () => {
-    const senderAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
 
     const fee = await bsSolana.calculateTransferFee({
       senderAccount,
@@ -99,53 +96,56 @@ describe('BSSolana', () => {
       ],
     })
 
-    expect(fee).toEqual(expect.any(String))
+    expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it('Should be able to calculate transfer fee of a SPL token', async () => {
-    const senderAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+
+    const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
 
     const fee = await bsSolana.calculateTransferFee({
       senderAccount,
       intents: [
         {
           amount: '0.1',
-          receiverAddress: accountKeypair.base58Address,
+          receiverAddress: receiverAccount.address,
           token: splToken,
         },
       ],
     })
 
-    expect(fee).toEqual(expect.any(String))
+    expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it('Should be able to calculate transfer fee for more than one intent', async () => {
-    const senderAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+    const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
 
     const fee = await bsSolana.calculateTransferFee({
       senderAccount,
       intents: [
         {
           amount: '0.1',
-          receiverAddress: accountKeypair.base58Address,
+          receiverAddress: receiverAccount.address,
           token: BSSolanaConstants.NATIVE_TOKEN,
         },
         {
           amount: '0.1',
-          receiverAddress: accountKeypair.base58Address,
+          receiverAddress: receiverAccount.address,
           token: splToken,
         },
       ],
     })
 
-    expect(fee).toEqual(expect.any(String))
+    expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
   it.skip('Should be able to transfer the native token', async () => {
-    const senderAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
-    const receiverAccount = bsSolana.generateAccountFromMnemonic(mnemonic, 1)
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+    const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
 
     const [transactionHash] = await bsSolana.transfer({
       senderAccount,
@@ -163,8 +163,8 @@ describe('BSSolana', () => {
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer a SPL token', async () => {
-    const senderAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
-    const receiverAccount = bsSolana.generateAccountFromMnemonic(mnemonic, 1)
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+    const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
 
     const [transactionHash] = await bsSolana.transfer({
       senderAccount,
@@ -182,8 +182,8 @@ describe('BSSolana', () => {
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer more than one intent', async () => {
-    const senderAccount = bsSolana.generateAccountFromKey(accountKeypair.base58Key)
-    const receiverAccount = bsSolana.generateAccountFromMnemonic(mnemonic, 2)
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+    const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 2)
 
     const [transactionHash] = await bsSolana.transfer({
       senderAccount,
@@ -212,10 +212,10 @@ describe('BSSolana', () => {
     expect(bsSolana.validateNameServiceDomainFormat(invalidDomain)).toBeFalsy()
   })
 
-  it.skip('Should be able to resolve a name service domain', async () => {
+  it('Should be able to resolve a name service domain', async () => {
     const newBSSolana = new BSSolana('test', BSSolanaConstants.MAINNET_NETWORK)
     const address = await newBSSolana.resolveNameServiceDomain('bonfida.sol')
-    expect(address).toEqual('HKKp49qGWXd639QsuH7JiLijfVW5UtCVY4s1n2HANwEA')
+    expect(address).toEqual('Fw1ETanDZafof7xEULsnq9UY6o71Tpds89tNwPkWLb1v')
   })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this

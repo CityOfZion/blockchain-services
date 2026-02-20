@@ -4,8 +4,9 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { Web3LedgerServiceSolana } from '../services/ledger/Web3LedgerServiceSolana'
 import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
-import solanaSDK from '@solana/web3.js'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
+import * as solanaKit from '@solana/kit'
+import * as solanaSystem from '@solana-program/system'
 
 let ledgerService: Web3LedgerServiceSolana<'test'>
 let transport: Transport
@@ -51,26 +52,33 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
 
   it('Should be able to sign transaction', async () => {
     const account = await ledgerService.getAccount(transport, 0)
+    const source = solanaKit.createNoopSigner(solanaKit.address(account.address))
 
-    const senderPublicKey = new solanaSDK.PublicKey(account.address)
-    const connection = new solanaSDK.Connection(network.url)
-    const latestBlockhash = await connection.getLatestBlockhash()
+    const { value: latestBlockhash } = await bsSolana.solanaKitRpc.getLatestBlockhash().send()
 
-    const transaction = new solanaSDK.Transaction()
-    transaction.feePayer = senderPublicKey
-    transaction.recentBlockhash = latestBlockhash.blockhash
-    transaction.lastValidBlockHeight = latestBlockhash.lastValidBlockHeight
-    transaction.add(
-      solanaSDK.SystemProgram.transfer({
-        fromPubkey: senderPublicKey,
-        toPubkey: senderPublicKey,
-        lamports: 1,
-      })
+    const transactionMessage = solanaKit.pipe(
+      solanaKit.createTransactionMessage({ version: 0 }),
+      tx => solanaKit.setTransactionMessageFeePayer(source.address, tx),
+      tx => solanaKit.setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
+      tx =>
+        solanaKit.appendTransactionMessageInstruction(
+          solanaSystem.getTransferSolInstruction({
+            source,
+            destination: source.address,
+            amount: 1n,
+          }),
+          tx
+        )
     )
 
-    const serializedTransaction = await ledgerService.signTransaction(transport, transaction, account)
+    const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
+
+    const serializedTransaction = await ledgerService.signTransaction(transport, compiledTransaction, account)
+
+    const transactionBytes = solanaKit.getBase64Encoder().encode(serializedTransaction)
+    const transaction = solanaKit.getTransactionCodec().decode(transactionBytes)
 
     expect(serializedTransaction).toBeDefined()
-    expect(serializedTransaction).toBeInstanceOf(Buffer)
+    expect(transaction.signatures[source.address]).toBeDefined()
   })
 })

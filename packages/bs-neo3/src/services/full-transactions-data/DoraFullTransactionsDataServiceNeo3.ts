@@ -11,6 +11,7 @@ import {
 import type { IBSNeo3, TBSNeo3NetworkId } from '../../types'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import type { api } from '@cityofzion/dora-ts'
+import type { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 
 export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IFullTransactionsDataService<N> {
   static readonly SUPPORTED_NEP11_STANDARDS: string[] = ['nep11', 'nep-11']
@@ -144,7 +145,8 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
           const [log] = await BSUtilsHelper.tryCatch(() => this.#api.log(txId, this.#service.network.id))
 
           if (!!log && log.vmstate === 'HALT') {
-            const data = DoraBDSNeo3.getBridgeNeo3NeoXDataByNotifications(log.notifications || [], this.#service)
+            const notifications = log.notifications as unknown as Notification[]
+            const data = DoraBDSNeo3.getBridgeNeo3NeoXDataByNotifications(notifications ?? [], this.#service)
             if (data) newItem = { ...newItem, type: 'bridgeNeo3NeoX', data }
           }
         }

@@ -1,11 +1,11 @@
 import {
+  BSCommonConstants,
   CryptoCompareEDS,
   TGetTokenPriceHistoryParams,
   TGetTokenPricesParams,
   TTokenPricesHistoryResponse,
   TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import axios, { AxiosInstance } from 'axios'
 import { sub } from 'date-fns/sub'
@@ -34,16 +34,12 @@ export class MoralisEDSSolana<N extends string> extends CryptoCompareEDS {
 
     this.#service = service
     this.#client = axios.create({
-      baseURL: 'https://solana-gateway.moralis.io',
-      headers: {
-        'X-API-Key': process.env.MORALIS_API_KEY,
-      },
+      baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/solana/price`,
     })
   }
 
   async getTokenPrices({ tokens }: TGetTokenPricesParams): Promise<TTokenPricesResponse[]> {
-    if (!BSSolanaHelper.isMainnetNetwork(this.#service.network))
-      throw new Error('Exchange is only available on mainnet')
+    if (this.#service.network.type !== 'mainnet') throw new Error('Exchange is only available on mainnet')
 
     const promises = tokens.map(async token => {
       const hash =
@@ -68,8 +64,7 @@ export class MoralisEDSSolana<N extends string> extends CryptoCompareEDS {
   }
 
   async getTokenPriceHistory(params: TGetTokenPriceHistoryParams): Promise<TTokenPricesHistoryResponse[]> {
-    if (!BSSolanaHelper.isMainnetNetwork(this.#service.network))
-      throw new Error('Exchange is only available on mainnet')
+    if (this.#service.network.type !== 'mainnet') throw new Error('Exchange is only available on mainnet')
 
     const tokenHash =
       params.token.hash === BSSolanaConstants.NATIVE_TOKEN.hash
@@ -85,12 +80,9 @@ export class MoralisEDSSolana<N extends string> extends CryptoCompareEDS {
     }
 
     const toDate = new Date()
-    const fromDate = sub(params.limit, {
+    const fromDate = sub(toDate, {
       [params.type === 'day' ? 'days' : 'hours']: params.limit,
     })
-
-    const toDateTimestamp = toDate.getTime() / 1000
-    const fromDateTimestamp = fromDate.getTime() / 1000
 
     const pricesHistoryResponse = await this.#client.get<MoralisGetPriceHistoryResponse>(
       `token/mainnet/pairs/${pairAddress}/ohlcv`,
@@ -99,14 +91,14 @@ export class MoralisEDSSolana<N extends string> extends CryptoCompareEDS {
           timeframe: params.type === 'day' ? '1d' : '1h',
           currency: 'usd',
           limit: params.limit,
-          toDate: toDateTimestamp,
-          fromDate: fromDateTimestamp,
+          toDate,
+          fromDate,
         },
       }
     )
 
     const pricesHistory = pricesHistoryResponse.data.result.map<TTokenPricesHistoryResponse>(price => ({
-      timestamp: new Date().getTime() / 1000,
+      timestamp: new Date(price.timestamp).getTime(),
       token: params.token,
       usdPrice: price.close,
     }))

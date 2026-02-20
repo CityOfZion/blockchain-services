@@ -70,15 +70,15 @@ describe('BSEthereum', () => {
     expect(bsEthereum.validateNameServiceDomainFormat(invalidDomain)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', () => {
-    const account = bsEthereum.generateAccountFromMnemonic(wallet.mnemonic.phrase, 0)
+  it('Should be able to generate a account from mnemonic', async () => {
+    const account = await bsEthereum.generateAccountFromMnemonic(wallet.mnemonic.phrase, 0)
 
     expect(bsEthereum.validateAddress(account.address)).toBeTruthy()
     expect(bsEthereum.validateKey(account.key)).toBeTruthy()
   })
 
-  it('Should be able to generate a account from wif', () => {
-    const accountFromWif = bsEthereum.generateAccountFromKey(wallet.privateKey)
+  it('Should be able to generate a account from wif', async () => {
+    const accountFromWif = await bsEthereum.generateAccountFromKey(wallet.privateKey)
     expect(accountFromWif).toEqual(account)
   })
 
@@ -108,7 +108,7 @@ describe('BSEthereum', () => {
   })
 
   it.skip('Should be able to calculate transfer fee', async () => {
-    const account = bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const fee = await bsEthereum.calculateTransferFee({
       senderAccount: account,
@@ -125,7 +125,7 @@ describe('BSEthereum', () => {
   })
 
   it.skip('Should be able to transfer a native token', async () => {
-    const account = bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const [transactionHash] = await bsEthereum.transfer({
       senderAccount: account,
@@ -142,7 +142,7 @@ describe('BSEthereum', () => {
   })
 
   it.skip('Should be able to transfer a ERC20 token', async () => {
-    const account = bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const [transactionHash] = await bsEthereum.transfer({
       senderAccount: account,
@@ -207,7 +207,7 @@ describe('BSEthereum', () => {
   it.skip('Should be able to transfer a native token using a EVM', async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.polygon.find(network => network.type === 'testnet')!
     const service = new BSEthereum('test', 'polygon', network)
-    const account = service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const [transactionHash] = await service.transfer({
       senderAccount: account,
@@ -224,7 +224,7 @@ describe('BSEthereum', () => {
   })
 
   it.skip('Should be able to calculate transfer fee for more than one intent', async () => {
-    const account = bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const fee = await bsEthereum.calculateTransferFee({
       senderAccount: account,
@@ -246,7 +246,7 @@ describe('BSEthereum', () => {
   })
 
   it.skip('Should be able to transfer more than one intent', async () => {
-    const account = bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const transactionHashes = await bsEthereum.transfer({
       senderAccount: account,

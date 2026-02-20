@@ -6,9 +6,16 @@ import type {
   IBSWithNameService,
   IBSWithNft,
   IBSWithWalletConnect,
+  TBSAccount,
   TBSNetworkId,
 } from '@cityofzion/blockchain-service'
-import type solanaSDK from '@solana/web3.js'
+import type {
+  SolanaRpcApi,
+  Rpc,
+  Transaction,
+  Base64EncodedWireTransaction,
+  TransactionForFullJsonParsed,
+} from '@solana/kit'
 
 export type TBSSolanaNetworkId = TBSNetworkId<'mainnet-beta' | 'devnet'>
 
@@ -20,8 +27,8 @@ export interface IBSSolana<N extends string = string>
     IBSWithNft,
     IBSWithExplorer,
     IBSWithWalletConnect<N> {
-  connection: solanaSDK.Connection
-  generateKeyPairFromKey(key: string): solanaSDK.Keypair
+  solanaKitRpc: Rpc<SolanaRpcApi>
+  signTransaction(transaction: Transaction, senderAccount: TBSAccount<N>): Promise<Base64EncodedWireTransaction>
 }
 
 export type TMetaplexAssetByOwnerResponse = {
@@ -98,3 +105,8 @@ export type TMetaplexAssetResponse = {
   }
   id: string
 }
+
+export type TRpcBDSSolanaParsedInstruction = Extract<
+  TransactionForFullJsonParsed<'legacy'>['transaction']['message']['instructions'][number],
+  { parsed: any }
+>

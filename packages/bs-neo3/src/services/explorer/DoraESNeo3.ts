@@ -35,6 +35,11 @@ export class DoraESNeo3<N extends string> implements IExplorerService {
     return `${this.#baseUrl}/nft/neo3/${this.#service.network.id}/${collectionHash}/${tokenHash}`
   }
 
+  buildAddressUrl(address: string): string | undefined {
+    if (!this.#baseUrl) return undefined
+    return `${this.#baseUrl}/address/neo3/${this.#service.network.id}/${address}`
+  }
+
   getAddressTemplateUrl() {
     if (!this.#baseUrl) return undefined
     return `${this.#baseUrl}/address/neo3/${this.#service.network.id}/{address}`

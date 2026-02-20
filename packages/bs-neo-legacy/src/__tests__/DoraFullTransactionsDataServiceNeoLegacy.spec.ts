@@ -4,19 +4,6 @@ import { BSNeoLegacy } from '../BSNeoLegacy'
 import type { TGetFullTransactionsByAddressParams } from '@cityofzion/blockchain-service'
 import { DoraFullTransactionsDataServiceNeoLegacy } from '../services/full-transactions-data/DoraFullTransactionsDataServiceNeoLegacy'
 
-jest.mock('../services/explorer/NeoTubeESNeoLegacy', () => {
-  return {
-    NeoTubeESNeoLegacy: jest.fn().mockImplementation(() => {
-      return {
-        getAddressTemplateUrl: jest.fn().mockReturnValue('addressTemplateUrl'),
-        getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
-        getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
-        getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
-      }
-    }),
-  }
-})
-
 const address = 'AFnH8Cv7qzuxWZdeLqK9QqTrfPWCq5f8A3'
 let dateFrom: Date
 let dateTo: Date
