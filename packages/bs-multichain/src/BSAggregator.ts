@@ -60,7 +60,7 @@ export class BSAggregator<N extends string> {
     return generateAccountForBlockchainService(
       this.blockchainServices,
       async (service: IBlockchainService<N>, index: number) => {
-        return service.generateAccountFromMnemonic(mnemonic, index)
+        return await service.generateAccountFromMnemonic(mnemonic, index)
       },
       untilIndexByBlockchainService
     )

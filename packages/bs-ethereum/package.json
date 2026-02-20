@@ -1,28 +1,28 @@
 {
   "name": "@cityofzion/bs-ethereum",
   "version": "3.0.4",
+  "repository": "https://github.com/CityOfZion/blockchain-services",
+  "license": "GPL-3.0-only",
+  "author": "Coz",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "https://github.com/CityOfZion/blockchain-services",
-  "author": "Coz",
-  "license": "GPL-3.0-only",
   "files": [
     "/dist"
   ],
   "scripts": {
     "build": "rm -rf ./dist && npm run typecheck && tsc --project tsconfig.build.json",
-    "test": "jest -i --config jest.config.ts",
-    "lint": "eslint .",
     "format": "eslint --fix",
+    "lint": "eslint .",
     "package": "npm run build && npm pack",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
     "@cityofzion/dora-ts": "0.6.2",
     "@ethersproject/abstract-signer": "5.8.0",
-    "@ethersproject/bytes": "5.8.0",
     "@ethersproject/bignumber": "5.8.0",
+    "@ethersproject/bytes": "5.8.0",
     "@ethersproject/json-wallets": "5.8.0",
     "@ethersproject/properties": "5.8.0",
     "@ledgerhq/hw-app-eth": "~7.3.0",
@@ -32,13 +32,10 @@
   "devDependencies": {
     "@ledgerhq/hw-transport": "~6.32.0",
     "@ledgerhq/hw-transport-node-hid": "~6.30.0",
-    "@types/jest": "~30.0.0",
     "date-fns": "~4.1.0",
-    "dotenv": "~17.2.2",
+    "dotenv": "~17.3.1",
     "eslint": "~9.36.0",
-    "jest": "~30.1.3",
-    "ts-jest": "~29.4.4",
-    "ts-node": "~10.9.2",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "~4.0.18"
   }
 }

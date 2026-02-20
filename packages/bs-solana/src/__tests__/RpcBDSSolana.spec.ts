@@ -14,8 +14,8 @@ describe('RpcBDSSolana', () => {
   })
 
   // It may throw an error as the devnet only returns transaction made in less than 10 days
-  it.skip('Should be able to get transaction', async () => {
-    const hash = 'mi5ZqR7ouXzeq43W4gZpzuw4LnybKbSMJMiCL69zjcrMAytuH3mqSAzp4QyagfPqH4yBYLg2imgbsrkgTPvkuNo'
+  it('Should be able to get transaction', async () => {
+    const hash = '2jAaNbYFsEVsjQ8eeF1woaRsWWdQf3mogrRtXErNf1gumEbH2YF7d9fF1iBmCxXAiKtVbpM2zasctJmfF39WtZ28'
 
     const transaction = await rpcBDSSolana.getTransaction(hash)
 
@@ -27,11 +27,12 @@ describe('RpcBDSSolana', () => {
         date: expect.any(String),
         invocationCount: expect.any(Number),
         notificationCount: expect.any(Number),
-        networkFeeAmount: expect.anything(),
+        networkFeeAmount: expect.any(String),
         type: expect.any(String),
       })
     )
 
+    expect(transaction.events.length).toBeGreaterThan(0)
     transaction.events.forEach(event => {
       expect(event).toEqual(
         expect.objectContaining({
@@ -58,7 +59,7 @@ describe('RpcBDSSolana', () => {
 
   // It may throw an error as the devnet only returns transaction made in less than 10 days
   it('Should be able to get transactions of address', async () => {
-    const address = '8X35rQUK2u9hfn8rMPwwr6ZSEUhbmfDPEapp589XyoM1'
+    const address = 'BBUp5x8wCDpK26qYVgwJY7gTdf8mBdAYd63cAsuqjTw3'
     const response = await rpcBDSSolana.getTransactionsByAddress({ address: address })
 
     expect(response.transactions.length).toBeGreaterThan(0)

@@ -245,7 +245,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
-  generateAccountFromMnemonic(mnemonic: string[] | string, index: number): TBSAccount<N> {
+  async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
     const mnemonicStr = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
     const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
 
@@ -257,7 +257,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     return { address, key: WIF, type: 'wif', bip44Path, blockchain: this.name }
   }
 
-  generateAccountFromKey(key: string): TBSAccount<N> {
+  async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
@@ -267,7 +267,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     return { address, key, type, blockchain: this.name }
   }
 
-  generateAccountFromPublicKey(publicKey: string): TBSAccount<N> {
+  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 
     if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
@@ -286,7 +286,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 
     const key = await wallet.decrypt(encryptedKey, password)
-    return this.generateAccountFromKey(key)
+    return await this.generateAccountFromKey(key)
   }
 
   encrypt(key: string, password: string): Promise<string> {

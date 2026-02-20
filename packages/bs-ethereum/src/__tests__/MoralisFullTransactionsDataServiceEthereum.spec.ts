@@ -46,30 +46,16 @@ let dateTo: Date
 let params: TGetFullTransactionsByAddressParams
 let moralisFullTransactionsDataServiceEthereum: MoralisFullTransactionsDataServiceEthereum<'test', TBSNetworkId>
 
-jest.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
-  return {
-    GhostMarketNDSEthereum: jest.fn().mockImplementation(() => {
-      return {
-        getNft: jest.fn().mockReturnValue({
-          image: 'nftImage',
-          name: 'nftName',
-          collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
-        }),
-      }
-    }),
-  }
-})
+vi.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
+  const GhostMarketNDSEthereum = vi.fn()
+  GhostMarketNDSEthereum.prototype.getNft = vi.fn().mockResolvedValue({
+    image: 'nftImage',
+    name: 'nftName',
+    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+  })
 
-jest.mock('../services/explorer/BlockscoutESEthereum', () => {
   return {
-    BlockscoutESEthereum: jest.fn().mockImplementation(() => {
-      return {
-        getAddressTemplateUrl: jest.fn().mockReturnValue('addressTemplateUrl'),
-        getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
-        getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
-        getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
-      }
-    }),
+    GhostMarketNDSEthereum,
   }
 })
 

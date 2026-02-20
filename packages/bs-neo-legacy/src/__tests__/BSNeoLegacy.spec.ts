@@ -40,25 +40,25 @@ describe('BSNeoLegacy', () => {
     expect(service.validateKey(invalidWif)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', () => {
+  it('Should be able to generate a account from mnemonic', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
-    const account = service.generateAccountFromMnemonic(mnemonic, 0)
+    const account = await service.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(service.validateAddress(account.address)).toBeTruthy()
     expect(service.validateKey(account.key)).toBeTruthy()
   })
 
-  it('Should be able to generate a account from wif', () => {
+  it('Should be able to generate a account from wif', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
-    const account = service.generateAccountFromMnemonic(mnemonic, 0)
+    const account = await service.generateAccountFromMnemonic(mnemonic, 0)
 
-    const accountFromWif = service.generateAccountFromKey(account.key)
+    const accountFromWif = await service.generateAccountFromKey(account.key)
     expect(account).toEqual(expect.objectContaining(accountFromWif))
   })
 
   it.skip('Should be able to decrypt a encrypted key', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
-    const account = service.generateAccountFromMnemonic(mnemonic, 0)
+    const account = await service.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await service.encrypt(account.key, password)
     const decryptedAccount = await service.decrypt(encryptedKey, password)
@@ -67,7 +67,7 @@ describe('BSNeoLegacy', () => {
 
   it('Should be able to encrypt a key', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
-    const account = service.generateAccountFromMnemonic(mnemonic, 0)
+    const account = await service.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await service.encrypt(account.key, password)
     expect(encryptedKey).toEqual(expect.any(String))
@@ -83,7 +83,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a native asset', async () => {
-    const account = service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await service.blockchainDataService.getBalance(account.address)
     const gasBalance = balance.find(b => b.token.symbol === 'GAS')!
     expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
@@ -103,7 +103,7 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a nep5 asset', async () => {
-    const account = service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await service.blockchainDataService.getBalance(account.address)
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!
     expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000001)
@@ -124,7 +124,7 @@ describe('BSNeoLegacy', () => {
 
   it.skip('Should be able to transfer more than one intent', async () => {
     service.setNetwork(BSNeoLegacyConstants.MAINNET_NETWORK)
-    const account = service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const balance = await service.blockchainDataService.getBalance(account.address)
 
     const LXBalance = balance.find(item => item.token.symbol === 'LX')!

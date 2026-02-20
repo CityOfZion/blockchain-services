@@ -2,15 +2,15 @@
   "name": "@cityofzion/bs-electron",
   "version": "3.0.4",
   "repository": "https://github.com/CityOfZion/blockchain-services",
-  "author": "Coz",
   "license": "GPL-3.0-only",
+  "author": "Coz",
   "files": [
     "/dist"
   ],
   "scripts": {
     "build": "rm -rf ./dist && npm run typecheck && tsc",
-    "lint": "eslint .",
     "format": "eslint --fix",
+    "lint": "eslint .",
     "package": "npm run build && npm pack",
     "typecheck": "tsc --noEmit"
   },
@@ -19,12 +19,11 @@
     "lodash.clonedeep": "~4.5.0"
   },
   "devDependencies": {
+    "@electron-toolkit/preload": "*",
     "@types/lodash.clonedeep": "~4.5.9",
     "@types/node": "~24.5.2",
-    "@electron-toolkit/preload": "*",
     "electron": "*",
     "eslint": "~9.36.0",
-    "ts-node": "~10.9.2",
     "typescript": "~5.9.2"
   }
 }

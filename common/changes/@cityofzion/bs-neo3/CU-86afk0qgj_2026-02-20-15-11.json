@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Update classes to align with the new generateAccount's function interface",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Replace jest to vitest",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

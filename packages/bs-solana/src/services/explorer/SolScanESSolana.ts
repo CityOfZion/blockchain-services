@@ -1,5 +1,4 @@
 import { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
-import { BSSolanaHelper } from '../../helpers/BSSolanaHelper'
 import { IBSSolana } from '../../types'
 
 export class SolScanESSolana<N extends string> implements IExplorerService {
@@ -8,7 +7,7 @@ export class SolScanESSolana<N extends string> implements IExplorerService {
   readonly #service: IBSSolana<N>
 
   constructor(service: IBSSolana<N>) {
-    if (!BSSolanaHelper.isMainnetNetwork(service.network)) {
+    if (service.network.type !== 'mainnet') {
       this.#queryParams = `?cluster=${service.network.id}`
     }
 
@@ -25,6 +24,10 @@ export class SolScanESSolana<N extends string> implements IExplorerService {
 
   buildNftUrl({ tokenHash }: TBuildNftUrlParams): string {
     return this.buildContractUrl(tokenHash)
+  }
+
+  buildAddressUrl(address: string): string {
+    return `${this.#baseUrl}/account/${address}${this.#queryParams}`
   }
 
   getAddressTemplateUrl(): string | undefined {

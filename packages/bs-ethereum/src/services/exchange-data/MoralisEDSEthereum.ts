@@ -133,12 +133,13 @@ export class MoralisEDSEthereum<N extends string, A extends TBSNetworkId> extend
 
     const tokensBody = Array.from({ length: params.limit }).map((_, index) => ({
       token_address: token.hash,
-      to_block:
+      to_block: (
         currentBlockNumber -
         index *
           (params.type === 'hour'
             ? MoralisEDSEthereum.NUMBERS_OF_BLOCK_BY_HOUR
-            : MoralisEDSEthereum.NUMBER_OF_BLOCK_BY_DAY),
+            : MoralisEDSEthereum.NUMBER_OF_BLOCK_BY_DAY)
+      ).toString(),
     }))
 
     const splitTokensBody = []

@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Replace @solana/web3.js to @solana/kit",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Replace jest to vitest",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

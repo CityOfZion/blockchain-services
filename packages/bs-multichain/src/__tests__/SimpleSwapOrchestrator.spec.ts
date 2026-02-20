@@ -27,7 +27,7 @@ let error: string | undefined
 
 describe('SimpleSwapOrchestrator', () => {
   beforeEach(async () => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 
     error = undefined
     availableTokensToUse = { loading: false, value: null }
@@ -188,7 +188,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.setTokenToUse(availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     account.blockchain = 'NONEXISTENT' as any
 
@@ -225,7 +225,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     expect(accountToUse).toEqual({ loading: false, value: null, valid: null })
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     expect(tokenToUse).toEqual({ loading: false, value: token })
@@ -246,7 +246,7 @@ describe('SimpleSwapOrchestrator', () => {
     const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(token)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const amount = '89'
@@ -297,7 +297,7 @@ describe('SimpleSwapOrchestrator', () => {
     const token = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(token)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(null)
@@ -320,7 +320,7 @@ describe('SimpleSwapOrchestrator', () => {
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
@@ -344,7 +344,7 @@ describe('SimpleSwapOrchestrator', () => {
     const gasToken = availableTokensToUse.value!.find(({ id }) => id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(gasToken)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!)
@@ -366,7 +366,7 @@ describe('SimpleSwapOrchestrator', () => {
     const neoToken = availableTokensToUse.value!.find(({ id }) => id === 'neo3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(neoToken)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(
@@ -387,7 +387,7 @@ describe('SimpleSwapOrchestrator', () => {
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
@@ -415,7 +415,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
@@ -440,7 +440,9 @@ describe('SimpleSwapOrchestrator', () => {
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN
+    )
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
@@ -460,7 +462,9 @@ describe('SimpleSwapOrchestrator', () => {
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN
+    )
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
@@ -482,7 +486,9 @@ describe('SimpleSwapOrchestrator', () => {
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN
+    )
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
@@ -513,7 +519,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
@@ -541,7 +547,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
@@ -561,7 +567,7 @@ describe('SimpleSwapOrchestrator', () => {
   })
 
   it('Should be able to set error when the API throw an error when calling init', async () => {
-    jest.spyOn(SimpleSwapApi.prototype, 'getCurrencies').mockRejectedValueOnce(new Error('API ERROR'))
+    vi.spyOn(SimpleSwapApi.prototype, 'getCurrencies').mockRejectedValueOnce(new Error('API ERROR'))
 
     try {
       await simpleSwapOrchestrator.init()
@@ -573,7 +579,7 @@ describe('SimpleSwapOrchestrator', () => {
   })
 
   it('Should be able to set error when the API throw an error when trying to recalculate available tokens to receive', async () => {
-    jest.spyOn(SimpleSwapApi.prototype, 'getPairs').mockRejectedValueOnce(new Error('API ERROR'))
+    vi.spyOn(SimpleSwapApi.prototype, 'getPairs').mockRejectedValueOnce(new Error('API ERROR'))
 
     await simpleSwapOrchestrator.init()
 
@@ -599,14 +605,14 @@ describe('SimpleSwapOrchestrator', () => {
   })
 
   it('Should be able to set error when the API throw an error when trying to recalculate min amount to use', async () => {
-    jest.spyOn(SimpleSwapApi.prototype, 'getRange').mockRejectedValueOnce(new Error('API ERROR'))
+    vi.spyOn(SimpleSwapApi.prototype, 'getRange').mockRejectedValueOnce(new Error('API ERROR'))
 
     await simpleSwapOrchestrator.init()
 
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
@@ -631,14 +637,14 @@ describe('SimpleSwapOrchestrator', () => {
   })
 
   it('Should be able to set error when the API throw an error when trying to recalculate amount to receive', async () => {
-    jest.spyOn(SimpleSwapApi.prototype, 'getEstimate').mockRejectedValueOnce(new Error('API ERROR'))
+    vi.spyOn(SimpleSwapApi.prototype, 'getEstimate').mockRejectedValueOnce(new Error('API ERROR'))
 
     await simpleSwapOrchestrator.init()
 
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const tokenReceive = availableTokensToUse.value!.find(token => token.id === 'neo3:neo3')!
@@ -670,7 +676,9 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN
+    )
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
@@ -689,14 +697,16 @@ describe('SimpleSwapOrchestrator', () => {
   })
 
   it("Should return an error on create a swap to XRP when extraIdToReceive isn't filled", async () => {
-    const swapSpy = jest.spyOn(simpleSwapOrchestrator, 'swap')
+    const swapSpy = vi.spyOn(simpleSwapOrchestrator, 'swap')
 
     await simpleSwapOrchestrator.init()
 
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN
+    )
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
@@ -721,7 +731,9 @@ describe('SimpleSwapOrchestrator', () => {
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(
+      process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN
+    )
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
@@ -752,7 +764,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const account = await blockchainServicesByName.neo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
@@ -772,7 +784,9 @@ describe('SimpleSwapOrchestrator', () => {
     const tokenUse = tokens.find(token => token.id === 'eth:eth')!
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
-    const account = blockchainServicesByName.ethereum.generateAccountFromKey(process.env.TEST_ETHEREUM_PRIVATE_KEY)
+    const account = await blockchainServicesByName.ethereum.generateAccountFromKey(
+      process.env.TEST_ETHEREUM_PRIVATE_KEY
+    )
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(

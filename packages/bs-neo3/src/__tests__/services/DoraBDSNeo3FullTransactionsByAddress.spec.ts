@@ -26,30 +26,17 @@ let params: TGetFullTransactionsByAddressParams
 let service: BSNeo3<'test'>
 let doraFullTransactionsDataServiceNeo3: DoraFullTransactionsDataServiceNeo3<'test'>
 
-jest.mock('../../services/nft-data/GhostMarketNDSNeo3', () => {
-  return {
-    GhostMarketNDSNeo3: jest.fn().mockImplementation(() => {
-      return {
-        getNft: jest.fn().mockReturnValue({
-          image: 'nftImage',
-          name: 'nftName',
-          collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
-        }),
-      }
-    }),
-  }
-})
+vi.mock('../../services/nft-data/GhostMarketNDSNeo3', () => {
+  const GhostMarketNDSNeo3 = vi.fn()
 
-jest.mock('../../services/explorer/DoraESNeo3', () => {
+  GhostMarketNDSNeo3.prototype.getNft = vi.fn().mockResolvedValue({
+    image: 'nftImage',
+    name: 'nftName',
+    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+  })
+
   return {
-    DoraESNeo3: jest.fn().mockImplementation(() => {
-      return {
-        getAddressTemplateUrl: jest.fn().mockReturnValue('addressTemplateUrl'),
-        getTxTemplateUrl: jest.fn().mockReturnValue('txTemplateUrl'),
-        getNftTemplateUrl: jest.fn().mockReturnValue('nftTemplateUrl'),
-        getContractTemplateUrl: jest.fn().mockReturnValue('contractTemplateUrl'),
-      }
-    }),
+    GhostMarketNDSNeo3,
   }
 })
 

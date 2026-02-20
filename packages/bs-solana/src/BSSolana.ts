@@ -14,12 +14,10 @@ import {
   TPingNetworkResponse,
   BSKeychainHelper,
   type IWalletConnectService,
+  BSError,
 } from '@cityofzion/blockchain-service'
-import solanaSDK from '@solana/web3.js'
-import * as solanaSplSDK from '@solana/spl-token'
-import solanaSnsSDK from '@bonfida/spl-name-service'
+
 import { BSSolanaConstants } from './constants/BSSolanaConstants'
-import bs58 from 'bs58'
 import { Web3LedgerServiceSolana } from './services/ledger/Web3LedgerServiceSolana'
 import { RpcBDSSolana } from './services/blockchain-data/RpcBDSSolana'
 import { RpcNDSSolana } from './services/nft-data/RpcNDSSolana'
@@ -27,6 +25,9 @@ import { SolScanESSolana } from './services/explorer/SolScanESSolana'
 import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
 import { IBSSolana, TBSSolanaNetworkId } from './types'
+import * as solanaKit from '@solana/kit'
+import * as solanaSystem from '@solana-program/system'
+import * as solanaToken from '@solana-program/token'
 import axios from 'axios'
 import { WalletConnectServiceSolana } from './services/wallet-connect/WalletConnectServiceSolana'
 
@@ -56,7 +57,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   tokenService!: ITokenService
   walletConnectService!: IWalletConnectService<N>
 
-  connection!: solanaSDK.Connection
+  solanaKitRpc!: solanaKit.Rpc<solanaKit.SolanaRpcApi>
 
   constructor(name: N, network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -73,19 +74,10 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  generateKeyPairFromKey(key: string): solanaSDK.Keypair {
-    let keyBuffer: Uint8Array | undefined
-
-    try {
-      keyBuffer = bs58.decode(key)
-    } catch {
-      keyBuffer = Uint8Array.from(key.split(',').map(Number))
-    }
-
-    return solanaSDK.Keypair.fromSecretKey(keyBuffer)
-  }
-
-  async #signTransaction(transaction: solanaSDK.Transaction, senderAccount: TBSAccount<N>) {
+  async signTransaction(
+    transaction: solanaKit.Transaction,
+    senderAccount: TBSAccount<N>
+  ): Promise<solanaKit.Base64EncodedWireTransaction> {
     if (senderAccount.isHardware) {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
@@ -97,70 +89,85 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
       return await this.ledgerService.signTransaction(transport, transaction, senderAccount)
     }
 
-    transaction.sign(this.generateKeyPairFromKey(senderAccount.key))
-    return transaction.serialize()
+    const keypair = await solanaKit.createKeyPairFromBytes(solanaKit.getBase58Encoder().encode(senderAccount.key))
+    const signedTransaction = await solanaKit.partiallySignTransaction([keypair], transaction)
+    return solanaKit.getBase64EncodedWireTransaction(signedTransaction)
   }
 
   async #buildTransferParams(param: TTransferParam<N>) {
-    const latestBlockhash = await this.connection.getLatestBlockhash()
+    const signer = solanaKit.createNoopSigner(solanaKit.address(param.senderAccount.address))
 
-    const senderPublicKey = new solanaSDK.PublicKey(param.senderAccount.address)
-
-    const transaction = new solanaSDK.Transaction()
-    transaction.feePayer = senderPublicKey
-    transaction.recentBlockhash = latestBlockhash.blockhash
-    transaction.lastValidBlockHeight = latestBlockhash.lastValidBlockHeight
+    const instructions: solanaKit.Instruction[] = []
 
     for (const intent of param.intents) {
       const amountBn = BSBigNumberHelper.fromNumber(intent.amount)
       const amount = Number(BSBigNumberHelper.toDecimals(amountBn, intent.token.decimals))
-      const receiverPublicKey = new solanaSDK.PublicKey(intent.receiverAddress)
-      const normalizedTokenHash = this.tokenService.normalizeHash(intent.token.hash)
+      const receiverAddress = solanaKit.address(intent.receiverAddress)
 
-      const isNative = normalizedTokenHash === this.tokenService.normalizeHash(BSSolanaConstants.NATIVE_TOKEN.hash)
+      const isNative = this.tokenService.predicate(intent.token, BSSolanaConstants.NATIVE_TOKEN)
       if (isNative) {
-        transaction.add(
-          solanaSDK.SystemProgram.transfer({
-            fromPubkey: senderPublicKey,
-            toPubkey: receiverPublicKey,
-            lamports: amount,
-          })
-        )
+        const transferInstruction = solanaSystem.getTransferSolInstruction({
+          source: signer,
+          destination: receiverAddress,
+          amount,
+        })
+
+        instructions.push(transferInstruction)
+
         continue
       }
-      const tokenMintPublicKey = new solanaSDK.PublicKey(normalizedTokenHash)
 
-      const senderTokenAddress = await solanaSplSDK.getAssociatedTokenAddress(tokenMintPublicKey, senderPublicKey)
-      const receiverTokenAddress = await solanaSplSDK.getAssociatedTokenAddress(tokenMintPublicKey, receiverPublicKey)
+      const tokenMint = solanaKit.address(this.tokenService.normalizeHash(intent.token.hash))
 
-      try {
-        await solanaSplSDK.getAccount(this.connection, receiverTokenAddress)
-      } catch (error) {
-        if (
-          error instanceof solanaSplSDK.TokenAccountNotFoundError ||
-          error instanceof solanaSplSDK.TokenInvalidAccountOwnerError
-        ) {
-          transaction.add(
-            solanaSplSDK.createAssociatedTokenAccountInstruction(
-              senderPublicKey,
-              receiverTokenAddress,
-              receiverPublicKey,
-              tokenMintPublicKey
-            )
-          )
-        } else {
-          throw error
-        }
+      const [senderATA] = await solanaToken.findAssociatedTokenPda({
+        mint: tokenMint,
+        owner: signer.address,
+        tokenProgram: solanaToken.TOKEN_PROGRAM_ADDRESS,
+      })
+
+      const [receiverATA] = await solanaToken.findAssociatedTokenPda({
+        mint: tokenMint,
+        owner: receiverAddress,
+        tokenProgram: solanaToken.TOKEN_PROGRAM_ADDRESS,
+      })
+
+      const receiverAccountInfo = await this.solanaKitRpc.getAccountInfo(receiverATA, { encoding: 'base64' }).send()
+
+      if (!receiverAccountInfo.value) {
+        // Create associated token account for receiver
+        const createAtaInstruction = solanaToken.getCreateAssociatedTokenInstruction({
+          payer: signer,
+          owner: receiverAddress,
+          mint: tokenMint,
+          ata: receiverATA,
+        })
+
+        instructions.push(createAtaInstruction)
       }
 
-      transaction.add(
-        solanaSplSDK.createTransferInstruction(senderTokenAddress, receiverTokenAddress, senderPublicKey, amount)
-      )
+      const transferInstruction = solanaToken.getTransferCheckedInstruction({
+        source: senderATA,
+        destination: receiverATA,
+        mint: tokenMint,
+        authority: signer,
+        amount: amount,
+        decimals: intent.token.decimals,
+      })
+
+      instructions.push(transferInstruction)
     }
 
+    const { value: latestBlockhash } = await this.solanaKitRpc.getLatestBlockhash().send()
+
+    const transactionMessage = solanaKit.pipe(
+      solanaKit.createTransactionMessage({ version: 0 }),
+      tx => solanaKit.setTransactionMessageFeePayerSigner(signer, tx),
+      tx => solanaKit.setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
+      tx => solanaKit.appendTransactionMessageInstructions(instructions, tx)
+    )
+
     return {
-      transaction,
-      senderPublicKey,
+      transactionMessage,
     }
   }
 
@@ -182,7 +189,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     this.exchangeDataService = new MoralisEDSSolana(this)
     this.walletConnectService = new WalletConnectServiceSolana(this)
 
-    this.connection = new solanaSDK.Connection(this.network.url)
+    this.solanaKitRpc = solanaKit.createSolanaRpc(this.network.url)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
@@ -194,15 +201,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
 
     const timeStart = Date.now()
 
-    const response = await axios.post(
-      url,
-      {
-        jsonrpc: '2.0',
-        id: 1234,
-        method: 'getBlockHeight',
-      },
-      { timeout: 5000, signal: abortController.signal }
-    )
+    const blockHeight = await this.solanaKitRpc.getBlockHeight().send({ abortSignal: abortController.signal })
 
     clearTimeout(timeout)
 
@@ -211,63 +210,63 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     return {
       latency,
       url,
-      height: response.data.result,
+      height: Number(blockHeight),
     }
   }
 
   validateAddress(address: string): boolean {
     try {
-      return solanaSDK.PublicKey.isOnCurve(address)
+      return solanaKit.isAddress(address)
     } catch {
       return false
     }
   }
 
   validateKey(key: string): boolean {
-    let keyBuffer: Uint8Array | undefined
-
     try {
-      keyBuffer = bs58.decode(key)
+      const keyBuffer = solanaKit.getBase58Encoder().encode(key)
+      return keyBuffer?.length === KEY_BYTES_LENGTH
     } catch {
-      keyBuffer = Uint8Array.from(key.split(',').map(Number))
+      return false
     }
-
-    return keyBuffer?.length === KEY_BYTES_LENGTH
   }
 
-  generateAccountFromMnemonic(mnemonic: string, index: number): TBSAccount<N> {
-    const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
+  async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<N>> {
+    const bip44Path = BSKeychainHelper.getBip44Path(this.bip44DerivationPath, index)
 
     const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
-    const keypair = solanaSDK.Keypair.fromSeed(keyBuffer)
-    const key = bs58.encode(keypair.secretKey)
+    const signer = await solanaKit.createKeyPairSignerFromPrivateKeyBytes(keyBuffer)
 
-    const address = keypair.publicKey.toBase58()
+    const publicKeyBytes = solanaKit.getBase58Encoder().encode(signer.address)
+
+    const secretKey64 = new Uint8Array(64)
+    secretKey64.set(keyBuffer, 0)
+    secretKey64.set(publicKeyBytes, 32)
+
+    const base58Key = solanaKit.getBase58Decoder().decode(secretKey64)
 
     return {
-      address,
-      key,
+      address: signer.address,
+      key: base58Key,
       type: 'privateKey',
       bip44Path,
       blockchain: this.name,
     }
   }
 
-  generateAccountFromKey(key: string): TBSAccount<N> {
-    const keypair = this.generateKeyPairFromKey(key)
-
-    const address = keypair.publicKey.toBase58()
-    const base58Key = bs58.encode(keypair.secretKey)
+  async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
+    const keyBuffer = solanaKit.getBase58Encoder().encode(key)
+    const signer = await solanaKit.createKeyPairSignerFromBytes(keyBuffer)
 
     return {
-      address,
-      key: base58Key,
+      address: signer.address,
+      key,
       type: 'privateKey',
       blockchain: this.name,
     }
   }
 
-  generateAccountFromPublicKey(publicKey: string): TBSAccount<N> {
+  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
     return {
       address: publicKey,
       key: publicKey,
@@ -277,36 +276,50 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   async transfer(param: TTransferParam<N>): Promise<string[]> {
-    const { transaction } = await this.#buildTransferParams(param)
+    const { transactionMessage } = await this.#buildTransferParams(param)
 
-    const signedTransaction = await this.#signTransaction(transaction, param.senderAccount)
-    const signature = await this.connection.sendRawTransaction(signedTransaction)
+    const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
+
+    const encodedSignedTransaction = await this.signTransaction(compiledTransaction, param.senderAccount)
+
+    const signature = await this.solanaKitRpc.sendTransaction(encodedSignedTransaction, { encoding: 'base64' }).send()
 
     return [signature]
   }
 
   async calculateTransferFee(param: TTransferParam<N>): Promise<string> {
-    const { senderPublicKey, transaction } = await this.#buildTransferParams(param)
+    const { transactionMessage } = await this.#buildTransferParams(param)
+    const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
 
-    const { blockhash } = await this.connection.getLatestBlockhash()
-    transaction.recentBlockhash = blockhash
+    const messageBase64 = solanaKit.getBase64Decoder().decode(compiledTransaction.messageBytes)
 
-    transaction.feePayer = senderPublicKey
+    const feeResponse = await this.solanaKitRpc
+      .getFeeForMessage(messageBase64 as any, { commitment: 'confirmed' })
+      .send()
 
-    const message = transaction.compileMessage()
-
-    const fee = await this.connection.getFeeForMessage(message)
-    if (!fee.value) {
+    if (!feeResponse.value) {
       throw new Error('Failed to calculate fee')
     }
 
-    const feeBn = BSBigNumberHelper.fromDecimals(fee.value, this.feeToken.decimals)
+    const feeBn = BSBigNumberHelper.fromDecimals(feeResponse.value.toString(), this.feeToken.decimals)
     return BSBigNumberHelper.toNumber(feeBn).toString()
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {
-    const address = await solanaSnsSDK.resolve(this.connection, domainName)
-    return address.toBase58()
+    const domain = domainName.replace('.sol', '')
+    const response = await axios.get(`https://sns-sdk-proxy.bonfida.workers.dev/resolve/${domain}`)
+
+    if (response.status !== 200) {
+      throw new BSError(`Failed to resolve domain ${domainName}`, 'DOMAIN_NOT_FOUND')
+    }
+
+    const { s, result } = response.data
+
+    if (s !== 'ok' || !result) {
+      throw new BSError(`Domain ${domainName} not found`, 'DOMAIN_NOT_FOUND')
+    }
+
+    return result
   }
 
   validateNameServiceDomainFormat(domainName: string): boolean {

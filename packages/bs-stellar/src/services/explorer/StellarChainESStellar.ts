@@ -25,6 +25,10 @@ export class StellarChainESStellar<N extends string> implements IExplorerService
     return undefined
   }
 
+  buildAddressUrl(address: string): string | undefined {
+    return `${this.#baseUrl}/accounts/${address}`
+  }
+
   getAddressTemplateUrl(): string | undefined {
     return `${this.#baseUrl}/accounts/{address}`
   }
