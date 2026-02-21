@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "3.0.5",
+      "tag": "@cityofzion/bs-ethereum_v3.0.5",
+      "date": "Sat, 21 Feb 2026 18:56:12 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update classes to align with the new generateAccount's function interface"
+          },
+          {
+            "comment": "Replace jest to vitest"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.0.4",
       "tag": "@cityofzion/bs-ethereum_v3.0.4",
       "date": "Fri, 13 Feb 2026 22:47:31 GMT",

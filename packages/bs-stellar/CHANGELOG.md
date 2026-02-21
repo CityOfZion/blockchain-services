@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-stellar
 
-This log was last generated on Fri, 13 Feb 2026 22:47:31 GMT and should not be manually modified.
+This log was last generated on Sat, 21 Feb 2026 18:56:12 GMT and should not be manually modified.
+
+## 3.0.5
+Sat, 21 Feb 2026 18:56:12 GMT
+
+### Updates
+
+- Update classes to align with the new generateAccount's function interface
+- Replace jest to vitest
 
 ## 3.0.4
 Fri, 13 Feb 2026 22:47:31 GMT

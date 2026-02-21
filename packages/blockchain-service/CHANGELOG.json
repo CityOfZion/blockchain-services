@@ -2,6 +2,21 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "3.0.5",
+      "tag": "@cityofzion/blockchain-service_v3.0.5",
+      "date": "Sat, 21 Feb 2026 18:56:12 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update generateAccount's function to return a promise"
+          },
+          {
+            "comment": "Replace jest to vitest"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.0.4",
       "tag": "@cityofzion/blockchain-service_v3.0.4",
       "date": "Fri, 13 Feb 2026 22:47:31 GMT",
