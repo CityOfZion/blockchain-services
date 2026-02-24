@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Add test to ensure Blockscout's TestNet is up to date",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

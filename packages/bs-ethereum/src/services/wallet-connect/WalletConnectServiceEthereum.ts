@@ -56,11 +56,8 @@ export class WalletConnectServiceEthereum<N extends string, A extends TBSNetwork
       throw new Error('Invalid params')
     }
 
-    if (!param.chainId) {
-      const chainId = parseInt(this._service.network.id)
-
-      if (!isNaN(chainId)) param.chainId = chainId
-    }
+    const chainId = parseInt(param.chainId ?? this._service.network.id)
+    if (!isNaN(chainId)) param.chainId = chainId
 
     if (param.gas) {
       param.gasLimit = param.gas

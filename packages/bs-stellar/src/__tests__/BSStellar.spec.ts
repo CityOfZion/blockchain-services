@@ -4,7 +4,8 @@ import { BSStellarConstants } from '../constants/BSStellarConstants'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
-const mnemonic = process.env.TEST_MNEMONIC as string
+const mnemonic = process.env.TEST_MNEMONIC
+
 const sacToken: TBSToken = {
   symbol: 'USDC',
   name: 'USDC',

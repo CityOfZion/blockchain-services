@@ -67,4 +67,9 @@ export class BSUtilsHelper {
       return [undefined, error as Error] as any
     }
   }
+
+  static isBase64(str: string): boolean {
+    const base64Regex = /^(?:[A-Z0-9+/]{4})*(?:[A-Z0-9+/]{2}==|[A-Z0-9+/]{3}=)?$/i
+    return base64Regex.test(str)
+  }
 }

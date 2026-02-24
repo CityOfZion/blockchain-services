@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Improve WalletConnect implementation",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-stellar"
+}
