@@ -215,4 +215,22 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(blockHeight).toBeGreaterThan(0)
   })
+
+  it('Should return balance in Testnet', async () => {
+    service = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
+    blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
+
+    const address = '0xE3aBC0b2A74FD2eF662b1c25C9769398f53b4304'
+
+    const balance = await blockscoutBDSNeoX.getBalance(address)
+
+    expect(balance).toEqual(
+      expect.arrayContaining([
+        {
+          amount: expect.any(String),
+          token: BSNeoXConstants.NATIVE_ASSET,
+        },
+      ])
+    )
+  })
 })
