@@ -1,20 +1,20 @@
 import {
-  TBSAccount,
   BSBigNumberHelper,
   BSUtilsHelper,
-  TGetLedgerTransport,
-  IBlockchainDataService,
-  IExchangeDataService,
-  IExplorerService,
-  INftDataService,
-  ITokenService,
-  TBSNetwork,
-  TBSToken,
-  TTransferParam,
-  TPingNetworkResponse,
   BSKeychainHelper,
-  type IWalletConnectService,
   BSError,
+  type TBSAccount,
+  type TGetLedgerTransport,
+  type IBlockchainDataService,
+  type IExchangeDataService,
+  type IExplorerService,
+  type INftDataService,
+  type ITokenService,
+  type TBSNetwork,
+  type TBSToken,
+  type TPingNetworkResponse,
+  type TTransferParams,
+  type IWalletConnectService,
 } from '@cityofzion/blockchain-service'
 
 import { BSSolanaConstants } from './constants/BSSolanaConstants'
@@ -24,7 +24,7 @@ import { RpcNDSSolana } from './services/nft-data/RpcNDSSolana'
 import { SolScanESSolana } from './services/explorer/SolScanESSolana'
 import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
-import { IBSSolana, TBSSolanaNetworkId } from './types'
+import type { IBSSolana, TBSSolanaNetworkId } from './types'
 import * as solanaKit from '@solana/kit'
 import * as solanaSystem from '@solana-program/system'
 import * as solanaToken from '@solana-program/token'
@@ -35,7 +35,7 @@ const KEY_BYTES_LENGTH = 64
 
 export class BSSolana<N extends string = string> implements IBSSolana<N> {
   readonly name: N
-  readonly bip44DerivationPath: string
+  readonly bipDerivationPath: string
 
   readonly isMultiTransferSupported: boolean = true
   readonly isCustomNetworkSupported: boolean = false
@@ -45,7 +45,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   readonly nativeTokens!: TBSToken[]
 
   network!: TBSNetwork<TBSSolanaNetworkId>
-  rpcNetworkUrls!: string[]
+  networkUrls!: string[]
   readonly availableNetworks: TBSNetwork<TBSSolanaNetworkId>[]
   readonly defaultNetwork: TBSNetwork<TBSSolanaNetworkId>
 
@@ -61,7 +61,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
 
   constructor(name: N, network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
-    this.bip44DerivationPath = BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH
     this.ledgerService = new Web3LedgerServiceSolana(this, getLedgerTransport)
 
     this.tokens = [BSSolanaConstants.NATIVE_TOKEN]
@@ -82,8 +82,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
 
-      if (typeof senderAccount.bip44Path !== 'string')
-        throw new Error('Your account must have bip44 path to use Ledger')
+      if (typeof senderAccount.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
 
       const transport = await this.ledgerService.getLedgerTransport(senderAccount)
       return await this.ledgerService.signTransaction(transport, transaction, senderAccount)
@@ -94,7 +93,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     return solanaKit.getBase64EncodedWireTransaction(signedTransaction)
   }
 
-  async #buildTransferParams(param: TTransferParam<N>) {
+  async #buildTransferParams(param: TTransferParams<N>) {
     const signer = solanaKit.createNoopSigner(solanaKit.address(param.senderAccount.address))
 
     const instructions: solanaKit.Instruction[] = []
@@ -172,15 +171,15 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   setNetwork(network: TBSNetwork<TBSSolanaNetworkId>): void {
-    const rpcNetworkUrls = BSSolanaConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
+    const networkUrls = BSSolanaConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
     this.network = network
-    this.rpcNetworkUrls = rpcNetworkUrls
+    this.networkUrls = networkUrls
 
     this.tokenService = new TokenServiceSolana()
     this.blockchainDataService = new RpcBDSSolana(this)
@@ -193,19 +192,18 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
-  async pingNode(url: string): Promise<TPingNetworkResponse> {
+  async pingNetwork(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
+
     const timeout = setTimeout(() => {
       abortController.abort()
     }, 5000)
 
     const timeStart = Date.now()
-
     const blockHeight = await this.solanaKitRpc.getBlockHeight().send({ abortSignal: abortController.signal })
+    const latency = Date.now() - timeStart
 
     clearTimeout(timeout)
-
-    const latency = Date.now() - timeStart
 
     return {
       latency,
@@ -232,14 +230,12 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   }
 
   async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<N>> {
-    const bip44Path = BSKeychainHelper.getBip44Path(this.bip44DerivationPath, index)
-
-    const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
+    const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
+    const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath)
     const signer = await solanaKit.createKeyPairSignerFromPrivateKeyBytes(keyBuffer)
-
     const publicKeyBytes = solanaKit.getBase58Encoder().encode(signer.address)
-
     const secretKey64 = new Uint8Array(64)
+
     secretKey64.set(keyBuffer, 0)
     secretKey64.set(publicKeyBytes, 32)
 
@@ -249,7 +245,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
       address: signer.address,
       key: base58Key,
       type: 'privateKey',
-      bip44Path,
+      bipPath,
       blockchain: this.name,
     }
   }
@@ -275,7 +271,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     }
   }
 
-  async transfer(param: TTransferParam<N>): Promise<string[]> {
+  async transfer(param: TTransferParams<N>): Promise<string[]> {
     const { transactionMessage } = await this.#buildTransferParams(param)
 
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
@@ -287,7 +283,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     return [signature]
   }
 
-  async calculateTransferFee(param: TTransferParam<N>): Promise<string> {
+  async calculateTransferFee(param: TTransferParams<N>): Promise<string> {
     const { transactionMessage } = await this.#buildTransferParams(param)
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
 

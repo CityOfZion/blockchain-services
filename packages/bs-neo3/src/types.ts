@@ -1,4 +1,4 @@
-import {
+import type {
   TBSAccount,
   IBlockchainService,
   IBSWithClaim,
@@ -11,16 +11,16 @@ import {
   IBSWithNft,
   TBSNetworkId,
   IBSWithWalletConnect,
-  type IBSWithFullTransactions,
+  IBSWithFullTransactions,
 } from '@cityofzion/blockchain-service'
 import { wallet, api } from './helpers/BSNeo3NeonJsSingletonHelper'
 
 export type TBSNeo3NetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
-export interface IBSNeo3<N extends string = string>
-  extends IBlockchainService<N, TBSNeo3NetworkId>,
-    IBSWithClaim<N>,
+export interface IBSNeo3<N extends string = string, A extends string = TBSNeo3NetworkId>
+  extends IBlockchainService<N, A>,
     IBSWithNameService,
+    IBSWithClaim<N>,
     IBSWithFee<N>,
     IBSWithNft,
     IBSWithExplorer,

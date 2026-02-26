@@ -1,6 +1,6 @@
-import { BSError, GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
+import { BSError, GhostMarketNDS, type THasTokenParams } from '@cityofzion/blockchain-service'
 
-import { IBSNeo3, TBSNeo3NetworkId } from '../../types'
+import type { IBSNeo3, TBSNeo3NetworkId } from '../../types'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
 export class GhostMarketNDSNeo3<N extends string> extends GhostMarketNDS<N, TBSNeo3NetworkId, IBSNeo3<N>> {
@@ -13,7 +13,7 @@ export class GhostMarketNDSNeo3<N extends string> extends GhostMarketNDS<N, TBSN
     super(service)
   }
 
-  async hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean> {
+  async hasToken({ address, collectionHash }: THasTokenParams): Promise<boolean> {
     if (!collectionHash) {
       throw new BSError('collectionHash is required to get NFT from GhostMarketNDSNeo3', 'REQUIRED_PARAMETER_MISSING')
     }

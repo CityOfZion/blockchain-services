@@ -1,4 +1,4 @@
-import { TBSNetworkId } from '@cityofzion/blockchain-service'
+import type { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { MoralisEDSEthereum } from '../services/exchange-data/MoralisEDSEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { BSEthereum } from '../BSEthereum'

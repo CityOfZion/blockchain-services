@@ -1,10 +1,10 @@
 import {
-  TBSAccount,
   BSUtilsHelper,
-  TSwapLoadableValue,
-  TSwapMinMaxAmount,
-  TSwapToken,
-  TSwapValidateValue,
+  type TBSAccount,
+  type TSwapLoadableValue,
+  type TSwapMinMaxAmount,
+  type TSwapToken,
+  type TSwapValidateValue,
 } from '@cityofzion/blockchain-service'
 import { SimpleSwapOrchestrator } from '../features/swap'
 import { BSNeo3 } from '@cityofzion/bs-neo3'

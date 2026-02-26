@@ -1,5 +1,5 @@
-import { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
-import { TBSNeo3NetworkId } from '../types'
+import type { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
+import type { TBSNeo3NetworkId } from '../types'
 
 export class BSNeo3Constants {
   static readonly EXTRA_TOKENS_BY_NETWORK_ID: Partial<Record<TBSNeo3NetworkId, TBSToken[]>> = {

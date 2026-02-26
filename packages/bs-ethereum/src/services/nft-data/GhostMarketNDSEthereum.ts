@@ -1,6 +1,11 @@
-import { TBSNetworkId, GhostMarketNDS, THasTokenParam } from '@cityofzion/blockchain-service'
+import {
+  GhostMarketNDS,
+  type TBSNetworkId,
+  type THasTokenParams,
+  type TBSBigNumber,
+} from '@cityofzion/blockchain-service'
 
-import { IBSEthereum, TBSEthereumNetworkId } from '../../types'
+import type { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 import { ethers } from 'ethers'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 
@@ -21,18 +26,18 @@ export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> ex
     super(service)
   }
 
-  async hasToken({ collectionHash, address }: THasTokenParam): Promise<boolean> {
+  async hasToken({ address, collectionHash }: THasTokenParams): Promise<boolean> {
     try {
       if (!collectionHash) return false
 
       const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
-
       const contract = new ethers.Contract(collectionHash, ERC20_ABI, provider)
-
       const response = await contract.balanceOf(address)
+
       if (!response) return false
 
-      const parsedResponse = response as BigNumber
+      const parsedResponse = response as TBSBigNumber
+
       return parsedResponse.gt(0)
     } catch {
       return false

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Add decodeBase58Check method, improve types, interfaces and helpers",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

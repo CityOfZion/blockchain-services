@@ -1,9 +1,9 @@
 import {
-  IWalletConnectService,
-  TBSNetworkId,
-  TWalletConnectServiceRequestMethodParams,
-  THexString,
   BSUtilsHelper,
+  type IWalletConnectService,
+  type TBSNetworkId,
+  type TWalletConnectServiceRequestMethodParams,
+  type THexString,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { IBSEthereum, WalletConnectServiceEthereum } from '@cityofzion/bs-ethereum'

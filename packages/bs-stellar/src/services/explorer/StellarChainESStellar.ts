@@ -14,10 +14,14 @@ export class StellarChainESStellar<N extends string> implements IExplorerService
   }
 
   buildTransactionUrl(hash: string): string | undefined {
+    if (!hash?.length) return undefined
+
     return `${this.#baseUrl}/transactions/${hash}`
   }
 
   buildContractUrl(contractHash: string): string | undefined {
+    if (!contractHash?.length) return undefined
+
     return `${this.#baseUrl}/contracts/${contractHash}`
   }
 
@@ -26,6 +30,8 @@ export class StellarChainESStellar<N extends string> implements IExplorerService
   }
 
   buildAddressUrl(address: string): string | undefined {
+    if (!address?.length) return undefined
+
     return `${this.#baseUrl}/accounts/${address}`
   }
 

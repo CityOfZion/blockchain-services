@@ -1,4 +1,4 @@
-import { TBSNetworkId } from '@cityofzion/blockchain-service'
+import type { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereum } from '../BSEthereum'
 import { GhostMarketNDSEthereum } from '../services/nft-data/GhostMarketNDSEthereum'
 
@@ -23,6 +23,7 @@ describe.skip('GhostMarketNDSEthereum', () => {
           hash: '0xeb3a9a839dfeeaf71db1b4ed6a8ae0ccb171b227',
           name: '"MOAR" by Joan Cornella',
           image: expect.any(String),
+          url: expect.any(String),
         },
         symbol: 'MOAR',
         image: expect.any(String),
@@ -53,13 +54,12 @@ describe.skip('GhostMarketNDSEthereum', () => {
 
   it('Check if address has specific Token', async () => {
     const address: string = '0xd773c81a4a855556ce2f2372b12272710b95b26c'
-    const nfts = await ghostMarketNDSEthereum.getNftsByAddress({
-      address: address,
-    })
+    const nfts = await ghostMarketNDSEthereum.getNftsByAddress({ address })
+
     for (const { collection } of nfts.items) {
       const hasToken: boolean = await ghostMarketNDSEthereum.hasToken({
         address,
-        collectionHash: collection?.hash,
+        collectionHash: collection!.hash,
       })
       expect(hasToken).toBeTruthy()
     }

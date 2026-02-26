@@ -1,4 +1,4 @@
-import { TBSAccount, BSBigNumberHelper, BSError } from '@cityofzion/blockchain-service'
+import { BSBigNumberHelper, BSError, type TBSAccount } from '@cityofzion/blockchain-service'
 
 import { BSNeo3 } from '../../BSNeo3'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'

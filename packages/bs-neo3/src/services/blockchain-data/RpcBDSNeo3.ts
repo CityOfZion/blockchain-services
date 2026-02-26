@@ -1,18 +1,18 @@
 import {
-  TBalanceResponse,
-  TContractMethod,
-  TContractParameter,
-  IBlockchainDataService,
-  TBSToken,
-  type TTransaction,
   BSBigNumberHelper,
+  BSUtilsHelper,
+  type TBalanceResponse,
+  type TContractMethod,
+  type TContractParameter,
+  type IBlockchainDataService,
+  type TBSToken,
+  type TTransaction,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TContractResponse,
   type TBridgeToken,
-  BSUtilsHelper,
 } from '@cityofzion/blockchain-service'
-import { IBSNeo3, type TRpcBDSNeo3Notification, type TRpcBDSNeo3NotificationState } from '../../types'
+import type { IBSNeo3, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
@@ -34,11 +34,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
   async _extractEventsFromNotifications(notifications: TRpcBDSNeo3Notification[] = []) {
     const events: TTransaction<N>['events'] = []
 
-    const addressTemplateUrl = this._service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this._service.explorerService.getContractTemplateUrl()
-    const nftTemplateUrl = this._service.explorerService.getNftTemplateUrl()
-
-    const promises = notifications.map(async ({ contract: contractHash, state, eventname }) => {
+    const promises = notifications.map(async ({ contract: contractHash, state, eventname }, index) => {
       const properties = (Array.isArray(state) ? state : (state?.value ?? [])) as TRpcBDSNeo3NotificationState[]
 
       if (eventname !== 'Transfer' || (properties.length !== 3 && properties.length !== 4)) return
@@ -48,16 +44,14 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
       const to = properties[1].value as string
       const convertedFrom = from ? this.#convertByteStringToAddress(from) : 'Mint'
       const convertedTo = to ? this.#convertByteStringToAddress(to) : 'Burn'
-
-      const fromUrl = addressTemplateUrl?.replace('{address}', convertedFrom)
-      const toUrl = addressTemplateUrl?.replace('{address}', convertedTo)
-      const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+      const fromUrl = from ? this._service.explorerService.buildAddressUrl(convertedFrom) : undefined
+      const toUrl = to ? this._service.explorerService.buildAddressUrl(convertedTo) : undefined
 
       if (isAsset) {
         const token = await this.getTokenInfo(contractHash)
         const amount = properties[2].value as string
 
-        events.push({
+        events.splice(index, 0, {
           amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount ?? 0, token.decimals), {
             decimals: token.decimals,
           }),
@@ -66,7 +60,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
           to: convertedTo,
           toUrl,
           contractHash,
-          contractHashUrl,
+          contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
           eventType: 'token',
           token,
           tokenType: 'nep-17',
@@ -82,22 +76,20 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
         this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
       )
 
-      const nftUrl = nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
-
-      events.push({
+      events.splice(index, 0, {
         from: convertedFrom,
         fromUrl,
         to: convertedTo,
         toUrl,
         tokenHash,
         collectionHash: contractHash,
-        collectionHashUrl: contractHashUrl,
+        collectionHashUrl: nft?.collection?.url,
         eventType: 'nft',
         methodName: 'transfer',
         tokenType: 'nep-11',
         amount: '1',
         nftImageUrl: nft?.image,
-        nftUrl,
+        nftUrl: nft?.explorerUri,
         name: nft?.name,
         collectionName: nft?.collection?.name,
       })
@@ -154,15 +146,12 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
       const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
       const rpcClient = new rpc.RPCClient(this._service.network.url)
       const response = await rpcClient.getRawTransaction(hash, true)
-
-      const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
-
       const applicationLog = await rpcClient.getApplicationLog(hash)
       const notifications = applicationLog.executions.flatMap(execution => execution.notifications)
 
       const events = await this._extractEventsFromNotifications(notifications)
 
-      const txIdUrl = txTemplateUrl?.replace('{txId}', response.hash)
+      const txIdUrl = this._service.explorerService.buildTransactionUrl(response.hash)
 
       let transaction: TTransaction<N> = {
         txId: response.hash,
@@ -183,7 +172,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
         invocationCount: 0,
         notificationCount: notifications.length,
         events,
-        date: new Date(Number(response.blocktime) * 1000).toISOString(),
+        date: new Date(Number(response.blocktime) * 1000).toJSON(),
         type: 'default',
       }
 

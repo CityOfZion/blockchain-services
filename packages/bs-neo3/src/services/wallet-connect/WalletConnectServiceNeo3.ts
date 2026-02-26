@@ -1,5 +1,5 @@
-import { IWalletConnectService, TWalletConnectServiceRequestMethodParams } from '@cityofzion/blockchain-service'
-import { IBSNeo3 } from '../../types'
+import type { IWalletConnectService, TWalletConnectServiceRequestMethodParams } from '@cityofzion/blockchain-service'
+import type { IBSNeo3 } from '../../types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'

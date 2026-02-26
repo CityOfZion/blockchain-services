@@ -1,5 +1,5 @@
-import { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
-import { IBSNeoLegacy } from '../../types'
+import type { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
+import type { IBSNeoLegacy } from '../../types'
 import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
 export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
@@ -16,12 +16,14 @@ export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
   }
 
   buildTransactionUrl(hash: string): string | undefined {
-    if (!this.#baseUrl) return undefined
+    if (!this.#baseUrl || !hash?.length) return undefined
+
     return `${this.#baseUrl}/transaction/${this.#service.tokenService.normalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string | undefined {
-    if (!this.#baseUrl) return undefined
+    if (!this.#baseUrl || !contractHash?.length) return undefined
+
     return `${this.#baseUrl}/asset/${this.#service.tokenService.normalizeHash(contractHash)}/page/1`
   }
 
@@ -30,6 +32,8 @@ export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
   }
 
   buildAddressUrl(address: string): string | undefined {
+    if (!this.#baseUrl || !address?.length) return undefined
+
     return `${this.#baseUrl}/address/${address}`
   }
 

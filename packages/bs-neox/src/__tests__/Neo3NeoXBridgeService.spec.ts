@@ -1,10 +1,10 @@
-import { TBSAccount, BSBigNumberHelper, BSError, TBSNetwork } from '@cityofzion/blockchain-service'
+import { BSBigNumberHelper, BSError, type TBSAccount, type TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSNeoX } from '../BSNeoX'
 import { Neo3NeoXBridgeService } from '../services/neo3-neox-bridge/Neo3NeoXBridgeService'
 import { ethers } from 'ethers'
 import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
-import { TBSNeoXNetworkId } from '../types'
+import type { TBSNeoXNetworkId } from '../types'
 
 let neo3NeoXBridgeService: Neo3NeoXBridgeService<'test'>
 let bsNeoXService: BSNeoX<'test'>

@@ -1,10 +1,10 @@
 import {
   FlamingoForthewinEDS,
-  TGetTokenPriceHistoryParams,
-  TGetTokenPricesParams,
-  TTokenPricesResponse,
+  type TGetTokenPriceHistoryParams,
+  type TGetTokenPricesParams,
+  type TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import { IBSNeoX } from '../../types'
+import type { IBSNeoX } from '../../types'
 import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
 
 export class FlamingoForthewinEDSNeoX<N extends string> extends FlamingoForthewinEDS<N> {

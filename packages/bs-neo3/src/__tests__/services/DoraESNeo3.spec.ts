@@ -1,7 +1,7 @@
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { DoraESNeo3 } from '../../services/explorer/DoraESNeo3'
 import { BSCommonConstants, TBSNetwork } from '@cityofzion/blockchain-service'
-import { IBSNeo3 } from '../../types'
+import type { IBSNeo3 } from '../../types'
 import { BSNeo3 } from '../../BSNeo3'
 
 let doraESNeo3: DoraESNeo3<'test'>

@@ -26,7 +26,7 @@
     "@ethersproject/json-wallets": "5.8.0",
     "@ethersproject/properties": "5.8.0",
     "@ledgerhq/hw-app-eth": "~7.3.0",
-    "axios": "~1.13.2",
+    "axios": "~1.13.5",
     "ethers": "5.8.0"
   },
   "devDependencies": {

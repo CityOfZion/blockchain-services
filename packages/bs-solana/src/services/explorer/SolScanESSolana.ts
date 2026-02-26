@@ -1,5 +1,5 @@
-import { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
-import { IBSSolana } from '../../types'
+import type { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
+import type { IBSSolana } from '../../types'
 
 export class SolScanESSolana<N extends string> implements IExplorerService {
   readonly #baseUrl = 'https://solscan.io'
@@ -14,19 +14,27 @@ export class SolScanESSolana<N extends string> implements IExplorerService {
     this.#service = service
   }
 
-  buildTransactionUrl(hash: string): string {
+  buildTransactionUrl(hash: string) {
+    if (!hash?.length) return undefined
+
     return `${this.#baseUrl}/tx/${this.#service.tokenService.normalizeHash(hash)}${this.#queryParams}`
   }
 
-  buildContractUrl(contractHash: string): string {
+  buildContractUrl(contractHash: string) {
+    if (!contractHash?.length) return undefined
+
     return `${this.#baseUrl}/token/${this.#service.tokenService.normalizeHash(contractHash)}${this.#queryParams}`
   }
 
-  buildNftUrl({ tokenHash }: TBuildNftUrlParams): string {
+  buildNftUrl({ tokenHash }: TBuildNftUrlParams) {
+    if (!tokenHash?.length) return undefined
+
     return this.buildContractUrl(tokenHash)
   }
 
-  buildAddressUrl(address: string): string {
+  buildAddressUrl(address: string) {
+    if (!address?.length) return undefined
+
     return `${this.#baseUrl}/account/${address}${this.#queryParams}`
   }
 

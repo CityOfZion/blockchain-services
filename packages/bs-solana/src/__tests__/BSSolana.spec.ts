@@ -4,9 +4,9 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSKeychainHelper, BSUtilsHelper } from '@cityofzion/blockchain-service'
 import * as solanaKit from '@solana/kit'
 
-let bsSolana: BSSolana<'test'>
 const mnemonic = process.env.TEST_MNEMONIC as string
 let accountKeypair: { base58Key: string; base58Address: string }
+let bsSolana: BSSolana<'test'>
 
 const splToken = {
   hash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
@@ -18,18 +18,17 @@ const splToken = {
 describe('BSSolana', () => {
   beforeEach(async () => {
     bsSolana = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
+
     await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit
   })
 
   beforeAll(async () => {
-    const bip44Path = BSKeychainHelper.getBip44Path(BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH, 0)
-
+    const bip44Path = BSKeychainHelper.getBipPath(BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH, 0)
     const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
     const signer = await solanaKit.createKeyPairSignerFromPrivateKeyBytes(keyBuffer)
-
     const publicKeyBytes = solanaKit.getBase58Encoder().encode(signer.address)
-
     const secretKey64 = new Uint8Array(64)
+
     secretKey64.set(keyBuffer, 0)
     secretKey64.set(publicKeyBytes, 32)
 
@@ -59,22 +58,23 @@ describe('BSSolana', () => {
     expect(bsSolana.validateKey(invalidKey)).toBeFalsy()
   })
 
-  it('Should be able to generate a account from mnemonic', async () => {
+  it('Should be able to generate an account from mnemonic', async () => {
     const generatedAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 0)
 
     expect(generatedAccount.address).toEqual(accountKeypair.base58Address)
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
   })
 
-  it('Should be able to generate a account from key', async () => {
+  it('Should be able to generate an account from key', async () => {
     const generatedAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
 
     expect(generatedAccount.address).toEqual(accountKeypair.base58Address)
     expect(generatedAccount.key).toEqual(accountKeypair.base58Key)
   })
 
-  it('Should be able to ping a node', async () => {
-    const response = await bsSolana.pingNode(BSSolanaConstants.MAINNET_NETWORK.url)
+  it('Should be able to ping network', async () => {
+    const response = await bsSolana.pingNetwork(BSSolanaConstants.MAINNET_NETWORK.url)
+
     expect(response).toEqual({
       latency: expect.any(Number),
       url: BSSolanaConstants.MAINNET_NETWORK.url,

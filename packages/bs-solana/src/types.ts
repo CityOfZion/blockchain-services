@@ -19,8 +19,8 @@ import type {
 
 export type TBSSolanaNetworkId = TBSNetworkId<'mainnet-beta' | 'devnet'>
 
-export interface IBSSolana<N extends string = string>
-  extends IBlockchainService<N, TBSSolanaNetworkId>,
+export interface IBSSolana<N extends string = string, A extends string = TBSSolanaNetworkId>
+  extends IBlockchainService<N, A>,
     IBSWithFee<N>,
     IBSWithNameService,
     IBSWithLedger<N>,

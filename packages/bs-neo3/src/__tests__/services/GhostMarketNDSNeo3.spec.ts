@@ -1,12 +1,15 @@
 import { BSNeo3 } from '../../BSNeo3'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { GhostMarketNDSNeo3 } from '../../services/nft-data/GhostMarketNDSNeo3'
-
-let ghostMarketNDSNeo3: GhostMarketNDSNeo3<'test'>
+import { INftDataService } from '@cityofzion/blockchain-service'
+import { IBSNeo3 } from '../../types'
 
 describe('GhostMarketNDSNeo3', () => {
+  let service: IBSNeo3<'test'>
+  let ghostMarketNDSNeo3: INftDataService
+
   beforeAll(() => {
-    const service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
     ghostMarketNDSNeo3 = new GhostMarketNDSNeo3(service)
   })
 
@@ -24,6 +27,7 @@ describe('GhostMarketNDSNeo3', () => {
           hash: '0xaa4fb927b3fe004e689a278d188689c9f050a8b2',
           name: 'TOTHEMOON',
           image: expect.any(String),
+          url: expect.any(String),
         },
         image: expect.any(String),
         isSVG: expect.any(Boolean),
@@ -43,15 +47,16 @@ describe('GhostMarketNDSNeo3', () => {
 
     expect(nft).toEqual({
       hash: tokenHash,
+      explorerUri: service.explorerService.buildNftUrl({ tokenHash, collectionHash }),
       collection: {
         hash: collectionHash,
         name: 'GHOST',
         image: expect.any(String),
+        url: expect.any(String),
       },
       symbol: 'GHOST',
       image: expect.any(String),
       isSVG: expect.any(Boolean),
-      explorerUri: expect.any(String),
       name: 'GAS Icon',
       creator: {
         address: expect.any(String),
@@ -74,6 +79,7 @@ describe('GhostMarketNDSNeo3', () => {
             hash: expect.any(String),
             name: expect.any(String),
             image: expect.anything(),
+            url: expect.any(String),
           },
         })
       )
@@ -89,7 +95,7 @@ describe('GhostMarketNDSNeo3', () => {
 
     const hasToken: boolean = await ghostMarketNDSNeo3.hasToken({
       address,
-      collectionHash: nfts.items[0].collection?.hash,
+      collectionHash: nfts.items[0].collection!.hash,
     })
 
     expect(hasToken).toBeTruthy()

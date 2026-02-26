@@ -1,4 +1,4 @@
-import { TBridgeToken } from '@cityofzion/blockchain-service'
+import type { TBridgeToken } from '@cityofzion/blockchain-service'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX } from '@cityofzion/bs-neox'
 
