@@ -1,7 +1,7 @@
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { BSNeo3 } from '../../BSNeo3'
 import { DoraVoteServiceNeo3 } from '../../services/vote/DoraVoteServiceNeo3'
-import { TBSAccount } from '@cityofzion/blockchain-service'
+import type { TBSAccount } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 describe('DoraVoteServiceNeo3', () => {

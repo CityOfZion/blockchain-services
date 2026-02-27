@@ -1,4 +1,4 @@
-import {
+import type {
   TBSAccount,
   IBlockchainService,
   IBSWithClaim,
@@ -6,15 +6,15 @@ import {
   IBSWithExplorer,
   IBSWithLedger,
   TBSNetworkId,
-  type IBSWithFullTransactions,
+  IBSWithFullTransactions,
 } from '@cityofzion/blockchain-service'
 
 export type TBSNeoLegacyNetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
 export type TSigningCallback = (transaction: string, publicKey: string) => Promise<string | string[]>
 
-export interface IBSNeoLegacy<N extends string = string>
-  extends IBlockchainService<N, TBSNeoLegacyNetworkId>,
+export interface IBSNeoLegacy<N extends string = string, A extends string = TBSNeoLegacyNetworkId>
+  extends IBlockchainService<N, A>,
     IBSWithClaim<N>,
     IBSWithExplorer,
     IBSWithLedger<N>,

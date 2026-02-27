@@ -1,4 +1,4 @@
-name: Publish all Blockchain Services Libs (Blockchain-Service, BS-Ethereum, BS-Neo-Legacy, BS-Neo3, BS-Multichain, BS-Neox)
+name: Publish all Blockchain Services Libs
 
 on: workflow_dispatch
 

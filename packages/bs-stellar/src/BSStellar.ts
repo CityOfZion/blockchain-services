@@ -1,20 +1,20 @@
 import {
-  type TBSToken,
-  type TBSNetwork,
-  type IExchangeDataService,
-  type IBlockchainDataService,
-  type ITokenService,
-  type TPingNetworkResponse,
-  type TBSAccount,
-  type TTransferParam,
-  BSUtilsHelper,
-  BSKeychainHelper,
   BSBigNumberHelper,
-  type IExplorerService,
-  type TGetLedgerTransport,
   BSError,
-  type TBSBigNumber,
+  BSKeychainHelper,
+  BSUtilsHelper,
+  type IBlockchainDataService,
+  type IExchangeDataService,
+  type IExplorerService,
+  type ITokenService,
   type IWalletConnectService,
+  type TBSAccount,
+  type TBSBigNumber,
+  type TBSNetwork,
+  type TBSToken,
+  type TGetLedgerTransport,
+  type TPingNetworkResponse,
+  type TTransferParams,
 } from '@cityofzion/blockchain-service'
 import type { IBSStellar, TBSStellarNetworkId } from './types'
 import { BSStellarConstants } from './constants/BSStellarConstants'
@@ -29,12 +29,12 @@ import { WalletConnectServiceStellar } from './services/wallet-connect/WalletCon
 
 export class BSStellar<N extends string = string> implements IBSStellar<N> {
   readonly name: N
-  readonly bip44DerivationPath: string
+  readonly bipDerivationPath: string
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
 
   network!: TBSNetwork<TBSStellarNetworkId>
-  rpcNetworkUrls!: string[]
+  networkUrls!: string[]
   readonly defaultNetwork: TBSNetwork<TBSStellarNetworkId>
   readonly availableNetworks: TBSNetwork<TBSStellarNetworkId>[]
   sorobanServer!: stellarSDK.rpc.Server
@@ -53,7 +53,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
 
   constructor(name: N, network?: TBSNetwork<TBSStellarNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
-    this.bip44DerivationPath = BSStellarConstants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSStellarConstants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.tokens = [BSStellarConstants.NATIVE_TOKEN]
     this.nativeTokens = [BSStellarConstants.NATIVE_TOKEN]
@@ -70,11 +70,11 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   async getFeeEstimate(length: number): Promise<TBSBigNumber> {
     const feeStats = await this.sorobanServer.getFeeStats()
     const feePerOperation = BSBigNumberHelper.fromDecimals(feeStats.sorobanInclusionFee.min, this.feeToken.decimals)
-    const totalFee = feePerOperation.multipliedBy(length)
-    return totalFee
+
+    return feePerOperation.multipliedBy(length)
   }
 
-  async #ensureTrustline(transaction: stellarSDK.TransactionBuilder, address: string, asset: stellarSDK.Asset) {
+  async #ensureTrustline(address: string, asset: stellarSDK.Asset) {
     const account = await this.horizonServer.loadAccount(address)
 
     const hasTrustline = account.balances.some(
@@ -104,7 +104,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  async #buildTransferTransaction({ intents, senderAccount }: TTransferParam<N>) {
+  async #buildTransferTransaction({ intents, senderAccount }: TTransferParams<N>) {
     const sourceAccount = await this.#ensureAccountOnChain(senderAccount.address)
 
     const feeBn = await this.getFeeEstimate(intents.length)
@@ -124,7 +124,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
         asset = stellarSDK.Asset.native()
       } else {
         asset = new stellarSDK.Asset(intent.token.symbol, intent.token.hash)
-        await this.#ensureTrustline(transaction, intent.receiverAddress, asset)
+        await this.#ensureTrustline(intent.receiverAddress, asset)
       }
 
       transaction.addOperation(
@@ -144,8 +144,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
 
-      if (typeof senderAccount.bip44Path !== 'string')
-        throw new Error('Your account must have bip44 path to use Ledger')
+      if (typeof senderAccount.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
 
       const transport = await this.ledgerService.getLedgerTransport(senderAccount)
       return await this.ledgerService.signTransaction(transport, transaction, senderAccount)
@@ -193,15 +192,15 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   }
 
   setNetwork(network: TBSNetwork<TBSStellarNetworkId>) {
-    const rpcNetworkUrls = BSStellarConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
+    const networkUrls = BSStellarConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
     this.network = network
-    this.rpcNetworkUrls = rpcNetworkUrls
+    this.networkUrls = networkUrls
     this.sorobanServer = new stellarSDK.rpc.Server(this.network.url)
     this.horizonServer = new stellarSDK.Horizon.Server(BSStellarConstants.HORIZON_URL_BY_NETWORK_ID[network.id])
 
@@ -213,7 +212,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
-  async pingNode(url: string): Promise<TPingNetworkResponse> {
+  async pingNetwork(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
     const timeout = setTimeout(() => {
       abortController.abort()
@@ -243,17 +242,16 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   }
 
   async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<N>> {
-    const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
-
-    const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
+    const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
+    const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath)
     const keypair = stellarSDK.Keypair.fromRawEd25519Seed(key)
 
     return {
       address: keypair.publicKey(),
       key: keypair.secret(),
       type: 'privateKey',
-      bip44Path,
       blockchain: this.name,
+      bipPath,
     }
   }
 
@@ -290,12 +288,12 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     return stellarSDK.StrKey.isValidEd25519SecretSeed(key)
   }
 
-  async calculateTransferFee(param: TTransferParam<N>): Promise<string> {
+  async calculateTransferFee(param: TTransferParams<N>): Promise<string> {
     const feeBn = await this.getFeeEstimate(param.intents.length)
     return BSBigNumberHelper.toNumber(feeBn, this.feeToken.decimals)
   }
 
-  async transfer(param: TTransferParam<N>): Promise<string[]> {
+  async transfer(param: TTransferParams<N>): Promise<string[]> {
     const transaction = await this.#buildTransferTransaction(param)
     const signedTransaction = await this.signTransaction(transaction, param.senderAccount)
 

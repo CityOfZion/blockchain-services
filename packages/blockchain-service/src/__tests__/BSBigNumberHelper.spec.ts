@@ -113,7 +113,7 @@ describe('BSBigNumberHelper', () => {
       expect(BSBigNumberHelper.format('0.')).toBe('0')
       expect(BSBigNumberHelper.format('1.')).toBe('1')
       expect(BSBigNumberHelper.format('00023.002323000000')).toBe('23')
-      expect(BSBigNumberHelper.format()).toBe('0')
+      expect(BSBigNumberHelper.format(undefined)).toBe('0')
       expect(BSBigNumberHelper.format(',')).toBe('0')
       expect(BSBigNumberHelper.format(NaN)).toBe('0')
 
@@ -145,7 +145,7 @@ describe('BSBigNumberHelper', () => {
       expect(BSBigNumberHelper.format('-0.')).toBe('0')
       expect(BSBigNumberHelper.format('-1.')).toBe('-1')
       expect(BSBigNumberHelper.format('-00023.002323000000')).toBe('-23')
-      expect(BSBigNumberHelper.format()).toBe('0')
+      expect(BSBigNumberHelper.format(undefined)).toBe('0')
       expect(BSBigNumberHelper.format('-,')).toBe('0')
       expect(BSBigNumberHelper.format(NaN)).toBe('0')
     })

@@ -30,7 +30,7 @@ describe.skip('LedgerServiceStellar', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: BSKeychainHelper.getBip44Path(BSKeychainHelper.fixBip44Path(bsStellar.bip44DerivationPath), index),
+          bipPath: BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, index),
         })
       )
     })
@@ -44,7 +44,7 @@ describe.skip('LedgerServiceStellar', () => {
         address: expect.any(String),
         key: expect.any(String),
         type: 'publicKey',
-        bip44Path: BSKeychainHelper.getBip44Path(BSKeychainHelper.fixBip44Path(bsStellar.bip44DerivationPath), 0),
+        bipPath: BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, 0),
       })
     )
   })

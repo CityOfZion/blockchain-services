@@ -16,6 +16,7 @@ complexity of each one with a single interface.
 | @cityofzion/bs-neox            | Implementation of interfaces and methods for the Neo X blockchain                                                                                              |
 | @cityofzion/bs-solana          | Implementation of interfaces and methods for the Solana blockchain                                                                                             |
 | @cityofzion/bs-stellar         | Implementation of interfaces and methods for the Stellar blockchain                                                                                            |
+| @cityofzion/bs-bitcoin         | Implementation of interfaces and methods for the Bitcoin blockchain                                                                                            |
 
 ## Technologies Used
 - **TypeScript**

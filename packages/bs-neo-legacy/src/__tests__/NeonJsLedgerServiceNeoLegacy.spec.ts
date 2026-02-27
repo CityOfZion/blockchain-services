@@ -3,6 +3,7 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { NeonJsLedgerServiceNeoLegacy } from '../services/ledger/NeonJsLedgerServiceNeoLegacy'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacy } from '../BSNeoLegacy'
+import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
 let ledgerService: NeonJsLedgerServiceNeoLegacy<'test'>
 let transport: Transport
@@ -27,7 +28,7 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: bsNeoLegacy.bip44DerivationPath.replace('?', index.toString()),
+          bipPath: BSKeychainHelper.getBipPath(bsNeoLegacy.bipDerivationPath, index),
         })
       )
     })
@@ -48,7 +49,7 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: bsNeoLegacy.bip44DerivationPath.replace('?', index.toString()),
+          bipPath: BSKeychainHelper.getBipPath(bsNeoLegacy.bipDerivationPath, index),
         })
       )
     })
@@ -61,7 +62,7 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
         address: expect.any(String),
         key: expect.any(String),
         type: 'publicKey',
-        bip44Path: bsNeoLegacy.bip44DerivationPath.replace('?', '0'),
+        bipPath: BSKeychainHelper.getBipPath(bsNeoLegacy.bipDerivationPath, 0),
       })
     )
   })

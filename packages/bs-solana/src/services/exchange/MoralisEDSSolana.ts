@@ -1,15 +1,15 @@
 import {
   BSCommonConstants,
   CryptoCompareEDS,
-  TGetTokenPriceHistoryParams,
-  TGetTokenPricesParams,
-  TTokenPricesHistoryResponse,
-  TTokenPricesResponse,
+  type TGetTokenPriceHistoryParams,
+  type TGetTokenPricesParams,
+  type TTokenPricesHistoryResponse,
+  type TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import axios, { AxiosInstance } from 'axios'
 import { sub } from 'date-fns/sub'
-import { IBSSolana } from '../../types'
+import type { IBSSolana } from '../../types'
 
 type MoralisGetPriceResponse = {
   usdPrice: number

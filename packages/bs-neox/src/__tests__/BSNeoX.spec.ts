@@ -1,8 +1,8 @@
 import { BSNeoX } from '../BSNeoX'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
-import { TBSNetwork } from '@cityofzion/blockchain-service'
+import type { TBSNetwork } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import { TBSNeoXNetworkId } from '../types'
+import type { TBSNeoXNetworkId } from '../types'
 
 const defaultNetwork: TBSNetwork<TBSNeoXNetworkId> = {
   ...BSNeoXConstants.TESTNET_NETWORK,

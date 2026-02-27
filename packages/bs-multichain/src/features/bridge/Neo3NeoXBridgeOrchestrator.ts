@@ -1,23 +1,23 @@
 import {
-  TBSAccount,
-  TBalanceResponse,
   BSAccountHelper,
   BSBigNumberHelper,
   BSError,
   BSUtilsHelper,
-  IBridgeOrchestrator,
-  TBridgeOrchestratorEvents,
-  TBridgeToken,
-  TBridgeValidateValue,
-  TBridgeValue,
   BSBigNumber,
-  TSwapOrchestratorEvents,
+  type TBSAccount,
+  type TBalanceResponse,
+  type IBridgeOrchestrator,
+  type TBridgeOrchestratorEvents,
+  type TBridgeToken,
+  type TBridgeValidateValue,
+  type TBridgeValue,
+  type TSwapOrchestratorEvents,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX } from '@cityofzion/bs-neox'
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
-import { TNeo3NeoXBridgeOrchestratorInitParams, TNeo3NeoXBridgeOrchestratorWaitParams } from './types'
+import type { TNeo3NeoXBridgeOrchestratorInitParams, TNeo3NeoXBridgeOrchestratorWaitParams } from './types'
 
 export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrchestrator<N> {
   eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<N>>

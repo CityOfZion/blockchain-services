@@ -58,6 +58,7 @@ describe('BlockscoutBDSNeoX', () => {
         block: 3415495,
         txId,
         txIdUrl: expect.any(String),
+        hex: expect.any(String),
         date: expect.any(String),
         events: [
           {

@@ -21,7 +21,7 @@
     "@cityofzion/blockchain-service": "workspace:*",
     "@ledgerhq/hw-app-str": "~7.4.0",
     "@stellar/stellar-sdk": "~14.4.3",
-    "axios": "~1.13.2"
+    "axios": "~1.13.5"
   },
   "devDependencies": {
     "@ledgerhq/hw-transport": "~6.32.0",

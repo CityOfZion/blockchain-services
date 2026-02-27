@@ -4,6 +4,7 @@ export class BSError extends Error {
 
   constructor(message: string, code: string, sourceError?: any) {
     super(message)
+
     this.code = code
     this.name = 'BSError'
     this.sourceError = sourceError

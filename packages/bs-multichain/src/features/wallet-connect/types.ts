@@ -1,5 +1,5 @@
-import { IBlockchainService, IBSWithWalletConnect, TBSAccount } from '@cityofzion/blockchain-service'
-import { PendingRequestTypes, ProposalTypes, SessionTypes } from '@walletconnect/types'
+import type { IBlockchainService, IBSWithWalletConnect, TBSAccount } from '@cityofzion/blockchain-service'
+import type { PendingRequestTypes, ProposalTypes, SessionTypes } from '@walletconnect/types'
 
 export type TWalletKitHelperGetProposalDetailsParams<N extends string = string> = {
   proposal: ProposalTypes.Struct

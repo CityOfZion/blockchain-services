@@ -1,5 +1,5 @@
-import { TBuildNftUrlParams, IExplorerService, TBSNetworkId } from '@cityofzion/blockchain-service'
-import { IBSEthereum, TBSEthereumNetworkId } from '../../types'
+import type { TBuildNftUrlParams, IExplorerService, TBSNetworkId } from '@cityofzion/blockchain-service'
+import type { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 
 export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> implements IExplorerService {
   static readonly DEFAULT_BASE_URL_BY_NETWORK_ID: Partial<Record<TBSEthereumNetworkId, string>> = {
@@ -24,27 +24,25 @@ export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> impl
   }
 
   buildTransactionUrl(hash: string): string | undefined {
-    if (!this.#baseUrl) return undefined
+    if (!this.#baseUrl || !hash?.length) return undefined
 
     return `${this.#baseUrl}/tx/${this._service.tokenService.normalizeHash(hash)}`
   }
 
   buildContractUrl(contractHash: string): string | undefined {
-    if (!this.#baseUrl) return undefined
+    if (!this.#baseUrl || !contractHash?.length) return undefined
 
     return `${this.#baseUrl}/address/${this._service.tokenService.normalizeHash(contractHash)}`
   }
 
-  buildNftUrl(params: TBuildNftUrlParams): string | undefined {
-    if (!this.#baseUrl || !params.collectionHash) return undefined
+  buildNftUrl({ tokenHash, collectionHash }: TBuildNftUrlParams): string | undefined {
+    if (!this.#baseUrl || !tokenHash?.length || !collectionHash?.length) return undefined
 
-    return `${this.#baseUrl}/token/${this._service.tokenService.normalizeHash(params.collectionHash)}/instance/${
-      params.tokenHash
-    }`
+    return `${this.#baseUrl}/token/${this._service.tokenService.normalizeHash(collectionHash)}/instance/${tokenHash}`
   }
 
   buildAddressUrl(address: string): string | undefined {
-    if (!this.#baseUrl) return undefined
+    if (!this.#baseUrl || !address?.length) return undefined
 
     return `${this.#baseUrl}/address/${address}`
   }
