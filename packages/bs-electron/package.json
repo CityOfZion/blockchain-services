@@ -22,8 +22,8 @@
     "@electron-toolkit/preload": "*",
     "@types/lodash.clonedeep": "~4.5.9",
     "@types/node": "~24.5.2",
-    "electron": "*",
-    "eslint": "~9.36.0",
+    "electron": ">=35.7.5",
+    "eslint": "~9.37.0",
     "typescript": "~5.9.2"
   }
 }

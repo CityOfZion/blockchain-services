@@ -130,6 +130,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     return {
       txId: hash,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(hash),
+      hex,
       type: 'default',
       block: transaction.blockNumber!,
       invocationCount: 0,
@@ -165,8 +166,8 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     return token
   }
 
-  async getTransaction(txId: string): Promise<TTransaction<N>> {
-    const { data } = await this.#tatumApis.v3.get<TTatumTransactionResponse>(`/bitcoin/transaction/${txId}`)
+  async getTransaction(transactionId: string): Promise<TTransaction<N>> {
+    const { data } = await this.#tatumApis.v3.get<TTatumTransactionResponse>(`/bitcoin/transaction/${transactionId}`)
 
     if (!this.#isNumberValid(data.blockNumber)) {
       throw new BSError('Transaction not confirmed', 'TRANSACTION_NOT_CONFIRMED')

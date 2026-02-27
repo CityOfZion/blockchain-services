@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-bitcoin",
+      "comment": "Add WalletConnect for Bitcoin",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-bitcoin"
+}

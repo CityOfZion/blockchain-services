@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Fix tests and update ESLint version",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

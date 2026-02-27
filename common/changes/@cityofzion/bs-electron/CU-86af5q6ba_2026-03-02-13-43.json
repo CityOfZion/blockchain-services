@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-electron",
+      "comment": "Update Electron version",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-electron"
+}

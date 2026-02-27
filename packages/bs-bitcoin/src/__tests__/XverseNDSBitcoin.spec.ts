@@ -1,4 +1,4 @@
-import { INftDataService } from '@cityofzion/blockchain-service'
+import { BSError, INftDataService } from '@cityofzion/blockchain-service'
 import { BSBitcoin } from '../BSBitcoin'
 import { XverseNDSBitcoin } from '../services/nft-data/XverseNDSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
@@ -54,8 +54,13 @@ describe('XverseNDSBitcoin', () => {
 
     nftDataService = new XverseNDSBitcoin(service)
 
-    await expect(nftDataService.getNftsByAddress({ address: 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6' })).rejects.toThrow(
-      'Only mainnet is supported'
+    await expect(nftDataService.getNftsByAddress({ address: 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6' })).rejects.toSatisfy(
+      (error: Error) => {
+        expect(error).toBeInstanceOf(BSError)
+        expect((error as BSError).code).toBe('INVALID_NETWORK')
+
+        return true
+      }
     )
   })
 
@@ -112,10 +117,16 @@ describe('XverseNDSBitcoin', () => {
 
     nftDataService = new XverseNDSBitcoin(service)
 
-    await expect(nftDataService.getNft({ tokenHash: '' })).rejects.toThrow('Only mainnet is supported')
+    await expect(nftDataService.getNft({ tokenHash: '' })).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INVALID_NETWORK')
+
+      return true
+    })
   })
 
-  it('Should be able to verify if has token by address and collection', async () => {
+  // TODO: it needs the paid plan for Xverse API
+  it.skip('Should be able to verify if has token by address and collection', async () => {
     const hasToken = await nftDataService.hasToken({
       address: 'bc1p7c9z8a200rzge8usums3y5ktfpxrd2wmx9238fd8truzlsw06hrqs60dtc',
       collectionHash: 'btcbrobear',
@@ -129,8 +140,11 @@ describe('XverseNDSBitcoin', () => {
 
     nftDataService = new XverseNDSBitcoin(service)
 
-    await expect(nftDataService.hasToken({ address: '', collectionHash: '' })).rejects.toThrow(
-      'Only mainnet is supported'
-    )
+    await expect(nftDataService.hasToken({ address: '', collectionHash: '' })).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INVALID_NETWORK')
+
+      return true
+    })
   })
 })

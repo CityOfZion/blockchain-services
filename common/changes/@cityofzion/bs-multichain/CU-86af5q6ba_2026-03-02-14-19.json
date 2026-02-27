@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Update ESLint version",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}

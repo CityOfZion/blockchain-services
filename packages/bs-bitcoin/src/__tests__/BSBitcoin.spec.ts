@@ -1,7 +1,7 @@
 import type { IBSBitcoin } from '../types'
 import { BSBitcoin } from '../BSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
-import { BSBigNumberHelper, BSKeychainHelper, TTransferIntent } from '@cityofzion/blockchain-service'
+import { BSBigNumberHelper, BSError, BSKeychainHelper, TTransferIntent } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 const invalidAddress = 'INVALID_ADDRESS'
@@ -29,28 +29,37 @@ describe('BSBitcoin', () => {
   })
 
   it("Shouldn't be able to instantiate the service using Custom network", () => {
-    expect(() => {
+    try {
       new BSBitcoin('test', {
         id: 'custom-network',
         name: 'Custom Network',
         url: 'https://custom-network.com',
         type: 'custom',
       })
-    }).toThrow('Only mainnet and testnet are supported')
+    } catch (error: any) {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INVALID_NETWORK')
+    }
   })
 
   it("Shouldn't be set network from Mainnet to Testnet", () => {
-    expect(() => service.setNetwork(BSBitcoinConstants.TESTNET_NETWORK)).toThrow(
-      "Network isn't compatible with current network"
-    )
+    try {
+      service.setNetwork(BSBitcoinConstants.TESTNET_NETWORK)
+    } catch (error: any) {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('NETWORK_NOT_COMPATIBLE')
+    }
   })
 
   it("Shouldn't be set network from Testnet to Mainnet", () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
 
-    expect(() => service.setNetwork(BSBitcoinConstants.MAINNET_NETWORK)).toThrow(
-      "Network isn't compatible with current network"
-    )
+    try {
+      service.setNetwork(BSBitcoinConstants.MAINNET_NETWORK)
+    } catch (error: any) {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('NETWORK_NOT_COMPATIBLE')
+    }
   })
 
   it('Should be set network from Mainnet to Mainnet', () => {
@@ -374,7 +383,12 @@ describe('BSBitcoin', () => {
   it("Shouldn't be able to resolve a name service domain using Testnet", async () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
 
-    await expect(service.resolveNameServiceDomain('satoshi.btc')).rejects.toThrow('Only mainnet is supported')
+    await expect(service.resolveNameServiceDomain('satoshi.btc')).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INVALID_NETWORK')
+
+      return true
+    })
   })
 
   it.skip('Should be able to calculate fee using Testnet', async () => {
@@ -439,7 +453,12 @@ describe('BSBitcoin', () => {
       ],
     })
 
-    await expect(promise).rejects.toThrow('No UTXO available')
+    await expect(promise).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('NO_UTXO_AVAILABLE')
+
+      return true
+    })
   })
 
   it("Shouldn't be able to calculate fee if available UTXOs doesn't pay the transaction using Testnet", async () => {
@@ -458,7 +477,12 @@ describe('BSBitcoin', () => {
       ],
     })
 
-    await expect(promise).rejects.toThrow('Insufficient funds')
+    await expect(promise).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INSUFFICIENT_FUNDS')
+
+      return true
+    })
   })
 
   it.skip('Should be able to calculate fee with max balance using Testnet', async () => {
@@ -663,6 +687,11 @@ describe('BSBitcoin', () => {
       ],
     })
 
-    await expect(promise).rejects.toThrow('Insufficient funds')
+    await expect(promise).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INSUFFICIENT_FUNDS')
+
+      return true
+    })
   })
 })

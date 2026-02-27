@@ -1,14 +1,30 @@
 import type { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
 import type { IBSBitcoin } from '../../types'
 
-export class BlockchainBlockstreamESBitcoin<N extends string> implements IExplorerService {
-  readonly #mainnetExplorerUrl = 'https://blockchain.com/explorer'
-  readonly #testnetExplorerUrl = 'https://blockstream.info/testnet'
-  readonly #nftUrl = 'https://uniscan.cc/inscription'
+export class MempoolESBitcoin<N extends string> implements IExplorerService {
   readonly #service: IBSBitcoin<N>
 
   constructor(service: IBSBitcoin<N>) {
     this.#service = service
+  }
+
+  get #explorerUrl() {
+    const explorerUrl = 'https://mempool.space'
+    const { network } = this.#service
+
+    if (network.type === 'mainnet') return explorerUrl
+    if (network.type === 'testnet') return `${explorerUrl}/testnet`
+
+    return undefined
+  }
+
+  get #nftUrl() {
+    const nftUrl = 'https://uniscan.cc'
+    const { network } = this.#service
+
+    if (network.type === 'mainnet') return nftUrl
+
+    return undefined
   }
 
   buildAddressUrl(address: string) {
@@ -34,37 +50,27 @@ export class BlockchainBlockstreamESBitcoin<N extends string> implements IExplor
   }
 
   getAddressTemplateUrl() {
-    const { network } = this.#service
+    const explorerUrl = this.#explorerUrl
 
-    if (network.type === 'mainnet') {
-      return `${this.#mainnetExplorerUrl}/addresses/btc/{address}`
-    }
+    if (!explorerUrl) return undefined
 
-    if (network.type === 'testnet') {
-      return `${this.#testnetExplorerUrl}/address/{address}`
-    }
-
-    return undefined
+    return `${explorerUrl}/address/{address}`
   }
 
   getTxTemplateUrl() {
-    const { network } = this.#service
+    const explorerUrl = this.#explorerUrl
 
-    if (network.type === 'mainnet') {
-      return `${this.#mainnetExplorerUrl}/transactions/btc/{txId}`
-    }
+    if (!explorerUrl) return undefined
 
-    if (network.type === 'testnet') {
-      return `${this.#testnetExplorerUrl}/tx/{txId}`
-    }
-
-    return undefined
+    return `${explorerUrl}/tx/{txId}`
   }
 
   getNftTemplateUrl() {
-    if (this.#service.network.type !== 'mainnet') return undefined
+    const nftUrl = this.#nftUrl
 
-    return `${this.#nftUrl}/{tokenHash}`
+    if (!nftUrl) return undefined
+
+    return `${nftUrl}/inscription/{tokenHash}`
   }
 
   getContractTemplateUrl() {

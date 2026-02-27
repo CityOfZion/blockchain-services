@@ -242,11 +242,13 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         })
       }
 
-      if (item.raw_input) {
+      const rawInput = item.raw_input
+
+      if (rawInput) {
         try {
           const ERC20Interface = new ethers.utils.Interface(ERC20_ABI)
 
-          const result = ERC20Interface.decodeFunctionData('transfer', item.raw_input)
+          const result = ERC20Interface.decodeFunctionData('transfer', rawInput)
           if (!result) throw new Error('Invalid ERC20 transfer')
 
           const contractHash = item.to.hash
