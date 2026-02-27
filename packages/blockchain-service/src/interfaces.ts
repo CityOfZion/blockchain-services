@@ -179,6 +179,7 @@ export type TTransactionBridgeNeo3NeoX<N extends string> = {
 export type TTransactionBase = {
   txId: string
   txIdUrl?: string
+  hex?: string
   block: number
   date: string
   invocationCount: number

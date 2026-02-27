@@ -1,6 +1,6 @@
 import Transport from '@ledgerhq/hw-transport'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import type { IBSBitcoin, TTatumTransactionResponse, TTatumUtxo, TTatumUtxosResponse } from '../types'
+import type { IBSBitcoin, TTatumUtxo, TTatumUtxosResponse } from '../types'
 import { BSBigNumber, BSBigNumberHelper, BSKeychainHelper, type ILedgerService } from '@cityofzion/blockchain-service'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 import { BSBitcoin } from '../BSBitcoin'
@@ -80,6 +80,17 @@ describe.skip('LedgerServiceBitcoin', () => {
       bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, 0),
       isHardware: true,
       blockchain,
+    })
+  })
+
+  it.skip('Should be able to sign message', async () => {
+    const ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
+    const account = await ledgerService.getAccount(transport, 0)
+    const response = await ledgerService.signMessage({ message: 'My message', account, transport })
+
+    expect(response).toEqual({
+      signature: expect.any(String),
+      messageHash: expect.any(String),
     })
   })
 
@@ -171,17 +182,13 @@ describe.skip('LedgerServiceBitcoin', () => {
         .multipliedBy(BSBitcoinConstants.ONE_BTC_IN_SATOSHIS)
         .integerValue(BSBigNumber.ROUND_DOWN)
 
-      return {
-        ...utxo,
-        valueAsString: value.toFixed(),
-        value: value.toNumber(),
-      }
+      return { ...utxo, valueAsString: value.toFixed(), value: value.toNumber() }
     })
 
     for (const utxo of utxos) {
       const { txHash, index, value } = utxo
-      const response = await tatumApis.v3.get<TTatumTransactionResponse>(`/bitcoin/transaction/${txHash}`)
-      const { hex } = response.data
+      const transactionData = await service.blockchainDataService.getTransaction(txHash)
+      const hex = transactionData.hex!
       const transaction = bitcoinjs.Transaction.fromHex(hex)
       const output = transaction.outs[index]
 
@@ -198,6 +205,21 @@ describe.skip('LedgerServiceBitcoin', () => {
       psbt.addInput(input)
     }
 
-    await expect(ledgerService.signTransaction(psbt, account, transport)).resolves.not.toThrow()
+    await expect(ledgerService.signTransaction({ psbt, account, transport })).resolves.not.toThrow()
+  })
+
+  it.skip('Should be able to sign message using Testnet', async () => {
+    const network = BSBitcoinConstants.TESTNET_NETWORK
+
+    service = new BSBitcoin(blockchain, network, getLedgerTransport)
+
+    const ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
+    const account = await ledgerService.getAccount(transport, 0)
+    const response = await ledgerService.signMessage({ message: 'My message', account, transport })
+
+    expect(response).toEqual({
+      signature: expect.any(String),
+      messageHash: expect.any(String),
+    })
   })
 })

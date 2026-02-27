@@ -115,7 +115,8 @@ describe('XverseNDSBitcoin', () => {
     await expect(nftDataService.getNft({ tokenHash: '' })).rejects.toThrow('Only mainnet is supported')
   })
 
-  it('Should be able to verify if has token by address and collection', async () => {
+  // TODO: it needs the paid plan for Xverse API
+  it.skip('Should be able to verify if has token by address and collection', async () => {
     const hasToken = await nftDataService.hasToken({
       address: 'bc1p7c9z8a200rzge8usums3y5ktfpxrd2wmx9238fd8truzlsw06hrqs60dtc',
       collectionHash: 'btcbrobear',

@@ -7,10 +7,15 @@ import type {
   IBSWithNft,
   TBSNetworkId,
   IBSWithEncryption,
+  IBSWithWalletConnect,
   TBSBigNumber,
   TTransferParams,
+  TBSAccount,
 } from '@cityofzion/blockchain-service'
 import { AxiosInstance } from 'axios'
+import type { ECPairInterface } from 'ecpair'
+import type Transport from '@ledgerhq/hw-transport'
+import * as bitcoinjs from 'bitcoinjs-lib'
 
 export type TBSBitcoinNetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
@@ -21,7 +26,17 @@ export interface IBSBitcoin<N extends string = string, A extends string = TBSBit
     IBSWithExplorer,
     IBSWithEncryption<N>,
     IBSWithNft,
-    IBSWithLedger<N> {}
+    IBSWithLedger<N>,
+    IBSWithWalletConnect<N> {
+  bitcoinjsNetwork: bitcoinjs.Network
+  isP2WPKHAddress(address: string): boolean
+  isP2SHAddress(address: string): boolean
+  isP2PKHAddress(address: string): boolean
+  getKeyPair(key: string): ECPairInterface
+  getLedgerTransport(account: TBSAccount<N>): Promise<Transport>
+  signTransaction(params: TSignTransactionParams<N>): Promise<void>
+  broadcastTransaction(transactionHex: string): Promise<string>
+}
 
 export type TOrdinalsContentResponse = {
   p: string
@@ -265,4 +280,68 @@ export type TGetTransferDataResponse = {
   utxos: TTatumUtxo[]
   fee: TBSBigNumber
   change: TBSBigNumber
+}
+
+export type TSignInput = {
+  index: number
+  address: string
+  sighashTypes?: number[]
+}
+
+export type TSignTransactionParams<N extends string> = {
+  psbt: bitcoinjs.Psbt
+  account: TBSAccount<N>
+  signInputs?: TSignInput[]
+}
+
+export type TWalletConnectServiceBitcoinTransformSendTransferParamsResponse = {
+  recipientAddress: string
+  amount: string
+}
+
+export type TWalletConnectServiceBitcoinGetAccountAddressResponse = [
+  {
+    address: string
+    publicKey?: string
+    path?: string
+    intention?: 'payment' | 'ordinal'
+  },
+]
+
+export type TWalletConnectServiceBitcoinSignPsbtResponse = {
+  psbt: string
+  txid?: string
+}
+
+export type TWalletConnectServiceBitcoinSignMessageResponse = {
+  address: string
+  signature: string
+  messageHash: string
+}
+
+export type TWalletConnectServiceBitcoinSendTransferResponse = {
+  txid: string
+}
+
+export type TLedgerServiceBitcoinSignTransactionParams<N extends string> = {
+  psbt: bitcoinjs.Psbt
+  account: TBSAccount<N>
+  transport: Transport
+  signInputs?: TSignInput[]
+}
+
+export type TLedgerServiceBitcoinSignMessageParams<N extends string> = {
+  message: string
+  account: TBSAccount<N>
+  transport: Transport
+}
+
+export type TLedgerServiceBitcoinSignMessageResponse = {
+  signature: string
+  messageHash: string
+}
+
+export type TLedgerServiceBitcoinGetTransactionHexParams = {
+  hash: Uint8Array<ArrayBufferLike>
+  nonWitnessUtxo: Parameters<bitcoinjs.Psbt['addInput']>[0]['nonWitnessUtxo']
 }

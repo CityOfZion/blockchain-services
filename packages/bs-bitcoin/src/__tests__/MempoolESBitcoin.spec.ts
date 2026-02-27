@@ -1,6 +1,6 @@
 import type { IExplorerService, TBuildNftUrlParams } from '@cityofzion/blockchain-service'
 import type { IBSBitcoin } from '../types'
-import { BlockchainBlockstreamESBitcoin } from '../services/explorer/BlockchainBlockstreamESBitcoin'
+import { MempoolESBitcoin } from '../services/explorer/MempoolESBitcoin'
 import { BSBitcoin } from '../BSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 
@@ -11,44 +11,44 @@ const buildNftUrlParams: TBuildNftUrlParams = {
 let service: IBSBitcoin<'test'>
 let explorerService: IExplorerService
 
-describe('BlockchainBlockstreamESBitcoin', () => {
+describe('MempoolESBitcoin', () => {
   beforeEach(() => {
     service = new BSBitcoin('test')
-    explorerService = new BlockchainBlockstreamESBitcoin(service)
+    explorerService = new MempoolESBitcoin(service)
   })
 
   it('Should be able to build the address URL', () => {
     const address = 'bc1qwzrryqr3ja8w7hnja2spmkgfdcgvqwp5swz4af4ngsjecfz0w0pqud7k38'
     const url = explorerService.buildAddressUrl(address)
 
-    expect(url).toBe(`https://blockchain.com/explorer/addresses/btc/${address}`)
+    expect(url).toBe(`https://mempool.space/address/${address}`)
   })
 
   it('Should be able to build the address URL using Testnet', () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
-    explorerService = new BlockchainBlockstreamESBitcoin(service)
+    explorerService = new MempoolESBitcoin(service)
 
     const address = 'tb1qhdpfs3wzwywvxf0505h8dkyzmgtqp6grqte7lp'
     const url = explorerService.buildAddressUrl(address)
 
-    expect(url).toBe(`https://blockstream.info/testnet/address/${address}`)
+    expect(url).toBe(`https://mempool.space/testnet/address/${address}`)
   })
 
   it('Should be able to build the transaction URL', () => {
     const hash = '1234'
     const url = explorerService.buildTransactionUrl(hash)
 
-    expect(url).toEqual(`https://blockchain.com/explorer/transactions/btc/${hash}`)
+    expect(url).toEqual(`https://mempool.space/tx/${hash}`)
   })
 
   it('Should be able to build the transaction URL using Testnet', () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
-    explorerService = new BlockchainBlockstreamESBitcoin(service)
+    explorerService = new MempoolESBitcoin(service)
 
     const hash = '1234'
     const url = explorerService.buildTransactionUrl(hash)
 
-    expect(url).toEqual(`https://blockstream.info/testnet/tx/${hash}`)
+    expect(url).toEqual(`https://mempool.space/testnet/tx/${hash}`)
   })
 
   it('Should be able to build the NFT URL', () => {
@@ -59,7 +59,7 @@ describe('BlockchainBlockstreamESBitcoin', () => {
 
   it("Shouldn't be able to build the NFT URL using Testnet", () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
-    explorerService = new BlockchainBlockstreamESBitcoin(service)
+    explorerService = new MempoolESBitcoin(service)
 
     const url = explorerService.buildNftUrl(buildNftUrlParams)
 
@@ -75,31 +75,31 @@ describe('BlockchainBlockstreamESBitcoin', () => {
   it('Should be able to get the address template URL', () => {
     const url = explorerService.getAddressTemplateUrl()
 
-    expect(url).toBe('https://blockchain.com/explorer/addresses/btc/{address}')
+    expect(url).toBe('https://mempool.space/address/{address}')
   })
 
   it('Should be able to get the address template URL using Testnet', () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
-    explorerService = new BlockchainBlockstreamESBitcoin(service)
+    explorerService = new MempoolESBitcoin(service)
 
     const url = explorerService.getAddressTemplateUrl()
 
-    expect(url).toBe('https://blockstream.info/testnet/address/{address}')
+    expect(url).toBe('https://mempool.space/testnet/address/{address}')
   })
 
   it('Should be able to get the TX template URL', () => {
     const url = explorerService.getTxTemplateUrl()
 
-    expect(url).toBe('https://blockchain.com/explorer/transactions/btc/{txId}')
+    expect(url).toBe('https://mempool.space/tx/{txId}')
   })
 
   it('Should be able to get the TX template URL using Testnet', () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
-    explorerService = new BlockchainBlockstreamESBitcoin(service)
+    explorerService = new MempoolESBitcoin(service)
 
     const url = explorerService.getTxTemplateUrl()
 
-    expect(url).toBe('https://blockstream.info/testnet/tx/{txId}')
+    expect(url).toBe('https://mempool.space/testnet/tx/{txId}')
   })
 
   it('Should be able to get the NFT template URL', () => {
@@ -110,7 +110,7 @@ describe('BlockchainBlockstreamESBitcoin', () => {
 
   it("Shouldn't be able to get the NFT template URL using Testnet", () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
-    explorerService = new BlockchainBlockstreamESBitcoin(service)
+    explorerService = new MempoolESBitcoin(service)
 
     const url = explorerService.getNftTemplateUrl()
 

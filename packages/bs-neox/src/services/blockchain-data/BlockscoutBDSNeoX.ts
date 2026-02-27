@@ -60,6 +60,10 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     return this.#apiInstance
   }
 
+  #transformToValidHex(hex?: string) {
+    return !!hex && hex !== '0x' ? hex : undefined
+  }
+
   async getTransaction(txid: string): Promise<TTransaction<N>> {
     const { data: response } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
@@ -169,6 +173,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       block: response.block,
       txId,
       txIdUrl: this._service.explorerService.buildContractUrl(txId),
+      hex: this.#transformToValidHex(response.raw_input),
       events,
       networkFeeAmount: BSBigNumberHelper.format(
         BSBigNumberHelper.fromDecimals(response.fee.value, this._service.feeToken.decimals),
@@ -242,11 +247,13 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         })
       }
 
-      if (item.raw_input) {
+      const rawInput = item.raw_input
+
+      if (rawInput) {
         try {
           const ERC20Interface = new ethers.utils.Interface(ERC20_ABI)
 
-          const result = ERC20Interface.decodeFunctionData('transfer', item.raw_input)
+          const result = ERC20Interface.decodeFunctionData('transfer', rawInput)
           if (!result) throw new Error('Invalid ERC20 transfer')
 
           const contractHash = item.to.hash
@@ -290,6 +297,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         block: item.block,
         txId,
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
+        hex: this.#transformToValidHex(rawInput),
         date: new Date(item.timestamp).toJSON(),
         invocationCount: 0,
         notificationCount: 0,

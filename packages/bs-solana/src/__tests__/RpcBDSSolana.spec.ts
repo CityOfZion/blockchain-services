@@ -14,7 +14,7 @@ describe('RpcBDSSolana', () => {
   })
 
   // It may throw an error as the devnet only returns transaction made in less than 10 days
-  it('Should be able to get transaction', async () => {
+  it.skip('Should be able to get transaction', async () => {
     const hash = '2jAaNbYFsEVsjQ8eeF1woaRsWWdQf3mogrRtXErNf1gumEbH2YF7d9fF1iBmCxXAiKtVbpM2zasctJmfF39WtZ28'
 
     const transaction = await rpcBDSSolana.getTransaction(hash)

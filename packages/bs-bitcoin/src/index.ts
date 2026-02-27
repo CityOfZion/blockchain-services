@@ -13,7 +13,7 @@ export * from './services/blockchain-data/TatumBDSBitcoin'
 
 export * from './services/exchange-data/CryptoCompareEDSBitcoin'
 
-export * from './services/explorer/BlockchainBlockstreamESBitcoin'
+export * from './services/explorer/MempoolESBitcoin'
 
 export * from './services/ledger/LedgerServiceBitcoin'
 
