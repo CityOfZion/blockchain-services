@@ -101,7 +101,13 @@ export class WalletConnectServiceNeo3<N extends string> implements IWalletConnec
 
   async encrypt(args: TWalletConnectServiceRequestMethodParams<N>) {
     const signer = await this.#getSigner(args)
-    return await signer.encrypt(args.params[0], args.params[1])
+
+    let publicKeys = args.params[1]
+    if (!publicKeys || publicKeys.length === 0) {
+      publicKeys = [signer.account!.getPublicKey()]
+    }
+
+    return await signer.encrypt(args.params[0], publicKeys)
   }
 
   async decryptFromArray(args: TWalletConnectServiceRequestMethodParams<N>) {

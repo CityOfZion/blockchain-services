@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Fix WalletConnect encrypt method that is not handle for empty publicKeys",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}
