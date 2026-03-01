@@ -1,6 +1,6 @@
 import { BlockscoutESEthereum } from '../services/explorer/BlockscoutESEthereum'
-import { TBSNetworkId } from '@cityofzion/blockchain-service'
-import { IBSEthereum } from '../types'
+import type { TBSNetworkId } from '@cityofzion/blockchain-service'
+import type { IBSEthereum } from '../types'
 import { BSEthereum } from '../BSEthereum'
 
 let blockscoutESEthereum: BlockscoutESEthereum<'test', TBSNetworkId>

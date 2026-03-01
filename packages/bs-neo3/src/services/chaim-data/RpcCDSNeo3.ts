@@ -1,5 +1,5 @@
-import { IClaimDataService } from '@cityofzion/blockchain-service'
-import { IBSNeo3 } from '../../types'
+import type { IClaimDataService } from '@cityofzion/blockchain-service'
+import type { IBSNeo3 } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 
 export class RpcCDSNeo3<N extends string> implements IClaimDataService {

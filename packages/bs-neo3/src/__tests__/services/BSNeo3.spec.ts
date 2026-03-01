@@ -2,8 +2,8 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3 } from '../../BSNeo3'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
-import { BSKeychainHelper, isClaimable, TBSNetwork } from '@cityofzion/blockchain-service'
-import { TBSNeo3NetworkId } from '../../types'
+import { BSKeychainHelper, isClaimable, type TBSNetwork } from '@cityofzion/blockchain-service'
+import type { TBSNeo3NetworkId } from '../../types'
 
 let bsNeo3: BSNeo3<'test'>
 let network: TBSNetwork<TBSNeo3NetworkId>
@@ -50,7 +50,7 @@ describe('BSNeo3', () => {
     expect(bsNeo3.validateNameServiceDomainFormat(invalidDomain)).toBeFalsy()
   })
 
-  it('Should be able to gererate a account from mnemonic', async () => {
+  it('Should be able to generate an account from mnemonic', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = await bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
 
@@ -58,7 +58,7 @@ describe('BSNeo3', () => {
     expect(bsNeo3.validateKey(account.key)).toBeTruthy()
   })
 
-  it('Should be able to generate a account from wif', async () => {
+  it('Should be able to generate an account from wif', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = await bsNeo3.generateAccountFromMnemonic(mnemonic, 0)
 
@@ -83,8 +83,9 @@ describe('BSNeo3', () => {
     expect(encryptedKey).toEqual(expect.any(String))
   })
 
-  it('Should be able to ping a node', async () => {
-    const response = await bsNeo3.pingNode(BSNeo3Constants.MAINNET_NETWORK.url)
+  it('Should be able to ping network', async () => {
+    const response = await bsNeo3.pingNetwork(BSNeo3Constants.MAINNET_NETWORK.url)
+
     expect(response).toEqual({
       latency: expect.any(Number),
       url: BSNeo3Constants.MAINNET_NETWORK.url,

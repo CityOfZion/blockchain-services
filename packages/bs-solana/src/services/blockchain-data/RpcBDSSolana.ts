@@ -16,7 +16,7 @@ import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import * as solanaKit from '@solana/kit'
 import * as solanaToken from '@solana-program/token'
 import * as solanaSystem from '@solana-program/system'
-import { IBSSolana, type TMetaplexAssetResponse, type TRpcBDSSolanaParsedInstruction } from '../../types'
+import type { IBSSolana, TMetaplexAssetResponse, TRpcBDSSolanaParsedInstruction } from '../../types'
 import axios from 'axios'
 
 export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N> {
@@ -96,6 +96,8 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     const to = destinationAccountInfoParsedData.owner
 
     const isNft = token.decimals === 0 && tokenAmount === '1'
+    const fromUrl = this.#service.explorerService.buildAddressUrl(from)
+    const toUrl = this.#service.explorerService.buildAddressUrl(to)
 
     if (isNft) {
       const [nft] = await BSUtilsHelper.tryCatch(() => this.#service.nftDataService.getNft({ tokenHash: contractHash }))
@@ -105,18 +107,16 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
         tokenType: 'spl',
         methodName: 'transferChecked',
         from,
-        fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
+        fromUrl,
         to,
-        toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
+        toUrl,
         tokenHash: contractHash,
         amount: '1',
         name: nft?.name,
         nftImageUrl: nft?.image,
         collectionHash: nft?.collection?.hash,
-        collectionHashUrl: nft?.collection?.hash
-          ? this.#service.explorerService.buildContractUrl(nft.collection.hash)
-          : undefined,
-        nftUrl: this.#service.explorerService.buildNftUrl({ tokenHash: contractHash }),
+        collectionHashUrl: nft?.collection?.url,
+        nftUrl: nft?.explorerUri,
         collectionName: nft?.collection?.name,
       }
     }
@@ -130,9 +130,9 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       contractHash,
       contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
       from,
-      fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
+      fromUrl,
       to,
-      toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
+      toUrl,
       token,
       methodName: 'transferChecked',
       tokenType: 'spl',
@@ -175,6 +175,9 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
     const isNft = token.decimals === 0 && info.amount === '1'
 
+    const fromUrl = this.#service.explorerService.buildAddressUrl(from)
+    const toUrl = this.#service.explorerService.buildAddressUrl(to)
+
     if (isNft) {
       const [nft] = await BSUtilsHelper.tryCatch(() => this.#service.nftDataService.getNft({ tokenHash: contractHash }))
 
@@ -183,18 +186,16 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
         tokenType: 'spl',
         methodName: 'transfer',
         from,
-        fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
+        fromUrl,
         to,
-        toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
+        toUrl,
         tokenHash: contractHash,
         amount: '1',
         name: nft?.name,
         nftImageUrl: nft?.image,
         collectionHash: nft?.collection?.hash,
-        collectionHashUrl: nft?.collection?.hash
-          ? this.#service.explorerService.buildContractUrl(nft.collection.hash)
-          : undefined,
-        nftUrl: this.#service.explorerService.buildNftUrl({ tokenHash: contractHash }),
+        collectionHashUrl: nft?.collection?.url,
+        nftUrl: nft?.explorerUri,
         collectionName: nft?.collection?.name,
       }
     }
@@ -207,9 +208,9 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       tokenType: 'spl',
       methodName: 'transfer',
       from,
-      fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
+      fromUrl,
       to,
-      toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
+      toUrl,
       contractHash,
       contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
       amount,
@@ -238,9 +239,9 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       methodName: 'transfer',
       tokenType: 'native',
       from,
-      fromUrl: from ? this.#service.explorerService.buildAddressUrl(from) : undefined,
+      fromUrl: this.#service.explorerService.buildAddressUrl(from),
       to,
-      toUrl: to ? this.#service.explorerService.buildAddressUrl(to) : undefined,
+      toUrl: this.#service.explorerService.buildAddressUrl(to),
       contractHash,
       contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
       token: BSSolanaConstants.NATIVE_TOKEN,
@@ -290,11 +291,12 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     }
 
     const txId = transaction.transaction.signatures[0]
+    const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
     return {
       block: BSBigNumberHelper.fromNumber(block).toNumber(),
       txId,
-      txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
+      txIdUrl,
       invocationCount: 0,
       notificationCount: 0,
       networkFeeAmount: BSBigNumberHelper.format(

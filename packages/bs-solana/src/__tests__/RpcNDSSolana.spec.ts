@@ -24,6 +24,7 @@ describe('RpcNDSSolana.spec', () => {
           hash: 'J1S9H3QjnRtBbbuD4HjPV6RpRhwuk4zKbxsnCHuTgh9w',
           name: 'Mad Lads',
           image: 'https://madlads-collection.s3.us-west-2.amazonaws.com/_collection.png',
+          url: expect.any(String),
         },
         creator: {
           address: '5XvhfmRjwXkGp3jHGmaKpqeerNYjkuZZBYLVQYdeVcRv',
@@ -52,7 +53,7 @@ describe('RpcNDSSolana.spec', () => {
     })
   })
 
-  // TODO: Needs paid plan on  to work
+  // TODO: needs paid plan to work
   it.skip('Check if address has specific Token', async () => {
     const address: string = '2RtGg6fsFiiF1EQzHqbd66AhW7R5bWeQGpTbv2UMkCdW'
 

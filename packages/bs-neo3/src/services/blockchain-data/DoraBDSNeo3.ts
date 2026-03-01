@@ -1,9 +1,9 @@
 import {
-  TBalanceResponse,
   BSCommonConstants,
-  TBSToken,
   BSBigNumberHelper,
-  TBridgeToken,
+  type TBalanceResponse,
+  type TBSToken,
+  type TBridgeToken,
   type TTransaction,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
@@ -11,7 +11,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
-import { IBSNeo3, type TRpcBDSNeo3Notification } from '../../types'
+import type { IBSNeo3, TRpcBDSNeo3Notification } from '../../types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { StateResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
 import { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
@@ -92,14 +92,13 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
       })
     )
 
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
-    const txIdUrl = txTemplateUrl?.replace('{txId}', response.hash)
+    const txIdUrl = this._service.explorerService.buildTransactionUrl(response.hash)
 
     const events = await this._extractEventsFromNotifications(notifications)
 
     let transaction: TTransaction<N> = {
       block: response.block,
-      date: new Date(Number(response.time) * 1000).toISOString(),
+      date: new Date(Number(response.time) * 1000).toJSON(),
       txId: response.hash,
       txIdUrl,
       systemFeeAmount: BSBigNumberHelper.format(
@@ -135,11 +134,9 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
     const data = await this.#api.addressTXFull(address, nextPageParams, this._service.network.id)
 
-    const txTemplateUrl = this._service.explorerService.getTxTemplateUrl()
-
     const transactions: TTransaction<N>[] = []
 
-    const promises = data.items.map(async item => {
+    const promises = data.items.map(async (item, index) => {
       const notifications = item.notifications?.map<TRpcBDSNeo3Notification>(({ contract, state, event_name }) => ({
         contract,
         state,
@@ -148,11 +145,11 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
       const events = await this._extractEventsFromNotifications(notifications)
 
-      const txIdUrl = txTemplateUrl?.replace('{txId}', item.hash)
+      const txIdUrl = this._service.explorerService.buildTransactionUrl(item.hash)
 
       let transaction: TTransaction<N> = {
         block: item.block,
-        date: new Date(Number(item.time) * 1000).toISOString(),
+        date: new Date(Number(item.time) * 1000).toJSON(),
         txId: item.hash,
         txIdUrl,
         systemFeeAmount: BSBigNumberHelper.format(
@@ -174,7 +171,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
         transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
       }
 
-      transactions.push(transaction)
+      transactions.splice(index, 0, transaction)
     })
 
     await Promise.allSettled(promises)

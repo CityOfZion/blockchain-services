@@ -1,4 +1,4 @@
-import { ISwapService, TSwapServiceStatusResponse } from '@cityofzion/blockchain-service'
+import type { ISwapService, TSwapServiceStatusResponse } from '@cityofzion/blockchain-service'
 import { SimpleSwapApi } from './SimpleSwapApi'
 
 export class SimpleSwapService<BSName extends string = string> implements ISwapService {

@@ -8,7 +8,7 @@ export type TBSAccount<N extends string> = {
   key: string
   type: 'wif' | 'privateKey' | 'publicKey'
   address: string
-  bip44Path?: string
+  bipPath?: string
   isHardware?: boolean
   blockchain: N
 }
@@ -31,15 +31,15 @@ export type TBSNetwork<T extends string = string> = {
   type: TBSNetworkType
 }
 
-export type TIntentTransferParam = {
+export type TTransferIntent = {
   receiverAddress: string
   amount: string
   token: TBSToken
 }
 
-export type TTransferParam<N extends string> = {
+export type TTransferParams<N extends string> = {
   senderAccount: TBSAccount<N>
-  intents: TIntentTransferParam[]
+  intents: TTransferIntent[]
 }
 
 export type TPingNetworkResponse = {
@@ -50,30 +50,30 @@ export type TPingNetworkResponse = {
 
 export interface IBlockchainService<N extends string, A extends string = string> {
   readonly name: N
-  readonly bip44DerivationPath: string
+  readonly bipDerivationPath: string
   readonly feeToken: TBSToken
   readonly isMultiTransferSupported: boolean
-  readonly isCustomNetworkSupported: boolean
 
   tokens: TBSToken[]
   readonly nativeTokens: TBSToken[]
 
+  networkUrls: string[]
   network: TBSNetwork<A>
-  rpcNetworkUrls: string[]
   readonly defaultNetwork: TBSNetwork<A>
   readonly availableNetworks: TBSNetwork<A>[]
+  readonly isCustomNetworkSupported: boolean
 
   exchangeDataService: IExchangeDataService
   blockchainDataService: IBlockchainDataService<N>
   tokenService: ITokenService
 
-  pingNode(url: string): Promise<TPingNetworkResponse>
   setNetwork(network: TBSNetwork<A>): void
+  pingNetwork(url?: string): Promise<TPingNetworkResponse>
   generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<N>>
   generateAccountFromKey(key: string): Promise<TBSAccount<N>>
   validateAddress(address: string): boolean
   validateKey(key: string): boolean
-  transfer(param: TTransferParam<N>): Promise<string[]>
+  transfer(param: TTransferParams<N>): Promise<string[]>
 }
 
 export interface IBSWithEncryption<N extends string> {
@@ -83,8 +83,9 @@ export interface IBSWithEncryption<N extends string> {
 }
 
 export interface IBSWithFee<N extends string> {
-  calculateTransferFee(param: TTransferParam<N>): Promise<string>
+  calculateTransferFee(param: TTransferParams<N>): Promise<string>
 }
+
 export interface IBSWithClaim<N extends string> {
   readonly claimToken: TBSToken
   readonly burnToken: TBSToken
@@ -132,7 +133,8 @@ export type TGetTransactionsByAddressParams = {
 export type TTransactionNftEvent = {
   eventType: 'nft'
   amount?: string
-  methodName: string
+  methodName?: string
+  collectionName?: string
   collectionHash?: string
   collectionHashUrl?: string
   to?: string
@@ -144,13 +146,13 @@ export type TTransactionNftEvent = {
   nftImageUrl?: string
   nftUrl?: string
   name?: string
-  collectionName?: string
+  token?: TBSToken
 }
 
 export type TTransactionTokenEvent = {
   eventType: 'token'
   amount?: string
-  methodName: string
+  methodName?: string
   contractHash: string
   contractHashUrl?: string
   to?: string
@@ -260,14 +262,17 @@ export type TGetTokenPriceHistoryParams = {
   type: 'hour' | 'day'
   limit: number
 }
+
 export type TGetTokenPricesParams = {
   tokens: TBSToken[]
 }
+
 export interface IExchangeDataService {
   getTokenPrices(params: TGetTokenPricesParams): Promise<TTokenPricesResponse[]>
   getTokenPriceHistory(params: TGetTokenPriceHistoryParams): Promise<TTokenPricesHistoryResponse[]>
   getCurrencyRatio(currency: string): Promise<number>
 }
+
 export type TNftResponse = {
   hash: string
   explorerUri?: string
@@ -275,16 +280,18 @@ export type TNftResponse = {
     name?: string
     image?: string
     hash: string
+    url?: string
   }
   creator?: {
     address: string
     name?: string
   }
-  symbol: string
+  symbol?: string
   image?: string
   name?: string
   isSVG?: boolean
 }
+
 export type TNftsResponse = {
   items: TNftResponse[]
   nextPageParams?: any
@@ -292,35 +299,35 @@ export type TNftsResponse = {
 
 export type TGetNftsByAddressParams = {
   address: string
-  page?: number
-  cursor?: string
-  size?: number
+  nextPageParams?: any
 }
-export type TGetNftParam = {
+
+export type TGetNftParams = {
   tokenHash: string
   collectionHash?: string
 }
 
-export type THasTokenParam = {
+export type THasTokenParams = {
   address: string
-  collectionHash?: string
+  collectionHash: string
 }
 
 export interface INftDataService {
   getNftsByAddress(params: TGetNftsByAddressParams): Promise<TNftsResponse>
-  getNft(params: TGetNftParam): Promise<TNftResponse>
-  hasToken(params: THasTokenParam): Promise<boolean>
+  getNft(params: TGetNftParams): Promise<TNftResponse>
+  hasToken(params: THasTokenParams): Promise<boolean>
 }
 
 export type TBuildNftUrlParams = {
   collectionHash?: string
   tokenHash: string
 }
+
 export interface IExplorerService {
-  buildTransactionUrl(hash: string): string | undefined
-  buildContractUrl(contractHash: string): string | undefined
-  buildNftUrl(params: TBuildNftUrlParams): string | undefined
   buildAddressUrl(address: string): string | undefined
+  buildTransactionUrl(hash: string): string | undefined
+  buildNftUrl(params: TBuildNftUrlParams): string | undefined
+  buildContractUrl(contractHash: string): string | undefined
   getAddressTemplateUrl(): string | undefined
   getTxTemplateUrl(): string | undefined
   getNftTemplateUrl(): string | undefined
@@ -337,8 +344,8 @@ export type TGetLedgerTransport<N extends string> = (account: TBSAccount<N>) => 
 export interface ILedgerService<N extends string> {
   emitter: TLedgerServiceEmitter
   getLedgerTransport?: TGetLedgerTransport<N>
-  getAccounts(transport: Transport, getUntilIndex?: TUntilIndexRecord<N>): Promise<TBSAccount<N>[]>
   getAccount(transport: Transport, index: number): Promise<TBSAccount<N>>
+  getAccounts(transport: Transport, getUntilIndex?: TUntilIndexRecord<N>): Promise<TBSAccount<N>[]>
 }
 
 export type TSwapToken<N extends string> = {
@@ -474,6 +481,7 @@ export type TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N extends stri
   token: TBridgeToken<N>
   nonce: string
 }
+
 export interface INeo3NeoXBridgeService<N extends string> {
   readonly gasToken: TBridgeToken<N>
   readonly neoToken: TBridgeToken<N>

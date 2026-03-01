@@ -48,10 +48,12 @@ let moralisFullTransactionsDataServiceEthereum: MoralisFullTransactionsDataServi
 
 vi.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
   const GhostMarketNDSEthereum = vi.fn()
+
   GhostMarketNDSEthereum.prototype.getNft = vi.fn().mockResolvedValue({
     image: 'nftImage',
     name: 'nftName',
-    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+    explorerUri: 'nftUrl',
+    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash', url: 'nftCollectionUrl' },
   })
 
   return {

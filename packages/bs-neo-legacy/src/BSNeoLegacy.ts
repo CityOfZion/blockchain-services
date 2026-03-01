@@ -1,17 +1,17 @@
 import {
-  TBSAccount,
-  TBSToken,
-  TTransferParam,
-  TGetLedgerTransport,
-  ITokenService,
-  TBSNetwork,
-  IClaimDataService,
-  IBlockchainDataService,
-  IExchangeDataService,
-  IExplorerService,
   BSUtilsHelper,
   BSKeychainHelper,
-  TPingNetworkResponse,
+  type TBSAccount,
+  type TBSToken,
+  type TGetLedgerTransport,
+  type ITokenService,
+  type TBSNetwork,
+  type IClaimDataService,
+  type IBlockchainDataService,
+  type IExchangeDataService,
+  type IExplorerService,
+  type TPingNetworkResponse,
+  type TTransferParams,
   type IFullTransactionsDataService,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
@@ -20,14 +20,15 @@ import { DoraBDSNeoLegacy } from './services/blockchain-data/DoraBDSNeoLegacy'
 import { NeoTubeESNeoLegacy } from './services/explorer/NeoTubeESNeoLegacy'
 import { NeonJsLedgerServiceNeoLegacy } from './services/ledger/NeonJsLedgerServiceNeoLegacy'
 import { TokenServiceNeoLegacy } from './services/token/TokenServiceNeoLegacy'
-import { IBSNeoLegacy, TBSNeoLegacyNetworkId, TSigningCallback } from './types'
+import type { IBSNeoLegacy, TBSNeoLegacyNetworkId, TSigningCallback } from './types'
 import { DoraCDSNeoLegacy } from './services/claim-data/DoraCDSNeoLegacy'
 import { BSNeoLegacyNeonJsSingletonHelper } from './helpers/BSNeoLegacyNeonJsSingletonHelper'
 import axios from 'axios'
 import { DoraFullTransactionsDataServiceNeoLegacy } from './services/full-transactions-data/DoraFullTransactionsDataServiceNeoLegacy'
+
 export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   readonly name: N
-  readonly bip44DerivationPath: string
+  readonly bipDerivationPath: string
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
 
@@ -38,14 +39,14 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   readonly burnToken!: TBSToken
 
   network!: TBSNetwork<TBSNeoLegacyNetworkId>
-  rpcNetworkUrls!: string[]
+  networkUrls!: string[]
   legacyNetwork!: string
   readonly defaultNetwork: TBSNetwork<TBSNeoLegacyNetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeoLegacyNetworkId>[]
 
   blockchainDataService!: IBlockchainDataService<N>
   exchangeDataService!: IExchangeDataService
-  ledgerService!: NeonJsLedgerServiceNeoLegacy<N>
+  ledgerService: NeonJsLedgerServiceNeoLegacy<N>
   explorerService!: IExplorerService
   tokenService!: ITokenService
   claimDataService!: IClaimDataService
@@ -54,7 +55,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   constructor(name: N, network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new NeonJsLedgerServiceNeoLegacy(this, getLedgerTransport)
-    this.bip44DerivationPath = BSNeoLegacyConstants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSNeoLegacyConstants.DEFAULT_BIP44_DERIVATION_PATH
 
     this.nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
     this.feeToken = BSNeoLegacyConstants.GAS_ASSET
@@ -162,7 +163,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide a getLedgerTransport function to use Ledger')
 
-      if (typeof account.bip44Path !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+      if (typeof account.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
 
       const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
 
@@ -179,8 +180,8 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   setNetwork(network: TBSNetwork<TBSNeoLegacyNetworkId>) {
-    const rpcNetworkUrls = BSNeoLegacyConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, rpcNetworkUrls)
+    const networkUrls = BSNeoLegacyConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
@@ -188,7 +189,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
 
     this.network = network
     this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
-    this.rpcNetworkUrls = rpcNetworkUrls
+    this.networkUrls = networkUrls
 
     this.tokenService = new TokenServiceNeoLegacy()
     this.explorerService = new NeoTubeESNeoLegacy(this)
@@ -199,7 +200,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
-  async pingNode(url: string): Promise<TPingNetworkResponse> {
+  async pingNetwork(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
 
     const timeout = setTimeout(() => {
@@ -219,9 +220,9 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
       { timeout: 5000, signal: abortController.signal }
     )
 
-    clearTimeout(timeout)
-
     const latency = Date.now() - timeStart
+
+    clearTimeout(timeout)
 
     return {
       latency,
@@ -247,14 +248,12 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
 
   async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
     const mnemonicStr = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
-    const bip44Path = this.bip44DerivationPath.replace('?', index.toString())
-
-    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonicStr, bip44Path)
-
+    const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
+    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonicStr, bipPath)
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
     const { address, WIF } = new wallet.Account(key)
-    return { address, key: WIF, type: 'wif', bip44Path, blockchain: this.name }
+
+    return { address, key: WIF, type: 'wif', bipPath, blockchain: this.name }
   }
 
   async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
@@ -295,7 +294,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     return wallet.encrypt(key, password)
   }
 
-  async transfer({ intents, senderAccount }: TTransferParam<N>): Promise<string[]> {
+  async transfer({ intents, senderAccount }: TTransferParams<N>): Promise<string[]> {
     const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
 
     const { api, sc, u, wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()

@@ -49,20 +49,14 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
     })
 
     const items = response.data ?? []
-
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#service.network)
-
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-    const nftTemplateUrl = this.#service.explorerService.getNftTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
 
       const newItem: TTransaction<N> = {
         txId,
-        txIdUrl: txId ? txTemplateUrl?.replace('{txId}', txId) : undefined,
+        txIdUrl: txId ? this.#service.explorerService.buildTransactionUrl(txId) : undefined,
         block: item.block,
         date: item.date,
         invocationCount: item.invocationCount,
@@ -86,18 +80,13 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
         const isErc721 = MoralisFullTransactionsDataServiceEthereum.ERC721_STANDARDS.includes(standard)
         const isErc20 = MoralisFullTransactionsDataServiceEthereum.ERC20_STANDARDS.includes(standard)
         const isNft = (isErc1155 || isErc721) && !!tokenHash
-        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
-        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
+        const fromUrl = from ? this.#service.explorerService.buildAddressUrl(from) : undefined
+        const toUrl = to ? this.#service.explorerService.buildAddressUrl(to) : undefined
 
         if (isNft) {
           const [nft] = await BSUtilsHelper.tryCatch(() =>
             this.#service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
-
-          const nftUrl = contractHash
-            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
-            : undefined
 
           newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
@@ -108,11 +97,11 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
             to,
             toUrl,
             collectionHash: contractHash,
-            collectionHashUrl: contractHashUrl,
+            collectionHashUrl: nft?.collection?.url,
             tokenHash,
             tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
             nftImageUrl: nft?.image,
-            nftUrl,
+            nftUrl: nft?.explorerUri,
             name: nft?.name,
             collectionName: nft?.collection?.name,
           })
@@ -134,7 +123,7 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
           to,
           toUrl,
           contractHash,
-          contractHashUrl,
+          contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
           token: token ?? undefined,
           tokenType: isErc20 ? 'erc-20' : 'generic',
         })

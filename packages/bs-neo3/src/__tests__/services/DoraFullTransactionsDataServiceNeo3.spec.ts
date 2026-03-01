@@ -32,7 +32,8 @@ vi.mock('../../services/nft-data/GhostMarketNDSNeo3', () => {
   GhostMarketNDSNeo3.prototype.getNft = vi.fn().mockResolvedValue({
     image: 'nftImage',
     name: 'nftName',
-    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+    explorerUri: 'nftUrl',
+    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash', url: 'nftCollectionUrl' },
   })
 
   return {
@@ -286,11 +287,11 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             to: expect.anything(),
             toUrl: expect.anything(),
             collectionHash: expect.any(String),
-            collectionHashUrl: expect.any(String),
+            collectionHashUrl: 'nftCollectionUrl',
             tokenHash: expect.any(String),
             tokenType: 'nep-11',
             nftImageUrl: 'nftImage',
-            nftUrl: expect.any(String),
+            nftUrl: 'nftUrl',
             name: 'nftName',
             collectionName: 'nftCollectionName',
           }),

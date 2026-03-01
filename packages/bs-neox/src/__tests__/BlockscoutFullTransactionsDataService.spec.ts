@@ -23,7 +23,8 @@ vi.mock('../services/nft-data/GhostMarketNDSNeoX', () => {
   GhostMarketNDSNeoX.prototype.getNft = vi.fn().mockResolvedValue({
     image: 'nftImage',
     name: 'nftName',
-    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash' },
+    explorerUri: 'nftUrl',
+    collection: { name: 'nftCollectionName', hash: 'nftCollectionHash', url: 'nftCollectionUrl' },
   })
 
   return {

@@ -15,8 +15,8 @@ export class BSStellarConstants {
   }
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSStellarNetworkId, string[]> = {
-    pubnet: ['https://stellar-soroban-public.nodies.app'],
-    testnet: ['https://stellar-soroban-testnet-public.nodies.app'],
+    pubnet: ['https://soroban-rpc.mainnet.stellar.gateway.fm'],
+    testnet: ['https://soroban-rpc.testnet.stellar.gateway.fm'],
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSStellarNetworkId> = {

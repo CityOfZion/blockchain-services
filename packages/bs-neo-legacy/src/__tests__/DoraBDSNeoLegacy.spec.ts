@@ -66,12 +66,7 @@ describe('DoraBDSNeoLegacy', () => {
           events: expect.arrayContaining([
             expect.objectContaining({
               eventType: expect.any(String),
-              amount: expect.anything(),
               methodName: expect.any(String),
-              from: expect.anything(),
-              fromUrl: expect.anything(),
-              to: expect.anything(),
-              toUrl: expect.anything(),
               contractHash: expect.any(String),
               contractHashUrl: expect.any(String),
               token: expect.objectContaining({

@@ -1,4 +1,4 @@
-import {
+import type {
   TGetTokenPriceHistoryParams,
   TGetTokenPricesParams,
   IExchangeDataService,
@@ -6,7 +6,7 @@ import {
   TTokenPricesResponse,
 } from '../../interfaces'
 import axios, { AxiosInstance } from 'axios'
-import { TCryptoCompareEDSDataResponse, TCryptoCompareEDSHistoryResponse } from '../../types'
+import type { TCryptoCompareEDSDataResponse, TCryptoCompareEDSHistoryResponse } from '../../types'
 
 export class CryptoCompareEDS implements IExchangeDataService {
   #apiInstance?: AxiosInstance

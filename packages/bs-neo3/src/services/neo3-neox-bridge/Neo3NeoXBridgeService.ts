@@ -10,7 +10,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import axios from 'axios'
-import { IBSNeo3, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
+import type { IBSNeo3, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
 import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import { LogResponse, type Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
@@ -179,7 +179,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
 
     const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
 
-    let nonce: string | null = null
+    let nonce: string | null
 
     const notifications = log?.notifications as unknown as Notification[]
 

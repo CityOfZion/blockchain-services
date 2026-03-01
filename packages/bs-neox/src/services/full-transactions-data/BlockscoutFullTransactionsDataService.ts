@@ -44,17 +44,11 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
     })
 
     const transactions: TTransaction<N>[] = []
-
     const items = response.data ?? []
-
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-    const nftTemplateUrl = this.#service.explorerService.getNftTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
-      const txIdUrl = txTemplateUrl?.replace('{txId}', txId)
+      const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
       let newItem: TTransaction<N> = {
         txId,
@@ -83,21 +77,15 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
         const isNft = (isErc1155 || isErc721) && !!tokenHash
 
         const from = event.from ?? undefined
-        const fromUrl = from ? addressTemplateUrl?.replace('{address}', from) : undefined
+        const fromUrl = from ? this.#service.explorerService.buildAddressUrl(from) : undefined
 
         const to = event.to ?? undefined
-        const toUrl = to ? addressTemplateUrl?.replace('{address}', to) : undefined
-
-        const contractHashUrl = contractHash ? contractTemplateUrl?.replace('{hash}', contractHash) : undefined
+        const toUrl = to ? this.#service.explorerService.buildAddressUrl(to) : undefined
 
         if (isNft) {
           const [nft] = await BSUtilsHelper.tryCatch(() =>
             this.#service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
-
-          const nftUrl = contractHash
-            ? nftTemplateUrl?.replace('{collectionHash}', contractHash).replace('{tokenHash}', tokenHash)
-            : undefined
 
           newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
@@ -108,11 +96,11 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
             to,
             toUrl,
             collectionHash: contractHash,
-            collectionHashUrl: contractHashUrl,
+            collectionHashUrl: nft?.collection?.url,
             tokenHash,
             tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
             nftImageUrl: nft?.image,
-            nftUrl,
+            nftUrl: nft?.explorerUri,
             name: nft?.name,
             collectionName: nft?.collection?.name,
           })
@@ -135,7 +123,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
           to,
           toUrl,
           contractHash,
-          contractHashUrl,
+          contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
           token: token ?? undefined,
           tokenType: isErc20 ? 'erc-20' : 'generic',
         })

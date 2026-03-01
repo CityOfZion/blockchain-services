@@ -1,8 +1,8 @@
 import {
-  TBalanceResponse,
   BSBigNumberHelper,
-  IBlockchainDataService,
-  TBSToken,
+  type TBalanceResponse,
+  type IBlockchainDataService,
+  type TBSToken,
   type TContractResponse,
   type TTransaction,
   type TGetTransactionsByAddressParams,
@@ -10,7 +10,7 @@ import {
   type TTransactionTokenEvent,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import { IBSNeoLegacy } from '../../types'
+import type { IBSNeoLegacy } from '../../types'
 import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
 export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataService<N> {
@@ -29,30 +29,25 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     const vout: any[] = data.vout ?? []
     const events: TTransaction<N>['events'] = []
 
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
-
     const from = vout[vout.length - 1]?.address
 
-    const promises = vout.map(async (transfer, _index) => {
+    const promises = vout.map(async (transfer, index) => {
       const token = await this.getTokenInfo(transfer.asset)
 
       const to = transfer.address
       const contractHash = transfer.asset
 
-      const fromUrl = addressTemplateUrl?.replace('{address}', from)
-      const toUrl = addressTemplateUrl?.replace('{address}', to)
-      const contractHashUrl = contractTemplateUrl?.replace('{hash}', contractHash)
+      const fromUrl = this.#service.explorerService.buildAddressUrl(from)
+      const toUrl = this.#service.explorerService.buildAddressUrl(to)
 
-      events.push({
+      events.splice(index, 0, {
         amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(transfer.value), { decimals: token.decimals }),
         from,
         fromUrl,
         to,
         toUrl,
         contractHash,
-        contractHashUrl: contractHashUrl,
+        contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
         eventType: 'token',
         token,
         methodName: 'transfer',
@@ -62,11 +57,9 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
 
     await Promise.allSettled(promises)
 
-    const txIdUrl = txTemplateUrl?.replace('{txId}', data.txid)
-
     return {
       txId: data.txid,
-      txIdUrl,
+      txIdUrl: this.#service.explorerService.buildTransactionUrl(data.txid),
       block: data.block,
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.net_fee), {
         decimals: this.#service.feeToken.decimals,
@@ -74,7 +67,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       systemFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.sys_fee), {
         decimals: this.#service.feeToken.decimals,
       }),
-      date: new Date(Number(data.time) * 1000).toISOString(),
+      date: new Date(Number(data.time) * 1000).toJSON(),
       invocationCount: 0,
       notificationCount: 0,
       events,
@@ -89,20 +82,14 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#service.network.id)
     const transactions = new Map<string, TTransaction<N>>()
 
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
-
     const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return
 
       const from = entry.address_from ?? address
       const to = entry.address_to ?? address
 
-      const fromUrl = addressTemplateUrl?.replace('{address}', from)
-      const toUrl = addressTemplateUrl?.replace('{address}', to)
-      const contractHashUrl = contractTemplateUrl?.replace('{hash}', entry.asset)
-
+      const fromUrl = this.#service.explorerService.buildAddressUrl(from)
+      const toUrl = this.#service.explorerService.buildAddressUrl(to)
       const token = await this.getTokenInfo(entry.asset)
 
       const event: TTransactionTokenEvent = {
@@ -113,7 +100,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
         toUrl,
         eventType: 'token',
         contractHash: entry.asset,
-        contractHashUrl,
+        contractHashUrl: this.#service.explorerService.buildContractUrl(entry.asset),
         token,
         methodName: 'transfer',
         tokenType: 'nep-5',
@@ -128,11 +115,11 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       transactions.set(entry.txid, {
         block: entry.block_height,
         txId: entry.txid,
-        date: new Date(entry.time).toISOString(),
+        date: new Date(entry.time).toJSON(),
         events: [event],
         invocationCount: 0,
         notificationCount: 0,
-        txIdUrl: txTemplateUrl?.replace('{txId}', entry.txid),
+        txIdUrl: this.#service.explorerService.buildTransactionUrl(entry.txid),
         type: 'default',
       })
     })

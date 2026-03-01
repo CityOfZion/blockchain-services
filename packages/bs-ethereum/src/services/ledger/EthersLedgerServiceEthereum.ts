@@ -1,11 +1,12 @@
 import {
-  TBSAccount,
-  TLedgerServiceEmitter,
-  TGetLedgerTransport,
-  TUntilIndexRecord,
   generateAccountForBlockchainService,
   BSUtilsHelper,
-  ILedgerService,
+  BSKeychainHelper,
+  type TBSAccount,
+  type TLedgerServiceEmitter,
+  type TGetLedgerTransport,
+  type TUntilIndexRecord,
+  type ILedgerService,
 } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
@@ -49,6 +50,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
     const { address } = await BSUtilsHelper.retry(() => this.#ledgerApp.getAddress(this.#bip44Path), {
       shouldRetry: EthersLedgerSigner.shouldRetry,
     })
+
     return address
   }
 
@@ -60,10 +62,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       this.#emitter?.emit('getSignatureStart')
 
-      const obj = await BSUtilsHelper.retry(
-        () => this.#ledgerApp.signPersonalMessage(this.#bip44Path, ethers.utils.hexlify(message).substring(2)),
-        { shouldRetry: EthersLedgerSigner.shouldRetry }
-      )
+      const obj = await this.#ledgerApp.signPersonalMessage(this.#bip44Path, ethers.utils.hexlify(message).substring(2))
 
       this.#emitter?.emit('getSignatureEnd')
 
@@ -90,9 +89,10 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       this.#emitter?.emit('getSignatureStart')
 
-      const signature = await BSUtilsHelper.retry(
-        () => this.#ledgerApp.signTransaction(this.#bip44Path, serializedUnsignedTransaction, resolution),
-        { shouldRetry: EthersLedgerSigner.shouldRetry }
+      const signature = await this.#ledgerApp.signTransaction(
+        this.#bip44Path,
+        serializedUnsignedTransaction,
+        resolution
       )
 
       this.#emitter?.emit('getSignatureEnd')
@@ -133,9 +133,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
       let obj: { v: number; s: string; r: string }
 
       try {
-        obj = await BSUtilsHelper.retry(() => this.#ledgerApp.signEIP712Message(this.#bip44Path, payload), {
-          shouldRetry: EthersLedgerSigner.shouldRetry,
-        })
+        obj = await this.#ledgerApp.signEIP712Message(this.#bip44Path, payload)
       } catch {
         const domainSeparatorHex = ethers.utils._TypedDataEncoder.hashDomain(payload.domain)
         const hashStructMessageHex = ethers.utils._TypedDataEncoder.hashStruct(
@@ -143,10 +141,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
           types,
           payload.message
         )
-        obj = await BSUtilsHelper.retry(
-          () => this.#ledgerApp.signEIP712HashedMessage(this.#bip44Path, domainSeparatorHex, hashStructMessageHex),
-          { shouldRetry: EthersLedgerSigner.shouldRetry }
-        )
+        obj = await this.#ledgerApp.signEIP712HashedMessage(this.#bip44Path, domainSeparatorHex, hashStructMessageHex)
       }
 
       this.#emitter?.emit('getSignatureEnd')
@@ -191,9 +186,9 @@ export class EthersLedgerServiceEthereum<N extends string> implements ILedgerSer
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const ledgerApp = new LedgerEthereumApp(transport)
-    const bip44Path = this.#blockchainService.bip44DerivationPath.replace('?', index.toString())
+    const bipPath = BSKeychainHelper.getBipPath(this.#blockchainService.bipDerivationPath, index)
 
-    const { publicKey, address } = await BSUtilsHelper.retry(() => ledgerApp.getAddress(bip44Path), {
+    const { publicKey, address } = await BSUtilsHelper.retry(() => ledgerApp.getAddress(bipPath), {
       shouldRetry: EthersLedgerSigner.shouldRetry,
     })
 
@@ -203,7 +198,7 @@ export class EthersLedgerServiceEthereum<N extends string> implements ILedgerSer
       address,
       key: publicKeyWithPrefix,
       type: 'publicKey',
-      bip44Path,
+      bipPath,
       blockchain: this.#blockchainService.name,
       isHardware: true,
     }

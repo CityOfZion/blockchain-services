@@ -31,7 +31,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
           address: expect.any(String),
           key: expect.any(String),
           type: 'publicKey',
-          bip44Path: BSKeychainHelper.getBip44Path(BSKeychainHelper.fixBip44Path(bsSolana.bip44DerivationPath), index),
+          bipPath: BSKeychainHelper.getBipPath(bsSolana.bipDerivationPath, index),
         })
       )
     })
@@ -45,7 +45,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
         address: expect.any(String),
         key: expect.any(String),
         type: 'publicKey',
-        bip44Path: BSKeychainHelper.getBip44Path(BSKeychainHelper.fixBip44Path(bsSolana.bip44DerivationPath), 0),
+        bipPath: BSKeychainHelper.getBipPath(bsSolana.bipDerivationPath, 0),
       })
     )
   })

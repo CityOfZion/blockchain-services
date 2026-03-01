@@ -24,14 +24,9 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
 
   async #parseTransaction(transaction: stellarSDK.Horizon.ServerApi.TransactionRecord): Promise<TTransaction<N>> {
     const events: TTransaction<N>['events'] = []
-
     const operations = await transaction.operations()
 
-    const addressTemplateUrl = this.#service.explorerService.getAddressTemplateUrl()
-    const contractTemplateUrl = this.#service.explorerService.getContractTemplateUrl()
-    const txTemplateUrl = this.#service.explorerService.getTxTemplateUrl()
-
-    const promises = operations.records.map(async operation => {
+    const promises = operations.records.map(async (operation, index) => {
       if (
         operation.type !== stellarSDK.Horizon.HorizonApi.OperationResponseType.payment &&
         operation.type !== stellarSDK.Horizon.HorizonApi.OperationResponseType.pathPayment &&
@@ -78,15 +73,14 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
         methodName = operation.type
         tokenType = 'sac'
       } else {
-        // TODO: Implement support for nft
+        // TODO: implement support for NFT
         return
       }
 
-      const toUrl = addressTemplateUrl?.replace('{address}', to)
-      const fromUrl = addressTemplateUrl?.replace('{address}', from)
-      const contractHashUrl = contractTemplateUrl?.replace('{contractHash}', token.hash)
+      const toUrl = this.#service.explorerService.buildAddressUrl(to)
+      const fromUrl = this.#service.explorerService.buildAddressUrl(from)
 
-      events.push({
+      events.splice(index, 0, {
         eventType: 'token',
         amount: BSBigNumberHelper.format(amountBn, { decimals: token.decimals }),
         to,
@@ -94,7 +88,7 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
         from,
         fromUrl,
         contractHash: token.hash,
-        contractHashUrl,
+        contractHashUrl: this.#service.explorerService.buildContractUrl(token.hash),
         methodName,
         tokenType,
         token,
@@ -103,13 +97,13 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
 
     await Promise.allSettled(promises)
 
-    const txIdUrl = txTemplateUrl?.replace('{txId}', transaction.hash)
+    const txIdUrl = this.#service.explorerService.buildTransactionUrl(transaction.hash)
 
     return {
       block: transaction.ledger_attr,
       txId: transaction.hash,
       txIdUrl,
-      date: new Date(transaction.created_at).toISOString(),
+      date: new Date(transaction.created_at).toJSON(),
       notificationCount: 0,
       invocationCount: 0,
       type: 'default',
