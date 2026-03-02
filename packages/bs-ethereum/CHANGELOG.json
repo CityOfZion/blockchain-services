@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "3.0.6",
+      "tag": "@cityofzion/bs-ethereum_v3.0.6",
+      "date": "Mon, 02 Mar 2026 14:32:56 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Adjust implementations to fit the updated blockchain service interfaces that now support Bitcoin"
+          },
+          {
+            "comment": "Fix nonce resolution of WalletConnect request"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.0.5",
       "tag": "@cityofzion/bs-ethereum_v3.0.5",
       "date": "Sat, 21 Feb 2026 18:56:12 GMT",

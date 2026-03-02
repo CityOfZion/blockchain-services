@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Sat, 21 Feb 2026 18:56:12 GMT and should not be manually modified.
+This log was last generated on Mon, 02 Mar 2026 14:32:56 GMT and should not be manually modified.
+
+## 3.0.6
+Mon, 02 Mar 2026 14:32:56 GMT
+
+### Updates
+
+- Adjust implementations to fit the updated blockchain service interfaces that now support Bitcoin
+- Fix nonce resolution of WalletConnect request
 
 ## 3.0.5
 Sat, 21 Feb 2026 18:56:12 GMT

@@ -1,0 +1,17 @@
+{
+  "name": "@cityofzion/bs-bitcoin",
+  "entries": [
+    {
+      "version": "3.0.6",
+      "tag": "@cityofzion/bs-bitcoin_v3.0.6",
+      "date": "Mon, 02 Mar 2026 14:32:56 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Bitcoin main implementation"
+          }
+        ]
+      }
+    }
+  ]
+}
