@@ -6,7 +6,7 @@ import {
   type TExportFullTransactionsByAddressParams,
   type TGetFullTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TTransaction,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import type { IBSNeoX, TBSNeoXNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
@@ -27,7 +27,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: BlockscoutFullTransactionsDataService.SUPPORTED_NETWORKS_IDS,
@@ -43,14 +43,14 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
       pageLimit: params.pageSize ?? 50,
     })
 
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionDefault<N>[] = []
     const items = response.data ?? []
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      let newItem: TTransaction<N> = {
+      let newItem: TTransactionDefault<N> = {
         txId,
         txIdUrl,
         block: item.block,
@@ -65,6 +65,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
           : undefined,
         events: [],
         type: 'default',
+        view: 'default',
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {

@@ -8,9 +8,9 @@ import {
   type TContractResponse,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TTransaction,
-  type TTransactionNftEvent,
-  type TTransactionTokenEvent,
+  type TNftResponse,
+  type TTransactionInputOutput,
+  type TTransactionUtxo,
 } from '@cityofzion/blockchain-service'
 import type {
   IBSBitcoin,
@@ -51,87 +51,65 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     return typeof value === 'number' && value >= 0
   }
 
-  // TODO: implement UTXO transaction type
   async #transformTatumTransactionToTransaction({
     hex,
     hash,
-    inputs,
     ...transaction
-  }: TTatumTransactionResponse): Promise<TTransaction<N>> {
+  }: TTatumTransactionResponse): Promise<TTransactionUtxo<N>> {
+    const token = BSBitcoinConstants.NATIVE_TOKEN
+    const tokenDecimals = token.decimals
     const feeDecimals = this.#service.feeToken.decimals
     const lowercaseHex = hex.toLowerCase()
-    const from = undefined
-    const fromUrl = undefined
-    const events: (TTransactionTokenEvent | TTransactionNftEvent)[] = []
+    const nfts: TNftResponse[] = []
+    const inputs: TTransactionInputOutput[] = []
 
-    const isNft =
+    const hasNft =
       !!transaction.witnessHash && // SegWit or Taproot
       /6f7264/.test(lowercaseHex) && // Should have "ord"
       // Could be image
       (/696d616765/.test(lowercaseHex) ||
-        // Could be text
-        /746578742f/.test(lowercaseHex) ||
         // Could be application
         /6170706c69636174696f6e/.test(lowercaseHex))
 
-    const eventPromises = transaction.outputs.map(async (output, index) => {
-      let event: TTransactionTokenEvent | TTransactionNftEvent | undefined
+    const inputPromises = transaction.inputs.map(async (input, index) => {
+      const { coin } = input
+      const value = coin?.value
+      const address = coin?.address || undefined
+      const addressUrl = address ? this.#service.explorerService.buildAddressUrl(address) : undefined
 
-      const tokenType = 'native'
-      const to = output.address
-      const toUrl = this.#service.explorerService.buildAddressUrl(to)
-      const hasInputAddress = !!inputs?.[index]?.coin?.address
-      const token = BSBitcoinConstants.NATIVE_TOKEN
-
-      const amount = BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(output.value, token.decimals), {
-        decimals: token.decimals,
+      const amount = BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(value, tokenDecimals), {
+        decimals: tokenDecimals,
       })
 
-      if (isNft && hasInputAddress) {
+      if (hasNft) {
         const tokenHash = `${hash}i${index}`
         const [nft] = await BSUtilsHelper.tryCatch(() => this.#service.nftDataService.getNft({ tokenHash }))
 
-        event = {
-          eventType: 'nft',
-          tokenType,
-          from,
-          fromUrl,
-          to,
-          toUrl,
-          amount,
-          token,
-          tokenHash,
-          name: nft?.name,
-          nftUrl: nft?.explorerUri,
-          nftImageUrl: nft?.image,
-          collectionName: nft?.collection?.name,
-          collectionHash: nft?.collection?.hash,
-          collectionHashUrl: nft?.collection?.url,
-        }
-      } else if (!!to || !!from || amount !== '0') {
-        event = {
-          eventType: 'token',
-          tokenType,
-          from,
-          fromUrl,
-          to,
-          toUrl,
-          amount,
-          token,
-          contractHash: token.hash,
-        }
+        if (nft) nfts.splice(index, 0, nft)
       }
 
-      if (event) events.splice(index, 0, event)
+      inputs.splice(index, 0, { address, addressUrl, amount, token })
     })
 
-    await Promise.allSettled(eventPromises)
+    const outputs = transaction.outputs.map<TTransactionInputOutput>(output => {
+      const address = output.address || undefined
+      const addressUrl = address ? this.#service.explorerService.buildAddressUrl(address) : undefined
+
+      const amount = BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(output.value, tokenDecimals), {
+        decimals: tokenDecimals,
+      })
+
+      return { address, addressUrl, amount, token }
+    })
+
+    await Promise.allSettled(inputPromises)
 
     return {
       txId: hash,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(hash),
       hex,
       type: 'default',
+      view: 'utxo',
       block: transaction.blockNumber!,
       invocationCount: 0,
       notificationCount: 0,
@@ -139,8 +117,9 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transaction.fee, feeDecimals), {
         decimals: feeDecimals,
       }),
-      systemFeeAmount: '0',
-      events,
+      nfts,
+      inputs,
+      outputs,
     }
   }
 
@@ -166,7 +145,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     return token
   }
 
-  async getTransaction(transactionId: string): Promise<TTransaction<N>> {
+  async getTransaction(transactionId: string): Promise<TTransactionUtxo<N>> {
     const { data } = await this.#tatumApis.v3.get<TTatumTransactionResponse>(`/bitcoin/transaction/${transactionId}`)
 
     if (!this.#isNumberValid(data.blockNumber)) {
@@ -179,10 +158,10 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
   async getTransactionsByAddress({
     address,
     nextPageParams,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionUtxo<N>>> {
     if (!this.#isNumberValid(nextPageParams)) nextPageParams = 1
 
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionUtxo<N>[] = []
     const pageSize = 50
     const offset = (nextPageParams - 1) * pageSize
 

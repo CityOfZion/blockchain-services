@@ -149,6 +149,7 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
             type: expect.any(String),
+            view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),

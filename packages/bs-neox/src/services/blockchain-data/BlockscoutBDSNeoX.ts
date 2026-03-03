@@ -7,12 +7,12 @@ import {
   type TBridgeToken,
   type TBSNetwork,
   type TBSToken,
-  type TTransaction,
-  type TTransactionBridgeNeo3NeoX,
+  type TTransactionBridgeNeo3NeoXType,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TContractResponse,
   type TBSBigNumber,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
@@ -60,7 +60,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     return this.#apiInstance
   }
 
-  async getTransaction(txid: string): Promise<TTransaction<N>> {
+  async getTransaction(txid: string): Promise<TTransactionDefault<N>> {
     const { data: response } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
     if (!response || 'message' in response) {
@@ -69,7 +69,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
     const to = response.to?.hash
-    const events: TTransaction<N>['events'] = []
+    const events: TTransactionDefault<N>['events'] = []
 
     const hasNativeTokenBeingTransferred = response.value !== '0'
     if (hasNativeTokenBeingTransferred) {
@@ -165,7 +165,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const txId = response.hash
 
-    let transaction: TTransaction<N> = {
+    let transaction: TTransactionDefault<N> = {
       block: response.block,
       txId,
       txIdUrl: this._service.explorerService.buildContractUrl(txId),
@@ -180,6 +180,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       invocationCount: 0,
       notificationCount: 0,
       type: 'default',
+      view: 'default',
     }
 
     if (to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH) {
@@ -197,7 +198,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<N>> {
+  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionByAddressApiResponse>(
       `/addresses/${params.address}/transactions`,
       {
@@ -212,10 +213,10 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionDefault<N>[] = []
 
     const promises = data.items.map(async (item, index) => {
-      const events: TTransaction<N>['events'] = []
+      const events: TTransactionDefault<N>['events'] = []
       const hasNativeTokenBeingTransferred = item.value !== '0'
 
       if (hasNativeTokenBeingTransferred) {
@@ -288,7 +289,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
       const txId = item.hash
 
-      let transaction: TTransaction<N> = {
+      let transaction: TTransactionDefault<N> = {
         block: item.block,
         txId,
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
@@ -303,6 +304,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         ),
         events,
         type: 'default',
+        view: 'default',
       }
 
       const hasBridgeNeo3NeoXEvent = events.some(event => event.to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH)
@@ -322,10 +324,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     await Promise.allSettled(promises)
 
-    return {
-      transactions,
-      nextPageParams: data.next_page_params,
-    }
+    return { transactions, nextPageParams: data.next_page_params }
   }
 
   async getContract(contractHash: string): Promise<TContractResponse> {
@@ -463,7 +462,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
   #getBridgeNeo3NeoXDataByBlockscoutTransaction(
     transactionResponse: TBlockscoutBDSNeoXTransactionApiResponse
-  ): TTransactionBridgeNeo3NeoX<N>['data'] | undefined {
+  ): TTransactionBridgeNeo3NeoXType<N>['data'] | undefined {
     const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
     const input = BridgeInterface.parseTransaction({ data: transactionResponse.raw_input })
 

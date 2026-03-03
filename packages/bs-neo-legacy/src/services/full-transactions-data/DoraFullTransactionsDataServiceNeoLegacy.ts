@@ -6,7 +6,7 @@ import {
   type TExportFullTransactionsByAddressParams,
   type TGetFullTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TTransaction,
+  type TTransactionDefault,
   type TTransactionTokenEvent,
 } from '@cityofzion/blockchain-service'
 import type { IBSNeoLegacy, TBSNeoLegacyNetworkId } from '../../types'
@@ -26,7 +26,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     const pageSize =
       params.pageSize && params.pageSize > DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
         ? DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
@@ -40,7 +40,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
       pageSize,
     })
 
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionDefault<N>[] = []
 
     const response = await api.NeoLegacyREST.getFullTransactionsByAddress({
       address: params.address,
@@ -57,7 +57,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      const newItem: TTransaction<N> = {
+      const newItem: TTransactionDefault<N> = {
         txId,
         txIdUrl,
         block: item.block,
@@ -72,6 +72,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
           : undefined,
         events: [],
         type: 'default',
+        view: 'default',
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {

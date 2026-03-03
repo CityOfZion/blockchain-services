@@ -54,8 +54,7 @@ const buildSignPsbtTestnetParams = async () => {
 
   for (const utxo of utxos) {
     const { txHash, index, value, address } = utxo
-    const transactionData = await service.blockchainDataService.getTransaction(txHash)
-    const hex = transactionData.hex!
+    const { hex } = await service.blockchainDataService.getTransaction(txHash)
     const transaction = bitcoinjs.Transaction.fromHex(hex)
     const output = transaction.outs[index]
 

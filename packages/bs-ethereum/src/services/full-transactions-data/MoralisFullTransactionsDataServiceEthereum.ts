@@ -7,7 +7,7 @@ import {
   type TExportFullTransactionsByAddressParams,
   type TGetFullTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TTransaction,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import type { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
@@ -30,14 +30,14 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: MoralisFullTransactionsDataServiceEthereum.SUPPORTED_NETWORKS_IDS,
       ...params,
     })
 
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionDefault<N>[] = []
 
     const response = await api.EthereumREST.getFullTransactionsByAddress({
       address: params.address,
@@ -54,7 +54,7 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
 
-      const newItem: TTransaction<N> = {
+      const newItem: TTransactionDefault<N> = {
         txId,
         txIdUrl: txId ? this.#service.explorerService.buildTransactionUrl(txId) : undefined,
         block: item.block,
@@ -69,6 +69,7 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
           : undefined,
         events: [],
         type: 'default',
+        view: 'default',
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {

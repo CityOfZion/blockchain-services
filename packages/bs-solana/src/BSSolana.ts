@@ -37,8 +37,8 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   readonly name: N
   readonly bipDerivationPath: string
 
-  readonly isMultiTransferSupported: boolean = true
-  readonly isCustomNetworkSupported: boolean = false
+  readonly isMultiTransferSupported = true
+  readonly isCustomNetworkSupported = false
 
   readonly feeToken!: TBSToken
   readonly tokens!: TBSToken[]

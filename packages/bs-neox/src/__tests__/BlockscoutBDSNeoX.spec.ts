@@ -3,7 +3,7 @@ import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
 
 import { BSNeoX } from '../BSNeoX'
-import type { TTransaction, TTransactionBridgeNeo3NeoX } from '@cityofzion/blockchain-service'
+import type { TTransactionBridgeNeo3NeoXType, TTransactionDefault } from '@cityofzion/blockchain-service'
 
 let service: BSNeoX<'test'>
 let blockscoutBDSNeoX: BlockscoutBDSNeoX<'test'>
@@ -44,6 +44,7 @@ describe('BlockscoutBDSNeoX', () => {
         notificationCount: 0,
         txIdUrl: expect.any(String),
         type: 'default',
+        view: 'default',
       })
     )
   })
@@ -83,6 +84,7 @@ describe('BlockscoutBDSNeoX', () => {
         invocationCount: 0,
         notificationCount: 0,
         type: 'default',
+        view: 'default',
       })
     )
   })
@@ -90,7 +92,7 @@ describe('BlockscoutBDSNeoX', () => {
   it('Should return a bridge transaction details (GAS)', async () => {
     const transaction = (await blockscoutBDSNeoX.getTransaction(
       '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-    )) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
+    )) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -101,7 +103,7 @@ describe('BlockscoutBDSNeoX', () => {
   it('Should return a bridge transaction details (NEO)', async () => {
     const transaction = (await blockscoutBDSNeoX.getTransaction(
       '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-    )) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
+    )) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -125,6 +127,7 @@ describe('BlockscoutBDSNeoX', () => {
           notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
           type: expect.any(String),
+          view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({
               eventType: expect.any(String),
@@ -157,7 +160,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     const transaction = response.transactions.find(
       ({ txId }) => txId === '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-    ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
+    ) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -172,7 +175,7 @@ describe('BlockscoutBDSNeoX', () => {
 
     const transaction = response.transactions.find(
       ({ txId }) => txId === '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-    ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
+    ) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')

@@ -47,7 +47,7 @@ export class LedgerServiceBitcoin<N extends string = string> implements ILedgerS
       const transactionId = Buffer.from(hash).reverse().toString('hex')
       const transaction = await this.#service.blockchainDataService.getTransaction(transactionId)
 
-      return transaction.hex!
+      return transaction.hex
     }
   }
 

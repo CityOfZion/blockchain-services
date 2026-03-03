@@ -25,6 +25,7 @@ describe('DoraBDSNeoLegacy', () => {
         networkFeeAmount: expect.anything(),
         systemFeeAmount: expect.anything(),
         type: expect.any(String),
+        view: 'default',
         events: expect.arrayContaining([
           expect.objectContaining({
             eventType: expect.any(String),
@@ -63,6 +64,7 @@ describe('DoraBDSNeoLegacy', () => {
           invocationCount: expect.any(Number),
           notificationCount: expect.any(Number),
           type: expect.any(String),
+          view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({
               eventType: expect.any(String),

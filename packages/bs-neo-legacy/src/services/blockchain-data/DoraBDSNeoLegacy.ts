@@ -4,10 +4,10 @@ import {
   type IBlockchainDataService,
   type TBSToken,
   type TContractResponse,
-  type TTransaction,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TTransactionTokenEvent,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import type { IBSNeoLegacy } from '../../types'
@@ -22,13 +22,13 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     this.#service = service
   }
 
-  async getTransaction(hash: string): Promise<TTransaction<N>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
     const data = await api.NeoLegacyREST.transaction(hash, this.#service.network.id)
+
     if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
 
     const vout: any[] = data.vout ?? []
-    const events: TTransaction<N>['events'] = []
-
+    const events: TTransactionDefault<N>['events'] = []
     const from = vout[vout.length - 1]?.address
 
     const promises = vout.map(async (transfer, index) => {
@@ -70,17 +70,18 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       date: new Date(Number(data.time) * 1000).toJSON(),
       invocationCount: 0,
       notificationCount: 0,
-      events,
       type: 'default',
+      view: 'default',
+      events,
     }
   }
 
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#service.network.id)
-    const transactions = new Map<string, TTransaction<N>>()
+    const transactions = new Map<string, TTransactionDefault<N>>()
 
     const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return
@@ -107,6 +108,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       }
 
       const existingTransaction = transactions.get(entry.txid)
+
       if (existingTransaction) {
         existingTransaction.events.push(event)
         return
@@ -121,6 +123,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
         notificationCount: 0,
         txIdUrl: this.#service.explorerService.buildTransactionUrl(entry.txid),
         type: 'default',
+        view: 'default',
       })
     })
 

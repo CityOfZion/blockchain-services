@@ -2,7 +2,14 @@ import { TatumBDSBitcoin } from '../services/blockchain-data/TatumBDSBitcoin'
 import { BSBitcoin } from '../BSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 import type { IBSBitcoin } from '../types'
-import { BSError, IBlockchainDataService } from '@cityofzion/blockchain-service'
+import { BSError } from '@cityofzion/blockchain-service'
+
+const expectedInputsOutputs = expect.arrayContaining([
+  expect.objectContaining({
+    amount: expect.any(String),
+    token: BSBitcoinConstants.NATIVE_TOKEN,
+  }),
+])
 
 const expectedTransactions = expect.arrayContaining([
   {
@@ -10,20 +17,15 @@ const expectedTransactions = expect.arrayContaining([
     txIdUrl: expect.any(String),
     hex: expect.any(String),
     type: 'default',
+    view: 'utxo',
     block: expect.any(Number),
     invocationCount: 0,
     notificationCount: 0,
     date: expect.any(String),
     networkFeeAmount: expect.any(String),
-    systemFeeAmount: '0',
-    events: expect.arrayContaining([
-      expect.objectContaining({
-        eventType: expect.stringMatching(/^(token|nft)$/),
-        tokenType: 'native',
-        token: BSBitcoinConstants.NATIVE_TOKEN,
-        amount: expect.any(String),
-      }),
-    ]),
+    nfts: expect.any(Array),
+    inputs: expectedInputsOutputs,
+    outputs: expectedInputsOutputs,
   },
 ])
 
@@ -31,7 +33,7 @@ const ordiHash = 'b61b0172d95e266c18aea0c624db987e971a5d6d4ebc2aaed85da4642d6357
 const betHash = '886eaf50fed7a2ceb3961fdf7b03efab1130b351ae71e106e071176efca8edf9i0'
 
 let service: IBSBitcoin<'test'>
-let blockchainDataService: IBlockchainDataService<'test'>
+let blockchainDataService: TatumBDSBitcoin<'test'>
 
 describe('TatumBDSBitcoin', () => {
   beforeEach(() => {
@@ -189,27 +191,31 @@ describe('TatumBDSBitcoin', () => {
     const transaction = await blockchainDataService.getTransaction(hash)
 
     expect(transaction).toEqual({
-      txId: '92b55200a8adf94da5a4eb3f78dcbbfd0ed83fdd75aa46505a151a1ceeb4b62d',
+      txId: hash,
       txIdUrl: expect.any(String),
       hex: expect.any(String),
       type: 'default',
+      view: 'utxo',
       block: 933101,
       invocationCount: 0,
       notificationCount: 0,
       date: expect.any(String),
       networkFeeAmount: '0.000099',
-      systemFeeAmount: '0',
-      events: [
+      nfts: [],
+      inputs: [
         {
-          eventType: 'token',
-          tokenType: 'native',
-          from: undefined,
-          fromUrl: undefined,
-          to: '1AR9sWV7ZR2C2ohGSDDKXipCfZ3RLGynHM',
-          toUrl: expect.any(String),
+          address: '3Mc8ZdscCgA23JuHUdAUsDvQM36exyhe13',
+          addressUrl: expect.any(String),
+          amount: '0.02470783',
+          token: BSBitcoinConstants.NATIVE_TOKEN,
+        },
+      ],
+      outputs: [
+        {
+          address: '1AR9sWV7ZR2C2ohGSDDKXipCfZ3RLGynHM',
+          addressUrl: expect.any(String),
           amount: '0.02460883',
           token: BSBitcoinConstants.NATIVE_TOKEN,
-          contractHash: BSBitcoinConstants.NATIVE_TOKEN.hash,
         },
       ],
     })
@@ -231,29 +237,37 @@ describe('TatumBDSBitcoin', () => {
       txIdUrl: expect.any(String),
       hex: expect.any(String),
       type: 'default',
+      view: 'utxo',
       block: 767430,
       invocationCount: 0,
       notificationCount: 0,
       date: expect.any(String),
       networkFeeAmount: '0.00000322',
-      systemFeeAmount: '0',
-      events: [
+      nfts: [
         {
-          eventType: 'nft',
-          tokenType: 'native',
-          from: undefined,
-          fromUrl: undefined,
-          to: 'bc1qv8zhcjzpjw4m4tdyc5zn3dmax0z6rr6l78fevg',
-          toUrl: expect.any(String),
+          hash: `${firstHash}i0`,
+          name: '0',
+          image: expect.any(String),
+          explorerUri: expect.any(String),
+          symbol: undefined,
+          collection: undefined,
+          isSVG: false,
+        },
+      ],
+      inputs: [
+        {
+          address: 'bc1pdaekjdgwg60n9zscqe8e92nqauxsx22wvtz9yv285ex005ck8u5q7crpxv',
+          addressUrl: expect.any(String),
+          amount: '0.0001',
+          token: BSBitcoinConstants.NATIVE_TOKEN,
+        },
+      ],
+      outputs: [
+        {
+          address: 'bc1qv8zhcjzpjw4m4tdyc5zn3dmax0z6rr6l78fevg',
+          addressUrl: expect.any(String),
           amount: '0.00009678',
           token: BSBitcoinConstants.NATIVE_TOKEN,
-          collectionHash: undefined,
-          collectionHashUrl: undefined,
-          collectionName: undefined,
-          name: '0',
-          nftImageUrl: expect.any(String),
-          nftUrl: expect.any(String),
-          tokenHash: `${firstHash}i0`,
         },
       ],
     })
@@ -263,29 +277,41 @@ describe('TatumBDSBitcoin', () => {
       txIdUrl: expect.any(String),
       hex: expect.any(String),
       type: 'default',
+      view: 'utxo',
       block: 775608,
       invocationCount: 0,
       notificationCount: 0,
       date: expect.any(String),
       networkFeeAmount: '0.00003456',
-      systemFeeAmount: '0',
-      events: [
+      nfts: [
         {
-          eventType: 'nft',
-          tokenType: 'native',
-          from: undefined,
-          fromUrl: undefined,
-          to: 'bc1ptzgwz7n4fnpkz8t78rjmhmz0hq2yth4ugwlzg4yenrxpnvz2nwaqhwldp4',
-          toUrl: expect.any(String),
+          hash: `${secondHash}i0`,
+          name: 'Bitcoin Punk #4473',
+          image: expect.any(String),
+          explorerUri: expect.any(String),
+          symbol: 'bitcoin-punks',
+          collection: {
+            name: 'Bitcoin Punks',
+            hash: 'bitcoin-punks',
+            url: expect.any(String),
+          },
+          isSVG: false,
+        },
+      ],
+      inputs: [
+        {
+          address: 'bc1pl8efwl0wrtgqsgcjw4nz0te6s40nfnyz9jpweztg7q0nzlzr7nssx4c2jw',
+          addressUrl: expect.any(String),
+          amount: '0.00013456',
+          token: BSBitcoinConstants.NATIVE_TOKEN,
+        },
+      ],
+      outputs: [
+        {
+          address: 'bc1ptzgwz7n4fnpkz8t78rjmhmz0hq2yth4ugwlzg4yenrxpnvz2nwaqhwldp4',
+          addressUrl: expect.any(String),
           amount: '0.0001',
           token: BSBitcoinConstants.NATIVE_TOKEN,
-          collectionHash: 'bitcoin-punks',
-          collectionHashUrl: expect.any(String),
-          collectionName: 'Bitcoin Punks',
-          name: 'Bitcoin Punk #4473',
-          nftImageUrl: expect.any(String),
-          nftUrl: expect.any(String),
-          tokenHash: `${secondHash}i0`,
         },
       ],
     })
@@ -295,51 +321,49 @@ describe('TatumBDSBitcoin', () => {
       txIdUrl: expect.any(String),
       hex: expect.any(String),
       type: 'default',
+      view: 'utxo',
       block: 935255,
       invocationCount: 0,
       notificationCount: 0,
       date: expect.any(String),
       networkFeeAmount: '0.00000625',
-      systemFeeAmount: '0',
-      events: [
+      nfts: [
         {
-          eventType: 'nft',
-          tokenType: 'native',
-          from: undefined,
-          fromUrl: undefined,
-          to: null,
-          toUrl: undefined,
+          hash: `${thirdHash}i0`,
+          name: '118342352',
+          image: expect.any(String),
+          explorerUri: expect.any(String),
+          symbol: undefined,
+          collection: undefined,
+          isSVG: false,
+        },
+      ],
+      inputs: [
+        {
+          address: 'bc1pvs647p2amjjjgp7avfe5saevjshl8tpq5ctemkx8zr9h33kpztgs9p0xgn',
+          addressUrl: expect.any(String),
+          amount: '0.00001285',
+          token: BSBitcoinConstants.NATIVE_TOKEN,
+        },
+      ],
+      outputs: [
+        {
+          address: undefined,
+          addressUrl: undefined,
           amount: '0',
           token: BSBitcoinConstants.NATIVE_TOKEN,
-          collectionHash: undefined,
-          collectionHashUrl: undefined,
-          collectionName: undefined,
-          name: '118342352',
-          nftImageUrl: expect.any(String),
-          nftUrl: expect.any(String),
-          tokenHash: `${thirdHash}i0`,
         },
         {
-          eventType: 'token',
-          tokenType: 'native',
-          from: undefined,
-          fromUrl: undefined,
-          to: 'bc1pnaxqeayypaqew37seu5cszm2d4yfe98w5l8cxx5yruqurw7v4mxsagqa8v',
-          toUrl: expect.any(String),
+          address: 'bc1pnaxqeayypaqew37seu5cszm2d4yfe98w5l8cxx5yruqurw7v4mxsagqa8v',
+          addressUrl: expect.any(String),
           amount: '0.0000033',
           token: BSBitcoinConstants.NATIVE_TOKEN,
-          contractHash: BSBitcoinConstants.NATIVE_TOKEN.hash,
         },
         {
-          eventType: 'token',
-          tokenType: 'native',
-          from: undefined,
-          fromUrl: undefined,
-          to: 'bc1pnaxqeayypaqew37seu5cszm2d4yfe98w5l8cxx5yruqurw7v4mxsagqa8v',
-          toUrl: expect.any(String),
+          address: 'bc1pnaxqeayypaqew37seu5cszm2d4yfe98w5l8cxx5yruqurw7v4mxsagqa8v',
+          addressUrl: expect.any(String),
           amount: '0.0000033',
           token: BSBitcoinConstants.NATIVE_TOKEN,
-          contractHash: BSBitcoinConstants.NATIVE_TOKEN.hash,
         },
       ],
     })
@@ -357,34 +381,33 @@ describe('TatumBDSBitcoin', () => {
       txIdUrl: expect.any(String),
       hex: expect.any(String),
       type: 'default',
+      view: 'utxo',
       block: 4838842,
       invocationCount: 0,
       notificationCount: 0,
       date: expect.any(String),
       networkFeeAmount: '0.00000141',
-      systemFeeAmount: '0',
-      events: [
+      nfts: [],
+      inputs: [
         {
-          eventType: 'token',
-          tokenType: 'native',
-          from: undefined,
-          fromUrl: undefined,
-          to: 'tb1q27ayj6tdd2ut7pwvgw4n4xdrj5c3kyr2cpx3ml',
-          toUrl: expect.any(String),
+          address: 'tb1qrhnvll7hh0x5qtqfvmks5m4j06hzjxfh9xpzhu',
+          addressUrl: expect.any(String),
+          amount: '23.84810901',
+          token: BSBitcoinConstants.NATIVE_TOKEN,
+        },
+      ],
+      outputs: [
+        {
+          address: 'tb1q27ayj6tdd2ut7pwvgw4n4xdrj5c3kyr2cpx3ml',
+          addressUrl: expect.any(String),
           amount: '0.00391851',
           token: BSBitcoinConstants.NATIVE_TOKEN,
-          contractHash: BSBitcoinConstants.NATIVE_TOKEN.hash,
         },
         {
-          eventType: 'token',
-          tokenType: 'native',
-          from: undefined,
-          fromUrl: undefined,
-          to: 'tb1q020fdmr7vxt8cq6z29uay4cm83q4gfan9w933x',
-          toUrl: expect.any(String),
+          address: 'tb1q020fdmr7vxt8cq6z29uay4cm83q4gfan9w933x',
+          addressUrl: expect.any(String),
           amount: '23.84418909',
           token: BSBitcoinConstants.NATIVE_TOKEN,
-          contractHash: BSBitcoinConstants.NATIVE_TOKEN.hash,
         },
       ],
     })

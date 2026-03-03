@@ -16,7 +16,6 @@ import type {
   TWalletConnectServiceBitcoinTransformSendTransferParamsResponse,
 } from '../../types'
 import { BSBitcoinConstants } from '../../constants/BSBitcoinConstants'
-import { LedgerServiceBitcoin } from '../ledger/LedgerServiceBitcoin'
 import { SignatureOptions } from 'bitcoinjs-message'
 import * as bitcoinjs from 'bitcoinjs-lib'
 import * as bitcoinjsMessage from 'bitcoinjs-message'
@@ -193,8 +192,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
 
     if (senderAccount.isHardware) {
       const transport = await this.#service.getLedgerTransport(senderAccount)
-      const ledgerService = this.#service.ledgerService as LedgerServiceBitcoin<N>
-      const response = await ledgerService.signMessage({ message, account: senderAccount, transport })
+      const response = await this.#service.ledgerService.signMessage({ message, account: senderAccount, transport })
 
       return { address: signingAddress, ...response }
     }

@@ -6,11 +6,11 @@ import {
   type TContractResponse,
   type TTransactionTokenEvent,
   type TTransactionNftEvent,
-  type TTransaction,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   BSUtilsHelper,
   BSError,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import * as solanaKit from '@solana/kit'
@@ -273,10 +273,10 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     transaction?: solanaKit.TransactionForFullJsonParsed<'legacy'> | null,
     blockTime?: bigint | number | null,
     block?: bigint | number | null
-  ): Promise<TTransaction<N> | undefined> {
+  ): Promise<TTransactionDefault<N> | undefined> {
     if (!transaction || !blockTime || !transaction.meta || !block) return
 
-    const events: TTransaction<N>['events'] = []
+    const events: TTransactionDefault<N>['events'] = []
 
     const allInstructions = [
       ...transaction.transaction.message.instructions,
@@ -306,10 +306,11 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       date: new Date(BSBigNumberHelper.fromNumber(blockTime).multipliedBy(1000).toNumber()).toJSON(),
       events,
       type: 'default',
+      view: 'default',
     }
   }
 
-  async getTransaction(txid: string): Promise<TTransaction<N>> {
+  async getTransaction(txid: string): Promise<TTransactionDefault<N>> {
     const signature = solanaKit.signature(txid)
     const transaction = await this.#service.solanaKitRpc
       .getTransaction(signature, { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 })
@@ -328,7 +329,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<N>> {
+  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     const solanaKitAddress = solanaKit.address(params.address)
 
     const signaturesResponse = await this.#service.solanaKitRpc
@@ -348,7 +349,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       }))
     )
 
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionDefault<N>[] = []
 
     const promises = response.data.map(async (response: any) => {
       const parsedTransaction = await this.#parseTransaction(

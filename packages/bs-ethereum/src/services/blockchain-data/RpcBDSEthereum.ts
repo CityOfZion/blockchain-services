@@ -7,7 +7,7 @@ import {
   type TContractResponse,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TTransaction,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
@@ -34,7 +34,7 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
     return this.#providerInstance
   }
 
-  async getTransaction(hash: string): Promise<TTransaction<N>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
     const transaction = await this.#provider.getTransaction(hash)
     if (!transaction || !transaction.to) throw new Error('Transaction not found')
 
@@ -85,12 +85,13 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
         },
       ],
       type: 'default',
+      view: 'default',
     }
   }
 
   async getTransactionsByAddress(
     _params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<N>> {
+  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     throw new Error('Method not supported.')
   }
 

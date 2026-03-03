@@ -25,6 +25,7 @@ const expectedResponse = {
       notificationCount: expect.any(Number),
       networkFeeAmount: expect.anything(),
       type: expect.any(String),
+      view: 'default',
       events: expect.arrayContaining([
         expect.objectContaining({
           eventType: expect.any(String),

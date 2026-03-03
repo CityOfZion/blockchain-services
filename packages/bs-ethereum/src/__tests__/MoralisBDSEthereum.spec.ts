@@ -27,6 +27,7 @@ describe('MoralisBDSEthereum', () => {
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
         type: expect.any(String),
+        view: 'default',
       })
     )
     transaction.events.forEach(transfer => {
@@ -60,6 +61,7 @@ describe('MoralisBDSEthereum', () => {
           notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
           type: expect.any(String),
+          view: 'default',
         })
       )
 

@@ -6,7 +6,7 @@ import {
   type TExportFullTransactionsByAddressParams,
   type TGetFullTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TTransaction,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import type { IBSNeo3, TBSNeo3NetworkId } from '../../types'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
@@ -36,7 +36,7 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: DoraFullTransactionsDataServiceNeo3.SUPPORTED_NETWORKS_IDS,
@@ -53,13 +53,13 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
     })
 
     const items = response.data ?? []
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionDefault<N>[] = []
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      let newItem: TTransaction<N> = {
+      let newItem: TTransactionDefault<N> = {
         txId,
         txIdUrl,
         block: item.block,
@@ -74,6 +74,7 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
           : undefined,
         events: [],
         type: 'default',
+        view: 'default',
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
