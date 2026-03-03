@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Fix interfaces, types and update ESLint version",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

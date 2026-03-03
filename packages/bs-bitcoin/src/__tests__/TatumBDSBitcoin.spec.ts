@@ -2,12 +2,13 @@ import { TatumBDSBitcoin } from '../services/blockchain-data/TatumBDSBitcoin'
 import { BSBitcoin } from '../BSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 import type { IBSBitcoin } from '../types'
-import type { IBlockchainDataService } from '@cityofzion/blockchain-service'
+import { BSError, IBlockchainDataService } from '@cityofzion/blockchain-service'
 
 const expectedTransactions = expect.arrayContaining([
   {
     txId: expect.any(String),
     txIdUrl: expect.any(String),
+    hex: expect.any(String),
     type: 'default',
     block: expect.any(Number),
     invocationCount: 0,
@@ -39,7 +40,12 @@ describe('TatumBDSBitcoin', () => {
   })
 
   it("Shouldn't be able to get the contract", async () => {
-    await expect(blockchainDataService.getContract('')).rejects.toThrow('Method not supported')
+    await expect(blockchainDataService.getContract('')).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('METHOD_NOT_SUPPORTED')
+
+      return true
+    })
   })
 
   // TODO: it needs the paid plan for Xverse API
@@ -73,11 +79,23 @@ describe('TatumBDSBitcoin', () => {
 
     expect(token).toEqual(BSBitcoinConstants.NATIVE_TOKEN)
 
-    await expect(blockchainDataService.getTokenInfo(ordiHash)).rejects.toThrow('Only mainnet is supported')
-    await expect(blockchainDataService.getTokenInfo(betHash)).rejects.toThrow('Only mainnet is supported')
+    await expect(blockchainDataService.getTokenInfo(ordiHash)).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INVALID_NETWORK')
+
+      return true
+    })
+
+    await expect(blockchainDataService.getTokenInfo(betHash)).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INVALID_NETWORK')
+
+      return true
+    })
   })
 
-  it('Should be able to get the balances from address', async () => {
+  // TODO: it needs the paid plan for Xverse API
+  it.skip('Should be able to get the balances from address', async () => {
     const balances = await blockchainDataService.getBalance(
       'bc1pqhvy9kz07w7jw76nu89apvdd6mnddqg4uwgskhcmzfse2j8sx3jqjkykmr'
     )
@@ -173,6 +191,7 @@ describe('TatumBDSBitcoin', () => {
     expect(transaction).toEqual({
       txId: '92b55200a8adf94da5a4eb3f78dcbbfd0ed83fdd75aa46505a151a1ceeb4b62d',
       txIdUrl: expect.any(String),
+      hex: expect.any(String),
       type: 'default',
       block: 933101,
       invocationCount: 0,
@@ -196,7 +215,8 @@ describe('TatumBDSBitcoin', () => {
     })
   })
 
-  it('Should be able to get the NFT transaction by hash', async () => {
+  // TODO: it needs the paid plan for Xverse API
+  it.skip('Should be able to get the NFT transaction by hash', async () => {
     const firstHash = '6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799'
     const firstNftTransaction = await blockchainDataService.getTransaction(firstHash)
 
@@ -209,6 +229,7 @@ describe('TatumBDSBitcoin', () => {
     expect(firstNftTransaction).toEqual({
       txId: firstHash,
       txIdUrl: expect.any(String),
+      hex: expect.any(String),
       type: 'default',
       block: 767430,
       invocationCount: 0,
@@ -240,6 +261,7 @@ describe('TatumBDSBitcoin', () => {
     expect(secondNftTransaction).toEqual({
       txId: secondHash,
       txIdUrl: expect.any(String),
+      hex: expect.any(String),
       type: 'default',
       block: 775608,
       invocationCount: 0,
@@ -271,6 +293,7 @@ describe('TatumBDSBitcoin', () => {
     expect(thirdNftTransaction).toEqual({
       txId: thirdHash,
       txIdUrl: expect.any(String),
+      hex: expect.any(String),
       type: 'default',
       block: 935255,
       invocationCount: 0,
@@ -332,6 +355,7 @@ describe('TatumBDSBitcoin', () => {
     expect(transaction).toEqual({
       txId: hash,
       txIdUrl: expect.any(String),
+      hex: expect.any(String),
       type: 'default',
       block: 4838842,
       invocationCount: 0,

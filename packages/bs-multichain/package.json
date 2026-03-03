@@ -30,7 +30,7 @@
     "@types/node": "~24.5.2",
     "@walletconnect/types": "~2.21.9",
     "dotenv": "~17.3.1",
-    "eslint": "~9.36.0",
+    "eslint": "~9.37.0",
     "typed-emitter": "~2.1.0",
     "typescript": "~5.9.2",
     "vitest": "~4.0.18"
