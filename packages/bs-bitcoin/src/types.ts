@@ -12,6 +12,8 @@ import type {
   TTransferParams,
   TBSAccount,
 } from '@cityofzion/blockchain-service'
+import { TatumBDSBitcoin } from './services/blockchain-data/TatumBDSBitcoin'
+import { LedgerServiceBitcoin } from './services/ledger/LedgerServiceBitcoin'
 import { AxiosInstance } from 'axios'
 import type { ECPairInterface } from 'ecpair'
 import type Transport from '@ledgerhq/hw-transport'
@@ -28,7 +30,10 @@ export interface IBSBitcoin<N extends string = string, A extends string = TBSBit
     IBSWithNft,
     IBSWithLedger<N>,
     IBSWithWalletConnect<N> {
+  blockchainDataService: TatumBDSBitcoin<N>
+  ledgerService: LedgerServiceBitcoin<N>
   bitcoinjsNetwork: bitcoinjs.Network
+
   isP2WPKHAddress(address: string): boolean
   isP2SHAddress(address: string): boolean
   isP2PKHAddress(address: string): boolean
@@ -197,6 +202,7 @@ export type TTatumTransactionResponse = {
   witnessHash: string
   block: string
   index: number
+  locktime: number
   inputs: [
     {
       prevout: {
@@ -205,7 +211,7 @@ export type TTatumTransactionResponse = {
       }
       sequence: number
       script: string
-      coin: {
+      coin?: {
         version: number
         height: number
         value: number
@@ -217,12 +223,11 @@ export type TTatumTransactionResponse = {
       }
     },
   ]
-  locktime: number
   outputs: [
     {
       value: number
       script: string
-      address: string
+      address?: string
       scriptPubKey: {
         type: string
         reqSigs: number | null

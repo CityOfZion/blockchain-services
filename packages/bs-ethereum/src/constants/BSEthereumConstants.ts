@@ -41,8 +41,8 @@ export class BSEthereumConstants {
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSEthereumNetworkId, string[]> = {
     '1': [
-      'https://eth.llamarpc.com',
       'https://ethereum-rpc.publicnode.com',
+      'https://eth.llamarpc.com',
       'https://rpc.mevblocker.io',
       'https://rpc.flashbots.net',
       'https://endpoints.omniatech.io/v1/eth/mainnet/public',

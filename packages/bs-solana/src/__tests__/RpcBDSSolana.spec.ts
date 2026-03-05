@@ -29,6 +29,7 @@ describe('RpcBDSSolana', () => {
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.any(String),
         type: expect.any(String),
+        view: 'default',
       })
     )
 
@@ -74,6 +75,7 @@ describe('RpcBDSSolana', () => {
           notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
           type: expect.any(String),
+          view: 'default',
         })
       )
 

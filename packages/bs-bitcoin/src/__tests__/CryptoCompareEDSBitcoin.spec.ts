@@ -1,4 +1,4 @@
-import { BSUtilsHelper, type IExchangeDataService, type TBSToken } from '@cityofzion/blockchain-service'
+import { BSUtilsHelper, type TBSToken } from '@cityofzion/blockchain-service'
 import { BSBitcoin } from '../BSBitcoin'
 import { CryptoCompareEDSBitcoin } from '../services/exchange-data/CryptoCompareEDSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
@@ -17,7 +17,7 @@ const satsToken: TBSToken = {
   decimals: 18,
 }
 
-let exchangeDataService: IExchangeDataService
+let exchangeDataService: CryptoCompareEDSBitcoin<'test'>
 
 describe('CryptoCompareEDSBitcoin', () => {
   beforeEach(() => {

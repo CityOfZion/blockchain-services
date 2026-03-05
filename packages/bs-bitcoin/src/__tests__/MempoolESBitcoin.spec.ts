@@ -1,4 +1,4 @@
-import type { IExplorerService, TBuildNftUrlParams } from '@cityofzion/blockchain-service'
+import type { TBuildNftUrlParams } from '@cityofzion/blockchain-service'
 import type { IBSBitcoin } from '../types'
 import { MempoolESBitcoin } from '../services/explorer/MempoolESBitcoin'
 import { BSBitcoin } from '../BSBitcoin'
@@ -9,7 +9,7 @@ const buildNftUrlParams: TBuildNftUrlParams = {
 }
 
 let service: IBSBitcoin<'test'>
-let explorerService: IExplorerService
+let explorerService: MempoolESBitcoin<'test'>
 
 describe('MempoolESBitcoin', () => {
   beforeEach(() => {

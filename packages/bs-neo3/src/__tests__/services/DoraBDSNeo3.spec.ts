@@ -1,7 +1,7 @@
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import { DoraBDSNeo3 } from '../../services/blockchain-data/DoraBDSNeo3'
 import { BSNeo3 } from '../../BSNeo3'
-import type { TTransaction, TTransactionBridgeNeo3NeoX } from '@cityofzion/blockchain-service'
+import type { TTransactionBridgeNeo3NeoXType, TTransactionDefault } from '@cityofzion/blockchain-service'
 
 const network = BSNeo3Constants.TESTNET_NETWORK
 
@@ -29,6 +29,7 @@ describe('DoraBDSNeo3', () => {
         networkFeeAmount: expect.anything(),
         systemFeeAmount: expect.anything(),
         type: expect.any(String),
+        view: 'default',
         events: expect.arrayContaining([
           expect.objectContaining({
             eventType: expect.any(String),
@@ -69,6 +70,7 @@ describe('DoraBDSNeo3', () => {
           networkFeeAmount: expect.anything(),
           systemFeeAmount: expect.anything(),
           type: expect.any(String),
+          view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({
               eventType: expect.any(String),
@@ -150,7 +152,7 @@ describe('DoraBDSNeo3', () => {
 
     const transaction = response.transactions.find(
       ({ txId }) => txId === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
-    ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
+    ) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')
@@ -167,7 +169,7 @@ describe('DoraBDSNeo3', () => {
 
     const transaction = response.transactions.find(
       ({ txId }) => txId === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
-    ) as TTransaction<'test'> & TTransactionBridgeNeo3NeoX<'test'>
+    ) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
 
     expect(transaction.type).toBe('bridgeNeo3NeoX')
     expect(transaction.data.amount).toBe('1')

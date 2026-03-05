@@ -4,7 +4,6 @@ import {
   BSKeychainHelper,
   BSUtilsHelper,
   BSBigNumber,
-  type IBlockchainDataService,
   type IExchangeDataService,
   type IExplorerService,
   type INftDataService,
@@ -68,7 +67,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
   bipDerivationPath!: string
   network!: TBSNetwork<TBSBitcoinNetworkId>
   networkUrls!: string[]
-  blockchainDataService!: IBlockchainDataService<N>
+  blockchainDataService!: TatumBDSBitcoin<N>
   walletConnectService!: IWalletConnectService<N>
   ledgerService: LedgerServiceBitcoin<N>
   tokenService: ITokenService = new TokenServiceBitcoin()
@@ -142,6 +141,10 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     intents,
     shouldValidate = true,
   }: TGetTransferDataParams<N>): Promise<TGetTransferDataResponse> {
+    if (intents.some(({ token }) => !this.tokenService.predicate(token, BSBitcoinConstants.NATIVE_TOKEN))) {
+      throw new BSError("BRC-20 tokens aren't supported yet", 'BRC20_NOT_SUPPORTED')
+    }
+
     const { address } = senderAccount
 
     const { data: utxosData } = await this.#tatumApis.v4.get<TTatumUtxosResponse>('/data/utxos', {
@@ -526,8 +529,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
 
     for (const utxo of utxos) {
       const { txHash, index, value } = utxo
-      const transactionData = await this.blockchainDataService.getTransaction(txHash)
-      const hex = transactionData.hex!
+      const { hex } = await this.blockchainDataService.getTransaction(txHash)
       const transaction = bitcoinjs.Transaction.fromHex(hex)
       const output = transaction.outs[index]
 

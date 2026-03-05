@@ -16,6 +16,7 @@ describe('HorizonBDSStellar', () => {
   it('Should be able to get a transaction', async () => {
     const hash = '150a8ef7a581538887e774b0472cf8dacc25da1c2546a78677e06893dcd162ef'
     const transaction = await horizonBDSStellar.getTransaction(hash)
+
     expect(transaction).toEqual(
       expect.objectContaining({
         txId: expect.any(String),
@@ -26,6 +27,7 @@ describe('HorizonBDSStellar', () => {
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
         type: expect.any(String),
+        view: 'default',
       })
     )
 
@@ -69,6 +71,7 @@ describe('HorizonBDSStellar', () => {
           notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
           type: expect.any(String),
+          view: 'default',
         })
       )
 

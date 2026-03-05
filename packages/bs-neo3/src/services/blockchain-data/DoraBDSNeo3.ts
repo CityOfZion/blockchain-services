@@ -4,10 +4,10 @@ import {
   type TBalanceResponse,
   type TBSToken,
   type TBridgeToken,
-  type TTransaction,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TContractResponse,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
@@ -76,7 +76,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
     return this.#apiInstance
   }
 
-  async getTransaction(hash: string): Promise<TTransaction<N>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
     if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
       return await super.getTransaction(hash)
     }
@@ -96,7 +96,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
     const events = await this._extractEventsFromNotifications(notifications)
 
-    let transaction: TTransaction<N> = {
+    let transaction: TTransactionDefault<N> = {
       block: response.block,
       date: new Date(Number(response.time) * 1000).toJSON(),
       txId: response.hash,
@@ -113,6 +113,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
       invocationCount: 0,
       notificationCount: 0,
       type: 'default',
+      view: 'default',
     }
 
     const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)
@@ -127,14 +128,14 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N>> {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
       return await super.getTransactionsByAddress({ address, nextPageParams })
     }
 
     const data = await this.#api.addressTXFull(address, nextPageParams, this._service.network.id)
 
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionDefault<N>[] = []
 
     const promises = data.items.map(async (item, index) => {
       const notifications = item.notifications?.map<TRpcBDSNeo3Notification>(({ contract, state, event_name }) => ({
@@ -147,7 +148,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
       const txIdUrl = this._service.explorerService.buildTransactionUrl(item.hash)
 
-      let transaction: TTransaction<N> = {
+      let transaction: TTransactionDefault<N> = {
         block: item.block,
         date: new Date(Number(item.time) * 1000).toJSON(),
         txId: item.hash,
@@ -164,6 +165,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
         invocationCount: 0,
         notificationCount: notifications?.length ?? 0,
         type: 'default',
+        view: 'default',
       }
 
       const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)

@@ -1,7 +1,7 @@
 import Transport from '@ledgerhq/hw-transport'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import type { IBSBitcoin, TTatumUtxo, TTatumUtxosResponse } from '../types'
-import { BSBigNumber, BSBigNumberHelper, BSKeychainHelper, type ILedgerService } from '@cityofzion/blockchain-service'
+import { BSBigNumber, BSBigNumberHelper, BSKeychainHelper } from '@cityofzion/blockchain-service'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 import { BSBitcoin } from '../BSBitcoin'
 import { LedgerServiceBitcoin } from '../services/ledger/LedgerServiceBitcoin'
@@ -11,7 +11,7 @@ import { BSBitcoinTatumHelper } from '../helpers/BSBitcoinTatumHelper'
 const blockchain = 'test'
 
 let service: IBSBitcoin<'test'>
-let ledgerService: ILedgerService<'test'>
+let ledgerService: LedgerServiceBitcoin<'test'>
 let transport: Transport
 let getLedgerTransport: () => Promise<Transport>
 
@@ -84,7 +84,6 @@ describe.skip('LedgerServiceBitcoin', () => {
   })
 
   it.skip('Should be able to sign message', async () => {
-    const ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
     const account = await ledgerService.getAccount(transport, 0)
     const response = await ledgerService.signMessage({ message: 'My message', account, transport })
 
@@ -163,8 +162,8 @@ describe.skip('LedgerServiceBitcoin', () => {
     const network = BSBitcoinConstants.TESTNET_NETWORK
 
     service = new BSBitcoin(blockchain, network, getLedgerTransport)
+    ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
 
-    const ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
     const account = await ledgerService.getAccount(transport, 0)
     const tatumApis = BSBitcoinTatumHelper.getApis(network)
     const psbt = new bitcoinjs.Psbt({ network: bitcoinjs.networks.testnet })
@@ -187,8 +186,7 @@ describe.skip('LedgerServiceBitcoin', () => {
 
     for (const utxo of utxos) {
       const { txHash, index, value } = utxo
-      const transactionData = await service.blockchainDataService.getTransaction(txHash)
-      const hex = transactionData.hex!
+      const { hex } = await service.blockchainDataService.getTransaction(txHash)
       const transaction = bitcoinjs.Transaction.fromHex(hex)
       const output = transaction.outs[index]
 
@@ -212,8 +210,8 @@ describe.skip('LedgerServiceBitcoin', () => {
     const network = BSBitcoinConstants.TESTNET_NETWORK
 
     service = new BSBitcoin(blockchain, network, getLedgerTransport)
+    ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
 
-    const ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
     const account = await ledgerService.getAccount(transport, 0)
     const response = await ledgerService.signMessage({ message: 'My message', account, transport })
 

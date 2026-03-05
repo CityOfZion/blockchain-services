@@ -1,28 +1,28 @@
 import axios from 'axios'
 import type {
-  TGetNftsByAddressParams,
+  IBlockchainService,
   INftDataService,
+  TGetNftParams,
+  TGetNftsByAddressParams,
+  THasTokenParams,
   TNftResponse,
   TNftsResponse,
-  TGetNftParams,
-  THasTokenParams,
-  IBlockchainService,
 } from '../../interfaces'
 import qs from 'query-string'
 import type { TGhostMarketNDSNeo3AssetApiResponse, TGhostMarketNDSNeo3GetAssetsApiResponse } from '../../types'
 import { hasExplorerService } from '../../functions'
 import { BSError } from '../../error'
 
-export abstract class GhostMarketNDS<N extends string, A extends string, T extends IBlockchainService<N, A>>
+export abstract class GhostMarketNDS<N extends string, A extends string, S extends IBlockchainService<N, A>>
   implements INftDataService
 {
   static readonly BASE_URL: string = 'https://api.ghostmarket.io/api/v2'
 
-  _service: T
+  _service: S
 
   #nftsCacheMap: Map<string, TNftResponse> = new Map()
 
-  constructor(service: T) {
+  constructor(service: S) {
     this._service = service
   }
 
@@ -67,7 +67,7 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
       collectionUrl = this._service.explorerService.buildContractUrl(contractHash)
     }
 
-    const nftResponse: TNftResponse = {
+    return {
       hash: data.tokenId,
       collection: {
         hash: contractHash,
@@ -85,8 +85,6 @@ export abstract class GhostMarketNDS<N extends string, A extends string, T exten
         name: data.creator.offchainName,
       },
     }
-
-    return nftResponse
   }
 
   #buildNftsCacheKey(collectionHash: string, tokenHash: string): string {

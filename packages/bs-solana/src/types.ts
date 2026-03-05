@@ -28,6 +28,7 @@ export interface IBSSolana<N extends string = string, A extends string = TBSSola
     IBSWithExplorer,
     IBSWithWalletConnect<N> {
   solanaKitRpc: Rpc<SolanaRpcApi>
+
   signTransaction(transaction: Transaction, senderAccount: TBSAccount<N>): Promise<Base64EncodedWireTransaction>
 }
 

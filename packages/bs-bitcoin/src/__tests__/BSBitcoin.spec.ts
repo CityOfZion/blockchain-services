@@ -461,6 +461,38 @@ describe('BSBitcoin', () => {
     })
   })
 
+  it("Shouldn't be able to calculate fee if the token is BRC-20", async () => {
+    const senderAccount = await service.generateAccountFromKey(mainnetKey)
+
+    const promise = service.calculateTransferFee({
+      senderAccount,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: mainnetAddress,
+          token: BSBitcoinConstants.NATIVE_TOKEN,
+        },
+        {
+          amount: '0.0001',
+          receiverAddress: mainnetAddress,
+          token: {
+            symbol: 'ORDI',
+            name: 'ORDI',
+            hash: 'b61b0172d95e266c18aea0c624db987e971a5d6d4ebc2aaed85da4642d635735i0',
+            decimals: 18,
+          },
+        },
+      ],
+    })
+
+    await expect(promise).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('BRC20_NOT_SUPPORTED')
+
+      return true
+    })
+  })
+
   it("Shouldn't be able to calculate fee if available UTXOs doesn't pay the transaction using Testnet", async () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
 

@@ -17,10 +17,6 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
-  "resolutions": {
-    "@cityofzion/neon-core": "~5.7.0",
-    "@cityofzion/neon-js": "~5.7.0"
-  },
   "overrides": {
     "@cityofzion/neon-core": "~5.7.0",
     "@cityofzion/neon-js": "~5.7.0"

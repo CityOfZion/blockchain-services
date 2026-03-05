@@ -8,9 +8,9 @@ import {
   type TBSNetwork,
   type TBSNetworkId,
   type TContractResponse,
-  type TTransaction,
   type TGetTransactionsByAddressResponse,
   type TGetTransactionsByAddressParams,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
@@ -142,13 +142,13 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     return token
   }
 
-  async getTransaction(hash: string): Promise<TTransaction<N>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransaction(hash)
     }
 
     const { data } = await this.#api.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
-    const events: TTransaction<N>['events'] = []
+    const events: TTransactionDefault<N>['events'] = []
 
     if (data.value && Number(data.value) > 0) {
       const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
@@ -247,12 +247,13 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       events,
       type: 'default',
+      view: 'default',
     }
   }
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<N>> {
+  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransactionsByAddress(params)
     }
@@ -264,11 +265,11 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       },
     })
 
-    const transactions: TTransaction<N>[] = []
+    const transactions: TTransactionDefault<N>[] = []
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
 
     const promises = data.result.map(async (item, index) => {
-      const events: TTransaction<N>['events'] = []
+      const events: TTransactionDefault<N>['events'] = []
 
       item.native_transfers.forEach(transfer => {
         const fromUrl = this._service.explorerService.buildAddressUrl(transfer.from_address)
@@ -360,15 +361,13 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         date: new Date(item.block_timestamp).toJSON(),
         events,
         type: 'default',
+        view: 'default',
       })
     })
 
     await Promise.allSettled(promises)
 
-    return {
-      nextPageParams: data.cursor,
-      transactions,
-    }
+    return { nextPageParams: data.cursor, transactions }
   }
 
   async getContract(hash: string): Promise<TContractResponse> {

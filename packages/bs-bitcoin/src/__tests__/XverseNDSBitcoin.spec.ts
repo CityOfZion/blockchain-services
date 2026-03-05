@@ -1,4 +1,4 @@
-import { BSError, INftDataService } from '@cityofzion/blockchain-service'
+import { BSError } from '@cityofzion/blockchain-service'
 import { BSBitcoin } from '../BSBitcoin'
 import { XverseNDSBitcoin } from '../services/nft-data/XverseNDSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
@@ -16,7 +16,7 @@ const expectedNfts = expect.arrayContaining([
   }),
 ])
 
-let nftDataService: INftDataService
+let nftDataService: XverseNDSBitcoin<'test'>
 
 describe('XverseNDSBitcoin', () => {
   beforeEach(() => {
