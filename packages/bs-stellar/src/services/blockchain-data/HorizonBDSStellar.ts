@@ -106,8 +106,6 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
       txId: transaction.hash,
       txIdUrl,
       date: new Date(transaction.created_at).toJSON(),
-      notificationCount: 0,
-      invocationCount: 0,
       type: 'default',
       view: 'default',
       events,

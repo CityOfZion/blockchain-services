@@ -23,28 +23,34 @@ export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> impl
     this.#baseUrl = baseUrl ?? BlockscoutESEthereum.DEFAULT_BASE_URL_BY_NETWORK_ID[this._service.network.id]
   }
 
-  buildTransactionUrl(hash: string): string | undefined {
-    if (!this.#baseUrl || !hash?.length) return undefined
-
-    return `${this.#baseUrl}/tx/${this._service.tokenService.normalizeHash(hash)}`
+  #validateValueLength(value?: string, minimumLength?: number): value is string {
+    return !!value?.length && value.length >= (minimumLength || 4)
   }
 
-  buildContractUrl(contractHash: string): string | undefined {
-    if (!this.#baseUrl || !contractHash?.length) return undefined
+  buildTransactionUrl(transactionId: string) {
+    if (!this.#validateValueLength(transactionId)) return undefined
 
-    return `${this.#baseUrl}/address/${this._service.tokenService.normalizeHash(contractHash)}`
+    return this.getTransactionTemplateUrl()?.replace('{txId}', this._service.tokenService.normalizeHash(transactionId))
   }
 
-  buildNftUrl({ tokenHash, collectionHash }: TBuildNftUrlParams): string | undefined {
-    if (!this.#baseUrl || !tokenHash?.length || !collectionHash?.length) return undefined
+  buildContractUrl(contractHash: string) {
+    if (!this.#validateValueLength(contractHash)) return undefined
 
-    return `${this.#baseUrl}/token/${this._service.tokenService.normalizeHash(collectionHash)}/instance/${tokenHash}`
+    return this.getContractTemplateUrl()?.replace('{hash}', this._service.tokenService.normalizeHash(contractHash))
   }
 
-  buildAddressUrl(address: string): string | undefined {
-    if (!this.#baseUrl || !address?.length) return undefined
+  buildNftUrl({ tokenHash, collectionHash }: TBuildNftUrlParams) {
+    if (!this.#validateValueLength(tokenHash, 1) || !this.#validateValueLength(collectionHash)) return undefined
 
-    return `${this.#baseUrl}/address/${address}`
+    return this.getNftTemplateUrl()
+      ?.replace('{tokenHash}', tokenHash)
+      ?.replace('{collectionHash}', this._service.tokenService.normalizeHash(collectionHash))
+  }
+
+  buildAddressUrl(address: string) {
+    if (!this.#validateValueLength(address)) return undefined
+
+    return this.getAddressTemplateUrl()?.replace('{address}', address)
   }
 
   getAddressTemplateUrl() {
@@ -53,7 +59,7 @@ export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> impl
     return `${this.#baseUrl}/address/{address}`
   }
 
-  getTxTemplateUrl() {
+  getTransactionTemplateUrl() {
     if (!this.#baseUrl) return undefined
 
     return `${this.#baseUrl}/tx/{txId}`

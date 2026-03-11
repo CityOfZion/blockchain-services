@@ -177,8 +177,6 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         }
       ),
       date: new Date(response.timestamp).toJSON(),
-      invocationCount: 0,
-      notificationCount: 0,
       type: 'default',
       view: 'default',
     }
@@ -294,8 +292,6 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         txId,
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
         date: new Date(item.timestamp).toJSON(),
-        invocationCount: 0,
-        notificationCount: 0,
         networkFeeAmount: BSBigNumberHelper.format(
           BSBigNumberHelper.fromDecimals(item.fee.value, this._service.feeToken.decimals),
           {

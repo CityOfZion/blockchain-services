@@ -13,6 +13,8 @@ import {
   type TPingNetworkResponse,
   type TTransferParams,
   type IFullTransactionsDataService,
+  type TTransactionDefault,
+  BSError,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
 import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
@@ -55,7 +57,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
   constructor(name: N, network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new NeonJsLedgerServiceNeoLegacy(this, getLedgerTransport)
-    this.bipDerivationPath = BSNeoLegacyConstants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSNeoLegacyConstants.DEFAULT_BIP_DERIVATION_PATH
 
     this.nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
     this.feeToken = BSNeoLegacyConstants.GAS_ASSET
@@ -106,7 +108,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     return config
   }
 
-  async #sendClaim(config: any) {
+  async #sendClaim(config: any): Promise<string> {
     const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     const sharedConfig = await api.fillClaims(config)
     let signedConfig = await this.#signClaim({ ...sharedConfig })
@@ -163,7 +165,9 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide a getLedgerTransport function to use Ledger')
 
-      if (typeof account.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+      if (!account.bipPath) {
+        throw new Error('Account must have BIP path to use Ledger')
+      }
 
       const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
 
@@ -294,19 +298,15 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     return wallet.encrypt(key, password)
   }
 
-  async transfer({ intents, senderAccount }: TTransferParams<N>): Promise<string[]> {
+  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
     const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
-
     const { api, sc, u, wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
     const apiProvider = new api.neoCli.instance(this.network.url)
-
     const nativeIntents: ReturnType<typeof api.makeIntent> = []
     const nep5ScriptBuilder = new sc.ScriptBuilder()
 
     for (const intent of intents) {
       const normalizeTokenHash = this.tokenService.normalizeHash(intent.token.hash)
-
       const nativeAsset = this.nativeTokens.find(token => this.tokenService.predicateByHash(normalizeTokenHash, token))
 
       if (nativeAsset) {
@@ -326,7 +326,7 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
       ])
     }
 
-    const hash = await this.sendTransfer(
+    const txId = await this.sendTransfer(
       {
         account: neonJsAccount,
         api: apiProvider,
@@ -337,21 +337,77 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
       nep5ScriptBuilder
     )
 
-    return intents.map(() => hash)
+    const { address } = senderAccount
+    const addressUrl = this.explorerService.buildAddressUrl(address)
+
+    return [
+      {
+        txId,
+        txIdUrl: this.explorerService.buildTransactionUrl(txId),
+        date: new Date().toJSON(),
+        type: 'default',
+        view: 'default',
+        events: intents.map(({ amount, receiverAddress, token }) => {
+          const tokenHash = token.hash
+
+          return {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: tokenHash,
+            contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
+            from: address,
+            fromUrl: addressUrl,
+            to: receiverAddress,
+            toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+            token,
+            tokenType: 'nep-5',
+          }
+        }),
+      },
+    ]
   }
 
-  async claim(account: TBSAccount<N>): Promise<string> {
+  async calculateClaimFee(_account: TBSAccount<N>): Promise<string> {
+    throw new BSError('Method not supported', 'METHOD_NOT_SUPPORTED')
+  }
+
+  async claim(account: TBSAccount<N>): Promise<TTransactionDefault<N>> {
     const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account)
-
     const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
     const apiProvider = new api.neoCli.instance(this.legacyNetwork)
 
-    return await this.#sendClaim({
+    const txId = await this.#sendClaim({
       api: apiProvider,
       account: neonJsAccount,
       url: this.network.url,
       signingFunction: signingCallback,
     })
+
+    const { address } = account
+    const addressUrl = this.explorerService.buildAddressUrl(address)
+    const token = this.claimToken
+    const tokenHash = token.hash
+
+    return {
+      txId,
+      txIdUrl: this.explorerService.buildTransactionUrl(txId),
+      date: new Date().toJSON(),
+      type: 'claim',
+      view: 'default',
+      events: [
+        {
+          eventType: 'token',
+          amount: '0',
+          methodName: 'transfer',
+          contractHash: tokenHash,
+          contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
+          to: address,
+          toUrl: addressUrl,
+          token,
+          tokenType: 'nep-5',
+        },
+      ],
+    }
   }
 }

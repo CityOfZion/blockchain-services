@@ -14,35 +14,39 @@ export class SolScanESSolana<N extends string> implements IExplorerService {
     this.#service = service
   }
 
-  buildTransactionUrl(hash: string) {
-    if (!hash?.length) return undefined
+  #validateValueLength(value?: string): value is string {
+    return !!value?.length && value.length >= 4
+  }
 
-    return `${this.#baseUrl}/tx/${this.#service.tokenService.normalizeHash(hash)}${this.#queryParams}`
+  buildTransactionUrl(transactionId: string) {
+    if (!this.#validateValueLength(transactionId)) return undefined
+
+    return this.getTransactionTemplateUrl().replace('{txId}', this.#service.tokenService.normalizeHash(transactionId))
   }
 
   buildContractUrl(contractHash: string) {
-    if (!contractHash?.length) return undefined
+    if (!this.#validateValueLength(contractHash)) return undefined
 
-    return `${this.#baseUrl}/token/${this.#service.tokenService.normalizeHash(contractHash)}${this.#queryParams}`
+    return this.getContractTemplateUrl().replace('{hash}', this.#service.tokenService.normalizeHash(contractHash))
   }
 
   buildNftUrl({ tokenHash }: TBuildNftUrlParams) {
-    if (!tokenHash?.length) return undefined
+    if (!this.#validateValueLength(tokenHash)) return undefined
 
-    return this.buildContractUrl(tokenHash)
+    return this.getNftTemplateUrl().replace('{tokenHash}', this.#service.tokenService.normalizeHash(tokenHash))
   }
 
   buildAddressUrl(address: string) {
-    if (!address?.length) return undefined
+    if (!this.#validateValueLength(address)) return undefined
 
-    return `${this.#baseUrl}/account/${address}${this.#queryParams}`
+    return this.getAddressTemplateUrl()?.replace('{address}', address)
   }
 
   getAddressTemplateUrl(): string | undefined {
     return `${this.#baseUrl}/account/{address}${this.#queryParams}`
   }
 
-  getTxTemplateUrl(): string {
+  getTransactionTemplateUrl(): string {
     return `${this.#baseUrl}/tx/{txId}${this.#queryParams}`
   }
 

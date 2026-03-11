@@ -51,14 +51,14 @@ export class SimpleSwapApi<N extends string> {
     return explorer
   }
 
-  #createTxTemplateUrl(
+  #createTransactionTemplateUrl(
     blockchainService: IBlockchainService<N> | undefined,
     explorer: string | null | undefined
   ): string | undefined {
     explorer = !explorer ? undefined : explorer.replace('{}', '{txId}')
 
     if (blockchainService && hasExplorerService(blockchainService))
-      return blockchainService.explorerService.getTxTemplateUrl() ?? explorer
+      return blockchainService.explorerService.getTransactionTemplateUrl() ?? explorer
 
     return explorer
   }
@@ -128,7 +128,7 @@ export class SimpleSwapApi<N extends string> {
       validationExtra: currency.validationExtra,
       validationAddress: currency.validationAddress,
       addressTemplateUrl: this.#createAddressTemplateUrl(blockchainService, currency.addressExplorer),
-      txTemplateUrl: this.#createTxTemplateUrl(blockchainService, currency.txExplorer),
+      txTemplateUrl: this.#createTransactionTemplateUrl(blockchainService, currency.txExplorer),
       blockchain,
     }
   }

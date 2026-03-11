@@ -1,8 +1,8 @@
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import { DoraESNeo3 } from '../../services/explorer/DoraESNeo3'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
+import { DoraESNeo3 } from '../services/explorer/DoraESNeo3'
 import { BSCommonConstants, TBSNetwork } from '@cityofzion/blockchain-service'
-import type { IBSNeo3 } from '../../types'
-import { BSNeo3 } from '../../BSNeo3'
+import type { IBSNeo3 } from '../types'
+import { BSNeo3 } from '../BSNeo3'
 
 let doraESNeo3: DoraESNeo3<'test'>
 let service: IBSNeo3<'test'>
@@ -39,11 +39,11 @@ describe('DoraESNeo3', () => {
     expect(templateUrl).toBe(undefined)
   })
 
-  it('Should return undefined when call the getTxTemplateUrl method using an invalid network', () => {
+  it('Should return undefined when call the getTransactionTemplateUrl method using an invalid network', () => {
     service = new BSNeo3('test', INVALID_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
-    const templateUrl = doraESNeo3.getTxTemplateUrl()
+    const templateUrl = doraESNeo3.getTransactionTemplateUrl()
 
     expect(templateUrl).toBe(undefined)
   })
@@ -54,8 +54,8 @@ describe('DoraESNeo3', () => {
     expect(templateUrl).toBe(`${BSCommonConstants.DORA_URL}/address/neo3/mainnet/{address}`)
   })
 
-  it('Should return a transaction template URL (Mainnet) when call the getTxTemplateUrl method with a Mainnet network', () => {
-    const templateUrl = doraESNeo3.getTxTemplateUrl()
+  it('Should return a transaction template URL (Mainnet) when call the getTransactionTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = doraESNeo3.getTransactionTemplateUrl()
 
     expect(templateUrl).toBe(`${BSCommonConstants.DORA_URL}/transaction/neo3/mainnet/{txId}`)
   })
@@ -69,11 +69,11 @@ describe('DoraESNeo3', () => {
     expect(templateUrl).toBe(`${BSCommonConstants.DORA_URL}/address/neo3/testnet/{address}`)
   })
 
-  it('Should return a transaction template URL (Testnet) when call the getTxTemplateUrl method with a Testnet network', () => {
+  it('Should return a transaction template URL (Testnet) when call the getTransactionTemplateUrl method with a Testnet network', () => {
     service = new BSNeo3('test', BSNeo3Constants.TESTNET_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
-    const templateUrl = doraESNeo3.getTxTemplateUrl()
+    const templateUrl = doraESNeo3.getTransactionTemplateUrl()
 
     expect(templateUrl).toBe(`${BSCommonConstants.DORA_URL}/transaction/neo3/testnet/{txId}`)
   })

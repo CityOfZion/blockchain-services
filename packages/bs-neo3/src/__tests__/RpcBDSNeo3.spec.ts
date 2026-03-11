@@ -1,6 +1,6 @@
-import { BSNeo3 } from '../../BSNeo3'
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import { RpcBDSNeo3 } from '../../services/blockchain-data/RpcBDSNeo3'
+import { BSNeo3 } from '../BSNeo3'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
+import { RpcBDSNeo3 } from '../services/blockchain-data/RpcBDSNeo3'
 
 const network = BSNeo3Constants.TESTNET_NETWORK
 

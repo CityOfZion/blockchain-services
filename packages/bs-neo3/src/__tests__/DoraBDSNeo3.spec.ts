@@ -1,6 +1,6 @@
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import { DoraBDSNeo3 } from '../../services/blockchain-data/DoraBDSNeo3'
-import { BSNeo3 } from '../../BSNeo3'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
+import { DoraBDSNeo3 } from '../services/blockchain-data/DoraBDSNeo3'
+import { BSNeo3 } from '../BSNeo3'
 import type { TTransactionBridgeNeo3NeoXType, TTransactionDefault } from '@cityofzion/blockchain-service'
 
 const network = BSNeo3Constants.TESTNET_NETWORK

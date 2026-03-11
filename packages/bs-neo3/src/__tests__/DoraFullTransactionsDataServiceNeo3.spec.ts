@@ -6,9 +6,9 @@ import {
   type TTransactionNftEvent,
 } from '@cityofzion/blockchain-service'
 import { isLeapYear } from 'date-fns'
-import { BSNeo3 } from '../../BSNeo3'
-import { DoraFullTransactionsDataServiceNeo3 } from '../../services/full-transactions-data/DoraFullTransactionsDataServiceNeo3'
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
+import { BSNeo3 } from '../BSNeo3'
+import { DoraFullTransactionsDataServiceNeo3 } from '../services/full-transactions-data/DoraFullTransactionsDataServiceNeo3'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
 
 const invalidNetwork: TBSNetwork = {
   id: 'other-network',
@@ -26,7 +26,7 @@ let params: TGetFullTransactionsByAddressParams
 let service: BSNeo3<'test'>
 let doraFullTransactionsDataServiceNeo3: DoraFullTransactionsDataServiceNeo3<'test'>
 
-vi.mock('../../services/nft-data/GhostMarketNDSNeo3', () => {
+vi.mock('../services/nft-data/GhostMarketNDSNeo3', () => {
   const GhostMarketNDSNeo3 = vi.fn()
 
   GhostMarketNDSNeo3.prototype.getNft = vi.fn().mockResolvedValue({

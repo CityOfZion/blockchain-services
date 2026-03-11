@@ -10,44 +10,49 @@ export class StellarChainESStellar<N extends string> implements IExplorerService
   }
 
   constructor(service: IBSStellar<N>) {
-    this.#baseUrl = `${this.stellarChainUrlByNetworkType[service.network.id]}`
+    this.#baseUrl = this.stellarChainUrlByNetworkType[service.network.id]
   }
 
-  buildTransactionUrl(hash: string): string | undefined {
-    if (!hash?.length) return undefined
-
-    return `${this.#baseUrl}/transactions/${hash}`
+  #validateValueLength(value?: string): value is string {
+    return !!value?.length && value.length >= 4
   }
 
-  buildContractUrl(contractHash: string): string | undefined {
-    if (!contractHash?.length) return undefined
+  buildTransactionUrl(transactionId: string) {
+    if (!this.#validateValueLength(transactionId)) return undefined
 
-    return `${this.#baseUrl}/contracts/${contractHash}`
+    return this.getTransactionTemplateUrl()?.replace('{txId}', transactionId)
   }
 
-  buildNftUrl(_params: TBuildNftUrlParams): string | undefined {
-    return undefined
+  buildContractUrl(contractHash: string) {
+    if (!this.#validateValueLength(contractHash)) return undefined
+
+    return this.getContractTemplateUrl()?.replace('{hash}', contractHash)
   }
 
-  buildAddressUrl(address: string): string | undefined {
-    if (!address?.length) return undefined
-
-    return `${this.#baseUrl}/accounts/${address}`
+  buildNftUrl(_params: TBuildNftUrlParams) {
+    return this.getNftTemplateUrl()
   }
 
-  getAddressTemplateUrl(): string | undefined {
-    return `${this.#baseUrl}/accounts/{address}`
+  buildAddressUrl(address: string) {
+    if (!this.#validateValueLength(address)) return undefined
+
+    return this.getAddressTemplateUrl()?.replace('{address}', address)
   }
 
-  getTxTemplateUrl(): string | undefined {
+  getAddressTemplateUrl() {
+    return `${this.#baseUrl}/address/{address}`
+  }
+
+  getTransactionTemplateUrl() {
     return `${this.#baseUrl}/transactions/{txId}`
   }
 
-  getNftTemplateUrl(): string | undefined {
+  getNftTemplateUrl() {
     return undefined
   }
 
-  getContractTemplateUrl(): string | undefined {
-    return `${this.#baseUrl}/contracts/{hash}`
+  // Contract is an address on Stellar
+  getContractTemplateUrl() {
+    return `${this.#baseUrl}/address/{hash}`
   }
 }

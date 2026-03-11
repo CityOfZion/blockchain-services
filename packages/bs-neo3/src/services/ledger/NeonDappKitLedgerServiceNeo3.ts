@@ -50,7 +50,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
-    const bip44PathHex = this.#bip44PathToHex(bipPath)
+    const bipPathHex = this.#bipPathToHex(bipPath)
 
     const isNeoN3App = await this.verifyAppName(transport)
     if (!isNeoN3App) throw new Error('App is not NEO N3')
@@ -60,7 +60,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
       ENeonDappKitLedgerServiceNeo3Command.GET_PUBLIC_KEY,
       0x00,
       ENeonDappKitLedgerServiceNeo3SecondParameter.LAST_DATA,
-      bip44PathHex
+      bipPathHex
     )
 
     const publicKey = result.toString('hex').substring(0, 130)
@@ -102,7 +102,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
         this.emitter.emit('getSignatureStart')
 
         if (!account.bipPath) {
-          throw new Error('TBSAccount must have a bip 44 path to sign with Ledger')
+          throw new Error('Account must have BIP path to sign with Ledger')
         }
 
         const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
@@ -117,15 +117,15 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
           throw new Error('Invalid witness script hash')
         }
 
-        const bip44PathHex = this.#bip44PathToHex(account.bipPath)
+        const bipPathHex = this.#bipPathToHex(account.bipPath)
 
-        // Send the BIP44 account as first chunk
+        // Send the BIP path account as first chunk
         await this.#sendChunk(
           transport,
           ENeonDappKitLedgerServiceNeo3Command.SIGN,
           0,
           ENeonDappKitLedgerServiceNeo3SecondParameter.MORE_DATA,
-          bip44PathHex
+          bipPathHex
         )
 
         const { NeonParser } = BSNeo3NeonDappKitSingletonHelper.getInstance()
@@ -192,7 +192,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
     ])
   }
 
-  #bip44PathToHex(path: string): string {
+  #bipPathToHex(path: string): string {
     let result = ''
     const components = path.split('/')
 

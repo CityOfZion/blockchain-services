@@ -24,7 +24,13 @@ export function hasNameService<N extends string = string, A extends string = str
 export function isClaimable<N extends string = string, A extends string = string>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithClaim<N> {
-  return 'claim' in service && 'claimToken' in service && 'claimDataService' in service
+  return (
+    'claimToken' in service &&
+    'burnToken' in service &&
+    'claimDataService' in service &&
+    'calculateClaimFee' in service &&
+    'claim' in service
+  )
 }
 
 export function isCalculableFee<N extends string = string, A extends string = string>(

@@ -17,6 +17,8 @@ import {
   type TPingNetworkResponse,
   type TTransferParams,
   type IFullTransactionsDataService,
+  type TTransactionDefault,
+  BSError,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
@@ -69,7 +71,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   constructor(name: N, network?: TBSNetwork<TBSNeo3NetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new NeonDappKitLedgerServiceNeo3(this, getLedgerTransport)
-    this.bipDerivationPath = BSNeo3Constants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSNeo3Constants.DEFAULT_BIP_DERIVATION_PATH
 
     this.nativeTokens = BSNeo3Constants.NATIVE_ASSETS
     this.feeToken = BSNeo3Constants.GAS_TOKEN
@@ -93,15 +95,17 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     const invocations: ContractInvocation[] = []
 
     for (const intent of intents) {
+      const { token } = intent
+
       invocations.push({
         operation: 'transfer',
-        scriptHash: intent.token.hash,
+        scriptHash: token.hash,
         args: [
           { type: 'Hash160', value: account.address },
           { type: 'Hash160', value: intent.receiverAddress },
           {
             type: 'Integer',
-            value: BSBigNumberHelper.toDecimals(BSBigNumberHelper.fromNumber(intent.amount), intent.token.decimals),
+            value: BSBigNumberHelper.toDecimals(BSBigNumberHelper.fromNumber(intent.amount), token.decimals),
           },
           { type: 'Any', value: null },
         ],
@@ -109,6 +113,13 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     }
 
     return invocations
+  }
+
+  #buildClaimParams(senderAccount: TBSAccount<N>): TTransferParams<N> {
+    return {
+      senderAccount,
+      intents: [{ amount: '0', receiverAddress: senderAccount.address, token: this.burnToken }],
+    }
   }
 
   setNetwork(network: TBSNetwork<TBSNeo3NetworkId>) {
@@ -179,14 +190,16 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     signingCallback: api.SigningFunction
   }> {
     const { wallet, api } = BSNeo3NeonJsSingletonHelper.getInstance()
-
     const neonJsAccount = new wallet.Account(account.key)
 
     if (account.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
+      if (!this.ledgerService.getLedgerTransport) {
         throw new Error('You must provide a getLedgerTransport function to use Ledger')
+      }
 
-      if (typeof account.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+      if (!account.bipPath) {
+        throw new Error('Account must have BIP path to use Ledger')
+      }
 
       const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
 
@@ -222,9 +235,9 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
   }
 
   async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
-    const mnemonicStr = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
+    const mnemonicText = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
-    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonicStr, bipPath)
+    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonicText, bipPath)
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
     const { address, WIF } = new wallet.Account(key)
 
@@ -248,11 +261,18 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
 
   async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+    let type: TBSAccount<N>['type'] | undefined = undefined
 
-    const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
-    if (!type) throw new Error('Invalid key')
+    if (wallet.isWIF(key)) {
+      type = 'wif'
+    } else if (wallet.isPrivateKey(key)) {
+      type = 'privateKey'
+    }
+
+    if (!type) throw new BSError('Invalid key', 'INVALID_KEY')
 
     const { address } = new wallet.Account(key)
+
     return { address, key, type, blockchain: this.name }
   }
 
@@ -268,8 +288,8 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     return await wallet.encrypt(key, password)
   }
 
-  async calculateTransferFee(param: TTransferParams<N>): Promise<string> {
-    const { neonJsAccount } = await this.generateSigningCallback(param.senderAccount)
+  async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
+    const { neonJsAccount } = await this.generateSigningCallback(params.senderAccount)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
     const invoker = await NeonInvoker.init({
@@ -277,7 +297,7 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
       account: neonJsAccount,
     })
 
-    const invocations = await this.#buildTransferInvocation(param, neonJsAccount)
+    const invocations = await this.#buildTransferInvocation(params, neonJsAccount)
 
     const { total } = await invoker.calculateFee({
       invocations,
@@ -287,8 +307,9 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
     return total.toString()
   }
 
-  async transfer(param: TTransferParams<N>): Promise<string[]> {
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(param.senderAccount)
+  async transfer(params: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+    const { senderAccount } = params
+    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
     const invoker = await NeonInvoker.init({
@@ -297,26 +318,54 @@ export class BSNeo3<N extends string = string> implements IBSNeo3<N> {
       signingCallback: signingCallback,
     })
 
-    const invocations = await this.#buildTransferInvocation(param, neonJsAccount)
+    const invocations = await this.#buildTransferInvocation(params, neonJsAccount)
+    const cim = { invocations, signers: [] }
+    const fees = await invoker.calculateFee(cim)
+    const txId = await invoker.invokeFunction(cim)
+    const { address } = senderAccount
+    const addressUrl = this.explorerService.buildAddressUrl(address)
 
-    const transactionHash = await invoker.invokeFunction({
-      invocations,
-      signers: [],
-    })
+    return [
+      {
+        txId,
+        txIdUrl: this.explorerService.buildTransactionUrl(txId),
+        date: new Date().toJSON(),
+        invocationCount: invocations.length,
+        networkFeeAmount: BSBigNumberHelper.format(fees.networkFee, { decimals: this.feeToken.decimals }),
+        systemFeeAmount: BSBigNumberHelper.format(fees.systemFee, { decimals: this.feeToken.decimals }),
+        type: 'default',
+        view: 'default',
+        events: params.intents.map(({ receiverAddress, amount, token }) => {
+          const tokenHash = token.hash
 
-    return param.intents.map(() => transactionHash)
+          return {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: tokenHash,
+            contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
+            from: address,
+            fromUrl: addressUrl,
+            to: receiverAddress,
+            toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+            token,
+            tokenType: 'nep-17',
+          }
+        }),
+      },
+    ]
   }
 
-  async claim(account: TBSAccount<N>): Promise<string> {
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account)
+  async calculateClaimFee(senderAccount: TBSAccount<N>): Promise<string> {
+    return this.calculateTransferFee(this.#buildClaimParams(senderAccount))
+  }
 
-    const { api } = BSNeo3NeonJsSingletonHelper.getInstance()
+  async claim(senderAccount: TBSAccount<N>): Promise<TTransactionDefault<N>> {
+    const [transaction] = await this.transfer(this.#buildClaimParams(senderAccount))
 
-    const facade = await api.NetworkFacade.fromConfig({ node: this.network.url })
+    transaction.type = 'claim'
 
-    return await facade.claimGas(neonJsAccount, {
-      signingCallback: signingCallback,
-    })
+    return transaction
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {

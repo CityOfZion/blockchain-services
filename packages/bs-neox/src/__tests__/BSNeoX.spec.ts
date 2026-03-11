@@ -3,240 +3,632 @@ import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import type { TBSNetwork } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import type { TBSNeoXNetworkId } from '../types'
+import { BSNeoXHelper } from '../helpers/BSNeoXHelper'
 
-const defaultNetwork: TBSNetwork<TBSNeoXNetworkId> = {
+const antiMevTestnetUrls = BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.TESTNET_NETWORK.id]
+
+const testnetNetwork: TBSNetwork<TBSNeoXNetworkId> = {
   ...BSNeoXConstants.TESTNET_NETWORK,
   url: BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.TESTNET_NETWORK.id].find(
-    url => !BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.TESTNET_NETWORK.id].includes(url)
+    url => !antiMevTestnetUrls.includes(url)
   )!,
 }
 
-const antiMevNetwork: TBSNetwork<TBSNeoXNetworkId> = {
+const antiMevTestnetNetwork: TBSNetwork<TBSNeoXNetworkId> = {
   ...BSNeoXConstants.TESTNET_NETWORK,
-  url: BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[BSNeoXConstants.TESTNET_NETWORK.id][0],
+  url: antiMevTestnetUrls[0],
 }
 
-const neoToken = {
-  ...BSNeoXConstants.NEO_TOKEN,
-  hash: '0xab0a26b8d903f36acb4bf9663f8d2de0672433cd',
-}
+const neoToken = BSNeoXHelper.getNeoToken(testnetNetwork)
 
 describe('BSNeoX', () => {
   let bsNeoX: BSNeoX<'test'>
 
-  it('Should be able to transfer the native token (GAS) on TestNet', async () => {
-    bsNeoX = new BSNeoX('test', defaultNetwork)
+  it('Should be able to transfer the native token (GAS) on Testnet', async () => {
+    bsNeoX = new BSNeoX('test', testnetNetwork)
 
-    const account = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const firstAmount = '0.00000044'
+    const secondAmount = '0.0000008'
+    const token = BSNeoXConstants.NATIVE_ASSET
 
-    const transactionHashes = await bsNeoX.transfer({
-      senderAccount: account,
+    const transactions = await bsNeoX.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.00000044',
-          receiverAddress: account.address,
-          token: BSNeoXConstants.NATIVE_ASSET,
+          amount: firstAmount,
+          receiverAddress: address,
+          token,
         },
         {
-          amount: '0.0000008',
-          receiverAddress: account.address,
-          token: BSNeoXConstants.NATIVE_ASSET,
+          amount: secondAmount,
+          receiverAddress: address,
+          token,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(2)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: firstAmount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: secondAmount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 
-  it('Should be able to transfer the NEO token on TestNet', async () => {
-    bsNeoX = new BSNeoX('test', defaultNetwork)
+  it('Should be able to transfer the NEO token on Testnet', async () => {
+    bsNeoX = new BSNeoX('test', testnetNetwork)
 
-    const account = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const amount = '0.1'
 
-    const transactionHashes = await bsNeoX.transfer({
-      senderAccount: account,
+    const transactions = await bsNeoX.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.1',
-          receiverAddress: account.address,
+          amount,
+          receiverAddress: address,
           token: neoToken,
         },
         {
-          amount: '0.1',
-          receiverAddress: account.address,
+          amount,
+          receiverAddress: address,
           token: neoToken,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(2)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: neoToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: neoToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: neoToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: neoToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+    ])
   })
 
-  it.skip('Should be able to transfer the native token (GAS) on TestNet using Ledger', async () => {
+  it.skip('Should be able to transfer the native token (GAS) on Testnet using Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', defaultNetwork, async () => transport)
+    bsNeoX = new BSNeoX('test', testnetNetwork, async () => transport)
 
-    const account = await bsNeoX.ledgerService.getAccount(transport, 0)
+    const senderAccount = await bsNeoX.ledgerService.getAccount(transport, 0)
+    const { address } = senderAccount
+    const firstAmount = '0.00000005'
+    const secondAmount = '0.00000006'
+    const token = BSNeoXConstants.NATIVE_ASSET
 
-    const transactionHashes = await bsNeoX.transfer({
-      senderAccount: account,
+    const transactions = await bsNeoX.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.00000005',
-          receiverAddress: account.address,
-          token: BSNeoXConstants.NATIVE_ASSET,
+          amount: firstAmount,
+          receiverAddress: address,
+          token,
         },
         {
-          amount: '0.00000006',
-          receiverAddress: account.address,
-          token: BSNeoXConstants.NATIVE_ASSET,
+          amount: secondAmount,
+          receiverAddress: address,
+          token,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(2)
-
     await transport.close()
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: firstAmount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: secondAmount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   }, 120000)
 
-  it.skip('Should be able to transfer the NEO token on TestNet using Ledger', async () => {
+  it.skip('Should be able to transfer the NEO token on Testnet using Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', defaultNetwork, async () => transport)
+    bsNeoX = new BSNeoX('test', testnetNetwork, async () => transport)
 
-    const account = await bsNeoX.ledgerService.getAccount(transport, 0)
+    const senderAccount = await bsNeoX.ledgerService.getAccount(transport, 0)
+    const { address } = senderAccount
+    const amount = '0.1'
 
-    const transactionHashes = await bsNeoX.transfer({
-      senderAccount: account,
+    const transactions = await bsNeoX.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.1',
-          receiverAddress: account.address,
+          amount,
+          receiverAddress: address,
           token: neoToken,
         },
         {
-          amount: '0.1',
-          receiverAddress: account.address,
+          amount,
+          receiverAddress: address,
           token: neoToken,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(2)
-
     await transport.close()
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: neoToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: neoToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: neoToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: neoToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+    ])
   }, 120000)
 
-  it('Should be able to transfer the native token (GAS) on TestNet using Anti-MEV', async () => {
-    bsNeoX = new BSNeoX('test', antiMevNetwork)
+  it('Should be able to transfer the native token (GAS) on Testnet using Anti-MEV', async () => {
+    bsNeoX = new BSNeoX('test', antiMevTestnetNetwork)
 
-    const account = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const firstAmount = '0.00000044'
+    const secondAmount = '0.0000008'
+    const token = BSNeoXConstants.NATIVE_ASSET
 
-    const transactionHashes = await bsNeoX.transfer({
-      senderAccount: account,
+    const transactions = await bsNeoX.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.00000044',
-          receiverAddress: account.address,
-          token: BSNeoXConstants.NATIVE_ASSET,
+          amount: firstAmount,
+          receiverAddress: address,
+          token,
         },
         {
-          amount: '0.0000008',
-          receiverAddress: account.address,
-          token: BSNeoXConstants.NATIVE_ASSET,
+          amount: secondAmount,
+          receiverAddress: address,
+          token,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(2)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: firstAmount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: secondAmount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 
-  it('Should be able to transfer the NEO token on TestNet using Anti-MEV', async () => {
-    bsNeoX = new BSNeoX('test', antiMevNetwork)
+  it('Should be able to transfer the NEO token on Testnet using Anti-MEV', async () => {
+    bsNeoX = new BSNeoX('test', antiMevTestnetNetwork)
 
-    const account = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const amount = '0.1'
 
-    const transactionHashes = await bsNeoX.transfer({
-      senderAccount: account,
+    const transactions = await bsNeoX.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.1',
-          receiverAddress: account.address,
+          amount,
+          receiverAddress: address,
           token: neoToken,
         },
         {
-          amount: '0.1',
-          receiverAddress: account.address,
+          amount,
+          receiverAddress: address,
           token: neoToken,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(2)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: neoToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: neoToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: neoToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: neoToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+    ])
   })
 
-  it.skip('Should be able to transfer the native token (GAS) on TestNet using Anti-MEV and Ledger', async () => {
+  it.skip('Should be able to transfer the native token (GAS) on Testnet using Anti-MEV and Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', antiMevNetwork, async () => transport)
+    bsNeoX = new BSNeoX('test', antiMevTestnetNetwork, async () => transport)
 
-    const account = await bsNeoX.ledgerService.getAccount(transport, 0)
+    const senderAccount = await bsNeoX.ledgerService.getAccount(transport, 0)
+    const { address } = senderAccount
+    const firstAmount = '0.00000005'
+    const secondAmount = '0.00000006'
+    const token = BSNeoXConstants.NATIVE_ASSET
 
-    const transactionHashes = await bsNeoX.transfer({
-      senderAccount: account,
+    const transactions = await bsNeoX.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.00000005',
-          receiverAddress: account.address,
-          token: BSNeoXConstants.NATIVE_ASSET,
+          amount: firstAmount,
+          receiverAddress: address,
+          token,
         },
         {
-          amount: '0.00000006',
-          receiverAddress: account.address,
-          token: BSNeoXConstants.NATIVE_ASSET,
+          amount: secondAmount,
+          receiverAddress: address,
+          token,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(2)
-
     await transport.close()
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: firstAmount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: secondAmount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   }, 120000)
 
-  it.skip('Should be able to transfer the NEO token on TestNet using Anti-MEV and Ledger', async () => {
+  it.skip('Should be able to transfer the NEO token on Testnet using Anti-MEV and Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', antiMevNetwork, async () => transport)
+    bsNeoX = new BSNeoX('test', antiMevTestnetNetwork, async () => transport)
 
-    const account = await bsNeoX.ledgerService.getAccount(transport, 0)
+    const senderAccount = await bsNeoX.ledgerService.getAccount(transport, 0)
+    const { address } = senderAccount
+    const amount = '0.1'
 
-    const transactionHashes = await bsNeoX.transfer({
-      senderAccount: account,
+    const transactions = await bsNeoX.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.1',
-          receiverAddress: account.address,
+          amount,
+          receiverAddress: address,
           token: neoToken,
         },
         {
-          amount: '0.1',
-          receiverAddress: account.address,
+          amount,
+          receiverAddress: address,
           token: neoToken,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(2)
-
     await transport.close()
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: neoToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: neoToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: neoToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: neoToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+    ])
   }, 120000)
 })

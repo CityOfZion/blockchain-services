@@ -1,11 +1,13 @@
 import { BSEthereum, BSEthereumConstants, TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from './constants/BSNeoXConstants'
 import {
+  BSError,
   BSUtilsHelper,
   type INeo3NeoXBridgeService,
   type TBSNetwork,
   type TGetLedgerTransport,
   type THexString,
+  type TTransactionDefault,
   type TTransferParams,
 } from '@cityofzion/blockchain-service'
 import { BlockscoutBDSNeoX } from './services/blockchain-data/BlockscoutBDSNeoX'
@@ -14,7 +16,7 @@ import { FlamingoForthewinEDSNeoX } from './services/exchange-data/FlamingoForth
 import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
 import { GhostMarketNDSNeoX } from './services/nft-data/GhostMarketNDSNeoX'
 import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
-import type { IBSNeoX, TBSNeoXNetworkId, TSendTransactionParams } from './types'
+import type { IBSNeoX, TBSNeoXNetworkId, TSendTransactionParams, TSendTransactionResponse } from './types'
 import { ethers } from 'ethers'
 import axios from 'axios'
 import { CONSENSUS_ABI } from './assets/abis/consensus'
@@ -22,6 +24,7 @@ import { KEY_MANAGEMENT_ABI } from './assets/abis/key-management'
 import { getConsensusThreshold, getScaler, PublicKey } from 'neox-tpke'
 import { concat, keccak256, pad, parseTransaction, toBytes, toHex } from 'viem'
 import { BlockscoutFullTransactionsDataService } from './services/full-transactions-data/BlockscoutFullTransactionsDataService'
+import { BSNeoXHelper } from './helpers/BSNeoXHelper'
 
 export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetworkId> implements IBSNeoX<N> {
   neo3NeoXBridgeService!: INeo3NeoXBridgeService<N>
@@ -32,14 +35,13 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
   constructor(name: N, network?: TBSNetwork<TBSNeoXNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     super(name, undefined, undefined, getLedgerTransport)
 
-    this.tokens = [BSNeoXConstants.NATIVE_ASSET]
     this.nativeTokens = [BSNeoXConstants.NATIVE_ASSET]
     this.feeToken = BSNeoXConstants.NATIVE_ASSET
 
     this.availableNetworks = BSNeoXConstants.ALL_NETWORKS
     this.defaultNetwork = BSNeoXConstants.MAINNET_NETWORK
 
-    this.setNetwork(network ?? this.defaultNetwork)
+    this.setNetwork(network || this.defaultNetwork)
   }
 
   setNetwork(network: TBSNetwork<TBSNeoXNetworkId>) {
@@ -47,11 +49,13 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
-      throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+      throw new BSError(`Network with id ${network.id} is not available for ${this.name}`, 'INVALID_NETWORK')
     }
 
     this.network = network
     this.networkUrls = networkUrls
+
+    this.tokens = [BSNeoXConstants.NATIVE_ASSET, BSNeoXHelper.getNeoToken(this.network)]
 
     this.nftDataService = new GhostMarketNDSNeoX(this)
     this.explorerService = new BlockscoutESNeoX(this)
@@ -63,7 +67,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.fullTransactionsDataService = new BlockscoutFullTransactionsDataService(this)
   }
 
-  async sendTransaction({ signer, gasPrice, params }: TSendTransactionParams) {
+  async sendTransaction({ signer, gasPrice, params }: TSendTransactionParams): Promise<TSendTransactionResponse> {
     const chainId = parseInt(this.network.id)
 
     if (isNaN(chainId)) {
@@ -89,6 +93,8 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
       gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
     }
 
+    const fee = ethers.utils.formatEther(gasPrice.mul(gasLimit))
+
     const [firstTransactionResponse, firstTransactionError] = await BSUtilsHelper.tryCatch(() =>
       signer.sendTransaction({
         ...params,
@@ -103,7 +109,8 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
 
     if (!isAntiMevNetwork) {
       if (firstTransactionError) throw firstTransactionError
-      return firstTransactionResponse!.hash
+
+      return { transactionHash: firstTransactionResponse!.hash, fee }
     }
 
     if (!firstTransactionError?.error || firstTransactionError.error.message !== 'transaction cached') {
@@ -174,33 +181,64 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
       })
     )
 
-    const transactionHash: string = secondTransactionResponse?.hash || secondTransactionError?.returnedHash
+    const transactionHash: string | undefined = secondTransactionResponse?.hash || secondTransactionError?.returnedHash
 
     if (!transactionHash) throw secondTransactionError || new Error('Transaction error')
 
-    return transactionHash
+    return { transactionHash, fee }
   }
 
-  async transfer(params: TTransferParams<N>): Promise<string[]> {
-    const signer = await this.generateSigner(params.senderAccount)
-    const transactionHashes: string[] = []
+  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+    const signer = await this.generateSigner(senderAccount)
+    const { address } = senderAccount
+    const addressUrl = this.explorerService.buildAddressUrl(address)
+    const nativeTokenHash = BSNeoXConstants.NATIVE_ASSET.hash
+    const transactions: TTransactionDefault<N>[] = []
     let error: Error | undefined
 
-    for (const intent of params.intents) {
+    for (const intent of intents) {
       try {
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
-        const transactionHash = await this.sendTransaction({ signer, gasPrice, params: transactionParams })
+        const { transactionHash, fee } = await this.sendTransaction({ signer, gasPrice, params: transactionParams })
 
-        transactionHashes.push(transactionHash)
-      } catch (newError: any) {
-        console.error(newError)
+        if (transactionHash) {
+          const { receiverAddress, token } = intent
+          const tokenHash = token.hash
+          const isNativeToken = this.tokenService.predicateByHash(nativeTokenHash, tokenHash)
 
-        if (!error) error = newError
+          transactions.push({
+            txId: transactionHash,
+            txIdUrl: this.explorerService.buildTransactionUrl(transactionHash),
+            date: new Date().toJSON(),
+            networkFeeAmount: fee,
+            type: 'default',
+            view: 'default',
+            events: [
+              {
+                eventType: 'token',
+                amount: intent.amount,
+                methodName: 'transfer',
+                contractHash: tokenHash,
+                contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
+                from: address,
+                fromUrl: addressUrl,
+                to: receiverAddress,
+                toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+                token,
+                tokenType: isNativeToken ? 'native' : 'erc-20',
+              },
+            ],
+          })
+        }
+      } catch (currentError: any) {
+        if (!error) error = currentError
       }
     }
 
-    if (error && transactionHashes.every(hash => !hash)) throw error
+    if (!!error && transactions.length === 0) {
+      throw error
+    }
 
-    return transactionHashes
+    return transactions
   }
 }

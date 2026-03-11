@@ -5,7 +5,7 @@ import { ethers, Signer } from 'ethers'
 export type TBSNeoXNetworkId = TBSNetworkId<'47763' | '12227332'>
 
 export interface IBSNeoX<N extends string = string> extends IBSEthereum<N, TBSNeoXNetworkId>, IBSWithNeo3NeoXBridge<N> {
-  sendTransaction({ signer, gasPrice, params }: TSendTransactionParams): Promise<string>
+  sendTransaction(params: TSendTransactionParams): Promise<TSendTransactionResponse>
 }
 
 export type TBlockscoutBDSNeoXTransactionApiResponse = {
@@ -93,6 +93,11 @@ export type TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse = { txid: stri
 
 export type TSendTransactionParams = {
   signer: Signer
-  gasPrice: ethers.BigNumberish
+  gasPrice: ethers.BigNumber
   params: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
+}
+
+export type TSendTransactionResponse = {
+  transactionHash: string
+  fee: string
 }

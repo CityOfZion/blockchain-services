@@ -15,6 +15,7 @@ import {
   type TPingNetworkResponse,
   type TTransferParams,
   type IWalletConnectService,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 
 import { BSSolanaConstants } from './constants/BSSolanaConstants'
@@ -30,6 +31,7 @@ import * as solanaSystem from '@solana-program/system'
 import * as solanaToken from '@solana-program/token'
 import axios from 'axios'
 import { WalletConnectServiceSolana } from './services/wallet-connect/WalletConnectServiceSolana'
+import type { ReadonlyUint8Array } from '@solana/kit'
 
 const KEY_BYTES_LENGTH = 64
 
@@ -61,7 +63,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
 
   constructor(name: N, network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
-    this.bipDerivationPath = BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSSolanaConstants.DEFAULT_BIP_DERIVATION_PATH
     this.ledgerService = new Web3LedgerServiceSolana(this, getLedgerTransport)
 
     this.tokens = [BSSolanaConstants.NATIVE_TOKEN]
@@ -82,7 +84,9 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
 
-      if (typeof senderAccount.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+      if (!senderAccount.bipPath) {
+        throw new Error('Account must have BIP path to use Ledger')
+      }
 
       const transport = await this.ledgerService.getLedgerTransport(senderAccount)
       return await this.ledgerService.signTransaction(transport, transaction, senderAccount)
@@ -93,12 +97,12 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     return solanaKit.getBase64EncodedWireTransaction(signedTransaction)
   }
 
-  async #buildTransferParams(param: TTransferParams<N>) {
-    const signer = solanaKit.createNoopSigner(solanaKit.address(param.senderAccount.address))
+  async #buildTransferParams(params: TTransferParams<N>) {
+    const signer = solanaKit.createNoopSigner(solanaKit.address(params.senderAccount.address))
 
     const instructions: solanaKit.Instruction[] = []
 
-    for (const intent of param.intents) {
+    for (const intent of params.intents) {
       const amountBn = BSBigNumberHelper.fromNumber(intent.amount)
       const amount = Number(BSBigNumberHelper.toDecimals(amountBn, intent.token.decimals))
       const receiverAddress = solanaKit.address(intent.receiverAddress)
@@ -168,6 +172,22 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     return {
       transactionMessage,
     }
+  }
+
+  async #getFeeByMessageBytes(messageBytes: ReadonlyUint8Array): Promise<string> {
+    const messageBase64 = solanaKit.getBase64Decoder().decode(messageBytes)
+
+    const feeResponse = await this.solanaKitRpc
+      .getFeeForMessage(messageBase64 as any, { commitment: 'confirmed' })
+      .send()
+
+    if (!feeResponse.value) {
+      throw new BSError('Failed to calculate fee', 'NO_CALCULATE_FEE')
+    }
+
+    const feeBn = BSBigNumberHelper.fromDecimals(feeResponse.value.toString(), this.feeToken.decimals)
+
+    return BSBigNumberHelper.format(feeBn, { decimals: this.feeToken.decimals })
   }
 
   setNetwork(network: TBSNetwork<TBSSolanaNetworkId>): void {
@@ -271,34 +291,52 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     }
   }
 
-  async transfer(param: TTransferParams<N>): Promise<string[]> {
-    const { transactionMessage } = await this.#buildTransferParams(param)
-
+  async transfer(params: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+    const { transactionMessage } = await this.#buildTransferParams(params)
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
+    const fee = await this.#getFeeByMessageBytes(compiledTransaction.messageBytes)
+    const { intents, senderAccount } = params
+    const encodedSignedTransaction = await this.signTransaction(compiledTransaction, senderAccount)
+    const txId = await this.solanaKitRpc.sendTransaction(encodedSignedTransaction, { encoding: 'base64' }).send()
+    const { address } = senderAccount
+    const addressUrl = this.explorerService.buildAddressUrl(address)
+    const nativeTokenHash = BSSolanaConstants.NATIVE_TOKEN.hash
 
-    const encodedSignedTransaction = await this.signTransaction(compiledTransaction, param.senderAccount)
+    return [
+      {
+        txId,
+        txIdUrl: this.explorerService.buildTransactionUrl(txId),
+        date: new Date().toJSON(),
+        networkFeeAmount: fee,
+        type: 'default',
+        view: 'default',
+        events: intents.map(({ amount, receiverAddress, token }) => {
+          const tokenHash = token.hash
+          const isNativeToken = this.tokenService.predicateByHash(nativeTokenHash, tokenHash)
 
-    const signature = await this.solanaKitRpc.sendTransaction(encodedSignedTransaction, { encoding: 'base64' }).send()
-
-    return [signature]
+          return {
+            eventType: 'token',
+            amount,
+            methodName: isNativeToken ? 'transfer' : 'transferChecked',
+            contractHash: tokenHash,
+            contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
+            from: address,
+            fromUrl: addressUrl,
+            to: receiverAddress,
+            toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+            token,
+            tokenType: isNativeToken ? 'native' : 'spl',
+          }
+        }),
+      },
+    ]
   }
 
-  async calculateTransferFee(param: TTransferParams<N>): Promise<string> {
-    const { transactionMessage } = await this.#buildTransferParams(param)
+  async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
+    const { transactionMessage } = await this.#buildTransferParams(params)
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
 
-    const messageBase64 = solanaKit.getBase64Decoder().decode(compiledTransaction.messageBytes)
-
-    const feeResponse = await this.solanaKitRpc
-      .getFeeForMessage(messageBase64 as any, { commitment: 'confirmed' })
-      .send()
-
-    if (!feeResponse.value) {
-      throw new Error('Failed to calculate fee')
-    }
-
-    const feeBn = BSBigNumberHelper.fromDecimals(feeResponse.value.toString(), this.feeToken.decimals)
-    return BSBigNumberHelper.toNumber(feeBn).toString()
+    return await this.#getFeeByMessageBytes(compiledTransaction.messageBytes)
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {

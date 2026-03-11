@@ -56,8 +56,6 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
       txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       block: receipt.blockNumber,
       date: new Date(timestamp).toJSON(),
-      invocationCount: 0,
-      notificationCount: 0,
       networkFeeAmount: BSBigNumberHelper.format(
         BSBigNumberHelper.fromDecimals(fee.toString(), this._service.feeToken.decimals),
         {

@@ -15,6 +15,7 @@ import {
   type TPingNetworkResponse,
   type TTransferParams,
   type TTransferIntent,
+  type TTransactionUtxo,
 } from '@cityofzion/blockchain-service'
 import { TatumBDSBitcoin } from './services/blockchain-data/TatumBDSBitcoin'
 import { CryptoCompareEDSBitcoin } from './services/exchange-data/CryptoCompareEDSBitcoin'
@@ -269,7 +270,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     }
 
     if (!account.bipPath) {
-      throw new BSError('Your account must have BIP 84 path to use Ledger', 'BIP_PATH_NOT_FOUND')
+      throw new BSError('Account must have BIP path to use Ledger', 'BIP_PATH_NOT_FOUND')
     }
 
     return await this.ledgerService.getLedgerTransport(account)
@@ -324,7 +325,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     this.network = network
     this.networkUrls = networkUrls
     this.#tatumApis = BSBitcoinTatumHelper.getApis(this.network)
-    this.bipDerivationPath = BSBitcoinConstants.BIP84_DERIVATION_PATHS_BY_NETWORK_ID[this.network.id]
+    this.bipDerivationPath = BSBitcoinConstants.BIP_DERIVATION_PATHS_BY_NETWORK_ID[this.network.id]
     this.bitcoinjsNetwork = isMainnetNetwork ? bitcoinjs.networks.bitcoin : bitcoinjs.networks.testnet
     this.blockchainDataService = new TatumBDSBitcoin(this)
     this.walletConnectService = new WalletConnectServiceBitcoin(this)
@@ -480,8 +481,8 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
   async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
     const { fee } = await this.#getTransferData({ ...params, shouldValidate: false })
 
-    return BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(fee, BSBitcoinConstants.NATIVE_TOKEN.decimals), {
-      decimals: BSBitcoinConstants.NATIVE_TOKEN.decimals,
+    return BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(fee, this.feeToken.decimals), {
+      decimals: this.feeToken.decimals,
     })
   }
 
@@ -509,9 +510,9 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     return address
   }
 
-  async transfer(params: TTransferParams<N>): Promise<string[]> {
-    const { utxos, change } = await this.#getTransferData(params)
-    const { senderAccount } = params
+  async transfer(params: TTransferParams<N>): Promise<TTransactionUtxo<N>[]> {
+    const { utxos, fee, change } = await this.#getTransferData(params)
+    const { senderAccount, intents } = params
     const { address, isHardware } = senderAccount
     const psbt = new bitcoinjs.Psbt({ network: this.bitcoinjsNetwork })
     const isP2PKHAddress = this.isP2PKHAddress(address)
@@ -548,7 +549,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
       psbt.addInput(input)
     }
 
-    for (const intent of params.intents) {
+    for (const intent of intents) {
       psbt.addOutput({
         address: intent.receiverAddress,
         value: BigInt(
@@ -597,7 +598,34 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
         throw new BSError('Invalid transaction hash', 'INVALID_TRANSACTION_HASH')
       }
 
-      return [transactionHash]
+      const addressUrl = this.explorerService.buildAddressUrl(address)
+
+      return [
+        {
+          txId: transactionHash,
+          txIdUrl: this.explorerService.buildTransactionUrl(transactionHash),
+          hex: transactionHex,
+          date: new Date().toJSON(),
+          networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(fee, this.feeToken.decimals), {
+            decimals: this.feeToken.decimals,
+          }),
+          type: 'default',
+          view: 'utxo',
+          nfts: [],
+          inputs: utxos.map(utxo => ({
+            address,
+            addressUrl,
+            amount: utxo.valueAsString,
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          })),
+          outputs: intents.map(({ amount, receiverAddress, token }) => ({
+            address: receiverAddress,
+            addressUrl: this.explorerService.buildAddressUrl(receiverAddress),
+            amount,
+            token,
+          })),
+        },
+      ]
     } catch (error: any) {
       if (error instanceof BSError) {
         throw error

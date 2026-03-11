@@ -84,105 +84,203 @@ describe('BSNeoLegacy', () => {
   })
 
   it.skip('Should be able to transfer a native asset', async () => {
-    const account = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-    const balance = await service.blockchainDataService.getBalance(account.address)
-    const gasBalance = balance.find(b => b.token.symbol === 'GAS')!
-    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
+    const senderAccount = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const amount = '0.00000001'
+    const token = BSNeoLegacyConstants.GAS_ASSET
 
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: account.address,
-          token: gasBalance.token,
-        },
-      ],
+    const transactions = await service.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress: address, token }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: undefined,
+        date: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: undefined,
+            to: address,
+            toUrl: undefined,
+            token,
+            tokenType: 'nep-5',
+          },
+        ],
+      },
+    ])
   })
 
-  it.skip('Should be able to transfer a nep5 asset', async () => {
-    const account = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-    const balance = await service.blockchainDataService.getBalance(account.address)
-    const LXBalance = balance.find(item => item.token.symbol === 'LX')!
-    expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000001)
+  it.skip('Should be able to transfer a NEP-5 asset', async () => {
+    const senderAccount = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const amount = '0.00000001'
+    const balance = await service.blockchainDataService.getBalance(address)
+    const token = balance.find(({ token: { symbol } }) => symbol === 'LX')!.token
 
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: account.address,
-          token: LXBalance.token,
-        },
-      ],
+    const transactions = await service.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress: address, token }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: undefined,
+        date: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: undefined,
+            to: address,
+            toUrl: undefined,
+            token,
+            tokenType: 'nep-5',
+          },
+        ],
+      },
+    ])
   })
 
   it.skip('Should be able to transfer more than one intent', async () => {
     service.setNetwork(BSNeoLegacyConstants.MAINNET_NETWORK)
-    const account = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-    const balance = await service.blockchainDataService.getBalance(account.address)
 
-    const LXBalance = balance.find(item => item.token.symbol === 'LX')!
-    expect(Number(LXBalance?.amount)).toBeGreaterThan(0.00000002)
+    const senderAccount = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const balance = await service.blockchainDataService.getBalance(address)
+    const lxToken = balance.find(({ token: { symbol } }) => symbol === 'LX')!.token
+    const gasToken = BSNeoLegacyConstants.GAS_ASSET
+    const amount = '0.00000001'
+    const firstAddress = 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST'
+    const secondAddress = 'AJybR5Uhwvs7WqGaruQ38dkyZkaKG9tyDK'
 
-    const gasBalance = balance.find(item => item.token.symbol === service.feeToken.symbol)!
-    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
-
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
+    const transactions = await service.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.00000001',
-          receiverAddress: 'AQEQdmCcitFbE6oJU5Epa7dNxhTkCmTZST',
-          token: LXBalance.token,
+          amount,
+          receiverAddress: firstAddress,
+          token: lxToken,
         },
         {
-          amount: '0.00000001',
-          receiverAddress: 'AJybR5Uhwvs7WqGaruQ38dkyZkaKG9tyDK',
-          token: LXBalance.token,
+          amount,
+          receiverAddress: secondAddress,
+          token: lxToken,
         },
         {
-          amount: '0.00000001',
-          receiverAddress: account.address,
-          token: gasBalance.token,
+          amount,
+          receiverAddress: address,
+          token: gasToken,
         },
       ],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: lxToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: firstAddress,
+            toUrl: expect.any(String),
+            token: lxToken,
+            tokenType: 'nep-5',
+          },
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: lxToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: secondAddress,
+            toUrl: expect.any(String),
+            token: lxToken,
+            tokenType: 'nep-5',
+          },
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: gasToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: gasToken,
+            tokenType: 'nep-5',
+          },
+        ],
+      },
+    ])
   })
 
-  it.skip('Should be able to transfer with ledger', async () => {
+  it.skip('Should be able to transfer with Ledger', async () => {
     const transport = await TransportNodeHid.create()
-
     const service = new BSNeoLegacy('test', undefined, async () => transport)
+    const senderAccount = await service.ledgerService.getAccount(transport, 0)
+    const { address } = senderAccount
+    const amount = '0.00000001'
+    const token = BSNeoLegacyConstants.GAS_ASSET
 
-    const account = await service.ledgerService.getAccount(transport, 0)
-
-    const balance = await service.blockchainDataService.getBalance(account.address)
-
-    const gasBalance = balance.find(b => b.token.symbol === service.feeToken.symbol)
-
-    expect(Number(gasBalance?.amount)).toBeGreaterThan(0.00000001)
-
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: 'Ac9hjKxteW3BvDyrhTxizkUxEShT8B4DaU',
-          token: gasBalance!.token,
-        },
-      ],
+    const transactions = await service.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress: address, token }],
     })
-    transport.close()
 
-    expect(transactionHash).toEqual(expect.any(String))
+    await transport.close()
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'nep-5',
+          },
+        ],
+      },
+    ])
   })
 })

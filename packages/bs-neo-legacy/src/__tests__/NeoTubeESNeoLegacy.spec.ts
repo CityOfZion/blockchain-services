@@ -37,11 +37,11 @@ describe('NeoTubeESNeoLegacy', () => {
     expect(templateUrl).toBe(undefined)
   })
 
-  it('Should return undefined when call the getTxTemplateUrl method using a testnet network', () => {
+  it('Should return undefined when call the getTransactionTemplateUrl method using a testnet network', () => {
     service = new BSNeoLegacy('test', INVALID_NETWORK)
     neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(service)
 
-    const templateUrl = neoTubeESNeoLegacy.getTxTemplateUrl()
+    const templateUrl = neoTubeESNeoLegacy.getTransactionTemplateUrl()
 
     expect(templateUrl).toBe(undefined)
   })
@@ -52,8 +52,8 @@ describe('NeoTubeESNeoLegacy', () => {
     expect(templateUrl).toBe('https://neo2.neotube.io/address/{address}')
   })
 
-  it('Should return a transaction template URL (Mainnet) when call the getTxTemplateUrl method with a Mainnet network', () => {
-    const templateUrl = neoTubeESNeoLegacy.getTxTemplateUrl()
+  it('Should return a transaction template URL (Mainnet) when call the getTransactionTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = neoTubeESNeoLegacy.getTransactionTemplateUrl()
 
     expect(templateUrl).toBe('https://neo2.neotube.io/transaction/{txId}')
   })

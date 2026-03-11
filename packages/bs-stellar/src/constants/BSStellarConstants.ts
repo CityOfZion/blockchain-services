@@ -3,7 +3,7 @@ import type { TBSStellarNetworkId } from '../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
 
 export class BSStellarConstants {
-  static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/148'/?'"
+  static readonly DEFAULT_BIP_DERIVATION_PATH = "m/44'/148'/?'"
 
   static readonly SAC_TOKEN_DECIMALS = 7
 

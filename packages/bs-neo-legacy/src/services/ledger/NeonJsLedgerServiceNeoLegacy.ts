@@ -29,13 +29,13 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
 
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
-    const bip44PathHex = this.#bip44PathToHex(bipPath)
+    const bipPathHex = this.#bipPathToHex(bipPath)
 
     const result = await this.#sendChunk(
       transport,
       ENeonJsLedgerServiceNeoLegacyCommand.GET_PUBLIC_KEY,
       ENeonJsLedgerServiceNeoLegacyParameter.LAST_DATA,
-      bip44PathHex
+      bipPathHex
     )
 
     const publicKey = result.toString('hex').substring(0, 130)
@@ -79,7 +79,7 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
         this.emitter.emit('getSignatureStart')
 
         if (!account.bipPath) {
-          throw new Error('Account must have a bip 44 path to sign with Ledger')
+          throw new Error('Account must have BIP path to sign with Ledger')
         }
 
         const { wallet, tx } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
@@ -92,9 +92,8 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
           throw new Error('Public key does not match the account key')
         }
 
-        const bip44PathHex = this.#bip44PathToHex(account.bipPath)
-
-        const payload = transaction + bip44PathHex
+        const bipPathHex = this.#bipPathToHex(account.bipPath)
+        const payload = transaction + bipPathHex
 
         // Split the serialized transaction into chunks of 510 bytes
         const chunks = payload.match(/.{1,510}/g) || []
@@ -141,7 +140,7 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
     ])
   }
 
-  #bip44PathToHex(path: string): string {
+  #bipPathToHex(path: string): string {
     let result = ''
     const components = path.split('/')
 

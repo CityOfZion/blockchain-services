@@ -15,6 +15,7 @@ import {
   type TPingNetworkResponse,
   type IWalletConnectService,
   type IFullTransactionsDataService,
+  type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
@@ -64,7 +65,7 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   constructor(name: N, evm?: TSupportedEVM, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
-    this.bipDerivationPath = BSEthereumConstants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSEthereumConstants.DEFAULT_BIP_DERIVATION_PATH
 
     if (!evm) return
 
@@ -121,7 +122,9 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
       if (!this.ledgerService.getLedgerTransport)
         throw new Error('You must provide getLedgerTransport function to use Ledger')
 
-      if (typeof account.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+      if (!account.bipPath) {
+        throw new Error('Account must have BIP path to use Ledger')
+      }
 
       const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
       return this.ledgerService.getSigner(ledgerTransport, account.bipPath, provider)
@@ -253,17 +256,17 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
     return wallet.encrypt(password)
   }
 
-  async transfer(param: TTransferParams<N>): Promise<string[]> {
-    const signer = await this.generateSigner(param.senderAccount)
-    const sentTransactionHashes: string[] = []
+  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+    const signer = await this.generateSigner(senderAccount)
+    const { address } = senderAccount
+    const addressUrl = this.explorerService.buildAddressUrl(address)
+    const nativeTokenHash = BSEthereumHelper.getNativeAsset(this.network).hash
+    const transactions: TTransactionDefault<N>[] = []
     let error: Error | undefined
 
-    for (const intent of param.intents) {
-      let transactionHash = ''
-
+    for (const intent of intents) {
       try {
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
-
         let gasLimit: ethers.BigNumberish
 
         try {
@@ -272,6 +275,8 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
           gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
         }
 
+        const fee = ethers.utils.formatEther(gasPrice.mul(gasLimit))
+
         const transaction = await signer.sendTransaction({
           ...transactionParams,
           gasLimit,
@@ -279,26 +284,54 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
           maxFeePerGas: gasPrice,
         })
 
-        transactionHash = transaction.hash
-      } catch (err: any) {
-        if (!error) error = err
-      }
+        const txId = transaction.hash
 
-      sentTransactionHashes.push(transactionHash)
+        if (txId) {
+          const { receiverAddress, token } = intent
+          const tokenHash = token.hash
+          const isNativeToken = this.tokenService.predicateByHash(nativeTokenHash, tokenHash)
+
+          transactions.push({
+            txId,
+            txIdUrl: this.explorerService.buildTransactionUrl(txId),
+            date: new Date().toJSON(),
+            networkFeeAmount: fee,
+            type: 'default',
+            view: 'default',
+            events: [
+              {
+                eventType: 'token',
+                amount: intent.amount,
+                methodName: 'transfer',
+                contractHash: tokenHash,
+                contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
+                from: address,
+                fromUrl: addressUrl,
+                to: receiverAddress,
+                toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+                token,
+                tokenType: isNativeToken ? 'native' : 'erc-20',
+              },
+            ],
+          })
+        }
+      } catch (currentError: any) {
+        if (!error) error = currentError
+      }
     }
 
-    if (error && sentTransactionHashes.every(hash => !hash)) {
+    if (!!error && transactions.length === 0) {
       throw error
     }
 
-    return sentTransactionHashes
+    return transactions
   }
 
-  async calculateTransferFee(param: TTransferParams<N>): Promise<string> {
-    const signer = await this.generateSigner(param.senderAccount)
+  async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
+    const signer = await this.generateSigner(params.senderAccount)
     let fee = ethers.utils.parseEther('0')
 
-    for (const intent of param.intents) {
+    for (const intent of params.intents) {
       const { gasPrice, transactionParams } = await this._buildTransferParams(intent)
       const estimated = await signer.estimateGas(transactionParams)
       const intentFee = gasPrice.mul(estimated)

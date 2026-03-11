@@ -45,10 +45,10 @@ export class LedgerServiceStellar<N extends string = string> implements ILedgerS
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
     const ledgerApp = new LedgerStellarApp(transport)
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
-    const bip44PathWithoutMasterKey = BSKeychainHelper.removeMasterKeyFromBipPath(bipPath)
+    const bipPathWithoutMasterKey = BSKeychainHelper.removeMasterKeyFromBipPath(bipPath)
 
     const publicKeychain = await BSUtilsHelper.retry(async () => {
-      const { rawPublicKey } = await ledgerApp.getPublicKey(bip44PathWithoutMasterKey)
+      const { rawPublicKey } = await ledgerApp.getPublicKey(bipPathWithoutMasterKey)
       const publicKeyStr = stellarSDK.StrKey.encodeEd25519PublicKey(rawPublicKey)
       return stellarSDK.Keypair.fromPublicKey(publicKeyStr)
     })
@@ -66,8 +66,9 @@ export class LedgerServiceStellar<N extends string = string> implements ILedgerS
   }
 
   async signTransaction(transport: Transport, transaction: stellarSDK.Transaction, account: TBSAccount<N>) {
-    if (!account.bipPath)
-      throw new BSError('TBSAccount must have bip44Path to sign with Ledger', 'INVALID_HARDWARE_ACCOUNT')
+    if (!account.bipPath) {
+      throw new BSError('Account must have BIP path to sign with Ledger', 'INVALID_HARDWARE_ACCOUNT')
+    }
 
     const ledgerApp = new LedgerStellarApp(transport)
     const signatureBase = transaction.signatureBase()

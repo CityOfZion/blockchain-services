@@ -10,31 +10,28 @@ let wallet: ethers.Wallet
 let account: TBSAccount<'test'>
 let nativeToken: TBSToken
 
+// Faucet: https://faucet.circle.com/
 const usdcToken: TBSToken = {
-  name: 'USD Coin',
+  name: 'USDC',
   symbol: 'USDC',
   decimals: 6,
-  hash: '0x1291070C5f838DCCDddc56312893d3EfE9B372a8',
-}
-
-const ktkToken: TBSToken = {
-  name: 'KerryToken',
-  symbol: 'KTK',
-  decimals: 18,
-  hash: '0xcf185f2F3Fe19D82bFdcee59E3330FD7ba5f27ce',
+  hash: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
 }
 
 describe('BSEthereum', () => {
   beforeEach(async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
+
     bsEthereum = new BSEthereum('test', 'ethereum', network)
     wallet = ethers.Wallet.createRandom()
+
     account = {
       key: wallet.privateKey,
       type: 'privateKey',
       address: wallet.address,
       blockchain: 'test',
     }
+
     nativeToken = BSEthereumHelper.getNativeAsset(network)
   })
 
@@ -125,79 +122,160 @@ describe('BSEthereum', () => {
     expect(fee).toEqual(expect.any(String))
   })
 
-  it.skip('Should be able to transfer a native token', async () => {
-    const account = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+  it.skip('Should be able to transfer a native token using Testnet', async () => {
+    const senderAccount = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const amount = '0.00000001'
 
-    const [transactionHash] = await bsEthereum.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-          token: nativeToken,
-        },
-      ],
+    const transactions = await bsEthereum.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress: address, token: nativeToken }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: nativeToken.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: nativeToken,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 
-  it.skip('Should be able to transfer a ERC20 token', async () => {
-    const account = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+  it.skip('Should be able to transfer an ERC-20 token using Testnet', async () => {
+    const senderAccount = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const amount = '0.00001'
 
-    const [transactionHash] = await bsEthereum.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00001',
-          receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
-          token: usdcToken,
-        },
-      ],
+    const transactions = await bsEthereum.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress: address, token: usdcToken }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: usdcToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: usdcToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+    ])
   })
 
-  it.skip('Should be able to transfer a native token with ledger', async () => {
+  it.skip('Should be able to transfer a native token with Ledger using Testnet', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSEthereum('test', 'ethereum', bsEthereum.network, async () => transport)
-    const [account] = await service.ledgerService.getAccounts(transport)
+    const senderAccount = await service.ledgerService.getAccount(transport, 0)
+    const { address } = senderAccount
+    const amount = '0.00000001'
 
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          token: nativeToken,
-        },
-      ],
+    const transactions = await service.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress: address, token: nativeToken }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
     await transport.close()
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: nativeToken.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: nativeToken,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 
-  it.skip('Should be able to transfer a ERC20 token with ledger', async () => {
+  it.skip('Should be able to transfer an ERC-20 token with Ledger using Testnet', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSEthereum('test', 'ethereum', bsEthereum.network, async () => transport)
+    const senderAccount = await service.ledgerService.getAccount(transport, 0)
+    const { address } = senderAccount
+    const amount = '0.000001'
 
-    const [account] = await service.ledgerService.getAccounts(transport)
-
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          token: ktkToken,
-        },
-      ],
+    const transactions = await service.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress: address, token: usdcToken }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
     await transport.close()
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: usdcToken.hash,
+            contractHashUrl: expect.any(String),
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: usdcToken,
+            tokenType: 'erc-20',
+          },
+        ],
+      },
+    ])
   })
 
   it.skip('Should be able to resolve a name service domain', async () => {
@@ -205,23 +283,44 @@ describe('BSEthereum', () => {
     expect(address).toEqual('0xa974890156A3649A23a6C0f2ebd77D6F7A7333d4')
   })
 
-  it.skip('Should be able to transfer a native token using a EVM', async () => {
-    const network = BSEthereumConstants.NETWORKS_BY_EVM.polygon.find(network => network.type === 'testnet')!
+  it.skip('Should be able to transfer a native token using an EVM using Testnet', async () => {
+    const network = BSEthereumConstants.NETWORKS_BY_EVM.polygon.find(network => network.id === '80002')! // Amoy network
     const service = new BSEthereum('test', 'polygon', network)
-    const account = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const senderAccount = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const amount = '0.000001'
+    const token = service.nativeTokens[0]
 
-    const [transactionHash] = await service.transfer({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
-          token: service.nativeTokens[0],
-        },
-      ],
+    const transactions = await service.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress: address, token }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: undefined,
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: undefined,
+            to: address,
+            toUrl: undefined,
+            token,
+            tokenType: expect.any(String),
+          },
+        ],
+      },
+    ])
   })
 
   it.skip('Should be able to calculate transfer fee for more than one intent', async () => {
@@ -246,25 +345,74 @@ describe('BSEthereum', () => {
     expect(fee).toEqual(expect.any(String))
   })
 
-  it.skip('Should be able to transfer more than one intent', async () => {
-    const account = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+  it.skip('Should be able to transfer more than one intent using Testnet', async () => {
+    const senderAccount = await bsEthereum.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const amount = '0.00000001'
 
-    const transactionHashes = await bsEthereum.transfer({
-      senderAccount: account,
+    const transactions = await bsEthereum.transfer({
+      senderAccount,
       intents: [
         {
-          amount: '0.00000001',
-          receiverAddress: '0x82B5Cd984880C8A821429cFFf89f36D35BaeBE89',
+          amount,
+          receiverAddress: address,
           token: nativeToken,
         },
         {
-          amount: '0.00000001',
-          receiverAddress: '0xFACf5446B71dB33E920aB1769d9427146183aEcd',
+          amount,
+          receiverAddress: address,
           token: nativeToken,
         },
       ],
     })
 
-    expect(transactionHashes).toHaveLength(2)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: nativeToken.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: nativeToken,
+            tokenType: 'native',
+          },
+        ],
+      },
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: nativeToken.hash,
+            contractHashUrl: undefined,
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            token: nativeToken,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 })

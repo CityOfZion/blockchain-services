@@ -144,8 +144,6 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
             txIdUrl: expect.any(String),
             block: expect.any(Number),
             date: expect.any(String),
-            invocationCount: expect.any(Number),
-            notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
             type: expect.any(String),

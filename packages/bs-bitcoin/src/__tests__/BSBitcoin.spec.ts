@@ -575,25 +575,59 @@ describe('BSBitcoin', () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
+    const firstAmount = '0.005'
+    const secondAmount = '0.0002'
 
-    const transactionHashes = await service.transfer({
+    const transactions = await service.transfer({
       senderAccount,
       intents: [
         {
-          amount: '0.005',
+          amount: firstAmount,
           receiverAddress: testnetAddress,
           token: BSBitcoinConstants.NATIVE_TOKEN,
         },
         {
-          amount: '0.0002',
+          amount: secondAmount,
           receiverAddress: testnetAddress,
           token: BSBitcoinConstants.NATIVE_TOKEN,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(1)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        hex: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'utxo',
+        nfts: [],
+        inputs: expect.arrayContaining([
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount: expect.any(String),
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+        ]),
+        outputs: [
+          {
+            address: testnetAddress,
+            addressUrl: expect.any(String),
+            amount: firstAmount,
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+          {
+            address: testnetAddress,
+            addressUrl: expect.any(String),
+            amount: secondAmount,
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+        ],
+      },
+    ])
   })
 
   it.skip('Should be able to transfer with Ledger using Testnet', async () => {
@@ -602,17 +636,19 @@ describe('BSBitcoin', () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK, async () => transport)
 
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
+    const firstAmount = '0.005'
+    const secondAmount = '0.0002'
 
-    const transactionHashes = await service.transfer({
+    const transactions = await service.transfer({
       senderAccount,
       intents: [
         {
-          amount: '0.005',
+          amount: firstAmount,
           receiverAddress: senderAccount.address,
           token: BSBitcoinConstants.NATIVE_TOKEN,
         },
         {
-          amount: '0.0002',
+          amount: secondAmount,
           receiverAddress: senderAccount.address,
           token: BSBitcoinConstants.NATIVE_TOKEN,
         },
@@ -621,8 +657,40 @@ describe('BSBitcoin', () => {
 
     await transport.close()
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(1)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        hex: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'utxo',
+        nfts: [],
+        inputs: expect.arrayContaining([
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount: expect.any(String),
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+        ]),
+        outputs: [
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount: firstAmount,
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount: secondAmount,
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+        ],
+      },
+    ])
   })
 
   it.skip('Should be able to transfer the max balance using Testnet', async () => {
@@ -647,19 +715,47 @@ describe('BSBitcoin', () => {
       ],
     })
 
-    const transactionHashes = await service.transfer({
+    const amount = BSBigNumberHelper.fromNumber(btcTokenBalance.amount).minus(fee).toFixed()
+
+    const transactions = await service.transfer({
       senderAccount,
       intents: [
         {
-          amount: BSBigNumberHelper.fromNumber(btcTokenBalance.amount).minus(fee).toFixed(),
+          amount,
           receiverAddress: testnetAddress,
           token: btcToken,
         },
       ],
     })
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(1)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        hex: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'utxo',
+        nfts: [],
+        inputs: expect.arrayContaining([
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount: expect.any(String),
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+        ]),
+        outputs: [
+          {
+            address: testnetAddress,
+            addressUrl: expect.any(String),
+            amount,
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+        ],
+      },
+    ])
   })
 
   it.skip('Should be able to transfer the max balance with Ledger using Testnet', async () => {
@@ -686,11 +782,13 @@ describe('BSBitcoin', () => {
       ],
     })
 
-    const transactionHashes = await service.transfer({
+    const amount = BSBigNumberHelper.fromNumber(btcTokenBalance.amount).minus(fee).toFixed()
+
+    const transactions = await service.transfer({
       senderAccount,
       intents: [
         {
-          amount: BSBigNumberHelper.fromNumber(btcTokenBalance.amount).minus(fee).toFixed(),
+          amount,
           receiverAddress: senderAccount.address,
           token: btcToken,
         },
@@ -699,8 +797,34 @@ describe('BSBitcoin', () => {
 
     await transport.close()
 
-    expect(transactionHashes).toEqual(expect.arrayContaining([expect.any(String)]))
-    expect(transactionHashes.length).toBe(1)
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        hex: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'utxo',
+        nfts: [],
+        inputs: expect.arrayContaining([
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount: expect.any(String),
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+        ]),
+        outputs: [
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount,
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+        ],
+      },
+    ])
   })
 
   it("Shouldn't be able to transfer if available UTXOs doesn't pay the transaction using Testnet", async () => {

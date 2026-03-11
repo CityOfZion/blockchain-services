@@ -47,7 +47,7 @@ export class BSNeoLegacyConstants {
   }
   static readonly ALL_NETWORKS: TBSNetwork<TBSNeoLegacyNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 
-  static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
+  static readonly DEFAULT_BIP_DERIVATION_PATH = "m/44'/888'/0'/0/?"
 
   static readonly MAX_TRANSACTION_SIZE_WITHOUT_FEE = 1024
   static readonly FEE_APPLIED_TO_PLAYABLE_TRANSACTION = 0.05

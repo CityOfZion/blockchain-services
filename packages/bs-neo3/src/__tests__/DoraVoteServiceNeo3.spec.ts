@@ -1,6 +1,6 @@
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import { BSNeo3 } from '../../BSNeo3'
-import { DoraVoteServiceNeo3 } from '../../services/vote/DoraVoteServiceNeo3'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
+import { BSNeo3 } from '../BSNeo3'
+import { DoraVoteServiceNeo3 } from '../services/vote/DoraVoteServiceNeo3'
 import type { TBSAccount } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
@@ -116,9 +116,29 @@ describe('DoraVoteServiceNeo3', () => {
     })
 
     it.skip('Should be able to vote with success', async () => {
-      const transactionHash = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
+      const transaction = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
 
-      expect(transactionHash).toEqual(expect.any(String))
+      expect(transaction).toEqual({
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        invocationCount: expect.any(Number),
+        networkFeeAmount: expect.any(String),
+        systemFeeAmount: expect.any(String),
+        type: 'vote',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: '0',
+            methodName: 'vote',
+            contractHash: BSNeo3Constants.NEO_TOKEN.hash,
+            contractHashUrl: expect.any(String),
+            token: BSNeo3Constants.NEO_TOKEN,
+            tokenType: 'nep-17',
+          },
+        ],
+      })
     })
 
     it.skip('Should be able to vote using Ledger with success', async () => {
@@ -126,14 +146,33 @@ describe('DoraVoteServiceNeo3', () => {
       const bsNeo3 = new BSNeo3('test', undefined, async () => transport)
 
       doraVoteServiceNeo3 = new DoraVoteServiceNeo3(bsNeo3)
-
       account = await bsNeo3.ledgerService.getAccount(transport, 0)
 
-      const transactionHash = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
+      const transaction = await doraVoteServiceNeo3.vote({ account, candidatePubKey: cozCandidatePubKey })
 
-      transport.close()
+      await transport.close()
 
-      expect(transactionHash).toEqual(expect.any(String))
+      expect(transaction).toEqual({
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        invocationCount: expect.any(Number),
+        networkFeeAmount: expect.any(String),
+        systemFeeAmount: expect.any(String),
+        type: 'vote',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: '0',
+            methodName: 'vote',
+            contractHash: BSNeo3Constants.NEO_TOKEN.hash,
+            contractHashUrl: expect.any(String),
+            token: BSNeo3Constants.NEO_TOKEN,
+            tokenType: 'nep-17',
+          },
+        ],
+      })
     })
   })
 })

@@ -87,17 +87,17 @@ describe('MempoolESBitcoin', () => {
     expect(url).toBe('https://mempool.space/testnet/address/{address}')
   })
 
-  it('Should be able to get the TX template URL', () => {
-    const url = explorerService.getTxTemplateUrl()
+  it('Should be able to get the transaction template URL', () => {
+    const url = explorerService.getTransactionTemplateUrl()
 
     expect(url).toBe('https://mempool.space/tx/{txId}')
   })
 
-  it('Should be able to get the TX template URL using Testnet', () => {
+  it('Should be able to get the transaction template URL using Testnet', () => {
     service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
     explorerService = new MempoolESBitcoin(service)
 
-    const url = explorerService.getTxTemplateUrl()
+    const url = explorerService.getTransactionTemplateUrl()
 
     expect(url).toBe('https://mempool.space/testnet/tx/{txId}')
   })

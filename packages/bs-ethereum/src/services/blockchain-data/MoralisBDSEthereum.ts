@@ -239,8 +239,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       txId: hash,
       block: Number(data.block_number),
       date: new Date(data.block_timestamp).toJSON(),
-      invocationCount: 0,
-      notificationCount: 0,
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.transaction_fee), {
         decimals: this._service.feeToken.decimals,
       }),
@@ -353,8 +351,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         block: Number(item.block_number),
         txId: item.hash,
         txIdUrl: this._service.explorerService.buildTransactionUrl(item.hash),
-        notificationCount: 0,
-        invocationCount: 0,
         networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(item.transaction_fee), {
           decimals: this._service.feeToken.decimals,
         }),

@@ -23,8 +23,8 @@ describe('BSSolana', () => {
   })
 
   beforeAll(async () => {
-    const bip44Path = BSKeychainHelper.getBipPath(BSSolanaConstants.DEFAULT_BIP44_DERIVATION_PATH, 0)
-    const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bip44Path)
+    const bipPath = BSKeychainHelper.getBipPath(BSSolanaConstants.DEFAULT_BIP_DERIVATION_PATH, 0)
+    const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath)
     const signer = await solanaKit.createKeyPairSignerFromPrivateKeyBytes(keyBuffer)
     const publicKeyBytes = solanaKit.getBase58Encoder().encode(signer.address)
     const secretKey64 = new Uint8Array(64)
@@ -146,62 +146,143 @@ describe('BSSolana', () => {
   it.skip('Should be able to transfer the native token', async () => {
     const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
     const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
+    const amount = '0.1'
+    const receiverAddress = receiverAccount.address
+    const token = BSSolanaConstants.NATIVE_TOKEN
 
-    const [transactionHash] = await bsSolana.transfer({
+    const transactions = await bsSolana.transfer({
       senderAccount,
-      intents: [
-        {
-          amount: '0.1',
-          receiverAddress: receiverAccount.address,
-          token: BSSolanaConstants.NATIVE_TOKEN,
-        },
-      ],
+      intents: [{ amount, receiverAddress, token }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer a SPL token', async () => {
     const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
     const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
+    const amount = '0.1'
+    const receiverAddress = receiverAccount.address
 
-    const [transactionHash] = await bsSolana.transfer({
+    const transactions = await bsSolana.transfer({
       senderAccount,
-      intents: [
-        {
-          amount: '0.1',
-          receiverAddress: receiverAccount.address,
-          token: splToken,
-        },
-      ],
+      intents: [{ amount, receiverAddress, token: splToken }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transferChecked',
+            contractHash: splToken.hash,
+            contractHashUrl: expect.any(String),
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token: splToken,
+            tokenType: 'spl',
+          },
+        ],
+      },
+    ])
   })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer more than one intent', async () => {
     const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
     const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 2)
+    const amount = '0.1'
+    const receiverAddress = receiverAccount.address
+    const token = BSSolanaConstants.NATIVE_TOKEN
 
-    const [transactionHash] = await bsSolana.transfer({
+    const transactions = await bsSolana.transfer({
       senderAccount,
       intents: [
         {
-          amount: '0.1',
-          receiverAddress: receiverAccount.address,
-          token: BSSolanaConstants.NATIVE_TOKEN,
+          amount,
+          receiverAddress,
+          token,
         },
         {
-          amount: '0.1',
-          receiverAddress: receiverAccount.address,
+          amount,
+          receiverAddress,
           token: splToken,
         },
       ],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transferChecked',
+            contractHash: splToken.hash,
+            contractHashUrl: expect.any(String),
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token: splToken,
+            tokenType: 'spl',
+          },
+        ],
+      },
+    ])
   })
 
   it('Should be able to validate an domain', () => {
@@ -219,7 +300,7 @@ describe('BSSolana', () => {
   })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
-  it.skip('Should be able to calculate transfer fee for more than one intent using ledger', async () => {
+  it.skip('Should be able to calculate transfer fee for more than one intent using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
@@ -244,70 +325,151 @@ describe('BSSolana', () => {
     expect(fee).toEqual(expect.any(String))
   })
 
-  it.skip('Should be able to transfer the native token using ledger', async () => {
+  it.skip('Should be able to transfer the native token using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
+    const amount = '0.1'
+    const receiverAddress = receiverAccount.address
+    const token = BSSolanaConstants.NATIVE_TOKEN
 
-    const [transactionHash] = await service.transfer({
+    const transactions = await service.transfer({
       senderAccount,
-      intents: [
-        {
-          amount: '0.1',
-          receiverAddress: receiverAccount.address,
-          token: BSSolanaConstants.NATIVE_TOKEN,
-        },
-      ],
+      intents: [{ amount, receiverAddress, token }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 
   // Use https://spl-token-faucet.com/ to get some tokens to test this
-  it.skip('Should be able to transfer a SPL token using ledger', async () => {
+  it.skip('Should be able to transfer a SPL token using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
+    const amount = '0.1'
+    const receiverAddress = receiverAccount.address
 
-    const [transactionHash] = await service.transfer({
+    const transactions = await service.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress, token: splToken }],
+    })
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transferChecked',
+            contractHash: splToken.hash,
+            contractHashUrl: expect.any(String),
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token: splToken,
+            tokenType: 'spl',
+          },
+        ],
+      },
+    ])
+  })
+
+  // Use https://spl-token-faucet.com/ to get some tokens to test this
+  it.skip('Should be able to transfer more than one intent using Ledger', async () => {
+    const transport = await TransportNodeHid.create()
+    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
+    const senderAccount = await service.ledgerService.getAccount(transport, 0)
+    const receiverAccount = await service.ledgerService.getAccount(transport, 1)
+    const amount = '0.1'
+    const receiverAddress = receiverAccount.address
+    const token = BSSolanaConstants.NATIVE_TOKEN
+
+    const transactions = await service.transfer({
       senderAccount,
       intents: [
         {
-          amount: '0.1',
-          receiverAddress: receiverAccount.address,
+          amount,
+          receiverAddress,
+          token,
+        },
+        {
+          amount,
+          receiverAddress,
           token: splToken,
         },
       ],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
-  })
-
-  // Use https://spl-token-faucet.com/ to get some tokens to test this
-  it.skip('Should be able to transfer more than one intent using ledger', async () => {
-    const transport = await TransportNodeHid.create()
-    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
-    const senderAccount = await service.ledgerService.getAccount(transport, 0)
-    const receiverAccount = await service.ledgerService.getAccount(transport, 1)
-
-    const [transactionHash] = await service.transfer({
-      senderAccount,
-      intents: [
-        {
-          amount: '0.1',
-          receiverAddress: receiverAccount.address,
-          token: BSSolanaConstants.NATIVE_TOKEN,
-        },
-        {
-          amount: '0.1',
-          receiverAddress: receiverAccount.address,
-          token: splToken,
-        },
-      ],
-    })
-
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transfer',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'transferChecked',
+            contractHash: splToken.hash,
+            contractHashUrl: expect.any(String),
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token: splToken,
+            tokenType: 'spl',
+          },
+        ],
+      },
+    ])
   })
 })

@@ -14,6 +14,7 @@ import {
   type TBSToken,
   type TGetLedgerTransport,
   type TPingNetworkResponse,
+  type TTransactionDefault,
   type TTransferParams,
 } from '@cityofzion/blockchain-service'
 import type { IBSStellar, TBSStellarNetworkId } from './types'
@@ -32,6 +33,8 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   readonly bipDerivationPath: string
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
+
+  readonly #invalidTransactionStatus: stellarSDK.rpc.Api.SendTransactionStatus[] = ['ERROR', 'DUPLICATE']
 
   network!: TBSNetwork<TBSStellarNetworkId>
   networkUrls!: string[]
@@ -53,7 +56,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
 
   constructor(name: N, network?: TBSNetwork<TBSStellarNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
-    this.bipDerivationPath = BSStellarConstants.DEFAULT_BIP44_DERIVATION_PATH
+    this.bipDerivationPath = BSStellarConstants.DEFAULT_BIP_DERIVATION_PATH
 
     this.tokens = [BSStellarConstants.NATIVE_TOKEN]
     this.nativeTokens = [BSStellarConstants.NATIVE_TOKEN]
@@ -86,7 +89,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
 
     if (!hasTrustline) {
       throw new BSError(
-        `Receiver address ${address} does not have a trustline for asset ${asset.getCode()} issued by ${asset.getIssuer()}. Please create the trustline before sending tokens.`,
+        `Address ${address} does not have a trustline for asset ${asset.getCode()} issued by ${asset.getIssuer()}. Please create the trustline before sending tokens.`,
         'TRUSTLINE_NOT_FOUND'
       )
     }
@@ -97,8 +100,8 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
       return await this.sorobanServer.getAccount(address)
     } catch (error) {
       throw new BSError(
-        `Receiver address ${address} does not exist on the Stellar network. Please fund the account before sending tokens.`,
-        'RECEIVER_ADDRESS_NOT_FOUND',
+        `Address ${address} does not exist on the Stellar network. Please fund the account before sending tokens.`,
+        'ADDRESS_NOT_FOUND',
         error
       )
     }
@@ -141,10 +144,16 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
 
   async signTransaction(transaction: stellarSDK.Transaction, senderAccount: TBSAccount<N>) {
     if (senderAccount.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide getLedgerTransport function to use Ledger')
+      if (!this.ledgerService.getLedgerTransport) {
+        throw new BSError(
+          'You must provide getLedgerTransport function to use Ledger',
+          'GET_LEDGER_TRANSPORT_NOT_FOUND'
+        )
+      }
 
-      if (typeof senderAccount.bipPath !== 'string') throw new Error('Your account must have bip44 path to use Ledger')
+      if (!senderAccount.bipPath) {
+        throw new BSError('Account must have BIP path to use Ledger', 'BIP_PATH_NOT_FOUND')
+      }
 
       const transport = await this.ledgerService.getLedgerTransport(senderAccount)
       return await this.ledgerService.signTransaction(transport, transaction, senderAccount)
@@ -156,16 +165,19 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   }
 
   async createTrustline(senderAccount: TBSAccount<N>, token: TBSToken): Promise<string> {
+    const asset = new stellarSDK.Asset(token.symbol, token.hash)
     let alreadyHaveTrustline = false
+
     try {
-      await this.#ensureAccountOnChain(token.hash)
+      await this.#ensureTrustline(senderAccount.address, asset)
+
       alreadyHaveTrustline = true
     } catch {
       /* empty */
     }
 
     if (alreadyHaveTrustline) {
-      throw new Error('Trustline already exists')
+      throw new BSError('Trustline already exists', 'TRUSTLINE_EXISTS')
     }
 
     const sourceAccount = await this.#ensureAccountOnChain(senderAccount.address)
@@ -174,9 +186,9 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
 
     const builtTransaction = new stellarSDK.TransactionBuilder(sourceAccount, {
       fee: BSBigNumberHelper.toDecimals(fee, this.feeToken.decimals),
-      networkPassphrase: stellarSDK.Networks.PUBLIC,
+      networkPassphrase: BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.network.id],
     })
-      .addOperation(stellarSDK.Operation.changeTrust({ asset: new stellarSDK.Asset(token.symbol, token.hash) }))
+      .addOperation(stellarSDK.Operation.changeTrust({ asset }))
       .setTimeout(30)
       .build()
 
@@ -184,8 +196,8 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
 
     const response = await this.sorobanServer.sendTransaction(signedTransaction)
 
-    if (response.status === 'DUPLICATE' || response.status === 'ERROR') {
-      throw new Error('Transaction failed: ' + response.errorResult?.result)
+    if (this.#invalidTransactionStatus.includes(response.status)) {
+      throw new BSError(`Transaction failed: ${response.errorResult?.result}`, 'TRANSACTION_FAILED')
     }
 
     return response.hash
@@ -196,7 +208,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
-      throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+      throw new BSError(`Network with id ${network.id} is not available for ${this.name}`, 'INVALID_NETWORK')
     }
 
     this.network = network
@@ -288,21 +300,55 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     return stellarSDK.StrKey.isValidEd25519SecretSeed(key)
   }
 
-  async calculateTransferFee(param: TTransferParams<N>): Promise<string> {
-    const feeBn = await this.getFeeEstimate(param.intents.length)
+  async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
+    const feeBn = await this.getFeeEstimate(params.intents.length)
+
     return BSBigNumberHelper.toNumber(feeBn, this.feeToken.decimals)
   }
 
-  async transfer(param: TTransferParams<N>): Promise<string[]> {
-    const transaction = await this.#buildTransferTransaction(param)
-    const signedTransaction = await this.signTransaction(transaction, param.senderAccount)
-
+  async transfer(params: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+    const transaction = await this.#buildTransferTransaction(params)
+    const { senderAccount } = params
+    const signedTransaction = await this.signTransaction(transaction, senderAccount)
     const response = await this.sorobanServer.sendTransaction(signedTransaction)
 
-    if (response.status === 'DUPLICATE' || response.status === 'ERROR') {
-      throw new Error('Transaction failed: ' + response.errorResult?.result)
+    if (this.#invalidTransactionStatus.includes(response.status)) {
+      throw new BSError(`Transaction failed: ${response.errorResult?.result}`, 'TRANSACTION_FAILED')
     }
 
-    return [response.hash]
+    const txId = response.hash
+    const { address } = senderAccount
+    const nativeTokenHash = BSStellarConstants.NATIVE_TOKEN.hash
+
+    return [
+      {
+        txId,
+        txIdUrl: this.explorerService.buildTransactionUrl(txId),
+        date: new Date().toJSON(),
+        networkFeeAmount: BSBigNumberHelper.format(
+          BSBigNumberHelper.fromDecimals(transaction.fee, this.feeToken.decimals),
+          { decimals: this.feeToken.decimals }
+        ),
+        type: 'default',
+        view: 'default',
+        events: params.intents.map(({ amount, receiverAddress, token }, index) => {
+          const tokenHash = token.hash
+
+          return {
+            eventType: 'token',
+            amount,
+            methodName: transaction.operations[index].type,
+            contractHash: tokenHash,
+            contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
+            from: address,
+            fromUrl: this.explorerService.buildAddressUrl(address),
+            to: receiverAddress,
+            toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+            token,
+            tokenType: this.tokenService.predicateByHash(nativeTokenHash, tokenHash) ? 'native' : 'sac',
+          }
+        }),
+      },
+    ]
   }
 }
