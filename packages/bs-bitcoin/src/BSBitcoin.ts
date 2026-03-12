@@ -151,7 +151,6 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     const { data: utxosData } = await this.#tatumApis.v4.get<TTatumUtxosResponse>('/data/utxos', {
       params: {
         address,
-        chain: this.network.type === 'mainnet' ? 'bitcoin-mainnet' : 'bitcoin-testnet',
         totalValue: 1000_0000_0000, // Get the most out of UTXOs
       },
     })

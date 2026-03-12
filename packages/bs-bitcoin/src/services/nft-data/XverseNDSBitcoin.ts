@@ -38,7 +38,7 @@ export class XverseNDSBitcoin<N extends string> implements INftDataService {
     ...inscription
   }: TXverseInscriptionResponse): TNftResponse {
     const hash = inscription.id
-    const isSvg =
+    const isSVG =
       !!inscription.contentType?.includes(this.#contentTypeSvg) ||
       !!inscription.effectiveContentType?.includes(this.#contentTypeSvg)
 
@@ -47,7 +47,7 @@ export class XverseNDSBitcoin<N extends string> implements INftDataService {
       name: inscription.name || inscription.number.toString(),
       explorerUri: this.#service.explorerService.buildNftUrl({ tokenHash: hash }),
       image: inscription.renderUrl,
-      isSVG: isSvg,
+      isSVG,
       symbol: inscription.collectionSymbol,
       collection:
         !!collectionId && !!collectionName

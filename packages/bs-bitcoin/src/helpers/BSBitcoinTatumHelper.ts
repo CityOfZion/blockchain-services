@@ -11,10 +11,17 @@ export class BSBitcoinTatumHelper {
     const isMainnet = network.type === 'mainnet'
     const { url } = isMainnet ? BSBitcoinConstants.MAINNET_NETWORK : BSBitcoinConstants.TESTNET_NETWORK
     const headers = { 'x-api-key': isMainnet ? this.#mainnetApiKey : this.#testnetApiKey }
+    const v3 = axios.create({ baseURL: `${url}/v3`, headers })
+    const v4 = axios.create({ baseURL: `${url}/v4`, headers })
 
-    return {
-      v3: axios.create({ baseURL: `${url}/v3`, headers }),
-      v4: axios.create({ baseURL: `${url}/v4`, headers }),
-    }
+    v4.interceptors.request.use(config => {
+      if (!config.params) config.params = {}
+
+      config.params.chain = isMainnet ? 'bitcoin-mainnet' : 'bitcoin-testnet'
+
+      return config
+    })
+
+    return { v3, v4 }
   }
 }

@@ -22,7 +22,6 @@ const address = 'NYnfAZTcVfSfNgk4RnP2DBNgosq2tUN3U2'
 let dateFrom: Date
 let dateTo: Date
 let params: TGetFullTransactionsByAddressParams
-
 let service: BSNeo3<'test'>
 let doraFullTransactionsDataServiceNeo3: DoraFullTransactionsDataServiceNeo3<'test'>
 
@@ -30,15 +29,13 @@ vi.mock('../services/nft-data/GhostMarketNDSNeo3', () => {
   const GhostMarketNDSNeo3 = vi.fn()
 
   GhostMarketNDSNeo3.prototype.getNft = vi.fn().mockResolvedValue({
-    image: 'nftImage',
     name: 'nftName',
+    image: 'nftImage',
     explorerUri: 'nftUrl',
     collection: { name: 'nftCollectionName', hash: 'nftCollectionHash', url: 'nftCollectionUrl' },
   })
 
-  return {
-    GhostMarketNDSNeo3,
-  }
+  return { GhostMarketNDSNeo3 }
 })
 
 describe('DoraFullTransactionsDataServiceNeo3', () => {
@@ -282,20 +279,15 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
         expect.arrayContaining([
           expect.objectContaining({
             eventType: 'nft',
-            amount: undefined,
             methodName: expect.any(String),
+            amount: '1',
             from: expect.anything(),
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            collectionHash: expect.any(String),
-            collectionHashUrl: 'nftCollectionUrl',
-            tokenHash: expect.any(String),
             tokenType: 'nep-11',
-            nftImageUrl: 'nftImage',
-            nftUrl: 'nftUrl',
-            name: 'nftName',
-            collectionName: 'nftCollectionName',
+            tokenHash: expect.any(String),
+            nft: expect.anything(),
           }),
         ])
       )

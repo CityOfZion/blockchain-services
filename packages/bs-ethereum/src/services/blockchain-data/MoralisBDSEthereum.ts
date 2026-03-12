@@ -122,7 +122,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       return this._tokenCache.get(hash)!
     }
 
-    const response = await this.#api.get<TMoralisBDSEthereumERC20MetadataApiResponse[]>(`/erc20/metadata`, {
+    const response = await this.#api.get<TMoralisBDSEthereumERC20MetadataApiResponse[]>('/erc20/metadata', {
       params: {
         addresses: [hash],
       },
@@ -214,21 +214,16 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         )
 
         events.push({
-          collectionHash: contractHash,
-          tokenHash,
+          eventType: 'nft',
+          methodName: 'transfer',
+          amount: '1',
           from,
           fromUrl,
           to,
           toUrl,
-          eventType: 'nft',
-          methodName: 'transfer',
           tokenType: 'erc-721',
-          amount: '1',
-          nftImageUrl: nft?.image,
-          nftUrl: nft?.explorerUri,
-          name: nft?.name,
-          collectionName: nft?.collection?.name,
-          collectionHashUrl: nft?.collection?.url,
+          tokenHash,
+          nft,
         })
       })
 
@@ -321,27 +316,23 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       const nftPromises = item.nft_transfers.map(async transfer => {
         const fromUrl = this._service.explorerService.buildAddressUrl(transfer.from_address)
         const toUrl = this._service.explorerService.buildAddressUrl(transfer.to_address)
+        const tokenHash = transfer.token_id
 
         const [nft] = await BSUtilsHelper.tryCatch(() =>
-          this._service.nftDataService.getNft({ collectionHash: transfer.token_address, tokenHash: transfer.token_id })
+          this._service.nftDataService.getNft({ collectionHash: transfer.token_address, tokenHash })
         )
 
         events.push({
-          collectionHash: transfer.token_address,
-          collectionHashUrl: nft?.collection?.url,
-          tokenHash: transfer.token_id,
+          eventType: 'nft',
+          methodName: 'transfer',
+          amount: '1',
           from: transfer.from_address,
           fromUrl,
           to: transfer.to_address,
           toUrl,
-          eventType: 'nft',
-          methodName: 'transfer',
           tokenType: 'erc-721',
-          amount: '1',
-          nftImageUrl: nft?.image,
-          nftUrl: nft?.explorerUri,
-          name: nft?.name,
-          collectionName: nft?.collection?.name,
+          tokenHash,
+          nft,
         })
       })
 
@@ -372,7 +363,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     }
 
     try {
-      const { data } = await this.#api.get<TMoralisTokenMetadataApiResponse[]>(`erc20/metadata`, {
+      const { data } = await this.#api.get<TMoralisTokenMetadataApiResponse[]>('erc20/metadata', {
         params: {
           addresses: [hash],
         },

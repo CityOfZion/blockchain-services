@@ -203,52 +203,41 @@ export type TTatumTransactionResponse = {
   block: string
   index: number
   locktime: number
-  inputs: [
-    {
-      prevout: {
-        hash: string
-        index: number
-      }
-      sequence: number
-      script: string
-      coin?: {
-        version: number
-        height: number
-        value: number
-        script: string
-        address: string
-        type: string
-        reqSigs: number | null
-        coinbase: boolean
-      }
-    },
-  ]
-  outputs: [
-    {
+  inputs: {
+    prevout: {
+      hash: string
+      index: number
+    }
+    sequence: number
+    script: string
+    coin?: {
+      version: number
+      height: number
       value: number
       script: string
-      address?: string
-      scriptPubKey: {
-        type: string
-        reqSigs: number | null
-      }
-    },
-  ]
+      address: string
+      type: string
+      reqSigs: number | null
+      coinbase: boolean
+    }
+  }[]
+  outputs: {
+    value: number
+    script: string
+    address?: string
+    scriptPubKey: {
+      type: string
+      reqSigs: number | null
+    }
+  }[]
 }
 
 export type TTatumBalanceResponse = {
+  balance: string
   incoming: string
   outgoing: string
   incomingPending: string
   outgoingPending: string
-}
-
-export type TTatumBlockchainInfoResponse = {
-  chain: string
-  blocks: number
-  headers: number
-  bestblockhash: string
-  difficulty: number
 }
 
 export type TTatumUtxo = {
@@ -272,6 +261,7 @@ export type TTatumFeesResponse = {
 
 export type TTatumBroadcastResponse = {
   txId: string
+  completed: boolean
 }
 
 export type TTatumApis = {
@@ -304,14 +294,12 @@ export type TWalletConnectServiceBitcoinTransformSendTransferParamsResponse = {
   amount: string
 }
 
-export type TWalletConnectServiceBitcoinGetAccountAddressResponse = [
-  {
-    address: string
-    publicKey?: string
-    path?: string
-    intention?: 'payment' | 'ordinal'
-  },
-]
+export type TWalletConnectServiceBitcoinGetAccountAddressResponse = {
+  address: string
+  publicKey?: string
+  path?: string
+  intention?: 'payment' | 'ordinal'
+}[]
 
 export type TWalletConnectServiceBitcoinSignPsbtResponse = {
   psbt: string

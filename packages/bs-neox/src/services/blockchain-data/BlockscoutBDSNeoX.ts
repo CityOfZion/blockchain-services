@@ -141,21 +141,16 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
           )
 
           events.splice(index, 0, {
-            tokenHash,
+            eventType: 'nft',
+            methodName: 'transfer',
+            amount: '1',
             from,
             fromUrl,
             to,
             toUrl,
-            eventType: 'nft',
-            methodName: 'transfer',
             tokenType: 'erc-721',
-            amount: '1',
-            collectionHash: tokenTransfer.token.address,
-            collectionHashUrl: nft?.collection?.url,
-            collectionName: nft?.collection?.name,
-            name: nft?.name,
-            nftImageUrl: nft?.image,
-            nftUrl: nft?.explorerUri,
+            tokenHash,
+            nft,
           })
         }
       })

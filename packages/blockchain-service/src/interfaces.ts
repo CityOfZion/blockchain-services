@@ -133,33 +133,27 @@ export type TGetTransactionsByAddressParams = {
 
 export type TTransactionNftEvent = {
   eventType: 'nft'
-  amount?: string
   methodName?: string
-  collectionName?: string
-  collectionHash?: string
-  collectionHashUrl?: string
-  to?: string
-  toUrl?: string
+  amount?: string
   from?: string
   fromUrl?: string
+  to?: string
+  toUrl?: string
   tokenType: 'generic' | (string & NonNullable<unknown>)
   tokenHash?: string
-  nftImageUrl?: string
-  nftUrl?: string
-  name?: string
-  token?: TBSToken
+  nft?: TNftResponse
 }
 
 export type TTransactionTokenEvent = {
   eventType: 'token'
-  amount?: string
   methodName?: string
+  amount?: string
   contractHash: string
   contractHashUrl?: string
-  to?: string
-  toUrl?: string
   from?: string
   fromUrl?: string
+  to?: string
+  toUrl?: string
   token?: TBSToken
   tokenType: 'generic' | (string & NonNullable<unknown>)
 }

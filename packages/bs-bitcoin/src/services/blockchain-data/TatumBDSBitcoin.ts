@@ -19,7 +19,6 @@ import type {
   TOrdinalsContentResponse,
   TTatumApis,
   TTatumBalanceResponse,
-  TTatumBlockchainInfoResponse,
   TTatumTransactionResponse,
 } from '../../types'
 import { BSBitcoinConstants } from '../../constants/BSBitcoinConstants'
@@ -144,7 +143,9 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
   }
 
   async getTransaction(transactionId: string): Promise<TTransactionUtxo<N>> {
-    const { data } = await this.#tatumApis.v3.get<TTatumTransactionResponse>(`/bitcoin/transaction/${transactionId}`)
+    const { data } = await this.#tatumApis.v4.get<TTatumTransactionResponse>('/data/blockchains/transaction', {
+      params: { hash: transactionId },
+    })
 
     if (!this.#isNumberValid(data.blockNumber)) {
       throw new BSError('Transaction not confirmed', 'TRANSACTION_NOT_CONFIRMED')
@@ -163,10 +164,10 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     const pageSize = 50
     const offset = (nextPageParams - 1) * pageSize
 
-    const { data } = await this.#tatumApis.v3.get<TTatumTransactionResponse[]>(
-      `/bitcoin/transaction/address/${address}`,
+    const { data } = await this.#tatumApis.v4.get<TTatumTransactionResponse[]>(
+      '/data/blockchains/transaction/history/utxos',
       {
-        params: { pageSize, offset },
+        params: { pageSize, offset, address },
       }
     )
 
@@ -223,18 +224,12 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
     const balances: TBalanceResponse[] = []
-    const { data } = await this.#tatumApis.v3.get<TTatumBalanceResponse>(`/bitcoin/address/balance/${address}`)
 
-    balances.push({
-      amount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromNumber(data.incoming)
-          .minus(data.incomingPending)
-          .minus(data.outgoing)
-          .minus(data.outgoingPending),
-        { decimals: BSBitcoinConstants.NATIVE_TOKEN.decimals }
-      ),
-      token: BSBitcoinConstants.NATIVE_TOKEN,
+    const { data } = await this.#tatumApis.v4.get<TTatumBalanceResponse>('data/blockchains/balance', {
+      params: { address },
     })
+
+    balances.push({ amount: data.balance, token: BSBitcoinConstants.NATIVE_TOKEN })
 
     try {
       this.#validateMainnet()
@@ -281,8 +276,8 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
   }
 
   async getBlockHeight(): Promise<number> {
-    const response = await this.#tatumApis.v3.get<TTatumBlockchainInfoResponse>('/bitcoin/info')
+    const { data } = await this.#tatumApis.v4.get<number>('/data/blockchains/block/current')
 
-    return response.data.blocks
+    return data
   }
 }
