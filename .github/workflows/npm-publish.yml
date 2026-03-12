@@ -1,6 +1,17 @@
 name: Publish all Blockchain Services Libs
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
 
 env:
   NODE_VERSION: 22.x
@@ -39,9 +50,9 @@ jobs:
       - name: Verify Change Logs
         run: rush change --verify
       - name: Update package.json version(s)
-        run: rush version --bump
+        run: rush version --bump --override-bump ${{ github.event.inputs.bump_type }}
       - name: Publish Projects
-        run: rush publish --apply --target-branch main --publish --npm-auth-token ${{ secrets.NPM_TOKEN }} --add-commit-details --include-all
+        run: rush publish --apply --publish --npm-auth-token ${{ secrets.NPM_TOKEN }} --add-commit-details --include-all
       - name: Commit and Push package.json version update
         run: |
           git add .
