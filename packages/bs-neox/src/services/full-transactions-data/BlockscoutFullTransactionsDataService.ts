@@ -85,20 +85,15 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
 
           newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
-            amount: undefined,
             methodName,
+            amount: '1',
             from,
             fromUrl,
             to,
             toUrl,
-            collectionHash: contractHash,
-            collectionHashUrl: nft?.collection?.url,
-            tokenHash,
             tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
-            nftImageUrl: nft?.image,
-            nftUrl: nft?.explorerUri,
-            name: nft?.name,
-            collectionName: nft?.collection?.name,
+            tokenHash,
+            nft,
           })
 
           return

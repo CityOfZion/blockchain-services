@@ -93,20 +93,15 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
 
           newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
-            amount: undefined,
             methodName,
+            amount: '1',
             from,
             fromUrl,
             to,
             toUrl,
-            collectionHash: contractHash,
-            collectionHashUrl: nft?.collection?.url,
-            tokenHash,
             tokenType: 'nep-11',
-            nftImageUrl: nft?.image,
-            nftUrl: nft?.explorerUri,
-            name: nft?.name,
-            collectionName: nft?.collection?.name,
+            tokenHash,
+            nft,
           })
 
           return

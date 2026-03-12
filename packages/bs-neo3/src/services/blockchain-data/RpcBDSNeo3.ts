@@ -77,21 +77,16 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
       )
 
       events.splice(index, 0, {
+        eventType: 'nft',
+        methodName: 'transfer',
+        amount: '1',
         from: convertedFrom,
         fromUrl,
         to: convertedTo,
         toUrl,
-        tokenHash,
-        collectionHash: contractHash,
-        collectionHashUrl: nft?.collection?.url,
-        eventType: 'nft',
-        methodName: 'transfer',
         tokenType: 'nep-11',
-        amount: '1',
-        nftImageUrl: nft?.image,
-        nftUrl: nft?.explorerUri,
-        name: nft?.name,
-        collectionName: nft?.collection?.name,
+        tokenHash,
+        nft,
       })
     })
 

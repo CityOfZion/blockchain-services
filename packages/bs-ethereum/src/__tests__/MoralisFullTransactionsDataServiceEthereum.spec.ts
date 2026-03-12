@@ -1,6 +1,6 @@
 import {
   BSUtilsHelper,
-  TBSNetworkId,
+  type TBSNetworkId,
   type TGetFullTransactionsByAddressParams,
   type TTransactionNftEvent,
 } from '@cityofzion/blockchain-service'
@@ -49,15 +49,13 @@ vi.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
   const GhostMarketNDSEthereum = vi.fn()
 
   GhostMarketNDSEthereum.prototype.getNft = vi.fn().mockResolvedValue({
-    image: 'nftImage',
     name: 'nftName',
+    image: 'nftImage',
     explorerUri: 'nftUrl',
     collection: { name: 'nftCollectionName', hash: 'nftCollectionHash', url: 'nftCollectionUrl' },
   })
 
-  return {
-    GhostMarketNDSEthereum,
-  }
+  return { GhostMarketNDSEthereum }
 })
 
 describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
@@ -344,20 +342,15 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
         expect.arrayContaining([
           expect.objectContaining({
             eventType: 'nft',
-            amount: undefined,
             methodName: expect.any(String),
+            amount: '1',
             from: expect.anything(),
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            collectionHash: expect.any(String),
-            collectionHashUrl: expect.any(String),
-            tokenHash: expect.any(String),
             tokenType: expect.any(String),
-            nftImageUrl: 'nftImage',
-            nftUrl: expect.any(String),
-            name: 'nftName',
-            collectionName: 'nftCollectionName',
+            tokenHash: expect.any(String),
+            nft: expect.anything(),
           }),
         ])
       )

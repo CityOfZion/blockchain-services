@@ -104,20 +104,15 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
       return {
         eventType: 'nft',
-        tokenType: 'spl',
         methodName: 'transferChecked',
+        amount: '1',
         from,
         fromUrl,
         to,
         toUrl,
+        tokenType: 'spl',
         tokenHash: contractHash,
-        amount: '1',
-        name: nft?.name,
-        nftImageUrl: nft?.image,
-        collectionHash: nft?.collection?.hash,
-        collectionHashUrl: nft?.collection?.url,
-        nftUrl: nft?.explorerUri,
-        collectionName: nft?.collection?.name,
+        nft,
       }
     }
 
@@ -183,20 +178,15 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
       return {
         eventType: 'nft',
-        tokenType: 'spl',
         methodName: 'transfer',
+        amount: '1',
         from,
         fromUrl,
         to,
         toUrl,
+        tokenType: 'spl',
         tokenHash: contractHash,
-        amount: '1',
-        name: nft?.name,
-        nftImageUrl: nft?.image,
-        collectionHash: nft?.collection?.hash,
-        collectionHashUrl: nft?.collection?.url,
-        nftUrl: nft?.explorerUri,
-        collectionName: nft?.collection?.name,
+        nft,
       }
     }
 

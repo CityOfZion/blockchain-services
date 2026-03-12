@@ -171,7 +171,6 @@ describe.skip('LedgerServiceBitcoin', () => {
     const { data } = await tatumApis.v4.get<TTatumUtxosResponse>('/data/utxos', {
       params: {
         address: account.address,
-        chain: 'bitcoin-testnet',
         totalValue: 1_0000,
       },
     })

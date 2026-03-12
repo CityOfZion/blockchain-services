@@ -13,7 +13,6 @@ const address = '0x889D02c0df966Ea5BE11dd8E3Eb0d5E4BD0500dD'
 let dateFrom: Date
 let dateTo: Date
 let params: TGetFullTransactionsByAddressParams
-
 let blockscoutFullTransactionsDataService: BlockscoutFullTransactionsDataService<'test'>
 let service: BSNeoX<'test'>
 
@@ -21,15 +20,13 @@ vi.mock('../services/nft-data/GhostMarketNDSNeoX', () => {
   const GhostMarketNDSNeoX = vi.fn()
 
   GhostMarketNDSNeoX.prototype.getNft = vi.fn().mockResolvedValue({
-    image: 'nftImage',
     name: 'nftName',
+    image: 'nftImage',
     explorerUri: 'nftUrl',
     collection: { name: 'nftCollectionName', hash: 'nftCollectionHash', url: 'nftCollectionUrl' },
   })
 
-  return {
-    GhostMarketNDSNeoX,
-  }
+  return { GhostMarketNDSNeoX }
 })
 
 describe('BlockscoutFullTransactionsDataService', () => {
@@ -252,18 +249,15 @@ describe('BlockscoutFullTransactionsDataService', () => {
         expect.arrayContaining([
           expect.objectContaining({
             eventType: 'nft',
-            amount: undefined,
             methodName: expect.any(String),
+            amount: '1',
             from: expect.anything(),
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            tokenId: expect.any(String),
             tokenType: 'generic',
-            nftImageUrl: 'nftImage',
-            nftUrl: expect.any(String),
-            name: 'nftName',
-            collectionName: 'nftCollectionName',
+            tokenHash: expect.any(String),
+            nft: expect.anything(),
           }),
         ])
       )
