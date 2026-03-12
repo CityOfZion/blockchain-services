@@ -6,12 +6,14 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 const mnemonic = process.env.TEST_MNEMONIC
 
+// USDC faucet: https://faucet.circle.com
 const sacToken: TBSToken = {
   symbol: 'USDC',
   name: 'USDC',
   decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
   hash: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
 }
+
 let bsStellar: BSStellar<'test'>
 let keypair: stellarSDK.Keypair
 let keypair2: stellarSDK.Keypair
@@ -99,47 +101,110 @@ describe('BSStellar', () => {
   // Fetch https://friendbot.stellar.org?addr=${address} to fund test accounts
   it.skip('Should be able to transfer the native token', async () => {
     const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
+    const amount = '0.0000001'
+    const receiverAddress = keypair2.publicKey()
+    const token = BSStellarConstants.NATIVE_TOKEN
 
-    const [transactionHash] = await bsStellar.transfer({
+    const transactions = await bsStellar.transfer({
       senderAccount,
-      intents: [
-        {
-          amount: '0.0000001',
-          receiverAddress: keypair2.publicKey(),
-          token: BSStellarConstants.NATIVE_TOKEN,
-        },
-      ],
+      intents: [{ amount, receiverAddress, token }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'payment',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 
   it.skip('Should be able to transfer more than one intent', async () => {
     const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
     const receiverAccount = await bsStellar.generateAccountFromKey(keypair2.secret())
+    const amount = '0.0000001'
+    const receiverAddress = receiverAccount.address
+    const token = BSStellarConstants.NATIVE_TOKEN
 
-    // Uncomment to create the trustline first
-    // const createTrustlineTransactionHash = await service._createTrustline(receiverAccount, sacToken)
-    // console.log('Trustline created:', createTrustlineTransactionHash)
-    // await BSUtilsHelper.wait(5000) // Wait for the trustline to be processed
+    // Uncomment to create the trustlines
+    // const trustlineSender = await service.createTrustline(senderAccount, sacToken)
+    // console.log(`Trustline sender: ${trustlineSender}`)
+    // const trustlineReceiver = await service.createTrustline(receiverAccount, sacToken)
+    // console.log(`Trustline receiver: ${trustlineReceiver}`)
+    // await BSUtilsHelper.wait(10000) // Wait for the trustline to be processed
 
-    const [transactionHash] = await bsStellar.transfer({
+    const transactions = await bsStellar.transfer({
       senderAccount,
       intents: [
         {
-          amount: '0.0000001',
-          receiverAddress: receiverAccount.address,
-          token: BSStellarConstants.NATIVE_TOKEN,
+          amount,
+          receiverAddress,
+          token,
         },
         {
-          amount: '0.0000001',
-          receiverAddress: receiverAccount.address,
+          amount,
+          receiverAddress,
           token: sacToken,
         },
       ],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'payment',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'payment',
+            contractHash: sacToken.hash,
+            contractHashUrl: expect.any(String),
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token: sacToken,
+            tokenType: 'sac',
+          },
+        ],
+      },
+    ])
   })
 
   it.skip('Should be able to calculate transfer fee using ledger', async () => {
@@ -167,53 +232,116 @@ describe('BSStellar', () => {
     expect(fee).toEqual('0.0000200')
   })
 
-  it.skip('Should be able to transfer the native token using ledger', async () => {
+  it.skip('Should be able to transfer the native token using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
+    const receiverAddress = receiverAccount.address
+    const token = BSStellarConstants.NATIVE_TOKEN
+    const amount = '0.0000001'
 
-    const [transactionHash] = await service.transfer({
+    const transactions = await service.transfer({
       senderAccount,
-      intents: [
-        {
-          amount: '0.0000001',
-          receiverAddress: receiverAccount.address,
-          token: BSStellarConstants.NATIVE_TOKEN,
-        },
-      ],
+      intents: [{ amount, receiverAddress, token }],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'payment',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+        ],
+      },
+    ])
   })
 
-  it.skip('Should be able to transfer more than one intent using ledger', async () => {
+  it.skip('Should be able to transfer more than one intent using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
+    const amount = '0.0000001'
+    const receiverAddress = receiverAccount.address
+    const token = BSStellarConstants.NATIVE_TOKEN
 
-    // Uncomment to create the trustline first
-    // const createTrustlineTransactionHash = await service._createTrustline(receiverAccount, sacToken)
-    // console.log('Trustline created:', createTrustlineTransactionHash)
-    // await BSUtilsHelper.wait(5000) // Wait for the trustline to be processed
+    // Uncomment to create the trustlines
+    // const trustlineSender = await service.createTrustline(senderAccount, sacToken)
+    // console.log(`Trustline sender: ${trustlineSender}`)
+    // const trustlineReceiver = await service.createTrustline(receiverAccount, sacToken)
+    // console.log(`Trustline receiver: ${trustlineReceiver}`)
+    // await BSUtilsHelper.wait(10000) // Wait for the trustline to be processed
 
-    const [transactionHash] = await service.transfer({
+    const transactions = await service.transfer({
       senderAccount,
       intents: [
         {
-          amount: '0.0000001',
-          receiverAddress: receiverAccount.address,
-          token: BSStellarConstants.NATIVE_TOKEN,
+          amount,
+          receiverAddress,
+          token,
         },
         {
-          amount: '0.0000001',
-          receiverAddress: receiverAccount.address,
+          amount,
+          receiverAddress,
           token: sacToken,
         },
       ],
     })
 
-    expect(transactionHash).toEqual(expect.any(String))
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        type: 'default',
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'payment',
+            contractHash: token.hash,
+            contractHashUrl: undefined,
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token,
+            tokenType: 'native',
+          },
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'payment',
+            contractHash: sacToken.hash,
+            contractHashUrl: expect.any(String),
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            token: sacToken,
+            tokenType: 'sac',
+          },
+        ],
+      },
+    ])
   })
 })

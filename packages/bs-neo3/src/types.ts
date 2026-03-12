@@ -12,6 +12,7 @@ import type {
   TBSNetworkId,
   IBSWithWalletConnect,
   IBSWithFullTransactions,
+  TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import { wallet, api } from './helpers/BSNeo3NeonJsSingletonHelper'
 
@@ -56,8 +57,8 @@ export type TVoteServiceDetailsByAddressResponse = {
   address: string
 }
 
-export type TVoteServiceVoteParams<BSName extends string> = {
-  account: TBSAccount<BSName>
+export type TVoteServiceVoteParams<N extends string> = {
+  account: TBSAccount<N>
   candidatePubKey: string
 }
 
@@ -88,11 +89,11 @@ export type TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse = {
   balance: number
 }
 
-export interface IVoteService<BSName extends string> {
+export interface IVoteService<N extends string> {
   getCandidatesToVote(): Promise<TVoteServiceCandidate[]>
   getVoteDetailsByAddress(address: string): Promise<TVoteServiceDetailsByAddressResponse>
-  vote(params: TVoteServiceVoteParams<BSName>): Promise<string>
-  calculateVoteFee(params: TVoteServiceVoteParams<BSName>): Promise<string>
+  vote(params: TVoteServiceVoteParams<N>): Promise<TTransactionDefault<N>>
+  calculateVoteFee(params: TVoteServiceVoteParams<N>): Promise<string>
 }
 
 export type TRpcVoteServiceNeo3GetVoteCIMParams = {

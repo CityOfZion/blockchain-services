@@ -225,7 +225,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
   ): Promise<TWalletConnectServiceBitcoinSendTransferResponse> {
     const newParams = this.#transformSendTransferParams(params)
 
-    const [txid] = await this.#service.transfer({
+    const [{ txId }] = await this.#service.transfer({
       senderAccount: params.account,
       intents: [
         {
@@ -236,7 +236,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
       ],
     })
 
-    return { txid }
+    return { txid: txId }
   }
 
   async calculateRequestFee(params: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {

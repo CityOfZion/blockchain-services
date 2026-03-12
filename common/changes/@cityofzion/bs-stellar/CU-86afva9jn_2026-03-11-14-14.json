@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Apply new transfer, transaction and explorer interfaces and types",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-stellar"
+}

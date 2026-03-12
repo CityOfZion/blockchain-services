@@ -297,8 +297,6 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       block: BSBigNumberHelper.fromNumber(block).toNumber(),
       txId,
       txIdUrl,
-      invocationCount: 0,
-      notificationCount: 0,
       networkFeeAmount: BSBigNumberHelper.format(
         BSBigNumberHelper.fromDecimals(transaction.meta.fee, this.#service.feeToken.decimals),
         { decimals: this.#service.feeToken.decimals }

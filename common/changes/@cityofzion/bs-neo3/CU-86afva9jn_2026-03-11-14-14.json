@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Apply new vote, claim, transfer, transaction and explorer interfaces and types",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

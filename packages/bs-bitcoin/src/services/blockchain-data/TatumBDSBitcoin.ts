@@ -111,8 +111,6 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
       type: 'default',
       view: 'utxo',
       block: transaction.blockNumber!,
-      invocationCount: 0,
-      notificationCount: 0,
       date: new Date(transaction.time * 1000).toJSON(),
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transaction.fee, feeDecimals), {
         decimals: feeDecimals,

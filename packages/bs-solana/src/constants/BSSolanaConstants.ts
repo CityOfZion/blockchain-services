@@ -2,7 +2,7 @@ import { BSCommonConstants, TBSNetwork, TBSToken } from '@cityofzion/blockchain-
 import type { TBSSolanaNetworkId } from '../types'
 
 export class BSSolanaConstants {
-  static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/501'/?'/0'"
+  static readonly DEFAULT_BIP_DERIVATION_PATH = "m/44'/501'/?'/0'"
 
   static readonly NATIVE_TOKEN: TBSToken = { symbol: 'SOL', name: 'SOL', decimals: 9, hash: '-' }
 

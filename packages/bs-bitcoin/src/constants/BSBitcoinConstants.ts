@@ -4,7 +4,7 @@ import type { TBSBitcoinNetworkId } from '../types'
 export class BSBitcoinConstants {
   static readonly #API_URL = 'https://api.tatum.io'
 
-  static readonly BIP84_DERIVATION_PATHS_BY_NETWORK_ID: Record<TBSBitcoinNetworkId, string> = {
+  static readonly BIP_DERIVATION_PATHS_BY_NETWORK_ID: Record<TBSBitcoinNetworkId, string> = {
     mainnet: "m/84'/0'/0'/0/?",
     testnet: "m/84'/1'/0'/0/?",
   }

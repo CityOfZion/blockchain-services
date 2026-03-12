@@ -11,29 +11,29 @@ describe('StellarChainESStellar', () => {
   })
 
   it('Should return the transaction url', async () => {
-    const transactionHash = '000'
+    const transactionHash = '0000'
     const url = stellarChainESStellar.buildTransactionUrl(transactionHash)
     expect(url).toBe(`https://testnet.stellarchain.io/transactions/${transactionHash}`)
   })
 
   it('Should return the contract url', async () => {
-    const contractHash = '000'
+    const contractHash = '0000'
     const url = stellarChainESStellar.buildContractUrl(contractHash)
-    expect(url).toBe(`https://testnet.stellarchain.io/contracts/${contractHash}`)
+    expect(url).toBe(`https://testnet.stellarchain.io/address/${contractHash}`)
   })
 
   it('Should return an address template URL when call the getAddressTemplateUrl method', () => {
     const templateUrl = stellarChainESStellar.getAddressTemplateUrl()
-    expect(templateUrl).toBe(`https://testnet.stellarchain.io/accounts/{address}`)
+    expect(templateUrl).toBe(`https://testnet.stellarchain.io/address/{address}`)
   })
 
-  it('Should return a transaction template URL when call the getTxTemplateUrl method', () => {
-    const templateUrl = stellarChainESStellar.getTxTemplateUrl()
+  it('Should return a transaction template URL when call the getTransactionTemplateUrl method', () => {
+    const templateUrl = stellarChainESStellar.getTransactionTemplateUrl()
     expect(templateUrl).toBe(`https://testnet.stellarchain.io/transactions/{txId}`)
   })
 
   it('Should return a transaction template URL when call the getContractTemplateUrl method', () => {
     const templateUrl = stellarChainESStellar.getContractTemplateUrl()
-    expect(templateUrl).toBe(`https://testnet.stellarchain.io/contracts/{hash}`)
+    expect(templateUrl).toBe(`https://testnet.stellarchain.io/address/{hash}`)
   })
 })

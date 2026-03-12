@@ -1,8 +1,8 @@
 import { BSBigNumberHelper, BSError, type TBSAccount } from '@cityofzion/blockchain-service'
 
-import { BSNeo3 } from '../../BSNeo3'
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import { Neo3NeoXBridgeService } from '../../services/neo3-neox-bridge/Neo3NeoXBridgeService'
+import { BSNeo3 } from '../BSNeo3'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
+import { Neo3NeoXBridgeService } from '../services/neo3-neox-bridge/Neo3NeoXBridgeService'
 import { NeonInvoker } from '@cityofzion/neon-dappkit'
 import axios from 'axios'
 import { api } from '@cityofzion/dora-ts'

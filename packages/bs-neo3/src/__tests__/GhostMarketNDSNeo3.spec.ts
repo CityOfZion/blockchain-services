@@ -1,8 +1,8 @@
-import { BSNeo3 } from '../../BSNeo3'
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import { GhostMarketNDSNeo3 } from '../../services/nft-data/GhostMarketNDSNeo3'
+import { BSNeo3 } from '../BSNeo3'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
+import { GhostMarketNDSNeo3 } from '../services/nft-data/GhostMarketNDSNeo3'
 import { INftDataService } from '@cityofzion/blockchain-service'
-import { IBSNeo3 } from '../../types'
+import { IBSNeo3 } from '../types'
 
 describe('GhostMarketNDSNeo3', () => {
   let service: IBSNeo3<'test'>

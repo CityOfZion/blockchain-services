@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Improve claim, transfer, transaction and explorer interfaces and types",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

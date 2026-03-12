@@ -27,20 +27,24 @@ export class MempoolESBitcoin<N extends string> implements IExplorerService {
     return undefined
   }
 
+  #validateValueLength(value?: string): value is string {
+    return !!value?.length && value.length >= 4
+  }
+
   buildAddressUrl(address: string) {
-    if (!address?.length) return undefined
+    if (!this.#validateValueLength(address)) return undefined
 
     return this.getAddressTemplateUrl()?.replace('{address}', address)
   }
 
-  buildTransactionUrl(hash: string) {
-    if (!hash?.length) return undefined
+  buildTransactionUrl(transactionId: string) {
+    if (!this.#validateValueLength(transactionId)) return undefined
 
-    return this.getTxTemplateUrl()?.replace('{txId}', hash)
+    return this.getTransactionTemplateUrl()?.replace('{txId}', transactionId)
   }
 
   buildNftUrl({ tokenHash }: TBuildNftUrlParams) {
-    if (!tokenHash?.length) return undefined
+    if (!this.#validateValueLength(tokenHash)) return undefined
 
     return this.getNftTemplateUrl()?.replace('{tokenHash}', tokenHash)
   }
@@ -57,7 +61,7 @@ export class MempoolESBitcoin<N extends string> implements IExplorerService {
     return `${explorerUrl}/address/{address}`
   }
 
-  getTxTemplateUrl() {
+  getTransactionTemplateUrl() {
     const explorerUrl = this.#explorerUrl
 
     if (!explorerUrl) return undefined

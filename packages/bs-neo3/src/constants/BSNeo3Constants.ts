@@ -255,5 +255,5 @@ export class BSNeo3Constants {
 
   static readonly NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
 
-  static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/888'/0'/0/?"
+  static readonly DEFAULT_BIP_DERIVATION_PATH = "m/44'/888'/0'/0/?"
 }

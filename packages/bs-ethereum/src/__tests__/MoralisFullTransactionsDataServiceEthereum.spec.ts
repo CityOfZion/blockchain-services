@@ -21,8 +21,6 @@ const expectedResponse = {
       txIdUrl: expect.anything(),
       block: expect.any(Number),
       date: expect.any(String),
-      invocationCount: expect.any(Number),
-      notificationCount: expect.any(Number),
       networkFeeAmount: expect.anything(),
       type: expect.any(String),
       view: 'default',

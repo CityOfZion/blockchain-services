@@ -51,7 +51,7 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
     const items = response.data ?? []
     const nativeToken = BSEthereumHelper.getNativeAsset(this.#service.network)
 
-    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
+    const itemPromises = items.map(async ({ networkFeeAmount, ...item }, index) => {
       const txId = item.transactionID
 
       const newItem: TTransactionDefault<N> = {
@@ -59,13 +59,8 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
         txIdUrl: txId ? this.#service.explorerService.buildTransactionUrl(txId) : undefined,
         block: item.block,
         date: item.date,
-        invocationCount: item.invocationCount,
-        notificationCount: item.notificationCount,
         networkFeeAmount: networkFeeAmount
           ? BSBigNumberHelper.format(networkFeeAmount, { decimals: nativeToken.decimals })
-          : undefined,
-        systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: nativeToken.decimals })
           : undefined,
         events: [],
         type: 'default',

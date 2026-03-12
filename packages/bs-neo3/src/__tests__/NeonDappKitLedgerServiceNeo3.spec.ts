@@ -1,8 +1,8 @@
 import Transport from '@ledgerhq/hw-transport'
-import { NeonDappKitLedgerServiceNeo3 } from '../../services/ledger/NeonDappKitLedgerServiceNeo3'
-import { BSNeo3 } from '../../BSNeo3'
+import { NeonDappKitLedgerServiceNeo3 } from '../services/ledger/NeonDappKitLedgerServiceNeo3'
+import { BSNeo3 } from '../BSNeo3'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
+import { BSNeo3Constants } from '../constants/BSNeo3Constants'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
 let ledgerService: NeonDappKitLedgerServiceNeo3<'test'>

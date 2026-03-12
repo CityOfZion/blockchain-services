@@ -15,26 +15,30 @@ export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
     }
   }
 
-  buildTransactionUrl(hash: string): string | undefined {
-    if (!this.#baseUrl || !hash?.length) return undefined
-
-    return `${this.#baseUrl}/transaction/${this.#service.tokenService.normalizeHash(hash)}`
+  #validateValueLength(value?: string): value is string {
+    return !!value?.length && value.length >= 4
   }
 
-  buildContractUrl(contractHash: string): string | undefined {
-    if (!this.#baseUrl || !contractHash?.length) return undefined
+  buildTransactionUrl(transactionId: string) {
+    if (!this.#validateValueLength(transactionId)) return undefined
 
-    return `${this.#baseUrl}/asset/${this.#service.tokenService.normalizeHash(contractHash)}/page/1`
+    return this.getTransactionTemplateUrl()?.replace('{txId}', this.#service.tokenService.normalizeHash(transactionId))
   }
 
-  buildNftUrl(_params: TBuildNftUrlParams): string | undefined {
-    return undefined
+  buildContractUrl(contractHash: string) {
+    if (!this.#validateValueLength(contractHash)) return undefined
+
+    return this.getContractTemplateUrl()?.replace('{hash}', this.#service.tokenService.normalizeHash(contractHash))
   }
 
-  buildAddressUrl(address: string): string | undefined {
-    if (!this.#baseUrl || !address?.length) return undefined
+  buildNftUrl(_params: TBuildNftUrlParams) {
+    return this.getNftTemplateUrl()
+  }
 
-    return `${this.#baseUrl}/address/${address}`
+  buildAddressUrl(address: string) {
+    if (!this.#validateValueLength(address)) return undefined
+
+    return this.getAddressTemplateUrl()?.replace('{address}', address)
   }
 
   getAddressTemplateUrl() {
@@ -42,7 +46,7 @@ export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
     return `${this.#baseUrl}/address/{address}`
   }
 
-  getTxTemplateUrl() {
+  getTransactionTemplateUrl() {
     if (!this.#baseUrl) return undefined
     return `${this.#baseUrl}/transaction/{txId}`
   }

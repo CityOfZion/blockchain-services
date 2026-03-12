@@ -6,7 +6,7 @@ export class BSEthereumConstants {
 
   static readonly DEFAULT_GAS_LIMIT = 0x5208
 
-  static readonly DEFAULT_BIP44_DERIVATION_PATH = "m/44'/60'/0'/0/?"
+  static readonly DEFAULT_BIP_DERIVATION_PATH = "m/44'/60'/0'/0/?"
 
   static readonly NATIVE_SYMBOL_BY_NETWORK_ID: Record<TBSEthereumNetworkId, string> = {
     '1': 'ETH',

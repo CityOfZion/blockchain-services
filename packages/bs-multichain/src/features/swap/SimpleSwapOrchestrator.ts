@@ -7,9 +7,10 @@ import {
   type TSwapOrchestratorEvents,
   type TSwapLoadableValue,
   type TSwapMinMaxAmount,
-  type TSwapResult,
+  type TSwapResponse,
   type TSwapToken,
   type TSwapValidateValue,
+  BSError,
 } from '@cityofzion/blockchain-service'
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
@@ -406,7 +407,7 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
     await this.#recalculateValues([])
   }
 
-  async swap(): Promise<TSwapResult> {
+  async swap(): Promise<TSwapResponse<N>> {
     if (
       !this.#tokenToUse.value ||
       !this.#tokenToReceive.value ||
@@ -421,12 +422,12 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
       (this.#tokenToReceive.value.hasExtraId &&
         (!this.#extraIdToReceive.valid || !this.#extraIdToReceive.value?.trim()))
     ) {
-      throw new Error('Not all required fields are set')
+      throw new BSError('Not all required fields are set', 'MISSING_REQUIRED_FIELDS')
     }
 
-    const result: TSwapResult = {
+    const response: TSwapResponse<N> = {
       id: '',
-      txFrom: undefined,
+      transaction: undefined,
       log: undefined,
     }
 
@@ -440,12 +441,13 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
         extraIdToReceive: this.#extraIdToReceive.value,
       })
 
-      result.id = id
-      result.log = log
+      response.id = id
+      response.log = log
 
       const service = this.#blockchainServicesByName[this.#accountToUse.value.blockchain]
 
-      const [transactionHash] = await service.transfer({
+      // It'll always return one transaction because it has just one intent
+      const [transaction] = await service.transfer({
         senderAccount: this.#accountToUse.value,
         intents: [
           {
@@ -461,12 +463,12 @@ export class SimpleSwapOrchestrator<N extends string = string> implements ISwapO
         ],
       })
 
-      result.txFrom = transactionHash
+      response.transaction = transaction
     } catch {
       // empty
     }
 
-    return result
+    return response
   }
 
   async calculateFee(): Promise<string> {

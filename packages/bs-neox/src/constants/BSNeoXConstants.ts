@@ -9,13 +9,6 @@ export class BSNeoXConstants {
     hash: '0x',
   }
 
-  static readonly NEO_TOKEN: TBSToken = {
-    name: 'NEO',
-    symbol: 'NEO',
-    decimals: 18,
-    hash: '0xc28736dc83f4fd43d6fb832Fd93c3eE7bB26828f',
-  }
-
   static readonly ANTI_MEV_RPC_LIST_BY_NETWORK_ID: Record<TBSNeoXNetworkId, string[]> = {
     '47763': ['https://mainnet-5.rpc.banelabs.org'],
     '12227332': ['https://neoxt4seed5.ngd.network'],
@@ -33,14 +26,14 @@ export class BSNeoXConstants {
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeoXNetworkId> = {
     id: '47763',
-    name: 'NeoX Mainnet',
+    name: 'Neo X Mainnet',
     url: this.RPC_LIST_BY_NETWORK_ID['47763'][0],
     type: 'mainnet',
   }
 
   static readonly TESTNET_NETWORK: TBSNetwork<TBSNeoXNetworkId> = {
     id: '12227332',
-    name: 'NeoX Testnet',
+    name: 'Neo X Testnet',
     url: this.RPC_LIST_BY_NETWORK_ID['12227332'][0],
     type: 'testnet',
   }

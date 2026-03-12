@@ -66,14 +66,16 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
     transaction: solanaKit.Transaction,
     account: TBSAccount<N>
   ): Promise<solanaKit.Base64EncodedWireTransaction> {
-    if (!account.bipPath) throw new Error('TBSAccount must have bip44Path to sign with Ledger')
+    if (!account.bipPath) {
+      throw new Error('Account must have BIP path to sign with Ledger')
+    }
 
     const ledgerApp = new LedgerSolanaApp(transport)
 
     this.emitter?.emit('getSignatureStart')
 
-    const bip44Path = BSKeychainHelper.removeMasterKeyFromBipPath(account.bipPath)
-    const { signature } = await ledgerApp.signTransaction(bip44Path, Buffer.from(transaction.messageBytes))
+    const bipPath = BSKeychainHelper.removeMasterKeyFromBipPath(account.bipPath)
+    const { signature } = await ledgerApp.signTransaction(bipPath, Buffer.from(transaction.messageBytes))
 
     this.emitter?.emit('getSignatureEnd')
 

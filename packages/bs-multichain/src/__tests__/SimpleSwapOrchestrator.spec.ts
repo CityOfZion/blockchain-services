@@ -690,7 +690,7 @@ describe('SimpleSwapOrchestrator', () => {
     expect(result).toEqual(
       expect.objectContaining({
         id: expect.any(String),
-        txFrom: undefined,
+        transaction: undefined,
         log: expect.any(String),
       })
     )
@@ -750,7 +750,7 @@ describe('SimpleSwapOrchestrator', () => {
     expect(result).toEqual(
       expect.objectContaining({
         id: expect.any(String),
-        txFrom: undefined,
+        transaction: undefined,
         log: expect.any(String),
       })
     )

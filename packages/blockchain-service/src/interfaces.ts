@@ -73,7 +73,7 @@ export interface IBlockchainService<N extends string, A extends string = string>
   generateAccountFromKey(key: string): Promise<TBSAccount<N>>
   validateAddress(address: string): boolean
   validateKey(key: string): boolean
-  transfer(param: TTransferParams<N>): Promise<string[]>
+  transfer(params: TTransferParams<N>): Promise<TTransaction<N>[]>
 }
 
 export interface IBSWithEncryption<N extends string> {
@@ -83,7 +83,7 @@ export interface IBSWithEncryption<N extends string> {
 }
 
 export interface IBSWithFee<N extends string> {
-  calculateTransferFee(param: TTransferParams<N>): Promise<string>
+  calculateTransferFee(params: TTransferParams<N>): Promise<string>
 }
 
 export interface IBSWithClaim<N extends string> {
@@ -92,7 +92,8 @@ export interface IBSWithClaim<N extends string> {
 
   claimDataService: IClaimDataService
 
-  claim(account: TBSAccount<N>): Promise<string>
+  calculateClaimFee(account: TBSAccount<N>): Promise<string>
+  claim(account: TBSAccount<N>): Promise<TTransaction<N>>
 }
 export interface IBSWithNameService {
   resolveNameServiceDomain(domainName: string): Promise<string>
@@ -167,6 +168,14 @@ export type TTransactionDefaultType = {
   type: 'default'
 }
 
+export type TTransactionVoteType = {
+  type: 'vote'
+}
+
+export type TTransactionClaimType = {
+  type: 'claim'
+}
+
 export type TTransactionBridgeNeo3NeoXType<N extends string> = {
   type: 'bridgeNeo3NeoX'
   data: {
@@ -186,13 +195,13 @@ export type TTransactionInputOutput = {
 type TTransactionBase<N extends string> = {
   txId: string
   txIdUrl?: string
-  block: number
+  block?: number
   date: string
-  invocationCount: number
-  notificationCount: number
+  invocationCount?: number
+  notificationCount?: number
   networkFeeAmount?: string
   systemFeeAmount?: string
-} & (TTransactionDefaultType | TTransactionBridgeNeo3NeoXType<N>)
+} & (TTransactionDefaultType | TTransactionVoteType | TTransactionClaimType | TTransactionBridgeNeo3NeoXType<N>)
 
 export type TTransactionDefault<N extends string> = TTransactionBase<N> & {
   view: 'default'
@@ -345,11 +354,11 @@ export type TBuildNftUrlParams = {
 
 export interface IExplorerService {
   buildAddressUrl(address: string): string | undefined
-  buildTransactionUrl(hash: string): string | undefined
+  buildTransactionUrl(transactionId: string): string | undefined
   buildNftUrl(params: TBuildNftUrlParams): string | undefined
   buildContractUrl(contractHash: string): string | undefined
   getAddressTemplateUrl(): string | undefined
-  getTxTemplateUrl(): string | undefined
+  getTransactionTemplateUrl(): string | undefined
   getNftTemplateUrl(): string | undefined
   getContractTemplateUrl(): string | undefined
 }
@@ -404,9 +413,9 @@ export type TSwapOrchestratorEvents<N extends string> = {
   error: (error: string) => void | Promise<void>
 }
 
-export type TSwapResult = {
+export type TSwapResponse<N extends string> = {
   id: string
-  txFrom?: string
+  transaction?: TTransaction<N>
   log?: string
 }
 
@@ -429,7 +438,7 @@ export interface ISwapOrchestrator<N extends string> {
   setTokenToReceive(token: TSwapToken<N> | null): Promise<void>
   setAddressToReceive(address: string | null): Promise<void>
   setExtraIdToReceive(extraId: string | null): Promise<void>
-  swap(): Promise<TSwapResult>
+  swap(): Promise<TSwapResponse<N>>
   calculateFee(): Promise<string>
 }
 

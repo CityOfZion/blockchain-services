@@ -46,7 +46,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
     const transactions: TTransactionDefault<N>[] = []
     const items = response.data ?? []
 
-    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
+    const itemPromises = items.map(async ({ networkFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
@@ -55,13 +55,8 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
         txIdUrl,
         block: item.block,
         date: item.date,
-        invocationCount: item.invocationCount,
-        notificationCount: item.notificationCount,
         networkFeeAmount: networkFeeAmount
           ? BSBigNumberHelper.format(networkFeeAmount, { decimals: BSNeoXConstants.NATIVE_ASSET.decimals })
-          : undefined,
-        systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: BSNeoXConstants.NATIVE_ASSET.decimals })
           : undefined,
         events: [],
         type: 'default',

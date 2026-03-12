@@ -23,18 +23,18 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
   #transport: Transport
   #emitter?: TLedgerServiceEmitter
-  #bip44Path: string
+  #bipPath: string
   #ledgerApp: LedgerEthereumApp
 
   constructor(
     transport: Transport,
-    bip44Path: string,
+    bipPath: string,
     provider?: ethers.providers.Provider,
     emitter?: TLedgerServiceEmitter
   ) {
     super()
 
-    this.#bip44Path = bip44Path
+    this.#bipPath = bipPath
     this.#transport = transport
     this.#emitter = emitter
     this.#ledgerApp = new LedgerEthereumApp(transport)
@@ -43,11 +43,11 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
   }
 
   connect(provider: ethers.providers.Provider): EthersLedgerSigner {
-    return new EthersLedgerSigner(this.#transport, this.#bip44Path, provider, this.#emitter)
+    return new EthersLedgerSigner(this.#transport, this.#bipPath, provider, this.#emitter)
   }
 
   async getAddress(): Promise<string> {
-    const { address } = await BSUtilsHelper.retry(() => this.#ledgerApp.getAddress(this.#bip44Path), {
+    const { address } = await BSUtilsHelper.retry(() => this.#ledgerApp.getAddress(this.#bipPath), {
       shouldRetry: EthersLedgerSigner.shouldRetry,
     })
 
@@ -62,7 +62,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       this.#emitter?.emit('getSignatureStart')
 
-      const obj = await this.#ledgerApp.signPersonalMessage(this.#bip44Path, ethers.utils.hexlify(message).substring(2))
+      const obj = await this.#ledgerApp.signPersonalMessage(this.#bipPath, ethers.utils.hexlify(message).substring(2))
 
       this.#emitter?.emit('getSignatureEnd')
 
@@ -89,11 +89,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       this.#emitter?.emit('getSignatureStart')
 
-      const signature = await this.#ledgerApp.signTransaction(
-        this.#bip44Path,
-        serializedUnsignedTransaction,
-        resolution
-      )
+      const signature = await this.#ledgerApp.signTransaction(this.#bipPath, serializedUnsignedTransaction, resolution)
 
       this.#emitter?.emit('getSignatureEnd')
 
@@ -133,7 +129,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
       let obj: { v: number; s: string; r: string }
 
       try {
-        obj = await this.#ledgerApp.signEIP712Message(this.#bip44Path, payload)
+        obj = await this.#ledgerApp.signEIP712Message(this.#bipPath, payload)
       } catch {
         const domainSeparatorHex = ethers.utils._TypedDataEncoder.hashDomain(payload.domain)
         const hashStructMessageHex = ethers.utils._TypedDataEncoder.hashStruct(
@@ -141,7 +137,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
           types,
           payload.message
         )
-        obj = await this.#ledgerApp.signEIP712HashedMessage(this.#bip44Path, domainSeparatorHex, hashStructMessageHex)
+        obj = await this.#ledgerApp.signEIP712HashedMessage(this.#bipPath, domainSeparatorHex, hashStructMessageHex)
       }
 
       this.#emitter?.emit('getSignatureEnd')

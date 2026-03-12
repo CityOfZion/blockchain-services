@@ -14,8 +14,8 @@ describe('BlockscoutESNeoX', () => {
     expect(templateUrl).toBe('https://xexplorer.neo.org/address/{address}')
   })
 
-  it('Should return a transaction template URL (Mainnet) when call the getTxTemplateUrl method with a Mainnet network', () => {
-    const templateUrl = blockscoutESEthereum.getTxTemplateUrl()
+  it('Should return a transaction template URL (Mainnet) when call the getTransactionTemplateUrl method with a Mainnet network', () => {
+    const templateUrl = blockscoutESEthereum.getTransactionTemplateUrl()
 
     expect(templateUrl).toBe('https://xexplorer.neo.org/tx/{txId}')
   })

@@ -62,8 +62,6 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
         txIdUrl,
         block: item.block,
         date: item.date,
-        invocationCount: item.invocationCount,
-        notificationCount: item.notificationCount,
         networkFeeAmount: networkFeeAmount
           ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#service.feeToken.decimals })
           : undefined,

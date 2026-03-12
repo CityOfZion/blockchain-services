@@ -122,7 +122,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     const invoker = await NeonInvoker.init({
       rpcAddress: this.#service.network.url,
       account: neonJsAccount,
-      signingCallback: signingCallback,
+      signingCallback,
     })
 
     const contractInvocation: ContractInvocation = {

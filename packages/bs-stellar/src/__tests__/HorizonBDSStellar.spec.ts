@@ -23,8 +23,6 @@ describe('HorizonBDSStellar', () => {
         txIdUrl: expect.any(String),
         block: expect.any(Number),
         date: expect.any(String),
-        invocationCount: expect.any(Number),
-        notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
         type: expect.any(String),
         view: 'default',
@@ -42,7 +40,6 @@ describe('HorizonBDSStellar', () => {
           to: expect.anything(),
           toUrl: expect.anything(),
           contractHash: expect.any(String),
-          contractHashUrl: expect.any(String),
           token: expect.objectContaining({
             decimals: expect.any(Number),
             symbol: expect.any(String),
@@ -67,8 +64,6 @@ describe('HorizonBDSStellar', () => {
           txIdUrl: expect.any(String),
           block: expect.any(Number),
           date: expect.any(String),
-          invocationCount: expect.any(Number),
-          notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
           type: expect.any(String),
           view: 'default',
@@ -86,7 +81,6 @@ describe('HorizonBDSStellar', () => {
             to: expect.anything(),
             toUrl: expect.anything(),
             contractHash: expect.any(String),
-            contractHashUrl: expect.any(String),
             token: expect.objectContaining({
               decimals: expect.any(Number),
               symbol: expect.any(String),
