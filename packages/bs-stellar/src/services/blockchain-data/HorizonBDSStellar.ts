@@ -85,34 +85,34 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
       events.splice(index, 0, {
         eventType: 'token',
         amount: BSBigNumberHelper.format(amountBn, { decimals: token.decimals }),
-        to,
-        toUrl,
+        methodName,
         from,
         fromUrl,
-        contractHash: token.hash,
-        contractHashUrl: this.#service.explorerService.buildContractUrl(token.hash),
-        methodName,
+        to,
+        toUrl,
         tokenType,
+        tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
         token,
       })
     })
 
     await Promise.allSettled(promises)
 
-    const txIdUrl = this.#service.explorerService.buildTransactionUrl(transaction.hash)
+    const txId = transaction.hash
+    const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
     return {
-      block: transaction.ledger_attr,
-      txId: transaction.hash,
+      txId,
       txIdUrl,
+      block: transaction.ledger_attr,
       date: new Date(transaction.created_at).toJSON(),
-      type: 'default',
-      view: 'default',
-      events,
       networkFeeAmount: BSBigNumberHelper.format(
         BSBigNumberHelper.fromDecimals(transaction.fee_charged, this.#service.feeToken.decimals),
         { decimals: this.#service.feeToken.decimals }
       ),
+      type: 'default',
+      view: 'default',
+      events,
     }
   }
 

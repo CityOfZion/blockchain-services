@@ -154,9 +154,8 @@ export type TTransactionTokenEvent = {
   to?: string
   toUrl?: string
   tokenType: TTransactionEventTokenType
+  tokenUrl?: string
   token?: TBSToken
-  contractHash: string
-  contractHashUrl?: string
 }
 
 export type TTransactionDefaultType = {

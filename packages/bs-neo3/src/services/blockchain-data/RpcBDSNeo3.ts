@@ -49,22 +49,21 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
 
       if (isAsset) {
         const token = await this.getTokenInfo(contractHash)
-        const amount = properties[2].value as string
+        const amount = properties[2].value || '0'
 
         events.splice(index, 0, {
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount ?? 0, token.decimals), {
+          eventType: 'token',
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount, token.decimals), {
             decimals: token.decimals,
           }),
+          methodName: 'transfer',
           from: convertedFrom,
           fromUrl,
           to: convertedTo,
           toUrl,
-          contractHash,
-          contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
-          eventType: 'token',
-          token,
           tokenType: 'nep-17',
-          methodName: 'transfer',
+          tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
+          token,
         })
 
         return
@@ -78,8 +77,8 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
 
       events.splice(index, 0, {
         eventType: 'nft',
-        methodName: 'transfer',
         amount: '1',
+        methodName: 'transfer',
         from: convertedFrom,
         fromUrl,
         to: convertedTo,
@@ -145,12 +144,14 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
 
       const events = await this._extractEventsFromNotifications(notifications)
 
-      const txIdUrl = this._service.explorerService.buildTransactionUrl(response.hash)
+      const txId = response.hash
+      const txIdUrl = this._service.explorerService.buildTransactionUrl(txId)
 
       let transaction: TTransactionDefault<N> = {
-        txId: response.hash,
+        txId,
         txIdUrl,
         block: response.validuntilblock,
+        date: new Date(Number(response.blocktime) * 1000).toJSON(),
         systemFeeAmount: BSBigNumberHelper.format(
           BSBigNumberHelper.fromDecimals(response.sysfee ?? 0, this._service.feeToken.decimals),
           {
@@ -165,10 +166,9 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
         ),
         invocationCount: 0,
         notificationCount: notifications.length,
-        events,
-        date: new Date(Number(response.blocktime) * 1000).toJSON(),
         type: 'default',
         view: 'default',
+        events,
       }
 
       const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)

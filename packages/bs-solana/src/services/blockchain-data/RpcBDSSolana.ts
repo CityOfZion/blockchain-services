@@ -69,8 +69,8 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
     const contractHash = info.mint
     const tokenAmount = info.tokenAmount.amount
-
     let [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
+
     if (!token) {
       token = {
         symbol: 'UNKNOWN',
@@ -96,6 +96,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     const to = destinationAccountInfoParsedData.owner
 
     const isNft = token.decimals === 0 && tokenAmount === '1'
+
     const fromUrl = this.#service.explorerService.buildAddressUrl(from)
     const toUrl = this.#service.explorerService.buildAddressUrl(to)
 
@@ -104,8 +105,8 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
       return {
         eventType: 'nft',
-        methodName: 'transferChecked',
         amount: '1',
+        methodName: 'transferChecked',
         from,
         fromUrl,
         to,
@@ -121,15 +122,14 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     return {
       eventType: 'token',
       amount,
-      contractHash,
-      contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
+      methodName: 'transferChecked',
       from,
       fromUrl,
       to,
       toUrl,
-      token,
-      methodName: 'transferChecked',
       tokenType: 'spl',
+      tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+      token,
     }
   }
 
@@ -147,8 +147,8 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     if (!sourceAccountInfoParsedData.mint || !sourceAccountInfoParsedData.owner) return
 
     const contractHash = sourceAccountInfoParsedData.mint
-
     let [token] = await BSUtilsHelper.tryCatch(() => this.getTokenInfo(contractHash))
+
     if (!token) {
       token = {
         symbol: 'UNKNOWN',
@@ -177,8 +177,8 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
       return {
         eventType: 'nft',
-        methodName: 'transfer',
         amount: '1',
+        methodName: 'transfer',
         from,
         fromUrl,
         to,
@@ -193,15 +193,14 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
     return {
       eventType: 'token',
-      tokenType: 'spl',
+      amount,
       methodName: 'transfer',
       from,
       fromUrl,
       to,
       toUrl,
-      contractHash,
-      contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
-      amount,
+      tokenType: 'spl',
+      tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
       token,
     }
   }
@@ -219,19 +218,17 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
 
     const from = info.source
     const to = info.destination
-    const contractHash = BSSolanaConstants.NATIVE_TOKEN.hash
 
     return {
       eventType: 'token',
       amount,
       methodName: 'transfer',
-      tokenType: 'native',
       from,
       fromUrl: this.#service.explorerService.buildAddressUrl(from),
       to,
       toUrl: this.#service.explorerService.buildAddressUrl(to),
-      contractHash,
-      contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
+      tokenType: 'native',
+      tokenUrl: this.#service.explorerService.buildContractUrl(BSSolanaConstants.NATIVE_TOKEN.hash),
       token: BSSolanaConstants.NATIVE_TOKEN,
     }
   }
@@ -282,17 +279,17 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
     const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
     return {
-      block: BSBigNumberHelper.fromNumber(block).toNumber(),
       txId,
       txIdUrl,
+      block: BSBigNumberHelper.fromNumber(block).toNumber(),
+      date: new Date(BSBigNumberHelper.fromNumber(blockTime).multipliedBy(1000).toNumber()).toJSON(),
       networkFeeAmount: BSBigNumberHelper.format(
         BSBigNumberHelper.fromDecimals(transaction.meta.fee, this.#service.feeToken.decimals),
         { decimals: this.#service.feeToken.decimals }
       ),
-      date: new Date(BSBigNumberHelper.fromNumber(blockTime).multipliedBy(1000).toNumber()).toJSON(),
-      events,
       type: 'default',
       view: 'default',
+      events,
     }
   }
 

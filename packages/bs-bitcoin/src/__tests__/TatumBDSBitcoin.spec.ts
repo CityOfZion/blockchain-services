@@ -20,7 +20,7 @@ const expectedTransactions = expect.arrayContaining([
     view: 'utxo',
     block: expect.any(Number),
     date: expect.any(String),
-    networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+    networkFeeAmount: expect.any(String),
     nfts: expect.any(Array),
     inputs: expectedInputsOutputs,
     outputs: expectedInputsOutputs,

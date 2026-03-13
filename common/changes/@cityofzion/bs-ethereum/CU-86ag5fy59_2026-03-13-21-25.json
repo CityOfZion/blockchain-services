@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Remove contractHash and rename contractHashUrl to tokenUrl from token event type",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

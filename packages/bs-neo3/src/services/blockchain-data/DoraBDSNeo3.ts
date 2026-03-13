@@ -92,15 +92,16 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
       })
     )
 
-    const txIdUrl = this._service.explorerService.buildTransactionUrl(response.hash)
+    const txId = response.hash
+    const txIdUrl = this._service.explorerService.buildTransactionUrl(txId)
 
     const events = await this._extractEventsFromNotifications(notifications)
 
     let transaction: TTransactionDefault<N> = {
+      txId,
+      txIdUrl,
       block: response.block,
       date: new Date(Number(response.time) * 1000).toJSON(),
-      txId: response.hash,
-      txIdUrl,
       systemFeeAmount: BSBigNumberHelper.format(
         BSBigNumberHelper.fromDecimals(response.sysfee ?? 0, this._service.feeToken.decimals),
         { decimals: this._service.feeToken.decimals }
@@ -109,11 +110,11 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
         BSBigNumberHelper.fromDecimals(response.netfee ?? 0, this._service.feeToken.decimals),
         { decimals: this._service.feeToken.decimals }
       ),
-      events,
       invocationCount: 0,
       notificationCount: 0,
       type: 'default',
       view: 'default',
+      events,
     }
 
     const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)
@@ -146,13 +147,14 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
       const events = await this._extractEventsFromNotifications(notifications)
 
-      const txIdUrl = this._service.explorerService.buildTransactionUrl(item.hash)
+      const txId = item.hash
+      const txIdUrl = this._service.explorerService.buildTransactionUrl(txId)
 
       let transaction: TTransactionDefault<N> = {
+        txId,
+        txIdUrl,
         block: item.block,
         date: new Date(Number(item.time) * 1000).toJSON(),
-        txId: item.hash,
-        txIdUrl,
         systemFeeAmount: BSBigNumberHelper.format(
           BSBigNumberHelper.fromDecimals(item.sysfee ?? 0, this._service.feeToken.decimals),
           { decimals: this._service.feeToken.decimals }
@@ -161,11 +163,11 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
           BSBigNumberHelper.fromDecimals(item.netfee ?? 0, this._service.feeToken.decimals),
           { decimals: this._service.feeToken.decimals }
         ),
-        events,
         invocationCount: 0,
         notificationCount: notifications?.length ?? 0,
         type: 'default',
         view: 'default',
+        events,
       }
 
       const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)

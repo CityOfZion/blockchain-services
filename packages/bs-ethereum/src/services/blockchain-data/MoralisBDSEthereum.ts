@@ -160,15 +160,14 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(data.value, nativeToken.decimals), {
           decimals: nativeToken.decimals,
         }),
-        from: data.from_address,
-        to: data.to_address,
-        token: nativeToken,
-        contractHash: nativeToken.hash,
-        tokenType: 'native',
         methodName: 'transfer',
-        contractHashUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
+        from: data.from_address,
         fromUrl,
+        to: data.to_address,
         toUrl,
+        tokenType: 'native',
+        tokenUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
+        token: nativeToken,
       })
     }
 
@@ -179,30 +178,30 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         const contractHash = log.address
         const amount = log.decoded_event.params.find((param: any) => param.name === 'value')?.value
-        const from = log.decoded_event.params.find((param: any) => param.name === 'from')?.value
-        const to = log.decoded_event.params.find((param: any) => param.name === 'to')?.value
+        const from = log.decoded_event.params.find((param: any) => param.name === 'from')?.value || data.from_address
+        const to = log.decoded_event.params.find((param: any) => param.name === 'to')?.value || data.to_address
 
         if (!from || !to) return
 
-        const fromUrl = this._service.explorerService.buildAddressUrl(data.from_address)
-        const toUrl = this._service.explorerService.buildAddressUrl(data.to_address)
+        const fromUrl = this._service.explorerService.buildAddressUrl(from)
+        const toUrl = this._service.explorerService.buildAddressUrl(to)
 
         if (amount) {
           const token = await this.getTokenInfo(contractHash)
 
           events.push({
-            contractHash,
+            eventType: 'token',
             amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount, token.decimals), {
               decimals: token.decimals,
             }),
+            methodName: 'transfer',
             from,
             fromUrl,
             to,
             toUrl,
-            eventType: 'token',
-            methodName: 'transfer',
             tokenType: 'erc-20',
-            contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
+            tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
+            token,
           })
         }
 
@@ -215,8 +214,8 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         events.push({
           eventType: 'nft',
-          methodName: 'transfer',
           amount: '1',
+          methodName: 'transfer',
           from,
           fromUrl,
           to,
@@ -231,15 +230,15 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
     return {
       txId: hash,
+      txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       block: Number(data.block_number),
       date: new Date(data.block_timestamp).toJSON(),
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.transaction_fee), {
         decimals: this._service.feeToken.decimals,
       }),
-      txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
-      events,
       type: 'default',
       view: 'default',
+      events,
     }
   }
 
@@ -268,19 +267,18 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         const toUrl = this._service.explorerService.buildAddressUrl(transfer.to_address)
 
         events.push({
+          eventType: 'token',
           amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, nativeAsset.decimals), {
             decimals: nativeAsset.decimals,
           }),
+          methodName: 'transfer',
           from: transfer.from_address,
           fromUrl,
           to: transfer.to_address,
           toUrl,
-          eventType: 'token',
-          token: nativeAsset,
-          contractHash: nativeAsset.hash,
-          methodName: 'transfer',
           tokenType: 'native',
-          contractHashUrl: this._service.explorerService.buildContractUrl(nativeAsset.hash),
+          tokenUrl: this._service.explorerService.buildContractUrl(nativeAsset.hash),
+          token: nativeAsset,
         })
       })
 
@@ -289,26 +287,27 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         const fromUrl = this._service.explorerService.buildAddressUrl(transfer.from_address)
         const toUrl = this._service.explorerService.buildAddressUrl(transfer.to_address)
+        const tokenHash = transfer.address
+        const tokenDecimals = transfer.token_decimals
 
         events.push({
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, transfer.token_decimals), {
-            decimals: transfer.token_decimals,
+          eventType: 'token',
+          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, tokenDecimals), {
+            decimals: tokenDecimals,
           }),
+          methodName: 'transfer',
           from: transfer.from_address,
           fromUrl,
           to: transfer.to_address,
           toUrl,
-          eventType: 'token',
+          tokenType: 'erc-20',
+          tokenUrl: this._service.explorerService.buildContractUrl(tokenHash),
           token: this._service.tokenService.normalizeToken({
-            decimals: Number(transfer.token_decimals),
-            hash: transfer.address,
+            decimals: Number(tokenDecimals),
+            hash: tokenHash,
             name: transfer.token_name,
             symbol: transfer.token_symbol,
           }),
-          contractHash: transfer.address,
-          methodName: 'transfer',
-          tokenType: 'erc-20',
-          contractHashUrl: this._service.explorerService.buildContractUrl(transfer.address),
         })
       })
 
@@ -323,8 +322,8 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         events.push({
           eventType: 'nft',
-          methodName: 'transfer',
           amount: '1',
+          methodName: 'transfer',
           from: transfer.from_address,
           fromUrl,
           to: transfer.to_address,
@@ -337,16 +336,16 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       await Promise.allSettled(nftPromises)
 
       transactions.splice(index, 0, {
-        block: Number(item.block_number),
         txId: item.hash,
         txIdUrl: this._service.explorerService.buildTransactionUrl(item.hash),
+        block: Number(item.block_number),
+        date: new Date(item.block_timestamp).toJSON(),
         networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(item.transaction_fee), {
           decimals: this._service.feeToken.decimals,
         }),
-        date: new Date(item.block_timestamp).toJSON(),
-        events,
         type: 'default',
         view: 'default',
+        events,
       })
     })
 
