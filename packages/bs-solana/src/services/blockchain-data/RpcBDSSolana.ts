@@ -111,7 +111,6 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
         to,
         toUrl,
         tokenType: 'spl',
-        tokenHash: contractHash,
         nft,
       }
     }
@@ -185,7 +184,6 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
         to,
         toUrl,
         tokenType: 'spl',
-        tokenHash: contractHash,
         nft,
       }
     }

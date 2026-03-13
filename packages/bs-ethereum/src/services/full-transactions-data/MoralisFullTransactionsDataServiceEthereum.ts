@@ -93,7 +93,6 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
             to,
             toUrl,
             tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
-            tokenHash,
             nft,
           })
 

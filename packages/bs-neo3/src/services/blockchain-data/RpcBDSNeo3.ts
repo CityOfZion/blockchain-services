@@ -85,7 +85,6 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
         to: convertedTo,
         toUrl,
         tokenType: 'nep-11',
-        tokenHash,
         nft,
       })
     })

@@ -222,7 +222,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           to,
           toUrl,
           tokenType: 'erc-721',
-          tokenHash,
           nft,
         })
       })
@@ -331,7 +330,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           to: transfer.to_address,
           toUrl,
           tokenType: 'erc-721',
-          tokenHash,
           nft,
         })
       })

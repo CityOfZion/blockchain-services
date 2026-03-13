@@ -149,7 +149,6 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             to,
             toUrl,
             tokenType: 'erc-721',
-            tokenHash,
             nft,
           })
         }

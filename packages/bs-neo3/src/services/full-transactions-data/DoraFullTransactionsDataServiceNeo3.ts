@@ -100,7 +100,6 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
             to,
             toUrl,
             tokenType: 'nep-11',
-            tokenHash,
             nft,
           })
 

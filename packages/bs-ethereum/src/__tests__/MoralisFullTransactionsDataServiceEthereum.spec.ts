@@ -349,7 +349,6 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
             to: expect.anything(),
             toUrl: expect.anything(),
             tokenType: expect.any(String),
-            tokenHash: expect.any(String),
             nft: expect.anything(),
           }),
         ])
