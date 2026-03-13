@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-bitcoin",
+      "comment": "Remove tokenHash in NFT event",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-bitcoin"
+}

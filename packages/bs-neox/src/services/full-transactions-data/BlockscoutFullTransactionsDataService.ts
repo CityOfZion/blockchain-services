@@ -92,7 +92,6 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
             to,
             toUrl,
             tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
-            tokenHash,
             nft,
           })
 

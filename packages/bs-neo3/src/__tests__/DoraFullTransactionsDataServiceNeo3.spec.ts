@@ -286,7 +286,6 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             to: expect.anything(),
             toUrl: expect.anything(),
             tokenType: 'nep-11',
-            tokenHash: expect.any(String),
             nft: expect.anything(),
           }),
         ])

@@ -256,7 +256,6 @@ describe('BlockscoutFullTransactionsDataService', () => {
             to: expect.anything(),
             toUrl: expect.anything(),
             tokenType: 'generic',
-            tokenHash: expect.any(String),
             nft: expect.anything(),
           }),
         ])

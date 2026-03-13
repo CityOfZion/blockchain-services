@@ -131,6 +131,8 @@ export type TGetTransactionsByAddressParams = {
   nextPageParams?: any
 }
 
+type TTransactionEventTokenType = 'generic' | (string & NonNullable<unknown>)
+
 export type TTransactionNftEvent = {
   eventType: 'nft'
   methodName?: string
@@ -139,8 +141,7 @@ export type TTransactionNftEvent = {
   fromUrl?: string
   to?: string
   toUrl?: string
-  tokenType: 'generic' | (string & NonNullable<unknown>)
-  tokenHash?: string
+  tokenType: TTransactionEventTokenType
   nft?: TNftResponse
 }
 
@@ -148,14 +149,14 @@ export type TTransactionTokenEvent = {
   eventType: 'token'
   methodName?: string
   amount?: string
-  contractHash: string
-  contractHashUrl?: string
   from?: string
   fromUrl?: string
   to?: string
   toUrl?: string
+  tokenType: TTransactionEventTokenType
   token?: TBSToken
-  tokenType: 'generic' | (string & NonNullable<unknown>)
+  contractHash: string
+  contractHashUrl?: string
 }
 
 export type TTransactionDefaultType = {
