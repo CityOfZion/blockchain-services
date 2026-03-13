@@ -79,19 +79,18 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       const toUrl = this._service.explorerService.buildAddressUrl(to)
 
       events.splice(0, 0, {
+        eventType: 'token',
         amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(response.value, nativeToken.decimals), {
           decimals: nativeToken.decimals,
         }),
+        methodName: 'transfer',
         from,
         fromUrl,
         to,
         toUrl,
-        eventType: 'token',
-        contractHash: nativeToken.hash,
-        contractHashUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
-        token: nativeToken,
-        methodName: 'transfer',
         tokenType: 'native',
+        tokenUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
+        token: nativeToken,
       })
     }
 
@@ -99,33 +98,32 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     if (hasTokenTransfers) {
       const promises = response.token_transfers.map(async (tokenTransfer, currentIndex) => {
         const index = hasNativeTokenBeingTransferred ? currentIndex + 1 : currentIndex
+        const contractHash = tokenTransfer.token.address
         const from = tokenTransfer.from.hash
         const to = tokenTransfer.to.hash
-        const contractHash = tokenTransfer.token.address
         const fromUrl = this._service.explorerService.buildAddressUrl(from)
         const toUrl = this._service.explorerService.buildAddressUrl(to)
 
         if (tokenTransfer.token.type === 'ERC-20') {
           events.splice(index, 0, {
+            eventType: 'token',
             amount: BSBigNumberHelper.format(
               BSBigNumberHelper.fromDecimals(tokenTransfer.total.value, tokenTransfer.total.decimals),
               {
                 decimals: tokenTransfer.total.decimals,
               }
             ),
+            methodName: 'transfer',
             from,
             fromUrl,
             to,
             toUrl,
-            eventType: 'token',
-            contractHash,
-            contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
-            methodName: 'transfer',
             tokenType: 'erc-20',
+            tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
             token: this._service.tokenService.normalizeToken({
               symbol: tokenTransfer.token.symbol,
               name: tokenTransfer.token.name,
-              hash: tokenTransfer.token.address,
+              hash: contractHash,
               decimals: Number(tokenTransfer.total.decimals),
             }),
           })
@@ -142,8 +140,8 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
           events.splice(index, 0, {
             eventType: 'nft',
-            methodName: 'transfer',
             amount: '1',
+            methodName: 'transfer',
             from,
             fromUrl,
             to,
@@ -160,19 +158,19 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     const txId = response.hash
 
     let transaction: TTransactionDefault<N> = {
-      block: response.block,
       txId,
       txIdUrl: this._service.explorerService.buildContractUrl(txId),
-      events,
+      block: response.block,
+      date: new Date(response.timestamp).toJSON(),
       networkFeeAmount: BSBigNumberHelper.format(
         BSBigNumberHelper.fromDecimals(response.fee.value, this._service.feeToken.decimals),
         {
           decimals: this._service.feeToken.decimals,
         }
       ),
-      date: new Date(response.timestamp).toJSON(),
       type: 'default',
       view: 'default',
+      events,
     }
 
     if (to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH) {
@@ -212,25 +210,23 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       const hasNativeTokenBeingTransferred = item.value !== '0'
 
       if (hasNativeTokenBeingTransferred) {
-        const to = item.to?.hash
         const from = item.from.hash
-        const contractHash = nativeToken.hash
+        const to = item.to?.hash
         const fromUrl = this._service.explorerService.buildAddressUrl(from)
         const toUrl = this._service.explorerService.buildAddressUrl(to)
 
         events.push({
+          eventType: 'token',
           amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(item.value, nativeToken.decimals), {
             decimals: nativeToken.decimals,
           }),
-          from: item.from.hash,
+          methodName: 'transfer',
+          from,
           fromUrl,
           to,
           toUrl,
-          eventType: 'token',
-          methodName: 'transfer',
           tokenType: 'native',
-          contractHash: nativeToken.hash,
-          contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
+          tokenUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
           token: nativeToken,
         })
       }
@@ -240,34 +236,30 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       if (rawInput) {
         try {
           const ERC20Interface = new ethers.utils.Interface(ERC20_ABI)
-
           const result = ERC20Interface.decodeFunctionData('transfer', rawInput)
+
           if (!result) throw new Error('Invalid ERC20 transfer')
 
           const contractHash = item.to.hash
-
           const token = await this.getTokenInfo(contractHash)
-
           const from = item.from.hash
+          const fromUrl = this._service.explorerService.buildAddressUrl(from)
           const to = result[0]
+          const toUrl = this._service.explorerService.buildAddressUrl(to)
           const value = result[1]
 
-          const fromUrl = this._service.explorerService.buildAddressUrl(from)
-          const toUrl = this._service.explorerService.buildAddressUrl(to)
-
           events.push({
+            eventType: 'token',
             amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(value, token.decimals), {
               decimals: token.decimals,
             }),
-            from: item.from.hash,
+            methodName: 'transfer',
+            from,
             fromUrl,
             to,
             toUrl,
-            eventType: 'token',
-            methodName: 'transfer',
             tokenType: 'erc-20',
-            contractHash: token.hash,
-            contractHashUrl: this._service.explorerService.buildContractUrl(contractHash),
+            tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
             token,
           })
         } catch {
@@ -282,9 +274,9 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
       const txId = item.hash
 
       let transaction: TTransactionDefault<N> = {
-        block: item.block,
         txId,
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
+        block: item.block,
         date: new Date(item.timestamp).toJSON(),
         networkFeeAmount: BSBigNumberHelper.format(
           BSBigNumberHelper.fromDecimals(item.fee.value, this._service.feeToken.decimals),
@@ -292,9 +284,9 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             decimals: this._service.feeToken.decimals,
           }
         ),
-        events,
         type: 'default',
         view: 'default',
+        events,
       }
 
       const hasBridgeNeo3NeoXEvent = events.some(event => event.to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH)

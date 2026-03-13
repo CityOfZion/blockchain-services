@@ -32,26 +32,25 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     const from = vout[vout.length - 1]?.address
 
     const promises = vout.map(async (transfer, index) => {
-      const token = await this.getTokenInfo(transfer.asset)
+      const tokenHash = transfer.asset
+      const token = await this.getTokenInfo(tokenHash)
 
       const to = transfer.address
-      const contractHash = transfer.asset
 
       const fromUrl = this.#service.explorerService.buildAddressUrl(from)
       const toUrl = this.#service.explorerService.buildAddressUrl(to)
 
       events.splice(index, 0, {
+        eventType: 'token',
         amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(transfer.value), { decimals: token.decimals }),
+        methodName: 'transfer',
         from,
         fromUrl,
         to,
         toUrl,
-        contractHash,
-        contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
-        eventType: 'token',
-        token,
-        methodName: 'transfer',
         tokenType: 'nep-5',
+        tokenUrl: this.#service.explorerService.buildContractUrl(tokenHash),
+        token,
       })
     })
 
@@ -61,13 +60,13 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       txId: data.txid,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(data.txid),
       block: data.block,
+      date: new Date(Number(data.time) * 1000).toJSON(),
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.net_fee), {
         decimals: this.#service.feeToken.decimals,
       }),
       systemFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.sys_fee), {
         decimals: this.#service.feeToken.decimals,
       }),
-      date: new Date(Number(data.time) * 1000).toJSON(),
       type: 'default',
       view: 'default',
       events,
@@ -84,25 +83,24 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return
 
-      const from = entry.address_from ?? address
-      const to = entry.address_to ?? address
-
+      const from = entry.address_from || address
+      const to = entry.address_to || address
       const fromUrl = this.#service.explorerService.buildAddressUrl(from)
       const toUrl = this.#service.explorerService.buildAddressUrl(to)
-      const token = await this.getTokenInfo(entry.asset)
+      const tokenHash = entry.asset
+      const token = await this.getTokenInfo(tokenHash)
 
       const event: TTransactionTokenEvent = {
+        eventType: 'token',
         amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(entry.amount), { decimals: token.decimals }),
+        methodName: 'transfer',
         from,
         fromUrl,
         to,
         toUrl,
-        eventType: 'token',
-        contractHash: entry.asset,
-        contractHashUrl: this.#service.explorerService.buildContractUrl(entry.asset),
-        token,
-        methodName: 'transfer',
         tokenType: 'nep-5',
+        tokenUrl: this.#service.explorerService.buildContractUrl(tokenHash),
+        token,
       }
 
       const existingTransaction = transactions.get(entry.txid)
@@ -113,13 +111,13 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       }
 
       transactions.set(entry.txid, {
-        block: entry.block_height,
         txId: entry.txid,
-        date: new Date(entry.time).toJSON(),
-        events: [event],
         txIdUrl: this.#service.explorerService.buildTransactionUrl(entry.txid),
+        block: entry.block_height,
+        date: new Date(entry.time).toJSON(),
         type: 'default',
         view: 'default',
+        events: [event],
       })
     })
 

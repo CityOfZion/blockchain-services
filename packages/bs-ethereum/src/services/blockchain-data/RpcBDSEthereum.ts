@@ -62,6 +62,8 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
           decimals: this._service.feeToken.decimals,
         }
       ),
+      type: 'default',
+      view: 'default',
       events: [
         {
           eventType: 'token',
@@ -76,14 +78,11 @@ export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends 
           fromUrl,
           to: transaction.to,
           toUrl,
-          contractHash: token.hash,
-          contractHashUrl: this._service.explorerService.buildContractUrl(token.hash),
-          token: token ?? undefined,
           tokenType: 'native',
+          tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
+          token,
         },
       ],
-      type: 'default',
-      view: 'default',
     }
   }
 

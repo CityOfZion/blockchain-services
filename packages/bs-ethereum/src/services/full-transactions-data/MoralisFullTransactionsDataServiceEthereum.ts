@@ -56,15 +56,15 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
 
       const newItem: TTransactionDefault<N> = {
         txId,
-        txIdUrl: txId ? this.#service.explorerService.buildTransactionUrl(txId) : undefined,
+        txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
         block: item.block,
         date: item.date,
         networkFeeAmount: networkFeeAmount
           ? BSBigNumberHelper.format(networkFeeAmount, { decimals: nativeToken.decimals })
           : undefined,
-        events: [],
         type: 'default',
         view: 'default',
+        events: [],
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
@@ -86,8 +86,8 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
 
           newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
-            methodName,
             amount: '1',
+            methodName,
             from,
             fromUrl,
             to,
@@ -112,10 +112,9 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
           fromUrl,
           to,
           toUrl,
-          contractHash,
-          contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
-          token: token ?? undefined,
           tokenType: isErc20 ? 'erc-20' : 'generic',
+          tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+          token,
         })
       })
 

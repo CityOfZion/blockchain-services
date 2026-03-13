@@ -97,7 +97,6 @@ export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
     const invocationCount = cim.invocations.length
     const txId = await invoker.invokeFunction(cim)
     const token = BSNeo3Constants.NEO_TOKEN
-    const tokenHash = token.hash
     const feeDecimals = this._service.feeToken.decimals
 
     return {
@@ -114,10 +113,9 @@ export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
           eventType: 'token',
           amount: '0',
           methodName: 'vote',
-          contractHash: tokenHash,
-          contractHashUrl: this._service.explorerService.buildContractUrl(tokenHash),
-          token,
           tokenType: 'nep-17',
+          tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
+          token,
         },
       ],
     }

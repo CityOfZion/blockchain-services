@@ -249,8 +249,8 @@ describe('BlockscoutFullTransactionsDataService', () => {
         expect.arrayContaining([
           expect.objectContaining({
             eventType: 'nft',
-            methodName: expect.any(String),
             amount: '1',
+            methodName: expect.any(String),
             from: expect.anything(),
             fromUrl: expect.anything(),
             to: expect.anything(),

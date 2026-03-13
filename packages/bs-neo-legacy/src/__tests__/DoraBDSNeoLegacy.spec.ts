@@ -33,15 +33,14 @@ describe('DoraBDSNeoLegacy', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            contractHash: expect.any(String),
-            contractHashUrl: expect.any(String),
+            tokenType: expect.any(String),
+            tokenUrl: expect.any(String),
             token: expect.objectContaining({
               decimals: expect.any(Number),
               symbol: expect.any(String),
               name: expect.any(String),
               hash: expect.any(String),
             }),
-            tokenType: expect.any(String),
           }),
         ]),
       })
@@ -65,15 +64,14 @@ describe('DoraBDSNeoLegacy', () => {
             expect.objectContaining({
               eventType: expect.any(String),
               methodName: expect.any(String),
-              contractHash: expect.any(String),
-              contractHashUrl: expect.any(String),
+              tokenType: expect.any(String),
+              tokenUrl: expect.any(String),
               token: expect.objectContaining({
                 decimals: expect.any(Number),
                 symbol: expect.any(String),
                 name: expect.any(String),
                 hash: expect.any(String),
               }),
-              tokenType: expect.any(String),
             }),
           ]),
         })

@@ -72,9 +72,9 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
         systemFeeAmount: systemFeeAmount
           ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
           : undefined,
-        events: [],
         type: 'default',
         view: 'default',
+        events: [],
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
@@ -93,8 +93,8 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
 
           newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
-            methodName,
             amount: '1',
+            methodName,
             from,
             fromUrl,
             to,
@@ -120,10 +120,9 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
           fromUrl,
           to,
           toUrl,
-          contractHash,
-          contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
-          token: token ?? undefined,
           tokenType: 'nep-17',
+          tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+          token,
         })
 
         if (newItem.type === 'default' && contractName === 'NeoXBridge') {
@@ -132,6 +131,7 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
           if (!!log && log.vmstate === 'HALT') {
             const notifications = log.notifications as unknown as Notification[]
             const data = DoraBDSNeo3.getBridgeNeo3NeoXDataByNotifications(notifications ?? [], this.#service)
+
             if (data) newItem = { ...newItem, type: 'bridgeNeo3NeoX', data }
           }
         }

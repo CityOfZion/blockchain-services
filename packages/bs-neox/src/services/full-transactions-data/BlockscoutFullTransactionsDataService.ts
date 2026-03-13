@@ -58,9 +58,9 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
         networkFeeAmount: networkFeeAmount
           ? BSBigNumberHelper.format(networkFeeAmount, { decimals: BSNeoXConstants.NATIVE_ASSET.decimals })
           : undefined,
-        events: [],
         type: 'default',
         view: 'default',
+        events: [],
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
@@ -85,8 +85,8 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
 
           newItem.events.splice(eventIndex, 0, {
             eventType: 'nft',
-            methodName,
             amount: '1',
+            methodName,
             from,
             fromUrl,
             to,
@@ -112,10 +112,9 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
           fromUrl,
           to,
           toUrl,
-          contractHash,
-          contractHashUrl: this.#service.explorerService.buildContractUrl(contractHash),
-          token: token ?? undefined,
           tokenType: isErc20 ? 'erc-20' : 'generic',
+          tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+          token,
         })
 
         const eventData = 'data' in item ? (item.data as any) : undefined

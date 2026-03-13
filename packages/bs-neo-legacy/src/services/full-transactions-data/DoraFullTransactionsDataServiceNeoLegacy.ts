@@ -68,9 +68,9 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
         systemFeeAmount: systemFeeAmount
           ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
           : undefined,
-        events: [],
         type: 'default',
         view: 'default',
+        events: [],
       }
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
@@ -84,7 +84,6 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
         const isNep5 = DoraFullTransactionsDataServiceNeoLegacy.SUPPORTED_NEP5_STANDARDS.includes(standard)
         const fromUrl = from ? this.#service.explorerService.buildAddressUrl(from) : undefined
         const toUrl = to ? this.#service.explorerService.buildAddressUrl(to) : undefined
-        const contractHashUrl = contractHash ? this.#service.explorerService.buildContractUrl(contractHash) : undefined
 
         const assetEvent: TTransactionTokenEvent = {
           eventType: 'token',
@@ -96,10 +95,9 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
           fromUrl,
           to: to ?? undefined,
           toUrl,
-          contractHash,
-          contractHashUrl,
-          token: token ?? undefined,
           tokenType: isNep5 ? 'nep-5' : 'generic',
+          tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+          token,
         }
 
         newItem.events.splice(eventIndex, 0, assetEvent)

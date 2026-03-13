@@ -21,28 +21,27 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        block: 3561140,
         txId,
-        date: expect.any(String),
-        events: [
-          {
-            amount: '3.045',
-            contractHash: BSNeoXConstants.NATIVE_ASSET.hash,
-            from: '0x11c5fE402fd39698d1144AD027A2fF2471d723af',
-            to: '0xc17f96Dba5358a86659de53F7F1ab6D9227C8174',
-            eventType: 'token',
-            token: BSNeoXConstants.NATIVE_ASSET,
-            methodName: 'transfer',
-            tokenType: 'native',
-            contractHashUrl: undefined,
-            fromUrl: expect.any(String),
-            toUrl: expect.any(String),
-          },
-        ],
-        networkFeeAmount: '0.00084',
         txIdUrl: expect.any(String),
+        block: 3561140,
+        date: expect.any(String),
+        networkFeeAmount: '0.00084',
         type: 'default',
         view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount: '3.045',
+            methodName: 'transfer',
+            from: '0x11c5fE402fd39698d1144AD027A2fF2471d723af',
+            fromUrl: expect.any(String),
+            to: '0xc17f96Dba5358a86659de53F7F1ab6D9227C8174',
+            toUrl: expect.any(String),
+            tokenType: 'native',
+            tokenUrl: undefined,
+            token: BSNeoXConstants.NATIVE_ASSET,
+          },
+        ],
       })
     )
   })
@@ -54,33 +53,32 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        block: 3415495,
         txId,
         txIdUrl: expect.any(String),
+        block: 3415495,
         date: expect.any(String),
+        networkFeeAmount: '0.00218104',
+        type: 'default',
+        view: 'default',
         events: [
           {
+            eventType: 'token',
             amount: '500000',
-            contractHash: '0xE816deE05cf6D0F2a57EB4C489241D8326B5d106',
+            methodName: 'transfer',
             from: '0x1C3ac630a715Aa8fFbb5e182716196F0153C372D',
+            fromUrl: expect.any(String),
             to: '0xE78FD95780d54E63cC4c1D0Df7DbC4487a6C72D4',
+            toUrl: expect.any(String),
+            tokenType: 'erc-20',
+            tokenUrl: expect.any(String),
             token: {
               decimals: 18,
               hash: '0xE816deE05cf6D0F2a57EB4C489241D8326B5d106',
               name: 'NeoDashboard MemeCoin',
               symbol: 'NDMEME',
             },
-            eventType: 'token',
-            methodName: 'transfer',
-            tokenType: 'erc-20',
-            contractHashUrl: expect.any(String),
-            fromUrl: expect.any(String),
-            toUrl: expect.any(String),
           },
         ],
-        networkFeeAmount: '0.00218104',
-        type: 'default',
-        view: 'default',
       })
     )
   })
@@ -131,15 +129,14 @@ describe('BlockscoutBDSNeoX', () => {
               fromUrl: expect.anything(),
               to: expect.anything(),
               toUrl: expect.anything(),
-              contractHash: expect.any(String),
-              contractHashUrl: expect.any(String),
+              tokenType: expect.any(String),
+              tokenUrl: expect.any(String),
               token: expect.objectContaining({
                 decimals: expect.any(Number),
                 symbol: expect.any(String),
                 name: expect.any(String),
                 hash: expect.any(String),
               }),
-              tokenType: expect.any(String),
             }),
           ]),
         })

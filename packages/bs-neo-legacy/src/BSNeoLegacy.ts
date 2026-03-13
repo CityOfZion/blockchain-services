@@ -347,23 +347,18 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
         date: new Date().toJSON(),
         type: 'default',
         view: 'default',
-        events: intents.map(({ amount, receiverAddress, token }) => {
-          const tokenHash = token.hash
-
-          return {
-            eventType: 'token',
-            amount,
-            methodName: 'transfer',
-            contractHash: tokenHash,
-            contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
-            from: address,
-            fromUrl: addressUrl,
-            to: receiverAddress,
-            toUrl: this.explorerService.buildAddressUrl(receiverAddress),
-            token,
-            tokenType: 'nep-5',
-          }
-        }),
+        events: intents.map(({ amount, receiverAddress, token }) => ({
+          eventType: 'token',
+          amount,
+          methodName: 'transfer',
+          from: address,
+          fromUrl: addressUrl,
+          to: receiverAddress,
+          toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+          tokenType: 'nep-5',
+          tokenUrl: this.explorerService.buildContractUrl(token.hash),
+          token,
+        })),
       },
     ]
   }
@@ -385,9 +380,6 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
     })
 
     const { address } = account
-    const addressUrl = this.explorerService.buildAddressUrl(address)
-    const token = this.claimToken
-    const tokenHash = token.hash
 
     return {
       txId,
@@ -400,12 +392,11 @@ export class BSNeoLegacy<N extends string = string> implements IBSNeoLegacy<N> {
           eventType: 'token',
           amount: '0',
           methodName: 'transfer',
-          contractHash: tokenHash,
-          contractHashUrl: this.explorerService.buildContractUrl(tokenHash),
           to: address,
-          toUrl: addressUrl,
-          token,
+          toUrl: this.explorerService.buildAddressUrl(address),
           tokenType: 'nep-5',
+          tokenUrl: this.explorerService.buildContractUrl(this.claimToken.hash),
+          token: this.claimToken,
         },
       ],
     }
