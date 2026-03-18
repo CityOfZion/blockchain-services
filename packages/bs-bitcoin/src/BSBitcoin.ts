@@ -57,7 +57,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
   readonly nativeTokens = [BSBitcoinConstants.NATIVE_TOKEN]
   readonly tokens = this.nativeTokens
   readonly feeToken = BSBitcoinConstants.NATIVE_TOKEN
-  readonly defaultNetwork = BSBitcoinConstants.MAINNET_NETWORK
+  readonly defaultNetwork: TBSNetwork<TBSBitcoinNetworkId>
   readonly availableNetworks: TBSNetwork<TBSBitcoinNetworkId>[]
   readonly isCustomNetworkSupported = false
   readonly isMultiTransferSupported = true
@@ -82,11 +82,12 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     this.name = name
     this.ledgerService = new LedgerServiceBitcoin(this, getLedgerTransport)
 
-    const nextNetwork = network || this.defaultNetwork
+    if (!network) network = BSBitcoinConstants.MAINNET_NETWORK
 
-    this.availableNetworks = [nextNetwork]
+    this.defaultNetwork = network
+    this.availableNetworks = [network]
 
-    this.setNetwork(nextNetwork)
+    this.setNetwork(network)
   }
 
   #getInputSize(address: string) {
