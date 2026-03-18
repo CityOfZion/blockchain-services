@@ -13,6 +13,11 @@ overrides:
 
 pnpmfileChecksum: sha256-La8sfCMI7irxJPTW6u4mJb4vNiyLrXeEbKaXv5G3dL0=
 
+patchedDependencies:
+  bitcoinjs-message@2.2.0:
+    hash: f5673546a96c5ad783a1b4526d1b87a9ecd1436444190559c31139477398a379
+    path: patches/bitcoinjs-message@2.2.0.patch
+
 importers:
 
   .: {}
@@ -100,7 +105,7 @@ importers:
         version: 7.0.1(typescript@5.9.3)
       bitcoinjs-message:
         specifier: ~2.2.0
-        version: 2.2.0
+        version: 2.2.0(patch_hash=f5673546a96c5ad783a1b4526d1b87a9ecd1436444190559c31139477398a379)
       c32check:
         specifier: ~2.0.0
         version: 2.0.0
@@ -5528,7 +5533,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  bitcoinjs-message@2.2.0:
+  bitcoinjs-message@2.2.0(patch_hash=f5673546a96c5ad783a1b4526d1b87a9ecd1436444190559c31139477398a379):
     dependencies:
       bech32: 1.1.4
       bs58check: 2.1.2
