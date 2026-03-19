@@ -48,8 +48,7 @@ describe('TatumBDSBitcoin', () => {
     })
   })
 
-  // TODO: it needs the paid plan for Xverse API
-  it.skip('Should be able to get info of BTC, ORDI and .BET tokens', async () => {
+  it('Should be able to get info of BTC, ORDI and .BET tokens', async () => {
     const btcToken = await blockchainDataService.getTokenInfo(BSBitcoinConstants.NATIVE_TOKEN.hash)
     const ordiToken = await blockchainDataService.getTokenInfo(ordiHash)
     const betToken = await blockchainDataService.getTokenInfo(betHash)
@@ -94,8 +93,7 @@ describe('TatumBDSBitcoin', () => {
     })
   })
 
-  // TODO: it needs the paid plan for Xverse API
-  it.skip('Should be able to get the balances from address', async () => {
+  it('Should be able to get the balances from address', async () => {
     const balances = await blockchainDataService.getBalance(
       'bc1pqhvy9kz07w7jw76nu89apvdd6mnddqg4uwgskhcmzfse2j8sx3jqjkykmr'
     )
@@ -217,8 +215,7 @@ describe('TatumBDSBitcoin', () => {
     })
   })
 
-  // TODO: it needs the paid plan for Xverse API
-  it.skip('Should be able to get the NFT transaction by hash', async () => {
+  it('Should be able to get the NFT transaction by hash', async () => {
     const firstHash = '6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799'
     const firstNftTransaction = await blockchainDataService.getTransaction(firstHash)
 

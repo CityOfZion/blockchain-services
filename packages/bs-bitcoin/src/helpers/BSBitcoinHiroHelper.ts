@@ -1,14 +1,8 @@
 import axios from 'axios'
+import { BSCommonConstants } from '@cityofzion/blockchain-service'
 
 export class BSBitcoinHiroHelper {
-  static readonly #apiKey = process.env.HIRO_API_KEY
-
   static getApi() {
-    return axios.create({
-      baseURL: 'https://api.hiro.so',
-      headers: {
-        'x-api-key': this.#apiKey,
-      },
-    })
+    return axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/bitcoin/hiro/mainnet` })
   }
 }

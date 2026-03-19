@@ -31,12 +31,12 @@ const buildTestnetData = async (transport?: Transport) => {
 const buildSignPsbtTestnetParams = async () => {
   const signInputs: TSignInput[] = []
   const psbt = new bitcoinjs.Psbt({ network: bitcoinjs.networks.testnet })
-  const tatumApis = BSBitcoinTatumHelper.getApis(BSBitcoinConstants.TESTNET_NETWORK)
+  const tatumApi = BSBitcoinTatumHelper.getApi(BSBitcoinConstants.TESTNET_NETWORK)
 
   let signInputIndex = 0
   let amount = BSBigNumberHelper.fromNumber('0')
 
-  const { data } = await tatumApis.v4.get<TTatumUtxosResponse>('/data/utxos', {
+  const { data } = await tatumApi.get<TTatumUtxosResponse>('/v4/data/utxos', {
     params: {
       address: account.address,
       totalValue: 1_0000,

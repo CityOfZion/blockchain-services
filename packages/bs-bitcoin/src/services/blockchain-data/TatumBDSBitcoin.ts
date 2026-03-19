@@ -17,7 +17,6 @@ import type {
   TXverseBalancesResponse,
   TXverseTokenResponse,
   TOrdinalsContentResponse,
-  TTatumApis,
   TTatumBalanceResponse,
   TTatumTransactionResponse,
 } from '../../types'
@@ -25,11 +24,12 @@ import { BSBitcoinConstants } from '../../constants/BSBitcoinConstants'
 import { BSBitcoinTatumHelper } from '../../helpers/BSBitcoinTatumHelper'
 import { BSBitcoinOrdinalsHelper } from '../../helpers/BSBitcoinOrdinalsHelper'
 import { BSBitcoinXverseHelper } from '../../helpers/BSBitcoinXverseHelper'
+import { AxiosInstance } from 'axios'
 
 export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService<N> {
   readonly #service: IBSBitcoin<N>
   readonly #cachedTokens = new Map<string, TBSToken>()
-  readonly #tatumApis: TTatumApis
+  readonly #tatumApi: AxiosInstance
   readonly #xverseApi = BSBitcoinXverseHelper.getApi()
   readonly #ordinalsApi = BSBitcoinOrdinalsHelper.getApi()
 
@@ -37,7 +37,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
 
   constructor(service: IBSBitcoin<N>) {
     this.#service = service
-    this.#tatumApis = BSBitcoinTatumHelper.getApis(this.#service.network)
+    this.#tatumApi = BSBitcoinTatumHelper.getApi(this.#service.network)
   }
 
   #validateMainnet() {
@@ -143,7 +143,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
   }
 
   async getTransaction(transactionId: string): Promise<TTransactionUtxo<N>> {
-    const { data } = await this.#tatumApis.v4.get<TTatumTransactionResponse>('/data/blockchains/transaction', {
+    const { data } = await this.#tatumApi.get<TTatumTransactionResponse>('/v4/data/blockchains/transaction', {
       params: { hash: transactionId },
     })
 
@@ -164,8 +164,8 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     const pageSize = 50
     const offset = (nextPageParams - 1) * pageSize
 
-    const { data } = await this.#tatumApis.v4.get<TTatumTransactionResponse[]>(
-      '/data/blockchains/transaction/history/utxos',
+    const { data } = await this.#tatumApi.get<TTatumTransactionResponse[]>(
+      '/v4/data/blockchains/transaction/history/utxos',
       {
         params: { pageSize, offset, address },
       }
@@ -225,7 +225,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
   async getBalance(address: string): Promise<TBalanceResponse[]> {
     const balances: TBalanceResponse[] = []
 
-    const { data } = await this.#tatumApis.v4.get<TTatumBalanceResponse>('data/blockchains/balance', {
+    const { data } = await this.#tatumApi.get<TTatumBalanceResponse>('/v4/data/blockchains/balance', {
       params: { address },
     })
 
@@ -276,7 +276,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
   }
 
   async getBlockHeight(): Promise<number> {
-    const { data } = await this.#tatumApis.v4.get<number>('/data/blockchains/block/current')
+    const { data } = await this.#tatumApi.get<number>('/v4/data/blockchains/block/current')
 
     return data
   }
