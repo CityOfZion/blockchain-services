@@ -32,7 +32,6 @@ import type {
   TGetTransferDataResponse,
   THiroNameResponse,
   TSignTransactionParams,
-  TTatumApis,
   TTatumBroadcastResponse,
   TTatumFeesResponse,
   TTatumUtxo,
@@ -42,6 +41,7 @@ import { BSBitcoinHiroHelper } from './helpers/BSBitcoinHiroHelper'
 import { BSBitcoinTatumHelper } from './helpers/BSBitcoinTatumHelper'
 import { BSBitcoinBIP32SingletonHelper } from './helpers/BSBitcoinBIP32SingletonHelper'
 import { BSBitcoinECPairSingletonHelper } from './helpers/BSBitcoinECPairSingletonHelper'
+import { AxiosInstance } from 'axios'
 import * as bitcoinjs from 'bitcoinjs-lib'
 import type { ECPairInterface } from 'ecpair'
 import * as bip39 from 'bip39'
@@ -62,7 +62,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
   readonly isCustomNetworkSupported = false
   readonly isMultiTransferSupported = true
 
-  #tatumApis!: TTatumApis
+  #tatumApi!: AxiosInstance
 
   bitcoinjsNetwork!: bitcoinjs.Network
   bipDerivationPath!: string
@@ -149,12 +149,16 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
 
     const { address } = senderAccount
 
-    const { data: utxosData } = await this.#tatumApis.v4.get<TTatumUtxosResponse>('/data/utxos', {
+    const { data: utxosData } = await this.#tatumApi.get<TTatumUtxosResponse>('/v4/data/utxos', {
       params: {
         address,
         totalValue: 1000_0000_0000, // Get the most out of UTXOs
       },
     })
+
+    if (utxosData.length === 0) {
+      throw new BSError('No UTXO available', 'NO_UTXO_AVAILABLE')
+    }
 
     const sortedUtxos = utxosData
       .map<TTatumUtxo>(utxo => {
@@ -166,12 +170,8 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
       })
       .toSorted((a, b) => a.value - b.value)
 
-    if (sortedUtxos.length === 0) {
-      throw new BSError('No UTXO available', 'NO_UTXO_AVAILABLE')
-    }
-
-    const { data: feeData } = await this.#tatumApis.v3.get<TTatumFeesResponse>(
-      `/blockchain/fee/${BSBitcoinConstants.NATIVE_TOKEN.symbol}`
+    const { data: feeData } = await this.#tatumApi.get<TTatumFeesResponse>(
+      `/v3/blockchain/fee/${BSBitcoinConstants.NATIVE_TOKEN.symbol}`
     )
 
     const dustLimit = BSBigNumberHelper.fromNumber('546')
@@ -324,7 +324,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
 
     this.network = network
     this.networkUrls = networkUrls
-    this.#tatumApis = BSBitcoinTatumHelper.getApis(this.network)
+    this.#tatumApi = BSBitcoinTatumHelper.getApi(this.network)
     this.bipDerivationPath = BSBitcoinConstants.BIP_DERIVATION_PATHS_BY_NETWORK_ID[this.network.id]
     this.bitcoinjsNetwork = isMainnetNetwork ? bitcoinjs.networks.bitcoin : bitcoinjs.networks.testnet
     this.blockchainDataService = new TatumBDSBitcoin(this)
@@ -640,7 +640,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
   }
 
   async broadcastTransaction(transactionHex: string): Promise<string> {
-    const { data } = await this.#tatumApis.v3.post<TTatumBroadcastResponse>('/bitcoin/broadcast', {
+    const { data } = await this.#tatumApi.post<TTatumBroadcastResponse>('/v3/bitcoin/broadcast', {
       txData: transactionHex,
     })
 

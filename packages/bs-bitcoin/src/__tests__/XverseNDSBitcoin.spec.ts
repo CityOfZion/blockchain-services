@@ -25,8 +25,7 @@ describe('XverseNDSBitcoin', () => {
     nftDataService = new XverseNDSBitcoin(service)
   })
 
-  // TODO: it needs the paid plan for Xverse API
-  it.skip('Should be able to get NFTs by address with cursor', async () => {
+  it('Should be able to get NFTs by address with cursor', async () => {
     let done = false
     let nextPageParams: string | undefined = undefined
 
@@ -64,8 +63,7 @@ describe('XverseNDSBitcoin', () => {
     )
   })
 
-  // TODO: it needs the paid plan for Xverse API
-  it.skip('Should be able to get NFT', async () => {
+  it('Should be able to get NFT', async () => {
     const firstHash = 'be2dc33c73cb25644f4bf11327dca1a9ebe0e784d9a9d3a21de546d43cc50b70i13'
     const firstNft = await nftDataService.getNft({ tokenHash: firstHash })
 
@@ -125,8 +123,7 @@ describe('XverseNDSBitcoin', () => {
     })
   })
 
-  // TODO: it needs the paid plan for Xverse API
-  it.skip('Should be able to verify if has token by address and collection', async () => {
+  it('Should be able to verify if has token by address and collection', async () => {
     const hasToken = await nftDataService.hasToken({
       address: 'bc1p7c9z8a200rzge8usums3y5ktfpxrd2wmx9238fd8truzlsw06hrqs60dtc',
       collectionHash: 'btcbrobear',

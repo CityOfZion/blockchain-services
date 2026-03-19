@@ -14,7 +14,6 @@ import type {
 } from '@cityofzion/blockchain-service'
 import { TatumBDSBitcoin } from './services/blockchain-data/TatumBDSBitcoin'
 import { LedgerServiceBitcoin } from './services/ledger/LedgerServiceBitcoin'
-import { AxiosInstance } from 'axios'
 import type { ECPairInterface } from 'ecpair'
 import type Transport from '@ledgerhq/hw-transport'
 import * as bitcoinjs from 'bitcoinjs-lib'
@@ -262,11 +261,6 @@ export type TTatumFeesResponse = {
 export type TTatumBroadcastResponse = {
   txId: string
   completed: boolean
-}
-
-export type TTatumApis = {
-  v3: AxiosInstance
-  v4: AxiosInstance
 }
 
 export type TGetTransferDataParams<N extends string> = TTransferParams<N> & { shouldValidate?: boolean }

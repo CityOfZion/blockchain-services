@@ -165,10 +165,10 @@ describe.skip('LedgerServiceBitcoin', () => {
     ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
 
     const account = await ledgerService.getAccount(transport, 0)
-    const tatumApis = BSBitcoinTatumHelper.getApis(network)
+    const tatumApi = BSBitcoinTatumHelper.getApi(network)
     const psbt = new bitcoinjs.Psbt({ network: bitcoinjs.networks.testnet })
 
-    const { data } = await tatumApis.v4.get<TTatumUtxosResponse>('/data/utxos', {
+    const { data } = await tatumApi.get<TTatumUtxosResponse>('/v4/data/utxos', {
       params: {
         address: account.address,
         totalValue: 1_0000,

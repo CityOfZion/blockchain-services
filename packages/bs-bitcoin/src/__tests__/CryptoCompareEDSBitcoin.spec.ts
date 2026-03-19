@@ -56,6 +56,7 @@ describe('CryptoCompareEDSBitcoin', () => {
       type: 'hour',
     })
 
+    // Wait to avoid rate limit
     await BSUtilsHelper.wait(1000)
 
     const ordiTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({
@@ -64,6 +65,7 @@ describe('CryptoCompareEDSBitcoin', () => {
       type: 'hour',
     })
 
+    // Wait to avoid rate limit
     await BSUtilsHelper.wait(1000)
 
     const satsTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({
