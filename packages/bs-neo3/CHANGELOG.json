@@ -2,6 +2,33 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "3.1.0",
+      "tag": "@cityofzion/bs-neo3_v3.1.0",
+      "date": "Thu, 19 Mar 2026 16:35:03 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Adapt transaction interfaces"
+          },
+          {
+            "comment": "Update ESLint version"
+          },
+          {
+            "comment": "Apply new vote, claim, transfer, transaction and explorer interfaces and types"
+          },
+          {
+            "comment": "Implement new NFT event type"
+          },
+          {
+            "comment": "Remove tokenHash in NFT event"
+          },
+          {
+            "comment": "Remove contractHash and rename contractHashUrl to tokenUrl from token event type"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.0.6",
       "tag": "@cityofzion/bs-neo3_v3.0.6",
       "date": "Mon, 02 Mar 2026 14:32:56 GMT",

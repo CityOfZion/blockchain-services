@@ -2,6 +2,42 @@
   "name": "@cityofzion/bs-bitcoin",
   "entries": [
     {
+      "version": "3.1.0",
+      "tag": "@cityofzion/bs-bitcoin_v3.1.0",
+      "date": "Thu, 19 Mar 2026 16:35:03 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Use UTXO transaction interfaces"
+          },
+          {
+            "comment": "Add WalletConnect for Bitcoin"
+          },
+          {
+            "comment": "Apply new transfer, transaction and explorer interfaces and types"
+          },
+          {
+            "comment": "Change deprecated V3 Tatum endpoints to V4 Tatum endpoints"
+          },
+          {
+            "comment": "Remove tokenHash in NFT event"
+          },
+          {
+            "comment": "Remove contractHash and rename contractHashUrl to tokenUrl from token event type"
+          },
+          {
+            "comment": "Fix bitcoinjs-message version to 2.2.0"
+          },
+          {
+            "comment": "Add COZ API endpoints instead of calling the providers directly"
+          },
+          {
+            "comment": "Set the network as defaultNetwork"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.0.6",
       "tag": "@cityofzion/bs-bitcoin_v3.0.6",
       "date": "Mon, 02 Mar 2026 14:32:56 GMT",

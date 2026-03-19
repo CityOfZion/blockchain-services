@@ -1,6 +1,18 @@
 # Change Log - @cityofzion/bs-solana
 
-This log was last generated on Mon, 02 Mar 2026 14:32:56 GMT and should not be manually modified.
+This log was last generated on Thu, 19 Mar 2026 16:35:03 GMT and should not be manually modified.
+
+## 3.1.0
+Thu, 19 Mar 2026 16:35:03 GMT
+
+### Updates
+
+- Adapt transaction interfaces
+- Fix tests and update ESLint version
+- Apply new transfer, transaction and explorer interfaces and types
+- Implement new NFT event type
+- Remove tokenHash in NFT event
+- Remove contractHash and rename contractHashUrl to tokenUrl from token event type
 
 ## 3.0.6
 Mon, 02 Mar 2026 14:32:56 GMT
