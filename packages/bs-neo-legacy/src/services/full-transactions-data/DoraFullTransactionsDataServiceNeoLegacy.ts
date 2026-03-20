@@ -96,7 +96,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
           to: to ?? undefined,
           toUrl,
           tokenType: isNep5 ? 'nep-5' : 'generic',
-          tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+          tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         }
 

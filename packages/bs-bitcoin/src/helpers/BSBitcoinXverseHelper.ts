@@ -2,7 +2,7 @@ import axios from 'axios'
 import { BSCommonConstants, BSUtilsHelper } from '@cityofzion/blockchain-service'
 
 export class BSBitcoinXverseHelper {
-  static readonly #delayTime = 1000
+  static readonly #delayTime = 1500
   static #lastRequestTime = 0
 
   static getApi() {

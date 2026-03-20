@@ -200,7 +200,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
             to,
             toUrl,
             tokenType: 'erc-20',
-            tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
+            tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
             token,
           })
         }
@@ -287,8 +287,14 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         const fromUrl = this._service.explorerService.buildAddressUrl(transfer.from_address)
         const toUrl = this._service.explorerService.buildAddressUrl(transfer.to_address)
-        const tokenHash = transfer.address
         const tokenDecimals = transfer.token_decimals
+
+        const token = this._service.tokenService.normalizeToken({
+          decimals: Number(tokenDecimals),
+          hash: transfer.address,
+          name: transfer.token_name,
+          symbol: transfer.token_symbol,
+        })
 
         events.push({
           eventType: 'token',
@@ -301,13 +307,8 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           to: transfer.to_address,
           toUrl,
           tokenType: 'erc-20',
-          tokenUrl: this._service.explorerService.buildContractUrl(tokenHash),
-          token: this._service.tokenService.normalizeToken({
-            decimals: Number(tokenDecimals),
-            hash: tokenHash,
-            name: transfer.token_name,
-            symbol: transfer.token_symbol,
-          }),
+          tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
+          token,
         })
       })
 

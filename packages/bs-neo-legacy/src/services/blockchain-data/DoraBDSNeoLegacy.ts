@@ -32,11 +32,8 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
     const from = vout[vout.length - 1]?.address
 
     const promises = vout.map(async (transfer, index) => {
-      const tokenHash = transfer.asset
-      const token = await this.getTokenInfo(tokenHash)
-
+      const token = await this.getTokenInfo(transfer.asset)
       const to = transfer.address
-
       const fromUrl = this.#service.explorerService.buildAddressUrl(from)
       const toUrl = this.#service.explorerService.buildAddressUrl(to)
 
@@ -49,7 +46,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
         to,
         toUrl,
         tokenType: 'nep-5',
-        tokenUrl: this.#service.explorerService.buildContractUrl(tokenHash),
+        tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
         token,
       })
     })
@@ -87,8 +84,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
       const to = entry.address_to || address
       const fromUrl = this.#service.explorerService.buildAddressUrl(from)
       const toUrl = this.#service.explorerService.buildAddressUrl(to)
-      const tokenHash = entry.asset
-      const token = await this.getTokenInfo(tokenHash)
+      const token = await this.getTokenInfo(entry.asset)
 
       const event: TTransactionTokenEvent = {
         eventType: 'token',
@@ -99,7 +95,7 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
         to,
         toUrl,
         tokenType: 'nep-5',
-        tokenUrl: this.#service.explorerService.buildContractUrl(tokenHash),
+        tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
         token,
       }
 
