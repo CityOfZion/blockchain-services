@@ -121,7 +121,7 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
           to,
           toUrl,
           tokenType: 'nep-17',
-          tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+          tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         })
 

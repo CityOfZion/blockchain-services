@@ -128,7 +128,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       to,
       toUrl,
       tokenType: 'spl',
-      tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+      tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
       token,
     }
   }
@@ -200,7 +200,7 @@ export class RpcBDSSolana<N extends string> implements IBlockchainDataService<N>
       to,
       toUrl,
       tokenType: 'spl',
-      tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+      tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
       token,
     }
   }

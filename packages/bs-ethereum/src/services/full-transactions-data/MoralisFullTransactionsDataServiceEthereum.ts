@@ -98,6 +98,7 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
 
           return
         }
+
         const [token] = await BSUtilsHelper.tryCatch(() =>
           this.#service.blockchainDataService.getTokenInfo(contractHash)
         )
@@ -113,7 +114,7 @@ export class MoralisFullTransactionsDataServiceEthereum<N extends string, A exte
           to,
           toUrl,
           tokenType: isErc20 ? 'erc-20' : 'generic',
-          tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+          tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         })
       })

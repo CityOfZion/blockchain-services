@@ -105,6 +105,13 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
         const toUrl = this._service.explorerService.buildAddressUrl(to)
 
         if (tokenTransfer.token.type === 'ERC-20') {
+          const token = this._service.tokenService.normalizeToken({
+            symbol: tokenTransfer.token.symbol,
+            name: tokenTransfer.token.name,
+            hash: contractHash,
+            decimals: Number(tokenTransfer.total.decimals),
+          })
+
           events.splice(index, 0, {
             eventType: 'token',
             amount: BSBigNumberHelper.format(
@@ -119,13 +126,8 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             to,
             toUrl,
             tokenType: 'erc-20',
-            tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
-            token: this._service.tokenService.normalizeToken({
-              symbol: tokenTransfer.token.symbol,
-              name: tokenTransfer.token.name,
-              hash: contractHash,
-              decimals: Number(tokenTransfer.total.decimals),
-            }),
+            tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
+            token,
           })
 
           return
@@ -159,7 +161,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     let transaction: TTransactionDefault<N> = {
       txId,
-      txIdUrl: this._service.explorerService.buildContractUrl(txId),
+      txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
       block: response.block,
       date: new Date(response.timestamp).toJSON(),
       networkFeeAmount: BSBigNumberHelper.format(
@@ -259,7 +261,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
             to,
             toUrl,
             tokenType: 'erc-20',
-            tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
+            tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
             token,
           })
         } catch {

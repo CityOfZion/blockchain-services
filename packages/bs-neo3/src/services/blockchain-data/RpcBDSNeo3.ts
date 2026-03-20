@@ -62,7 +62,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
           to: convertedTo,
           toUrl,
           tokenType: 'nep-17',
-          tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
+          tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
           token,
         })
 

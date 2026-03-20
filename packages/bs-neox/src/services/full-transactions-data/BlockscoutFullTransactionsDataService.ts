@@ -113,7 +113,7 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
           to,
           toUrl,
           tokenType: isErc20 ? 'erc-20' : 'generic',
-          tokenUrl: this.#service.explorerService.buildContractUrl(contractHash),
+          tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         })
 
