@@ -34,7 +34,7 @@ export class BlockscoutESEthereum<N extends string, A extends TBSNetworkId> impl
   }
 
   buildContractUrl(contractHash: string) {
-    if (!this.#validateValueLength(contractHash)) return undefined
+    if (!this.#validateValueLength(contractHash, 1)) return undefined
 
     return this.getContractTemplateUrl()?.replace('{hash}', this._service.tokenService.normalizeHash(contractHash))
   }

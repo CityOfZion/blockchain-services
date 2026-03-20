@@ -25,7 +25,7 @@ export class DoraESNeo3<N extends string> implements IExplorerService {
   }
 
   buildContractUrl(contractHash: string) {
-    if (!this.#validateValueLength(contractHash)) return undefined
+    if (!this.#validateValueLength(contractHash, 1)) return undefined
 
     return this.getContractTemplateUrl()?.replace('{hash}', this.#service.tokenService.normalizeHash(contractHash))
   }
