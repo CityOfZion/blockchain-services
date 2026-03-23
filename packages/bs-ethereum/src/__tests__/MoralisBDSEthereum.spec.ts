@@ -3,12 +3,12 @@ import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import type { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereum } from '../BSEthereum'
 
-let service: BSEthereum<'test', TBSNetworkId>
-let moralisBDSEthereum: MoralisBDSEthereum<'test', TBSNetworkId>
+let service: BSEthereum<'ethereum', TBSNetworkId>
+let moralisBDSEthereum: MoralisBDSEthereum<'ethereum', TBSNetworkId>
 
 describe('MoralisBDSEthereum', () => {
   beforeEach(() => {
-    service = new BSEthereum('test', 'ethereum')
+    service = new BSEthereum('ethereum')
     moralisBDSEthereum = new MoralisBDSEthereum(service)
   })
 

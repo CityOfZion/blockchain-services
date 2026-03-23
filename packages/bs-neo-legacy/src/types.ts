@@ -11,16 +11,22 @@ import type {
 
 export type TBSNeoLegacyNetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
+export type TBSNeoLegacyName = 'neoLegacy'
+
 export type TSigningCallback = (transaction: string, publicKey: string) => Promise<string | string[]>
 
-export interface IBSNeoLegacy<N extends string = string, A extends string = TBSNeoLegacyNetworkId>
-  extends IBlockchainService<N, A>,
-    IBSWithClaim<N>,
+export interface IBSNeoLegacy
+  extends
+    IBlockchainService<TBSNeoLegacyName, TBSNeoLegacyNetworkId>,
+    IBSWithClaim<TBSNeoLegacyName>,
     IBSWithExplorer,
-    IBSWithLedger<N>,
-    IBSWithEncryption<N>,
-    IBSWithFullTransactions<N> {
-  generateSigningCallback(account: TBSAccount<N>): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }>
+    IBSWithLedger<TBSNeoLegacyName>,
+    IBSWithEncryption<TBSNeoLegacyName>,
+    IBSWithFullTransactions<TBSNeoLegacyName> {
+  generateSigningCallback(
+    account: TBSAccount<TBSNeoLegacyName>
+  ): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }>
+
   sendTransfer(config: any, nep5ScriptBuilder?: any): Promise<string>
 }
 

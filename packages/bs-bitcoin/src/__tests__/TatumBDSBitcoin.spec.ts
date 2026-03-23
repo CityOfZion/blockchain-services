@@ -31,12 +31,12 @@ const expectedTransactions = expect.arrayContaining([
 const ordiHash = 'b61b0172d95e266c18aea0c624db987e971a5d6d4ebc2aaed85da4642d635735i0'
 const betHash = '886eaf50fed7a2ceb3961fdf7b03efab1130b351ae71e106e071176efca8edf9i0'
 
-let service: IBSBitcoin<'test'>
-let blockchainDataService: TatumBDSBitcoin<'test'>
+let service: IBSBitcoin
+let blockchainDataService: TatumBDSBitcoin
 
 describe('TatumBDSBitcoin', () => {
   beforeEach(() => {
-    service = new BSBitcoin('test')
+    service = new BSBitcoin()
     blockchainDataService = new TatumBDSBitcoin(service)
   })
 
@@ -72,7 +72,7 @@ describe('TatumBDSBitcoin', () => {
   })
 
   it('Should be able to get info of BTC token and not other tokens using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     blockchainDataService = new TatumBDSBitcoin(service)
 
     const token = await blockchainDataService.getTokenInfo(BSBitcoinConstants.NATIVE_TOKEN.hash)
@@ -117,7 +117,7 @@ describe('TatumBDSBitcoin', () => {
   })
 
   it('Should be able to get the balances from address using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     blockchainDataService = new TatumBDSBitcoin(service)
 
     const balances = await blockchainDataService.getBalance('tb1qnjvttgnl0gkxn99gmsd8g8zzpe7nckssmy56hu')
@@ -140,7 +140,7 @@ describe('TatumBDSBitcoin', () => {
   })
 
   it('Should be able to get the block height using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     blockchainDataService = new TatumBDSBitcoin(service)
 
     const blockHeight = await blockchainDataService.getBlockHeight()
@@ -169,7 +169,7 @@ describe('TatumBDSBitcoin', () => {
   })
 
   it('Should be able to get the transactions by address using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     blockchainDataService = new TatumBDSBitcoin(service)
 
     const address = 'tb1qnjvttgnl0gkxn99gmsd8g8zzpe7nckssmy56hu'
@@ -362,7 +362,7 @@ describe('TatumBDSBitcoin', () => {
   })
 
   it('Should be able to get the transaction by hash using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     blockchainDataService = new TatumBDSBitcoin(service)
 
     const hash = 'bd9cde466116ef2917e031180bea8604cbc2a9fa60f36fb59be2278d0364b0ef'

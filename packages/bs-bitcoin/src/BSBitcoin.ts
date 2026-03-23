@@ -8,7 +8,6 @@ import {
   type IExplorerService,
   type INftDataService,
   type ITokenService,
-  type IWalletConnectService,
   type TBSAccount,
   type TBSNetwork,
   type TGetLedgerTransport,
@@ -27,6 +26,7 @@ import { TokenServiceBitcoin } from './services/token/TokenServiceBitcoin'
 import { WalletConnectServiceBitcoin } from './services/wallet-connect/WalletConnectServiceBitcoin'
 import type {
   IBSBitcoin,
+  TBSBitcoinName,
   TBSBitcoinNetworkId,
   TGetTransferDataParams,
   TGetTransferDataResponse,
@@ -50,10 +50,10 @@ import * as wif from 'wif'
 import * as secp256k1 from '@bitcoinerlab/secp256k1'
 import { c32addressDecode } from 'c32check'
 
-export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
+export class BSBitcoin implements IBSBitcoin {
   readonly #hiroApi = BSBitcoinHiroHelper.getApi()
 
-  readonly name: N
+  readonly name = 'bitcoin'
   readonly nativeTokens = [BSBitcoinConstants.NATIVE_TOKEN]
   readonly tokens = this.nativeTokens
   readonly feeToken = BSBitcoinConstants.NATIVE_TOKEN
@@ -68,18 +68,17 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
   bipDerivationPath!: string
   network!: TBSNetwork<TBSBitcoinNetworkId>
   networkUrls!: string[]
-  blockchainDataService!: TatumBDSBitcoin<N>
-  walletConnectService!: IWalletConnectService<N>
-  ledgerService: LedgerServiceBitcoin<N>
+  blockchainDataService!: TatumBDSBitcoin
+  walletConnectService!: WalletConnectServiceBitcoin
+  ledgerService: LedgerServiceBitcoin
   tokenService: ITokenService = new TokenServiceBitcoin()
   explorerService: IExplorerService = new MempoolESBitcoin(this)
   exchangeDataService: IExchangeDataService = new CryptoCompareEDSBitcoin(this)
   nftDataService: INftDataService = new XverseNDSBitcoin(this)
 
-  constructor(name: N, network?: TBSNetwork<TBSBitcoinNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(network?: TBSNetwork<TBSBitcoinNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSBitcoinName>) {
     bitcoinjs.initEccLib(secp256k1)
 
-    this.name = name
     this.ledgerService = new LedgerServiceBitcoin(this, getLedgerTransport)
 
     if (!network) network = BSBitcoinConstants.MAINNET_NETWORK
@@ -142,7 +141,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     senderAccount,
     intents,
     shouldValidate = true,
-  }: TGetTransferDataParams<N>): Promise<TGetTransferDataResponse> {
+  }: TGetTransferDataParams): Promise<TGetTransferDataResponse> {
     if (intents.some(({ token }) => !this.tokenService.predicate(token, BSBitcoinConstants.NATIVE_TOKEN))) {
       throw new BSError("BRC-20 tokens aren't supported yet", 'BRC20_NOT_SUPPORTED')
     }
@@ -264,7 +263,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     return ecpair.fromWIF(key, this.bitcoinjsNetwork)
   }
 
-  async getLedgerTransport(account: TBSAccount<N>) {
+  async getLedgerTransport(account: TBSAccount<TBSBitcoinName>) {
     if (!this.ledgerService.getLedgerTransport) {
       throw new BSError('You must provide getLedgerTransport function to use Ledger', 'GET_LEDGER_TRANSPORT_NOT_FOUND')
     }
@@ -276,7 +275,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     return await this.ledgerService.getLedgerTransport(account)
   }
 
-  async signTransaction({ psbt, account, signInputs }: TSignTransactionParams<N>) {
+  async signTransaction({ psbt, account, signInputs }: TSignTransactionParams) {
     if (account.isHardware) {
       const transport = await this.getLedgerTransport(account)
 
@@ -403,7 +402,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     return domainName.endsWith('.bitcoin') || domainName.endsWith('.btc')
   }
 
-  async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
+  async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<TBSBitcoinName>> {
     if (!BSKeychainHelper.isValidMnemonic(mnemonic)) {
       throw new BSError('Invalid mnemonic', 'INVALID_MNEMONIC')
     }
@@ -431,7 +430,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     }
   }
 
-  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
+  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<TBSBitcoinName>> {
     if (!this.validateAddress(publicKey)) {
       throw new BSError('Invalid public key', 'INVALID_PUBLIC_KEY')
     }
@@ -444,7 +443,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     }
   }
 
-  async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
+  async generateAccountFromKey(key: string): Promise<TBSAccount<TBSBitcoinName>> {
     const keyPair = this.getKeyPair(key)
 
     // Generate P2WPKH address
@@ -457,7 +456,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     return { address, key, type: 'wif', blockchain: this.name }
   }
 
-  async decrypt(encryptedKey: string, password: string): Promise<TBSAccount<N>> {
+  async decrypt(encryptedKey: string, password: string): Promise<TBSAccount<TBSBitcoinName>> {
     const decryptedKey = bip38.decrypt(encryptedKey, password)
     const ecpair = BSBitcoinECPairSingletonHelper.getInstance()
 
@@ -478,7 +477,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     return bip38.encrypt(buffer, decoded.compressed, password)
   }
 
-  async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
+  async calculateTransferFee(params: TTransferParams<TBSBitcoinName>): Promise<string> {
     const { fee } = await this.#getTransferData({ ...params, shouldValidate: false })
 
     return BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(fee, this.feeToken.decimals), {
@@ -510,7 +509,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
     return address
   }
 
-  async transfer(params: TTransferParams<N>): Promise<TTransactionUtxo<N>[]> {
+  async transfer(params: TTransferParams<TBSBitcoinName>): Promise<TTransactionUtxo<TBSBitcoinName>[]> {
     const { utxos, fee, change } = await this.#getTransferData(params)
     const { senderAccount, intents } = params
     const { address, isHardware } = senderAccount

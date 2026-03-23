@@ -8,10 +8,10 @@ import {
 } from '@cityofzion/blockchain-service'
 import type { IBSBitcoin } from '../../types'
 
-export class CryptoCompareEDSBitcoin<N extends string> extends CryptoCompareEDS {
-  readonly #service: IBSBitcoin<N>
+export class CryptoCompareEDSBitcoin extends CryptoCompareEDS {
+  readonly #service: IBSBitcoin
 
-  constructor(service: IBSBitcoin<N>) {
+  constructor(service: IBSBitcoin) {
     super()
 
     this.#service = service

@@ -25,7 +25,7 @@ import { RpcNDSSolana } from './services/nft-data/RpcNDSSolana'
 import { SolScanESSolana } from './services/explorer/SolScanESSolana'
 import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
-import type { IBSSolana, TBSSolanaNetworkId } from './types'
+import type { IBSSolana, TBSSolanaName, TBSSolanaNetworkId } from './types'
 import * as solanaKit from '@solana/kit'
 import * as solanaSystem from '@solana-program/system'
 import * as solanaToken from '@solana-program/token'
@@ -35,8 +35,8 @@ import type { ReadonlyUint8Array } from '@solana/kit'
 
 const KEY_BYTES_LENGTH = 64
 
-export class BSSolana<N extends string = string> implements IBSSolana<N> {
-  readonly name: N
+export class BSSolana implements IBSSolana {
+  readonly name = 'solana'
   readonly bipDerivationPath: string
 
   readonly isMultiTransferSupported = true
@@ -51,18 +51,17 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
   readonly availableNetworks: TBSNetwork<TBSSolanaNetworkId>[]
   readonly defaultNetwork: TBSNetwork<TBSSolanaNetworkId>
 
-  ledgerService: Web3LedgerServiceSolana<N>
+  ledgerService: Web3LedgerServiceSolana
   exchangeDataService!: IExchangeDataService
-  blockchainDataService!: IBlockchainDataService<N>
+  blockchainDataService!: IBlockchainDataService<TBSSolanaName>
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
-  walletConnectService!: IWalletConnectService<N>
+  walletConnectService!: IWalletConnectService<TBSSolanaName>
 
   solanaKitRpc!: solanaKit.Rpc<solanaKit.SolanaRpcApi>
 
-  constructor(name: N, network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
-    this.name = name
+  constructor(network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSSolanaName>) {
     this.bipDerivationPath = BSSolanaConstants.DEFAULT_BIP_DERIVATION_PATH
     this.ledgerService = new Web3LedgerServiceSolana(this, getLedgerTransport)
 
@@ -78,7 +77,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
 
   async signTransaction(
     transaction: solanaKit.Transaction,
-    senderAccount: TBSAccount<N>
+    senderAccount: TBSAccount<TBSSolanaName>
   ): Promise<solanaKit.Base64EncodedWireTransaction> {
     if (senderAccount.isHardware) {
       if (!this.ledgerService.getLedgerTransport)
@@ -97,7 +96,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     return solanaKit.getBase64EncodedWireTransaction(signedTransaction)
   }
 
-  async #buildTransferParams(params: TTransferParams<N>) {
+  async #buildTransferParams(params: TTransferParams<TBSSolanaName>) {
     const signer = solanaKit.createNoopSigner(solanaKit.address(params.senderAccount.address))
 
     const instructions: solanaKit.Instruction[] = []
@@ -249,7 +248,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     }
   }
 
-  async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<N>> {
+  async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<TBSSolanaName>> {
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
     const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath)
     const signer = await solanaKit.createKeyPairSignerFromPrivateKeyBytes(keyBuffer)
@@ -270,7 +269,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     }
   }
 
-  async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
+  async generateAccountFromKey(key: string): Promise<TBSAccount<TBSSolanaName>> {
     const keyBuffer = solanaKit.getBase58Encoder().encode(key)
     const signer = await solanaKit.createKeyPairSignerFromBytes(keyBuffer)
 
@@ -282,7 +281,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     }
   }
 
-  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
+  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<TBSSolanaName>> {
     return {
       address: publicKey,
       key: publicKey,
@@ -291,7 +290,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     }
   }
 
-  async transfer(params: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+  async transfer(params: TTransferParams<TBSSolanaName>): Promise<TTransactionDefault<TBSSolanaName>[]> {
     const { transactionMessage } = await this.#buildTransferParams(params)
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
     const fee = await this.#getFeeByMessageBytes(compiledTransaction.messageBytes)
@@ -331,7 +330,7 @@ export class BSSolana<N extends string = string> implements IBSSolana<N> {
     ]
   }
 
-  async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
+  async calculateTransferFee(params: TTransferParams<TBSSolanaName>): Promise<string> {
     const { transactionMessage } = await this.#buildTransferParams(params)
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
 

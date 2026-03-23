@@ -9,7 +9,7 @@
     "/dist"
   ],
   "scripts": {
-    "build": "rm -rf ./dist && npm run typecheck && tsc --project tsconfig.build.json",
+    "build": "rm -rf ./dist && rm -f *.tgz && npm run typecheck && tsc --project tsconfig.build.json",
     "format": "eslint . --fix",
     "lint": "eslint .",
     "package": "npm run build && npm pack",

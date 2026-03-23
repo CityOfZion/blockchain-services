@@ -7,27 +7,28 @@ import {
   type TLedgerServiceEmitter,
   type TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
-import { BSNeoLegacy } from '../../BSNeoLegacy'
 import EventEmitter from 'events'
 import Transport from '@ledgerhq/hw-transport'
 import {
   ENeonJsLedgerServiceNeoLegacyCommand,
   ENeonJsLedgerServiceNeoLegacyParameter,
   ENeonJsLedgerServiceNeoLegacyStatus,
+  type IBSNeoLegacy,
+  type TBSNeoLegacyName,
 } from '../../types'
 import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
-export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements ILedgerService<N> {
-  readonly #service: BSNeoLegacy<N>
-  readonly getLedgerTransport?: TGetLedgerTransport<N>
+export class NeonJsLedgerServiceNeoLegacy implements ILedgerService<TBSNeoLegacyName> {
+  readonly #service: IBSNeoLegacy
+  readonly getLedgerTransport?: TGetLedgerTransport<TBSNeoLegacyName>
   emitter: TLedgerServiceEmitter = new EventEmitter() as TLedgerServiceEmitter
 
-  constructor(blockchainService: BSNeoLegacy<N>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(blockchainService: IBSNeoLegacy, getLedgerTransport?: TGetLedgerTransport<TBSNeoLegacyName>) {
     this.#service = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
 
-  async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
+  async getAccount(transport: Transport, index: number): Promise<TBSAccount<TBSNeoLegacyName>> {
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
     const bipPathHex = this.#bipPathToHex(bipPath)
 
@@ -56,8 +57,8 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
 
   async getAccounts(
     transport: Transport,
-    untilIndexByBlockchainService?: TUntilIndexRecord<N>
-  ): Promise<TBSAccount<N>[]> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<TBSNeoLegacyName>
+  ): Promise<TBSAccount<TBSNeoLegacyName>[]> {
     const accountsByBlockchainService = await generateAccountForBlockchainService(
       [this.#service],
       async (_service, index) => {
@@ -72,7 +73,7 @@ export class NeonJsLedgerServiceNeoLegacy<N extends string = string> implements 
 
   getSigningCallback(
     transport: Transport,
-    account: TBSAccount<N>
+    account: TBSAccount<TBSNeoLegacyName>
   ): (transaction: string, publicKey: string) => Promise<string | string[]> {
     return async (transaction, publicKey) => {
       try {

@@ -7,14 +7,14 @@ import { BSStellarConstants } from '../constants/BSStellarConstants'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 import * as stellarSDK from '@stellar/stellar-sdk'
 
-let ledgerService: LedgerServiceStellar<'test'>
+let ledgerService: LedgerServiceStellar
 let transport: Transport
-let bsStellar: BSStellar<'test'>
+let bsStellar: BSStellar
 const network = BSStellarConstants.TESTNET_NETWORK
 
 describe.skip('LedgerServiceStellar', () => {
   beforeAll(async () => {
-    bsStellar = new BSStellar('test', network)
+    bsStellar = new BSStellar(network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new LedgerServiceStellar(bsStellar, async () => transport)

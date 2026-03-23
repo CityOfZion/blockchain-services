@@ -13,14 +13,13 @@ const sacToken: TBSToken = {
   decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
   hash: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
 }
-
-let bsStellar: BSStellar<'test'>
+let bsStellar: BSStellar
 let keypair: stellarSDK.Keypair
 let keypair2: stellarSDK.Keypair
 
 describe('BSStellar', () => {
   beforeAll(async () => {
-    bsStellar = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK)
+    bsStellar = new BSStellar(BSStellarConstants.TESTNET_NETWORK)
 
     const bipPath = BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, 0)
     const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath)
@@ -206,7 +205,7 @@ describe('BSStellar', () => {
 
   it.skip('Should be able to calculate transfer fee using ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK, async () => transport)
+    const service = new BSStellar(BSStellarConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
 
@@ -231,7 +230,7 @@ describe('BSStellar', () => {
 
   it.skip('Should be able to transfer the native token using Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK, async () => transport)
+    const service = new BSStellar(BSStellarConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
     const receiverAddress = receiverAccount.address
@@ -271,7 +270,7 @@ describe('BSStellar', () => {
 
   it.skip('Should be able to transfer more than one intent using Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK, async () => transport)
+    const service = new BSStellar(BSStellarConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
     const amount = '0.0000001'

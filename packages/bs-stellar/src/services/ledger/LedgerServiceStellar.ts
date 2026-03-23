@@ -10,26 +10,26 @@ import {
   type TUntilIndexRecord,
 } from '@cityofzion/blockchain-service'
 import EventEmitter from 'events'
-import type { IBSStellar } from '../../types'
+import type { IBSStellar, TBSStellarName } from '../../types'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerStellarApp from '@ledgerhq/hw-app-str'
 import * as stellarSDK from '@stellar/stellar-sdk'
 
-export class LedgerServiceStellar<N extends string = string> implements ILedgerService<N> {
+export class LedgerServiceStellar implements ILedgerService<TBSStellarName> {
   readonly emitter: TLedgerServiceEmitter = new EventEmitter() as TLedgerServiceEmitter
-  getLedgerTransport?: TGetLedgerTransport<N> | undefined
+  getLedgerTransport?: TGetLedgerTransport<TBSStellarName> | undefined
 
-  readonly #service: IBSStellar<N>
+  readonly #service: IBSStellar
 
-  constructor(service: IBSStellar<N>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(service: IBSStellar, getLedgerTransport?: TGetLedgerTransport<TBSStellarName>) {
     this.#service = service
     this.getLedgerTransport = getLedgerTransport
   }
 
   async getAccounts(
     transport: Transport,
-    untilIndexByBlockchainService?: TUntilIndexRecord<N>
-  ): Promise<TBSAccount<N>[]> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<TBSStellarName>
+  ): Promise<TBSAccount<TBSStellarName>[]> {
     const accountsByBlockchainService = await generateAccountForBlockchainService(
       [this.#service],
       async (_service, index) => {
@@ -42,7 +42,7 @@ export class LedgerServiceStellar<N extends string = string> implements ILedgerS
     return accounts ?? []
   }
 
-  async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
+  async getAccount(transport: Transport, index: number): Promise<TBSAccount<TBSStellarName>> {
     const ledgerApp = new LedgerStellarApp(transport)
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
     const bipPathWithoutMasterKey = BSKeychainHelper.removeMasterKeyFromBipPath(bipPath)
@@ -65,7 +65,11 @@ export class LedgerServiceStellar<N extends string = string> implements ILedgerS
     }
   }
 
-  async signTransaction(transport: Transport, transaction: stellarSDK.Transaction, account: TBSAccount<N>) {
+  async signTransaction(
+    transport: Transport,
+    transaction: stellarSDK.Transaction,
+    account: TBSAccount<TBSStellarName>
+  ) {
     if (!account.bipPath) {
       throw new BSError('Account must have BIP path to sign with Ledger', 'INVALID_HARDWARE_ACCOUNT')
     }

@@ -3,11 +3,11 @@ import { BSStellarConstants } from '../constants/BSStellarConstants'
 import { RpcEDSStellar } from '../services/exchange/RpcEDSStellar'
 import { BSStellar } from '../BSStellar'
 
-let rpcEDSSolana: RpcEDSStellar<'test'>
+let rpcEDSSolana: RpcEDSStellar
 
 describe('RpcEDSStellar', () => {
   beforeAll(() => {
-    const service = new BSStellar('test', BSStellarConstants.MAINNET_NETWORK)
+    const service = new BSStellar(BSStellarConstants.MAINNET_NETWORK)
     rpcEDSSolana = new RpcEDSStellar(service)
   })
 

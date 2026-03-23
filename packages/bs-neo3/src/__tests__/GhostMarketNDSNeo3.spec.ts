@@ -4,12 +4,12 @@ import { GhostMarketNDSNeo3 } from '../services/nft-data/GhostMarketNDSNeo3'
 import { INftDataService } from '@cityofzion/blockchain-service'
 import { IBSNeo3 } from '../types'
 
-describe('GhostMarketNDSNeo3', () => {
-  let service: IBSNeo3<'test'>
-  let ghostMarketNDSNeo3: INftDataService
+let service: IBSNeo3
+let ghostMarketNDSNeo3: INftDataService
 
+describe('GhostMarketNDSNeo3', () => {
   beforeAll(() => {
-    service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3(BSNeo3Constants.MAINNET_NETWORK)
     ghostMarketNDSNeo3 = new GhostMarketNDSNeo3(service)
   })
 

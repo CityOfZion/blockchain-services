@@ -5,11 +5,11 @@ import {
   TWalletConnectServiceRequestMethodParams,
   BSUtilsHelper,
 } from '@cityofzion/blockchain-service'
-import type { IBSStellar } from '../../types'
+import type { IBSStellar, TBSStellarName } from '../../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
 
-export class WalletConnectServiceStellar<N extends string> implements IWalletConnectService<N> {
+export class WalletConnectServiceStellar implements IWalletConnectService<TBSStellarName> {
   readonly namespace: string = 'stellar'
   readonly chain: string
   readonly supportedMethods: string[] = [
@@ -23,9 +23,9 @@ export class WalletConnectServiceStellar<N extends string> implements IWalletCon
   readonly calculableMethods: string[] = ['stellar_signAndSubmitXDR']
   readonly autoApproveMethods: string[] = ['stellar_getNetwork']
 
-  readonly #service: IBSStellar<N>
+  readonly #service: IBSStellar
 
-  constructor(service: IBSStellar<N>) {
+  constructor(service: IBSStellar) {
     this.#service = service
 
     this.chain = `${this.namespace}:${this.#service.network.id}`
@@ -33,7 +33,7 @@ export class WalletConnectServiceStellar<N extends string> implements IWalletCon
 
   [methodName: string]: any
 
-  async stellar_signXDR(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async stellar_signXDR(args: TWalletConnectServiceRequestMethodParams<TBSStellarName>) {
     const { xdr } = args?.params ?? {}
 
     if (typeof xdr !== 'string') {
@@ -52,7 +52,7 @@ export class WalletConnectServiceStellar<N extends string> implements IWalletCon
     return { signedXDR, signerAddress: args.account.address }
   }
 
-  async stellar_signAndSubmitXDR(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async stellar_signAndSubmitXDR(args: TWalletConnectServiceRequestMethodParams<TBSStellarName>) {
     const { xdr } = args?.params ?? {}
 
     if (typeof xdr !== 'string') {
@@ -71,7 +71,7 @@ export class WalletConnectServiceStellar<N extends string> implements IWalletCon
     return { status: response.status, hash: response.hash }
   }
 
-  async stellar_signMessage(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async stellar_signMessage(args: TWalletConnectServiceRequestMethodParams<TBSStellarName>) {
     const { message } = args?.params ?? {}
 
     if (typeof message !== 'string') {
@@ -96,7 +96,7 @@ export class WalletConnectServiceStellar<N extends string> implements IWalletCon
     }
   }
 
-  async stellar_signAuthEntry(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async stellar_signAuthEntry(args: TWalletConnectServiceRequestMethodParams<TBSStellarName>) {
     const { xdr } = args?.params ?? {}
 
     if (typeof xdr !== 'string') {
@@ -116,14 +116,14 @@ export class WalletConnectServiceStellar<N extends string> implements IWalletCon
     }
   }
 
-  async stellar_getNetwork(_args: TWalletConnectServiceRequestMethodParams<N>) {
+  async stellar_getNetwork(_args: TWalletConnectServiceRequestMethodParams<TBSStellarName>) {
     return {
       network: this.#service.network.id === 'pubnet' ? 'PUBLIC' : 'TESTNET',
       networkPassphrase: BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.#service.network.id],
     }
   }
 
-  async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
+  async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<TBSStellarName>): Promise<string> {
     const { xdr } = args?.params ?? {}
 
     if (typeof xdr !== 'string') {

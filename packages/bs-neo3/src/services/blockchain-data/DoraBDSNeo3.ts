@@ -11,18 +11,17 @@ import {
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
-import type { IBSNeo3, TRpcBDSNeo3Notification } from '../../types'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
+import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification } from '../../types'
 import { StateResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
 import { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 
-export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
+export class DoraBDSNeo3 extends RpcBDSNeo3 {
   static getClient() {
     return new api.NeoRESTApi({ url: BSCommonConstants.COZ_API_URL, endpoint: '/api/v2/neo3' })
   }
 
-  static getBridgeNeo3NeoXDataByNotifications<N extends string>(notifications: Notification[], service: IBSNeo3<N>) {
+  static getBridgeNeo3NeoXDataByNotifications(notifications: Notification[], service: IBSNeo3) {
     const gasNotification = notifications.find(({ event_name }) => event_name === 'NativeDeposit')
     const isNativeToken = !!gasNotification
 
@@ -35,7 +34,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
     if (!notificationStateValue) return undefined
 
-    let tokenToUse: TBridgeToken<N> | undefined
+    let tokenToUse: TBridgeToken<TBSNeo3Name> | undefined
     let amountInDecimals: string | undefined
     let byteStringReceiverAddress: string | undefined
 
@@ -64,7 +63,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
   #apiInstance?: api.NeoRESTApi
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     super(service)
   }
 
@@ -76,8 +75,8 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
     return this.#apiInstance
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
-    if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
+  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeo3Name>> {
+    if (this._service.network.type === 'custom') {
       return await super.getTransaction(hash)
     }
 
@@ -97,7 +96,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
 
     const events = await this._extractEventsFromNotifications(notifications)
 
-    let transaction: TTransactionDefault<N> = {
+    let transaction: TTransactionDefault<TBSNeo3Name> = {
       txId,
       txIdUrl,
       block: response.block,
@@ -129,14 +128,16 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
-    if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
+  }: TGetTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>
+  > {
+    if (this._service.network.type === 'custom') {
       return await super.getTransactionsByAddress({ address, nextPageParams })
     }
 
     const data = await this.#api.addressTXFull(address, nextPageParams, this._service.network.id)
 
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault<TBSNeo3Name>[] = []
 
     const promises = data.items.map(async (item, index) => {
       const notifications = item.notifications?.map<TRpcBDSNeo3Notification>(({ contract, state, event_name }) => ({
@@ -150,7 +151,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
       const txId = item.hash
       const txIdUrl = this._service.explorerService.buildTransactionUrl(txId)
 
-      let transaction: TTransactionDefault<N> = {
+      let transaction: TTransactionDefault<TBSNeo3Name> = {
         txId,
         txIdUrl,
         block: item.block,
@@ -190,7 +191,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
   }
 
   async getContract(contractHash: string): Promise<TContractResponse> {
-    if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
+    if (this._service.network.type === 'custom') {
       return await super.getContract(contractHash)
     }
 
@@ -207,7 +208,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
   }
 
   async getTokenInfo(tokenHash: string): Promise<TBSToken> {
-    if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
+    if (this._service.network.type === 'custom') {
       return await super.getTokenInfo(tokenHash)
     }
 
@@ -238,7 +239,7 @@ export class DoraBDSNeo3<N extends string> extends RpcBDSNeo3<N> {
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
-    if (BSNeo3Helper.isCustomNetwork(this._service.network)) {
+    if (this._service.network.type === 'custom') {
       return await super.getBalance(address)
     }
 

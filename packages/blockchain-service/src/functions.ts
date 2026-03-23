@@ -13,15 +13,16 @@ import type {
   TUntilIndexRecord,
   IBSWithWalletConnect,
   IBSWithFullTransactions,
+  TBSNetworkId,
 } from './interfaces'
 
-export function hasNameService<N extends string = string, A extends string = string>(
+export function hasNameService<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithNameService {
   return 'resolveNameServiceDomain' in service && 'validateNameServiceDomainFormat' in service
 }
 
-export function isClaimable<N extends string = string, A extends string = string>(
+export function isClaimable<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithClaim<N> {
   return (
@@ -33,49 +34,49 @@ export function isClaimable<N extends string = string, A extends string = string
   )
 }
 
-export function isCalculableFee<N extends string = string, A extends string = string>(
+export function isCalculableFee<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithFee<N> {
   return 'calculateTransferFee' in service
 }
 
-export function hasNft<N extends string = string, A extends string = string>(
+export function hasNft<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithNft {
   return 'nftDataService' in service
 }
 
-export function hasExplorerService<N extends string = string, A extends string = string>(
+export function hasExplorerService<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithExplorer {
   return 'explorerService' in service
 }
 
-export function hasLedger<N extends string = string, A extends string = string>(
+export function hasLedger<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithLedger<N> {
   return 'ledgerService' in service
 }
 
-export function hasNeo3NeoXBridge<N extends string = string, A extends string = string>(
+export function hasNeo3NeoXBridge<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithNeo3NeoXBridge<N> {
   return 'neo3NeoXBridgeService' in service
 }
 
-export function hasEncryption<N extends string = string, A extends string = string>(
+export function hasEncryption<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithEncryption<N> {
   return 'encrypt' in service && 'decrypt' in service
 }
 
-export function hasWalletConnect<N extends string = string, A extends string = string>(
+export function hasWalletConnect<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithWalletConnect<N> {
   return 'walletConnectService' in service
 }
 
-export function hasFullTransactions<N extends string = string, A extends string = string>(
+export function hasFullTransactions<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithFullTransactions<N> {
   return 'fullTransactionsDataService' in service
@@ -84,7 +85,7 @@ export function hasFullTransactions<N extends string = string, A extends string 
 /**
  * @deprecated use `waitForAccountTransaction` instead
  */
-export async function waitForTransaction<N extends string = string, A extends string = string>(
+export async function waitForTransaction<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>,
   txId: string
 ): Promise<boolean> {
@@ -107,7 +108,7 @@ export async function waitForTransaction<N extends string = string, A extends st
   return false
 }
 
-export async function waitForAccountTransaction<N extends string = string, A extends string = string>(params: {
+export async function waitForAccountTransaction<N extends string, A extends TBSNetworkId>(params: {
   service: IBlockchainService<N, A>
   txId: string
   address: string
@@ -134,7 +135,7 @@ export async function waitForAccountTransaction<N extends string = string, A ext
   return false
 }
 
-export async function fetchAccounts<N extends string = string, A extends string = string>(
+export async function fetchAccounts<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>,
   initialIndex: number,
   getAccountCallback: (service: IBlockchainService<N, A>, index: number) => Promise<TBSAccount<N>>
@@ -164,7 +165,7 @@ export async function fetchAccounts<N extends string = string, A extends string 
   return accounts
 }
 
-export async function generateAccount<N extends string = string, A extends string = string>(
+export async function generateAccount<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>,
   initialIndex: number,
   untilIndex: number,
@@ -183,7 +184,7 @@ export async function generateAccount<N extends string = string, A extends strin
   return accounts
 }
 
-export async function generateAccountForBlockchainService<N extends string = string, A extends string = string>(
+export async function generateAccountForBlockchainService<N extends string, A extends TBSNetworkId>(
   services: IBlockchainService<N, A>[],
   getAccountCallback: (service: IBlockchainService<N, A>, index: number) => Promise<TBSAccount<N>>,
   untilIndexByBlockchainService?: TUntilIndexRecord<N>

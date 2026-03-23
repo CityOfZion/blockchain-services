@@ -17,7 +17,7 @@ import {
   type TTransactionDefault,
   type TTransferParams,
 } from '@cityofzion/blockchain-service'
-import type { IBSStellar, TBSStellarNetworkId } from './types'
+import type { IBSStellar, TBSStellarName, TBSStellarNetworkId } from './types'
 import { BSStellarConstants } from './constants/BSStellarConstants'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import axios from 'axios'
@@ -28,8 +28,9 @@ import { StellarChainESStellar } from './services/explorer/StellarChainESStellar
 import { LedgerServiceStellar } from './services/ledger/LedgerServiceStellar'
 import { WalletConnectServiceStellar } from './services/wallet-connect/WalletConnectServiceStellar'
 
-export class BSStellar<N extends string = string> implements IBSStellar<N> {
-  readonly name: N
+export class BSStellar implements IBSStellar {
+  readonly name = 'stellar'
+
   readonly bipDerivationPath: string
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
@@ -48,14 +49,13 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
   readonly nativeTokens: TBSToken[]
 
   exchangeDataService!: IExchangeDataService
-  blockchainDataService!: IBlockchainDataService<N>
+  blockchainDataService!: IBlockchainDataService<TBSStellarName>
   tokenService!: ITokenService
   explorerService!: IExplorerService
-  ledgerService!: LedgerServiceStellar<N>
-  walletConnectService!: IWalletConnectService<N>
+  ledgerService!: LedgerServiceStellar
+  walletConnectService!: IWalletConnectService<TBSStellarName>
 
-  constructor(name: N, network?: TBSNetwork<TBSStellarNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
-    this.name = name
+  constructor(network?: TBSNetwork<TBSStellarNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSStellarName>) {
     this.bipDerivationPath = BSStellarConstants.DEFAULT_BIP_DERIVATION_PATH
 
     this.tokens = [BSStellarConstants.NATIVE_TOKEN]
@@ -107,7 +107,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  async #buildTransferTransaction({ intents, senderAccount }: TTransferParams<N>) {
+  async #buildTransferTransaction({ intents, senderAccount }: TTransferParams<TBSStellarName>) {
     const sourceAccount = await this.#ensureAccountOnChain(senderAccount.address)
 
     const feeBn = await this.getFeeEstimate(intents.length)
@@ -142,7 +142,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     return transaction.setTimeout(30).build()
   }
 
-  async signTransaction(transaction: stellarSDK.Transaction, senderAccount: TBSAccount<N>) {
+  async signTransaction(transaction: stellarSDK.Transaction, senderAccount: TBSAccount<TBSStellarName>) {
     if (senderAccount.isHardware) {
       if (!this.ledgerService.getLedgerTransport) {
         throw new BSError(
@@ -164,7 +164,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     return transaction
   }
 
-  async createTrustline(senderAccount: TBSAccount<N>, token: TBSToken): Promise<string> {
+  async createTrustline(senderAccount: TBSAccount<TBSStellarName>, token: TBSToken): Promise<string> {
     const asset = new stellarSDK.Asset(token.symbol, token.hash)
     let alreadyHaveTrustline = false
 
@@ -253,7 +253,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<N>> {
+  async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<TBSStellarName>> {
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
     const key = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath)
     const keypair = stellarSDK.Keypair.fromRawEd25519Seed(key)
@@ -267,7 +267,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  async generateAccountFromKey(key: string): Promise<TBSAccount<N>> {
+  async generateAccountFromKey(key: string): Promise<TBSAccount<TBSStellarName>> {
     const keypair = stellarSDK.Keypair.fromSecret(key)
 
     return {
@@ -278,7 +278,7 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     }
   }
 
-  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
+  async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<TBSStellarName>> {
     const isPublicKeyValid = this.validateAddress(publicKey)
     if (!isPublicKeyValid) {
       throw new BSError('Invalid public key', 'INVALID_PUBLIC_KEY')
@@ -300,13 +300,13 @@ export class BSStellar<N extends string = string> implements IBSStellar<N> {
     return stellarSDK.StrKey.isValidEd25519SecretSeed(key)
   }
 
-  async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
+  async calculateTransferFee(params: TTransferParams<TBSStellarName>): Promise<string> {
     const feeBn = await this.getFeeEstimate(params.intents.length)
 
     return BSBigNumberHelper.toNumber(feeBn, this.feeToken.decimals)
   }
 
-  async transfer(params: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+  async transfer(params: TTransferParams<TBSStellarName>): Promise<TTransactionDefault<TBSStellarName>[]> {
     const transaction = await this.#buildTransferTransaction(params)
     const { senderAccount } = params
     const signedTransaction = await this.signTransaction(transaction, senderAccount)

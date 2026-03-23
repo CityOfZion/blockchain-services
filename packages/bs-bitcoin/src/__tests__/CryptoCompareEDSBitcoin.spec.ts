@@ -17,11 +17,11 @@ const satsToken: TBSToken = {
   decimals: 18,
 }
 
-let exchangeDataService: CryptoCompareEDSBitcoin<'test'>
+let exchangeDataService: CryptoCompareEDSBitcoin
 
 describe('CryptoCompareEDSBitcoin', () => {
   beforeEach(() => {
-    const service = new BSBitcoin('test')
+    const service = new BSBitcoin()
 
     exchangeDataService = new CryptoCompareEDSBitcoin(service)
   })

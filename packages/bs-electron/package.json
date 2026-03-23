@@ -8,7 +8,7 @@
     "/dist"
   ],
   "scripts": {
-    "build": "rm -rf ./dist && npm run typecheck && tsc",
+    "build": "rm -rf ./dist && rm -f *.tgz && npm run typecheck && tsc",
     "format": "eslint --fix",
     "lint": "eslint .",
     "package": "npm run build && npm pack",

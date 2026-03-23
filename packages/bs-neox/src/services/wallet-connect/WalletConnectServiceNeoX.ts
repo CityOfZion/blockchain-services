@@ -1,26 +1,22 @@
 import {
   BSUtilsHelper,
-  type IWalletConnectService,
-  type TBSNetworkId,
   type TWalletConnectServiceRequestMethodParams,
   type THexString,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
-import { IBSEthereum, WalletConnectServiceEthereum } from '@cityofzion/bs-ethereum'
+import { WalletConnectServiceEthereum } from '@cityofzion/bs-ethereum'
 import { toHex } from 'viem'
 import axios from 'axios'
+import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId } from '../../types'
 
-export class WalletConnectServiceNeoX<N extends string, A extends TBSNetworkId>
-  extends WalletConnectServiceEthereum<N, A>
-  implements IWalletConnectService<N>
-{
-  constructor(service: IBSEthereum<N, A>) {
+export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<TBSNeoXName, TBSNeoXNetworkId> {
+  constructor(service: IBSNeoX) {
     super(service)
 
     this.supportedMethods.push('eth_getTransactionCount', 'eth_getCachedTransaction')
   }
 
-  async eth_getTransactionCount(args: TWalletConnectServiceRequestMethodParams<N>): Promise<number> {
+  async eth_getTransactionCount(args: TWalletConnectServiceRequestMethodParams<TBSNeoXName>): Promise<number> {
     const wallet = await this._service.generateSigner(args.account)
     const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
     const connectedWallet = wallet.connect(provider)
@@ -28,7 +24,7 @@ export class WalletConnectServiceNeoX<N extends string, A extends TBSNetworkId>
     return await connectedWallet.getTransactionCount('pending')
   }
 
-  async eth_getCachedTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<THexString> {
+  async eth_getCachedTransaction(args: TWalletConnectServiceRequestMethodParams<TBSNeoXName>): Promise<THexString> {
     const url = this._service.network.url
     const wallet = await this._service.generateSigner(args.account)
     const provider = new ethers.providers.JsonRpcProvider(url)
@@ -48,7 +44,7 @@ export class WalletConnectServiceNeoX<N extends string, A extends TBSNetworkId>
     return cachedTransactionResponse.data.result
   }
 
-  async eth_sendTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
+  async eth_sendTransaction(args: TWalletConnectServiceRequestMethodParams<TBSNeoXName>): Promise<string> {
     const { wallet, provider, param } = await this._resolveParams(args)
     const connectedWallet = wallet.connect(provider)
     const [response, error] = await BSUtilsHelper.tryCatch(() => connectedWallet.sendTransaction(param))

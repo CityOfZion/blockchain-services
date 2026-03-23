@@ -31,10 +31,11 @@ export type TBSEthereumNetworkId = TBSNetworkId<
   | '11155111'
 >
 
-export type TSupportedEVM = 'ethereum' | 'polygon' | 'base' | 'arbitrum'
+export type TBSEthereumName = 'ethereum' | 'polygon' | 'base' | 'arbitrum'
 
-export interface IBSEthereum<N extends string = string, A extends string = TBSEthereumNetworkId>
-  extends IBlockchainService<N, A>,
+export interface IBSEthereum<N extends string = TBSEthereumName, A extends TBSNetworkId = TBSEthereumNetworkId>
+  extends
+    IBlockchainService<N, A>,
     IBSWithNameService,
     IBSWithNft,
     IBSWithFee<N>,

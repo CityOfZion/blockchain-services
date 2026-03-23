@@ -4,7 +4,9 @@ import { ethers, Signer } from 'ethers'
 
 export type TBSNeoXNetworkId = TBSNetworkId<'47763' | '12227332'>
 
-export interface IBSNeoX<N extends string = string> extends IBSEthereum<N, TBSNeoXNetworkId>, IBSWithNeo3NeoXBridge<N> {
+export type TBSNeoXName = 'neox'
+
+export interface IBSNeoX extends IBSEthereum<TBSNeoXName, TBSNeoXNetworkId>, IBSWithNeo3NeoXBridge<TBSNeoXName> {
   sendTransaction(params: TSendTransactionParams): Promise<TSendTransactionResponse>
 }
 

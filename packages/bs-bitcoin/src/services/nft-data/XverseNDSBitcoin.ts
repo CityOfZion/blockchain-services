@@ -16,13 +16,13 @@ import type {
 } from '../../types'
 import { BSBitcoinXverseHelper } from '../../helpers/BSBitcoinXverseHelper'
 
-export class XverseNDSBitcoin<N extends string> implements INftDataService {
+export class XverseNDSBitcoin implements INftDataService {
   readonly #contentTypeSvg = 'image/svg+xml'
-  readonly #service: IBSBitcoin<N>
+  readonly #service: IBSBitcoin
   readonly #xverseApi = BSBitcoinXverseHelper.getApi()
   readonly #cachedNfts = new Map<string, TNftResponse>()
 
-  constructor(service: IBSBitcoin<N>) {
+  constructor(service: IBSBitcoin) {
     this.#service = service
   }
 

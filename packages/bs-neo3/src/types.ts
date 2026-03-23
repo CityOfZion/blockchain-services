@@ -18,19 +18,21 @@ import { wallet, api } from './helpers/BSNeo3NeonJsSingletonHelper'
 
 export type TBSNeo3NetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
-export interface IBSNeo3<N extends string = string, A extends string = TBSNeo3NetworkId>
-  extends IBlockchainService<N, A>,
+export type TBSNeo3Name = 'neo3'
+export interface IBSNeo3
+  extends
+    IBlockchainService<TBSNeo3Name, TBSNeo3NetworkId>,
     IBSWithNameService,
-    IBSWithClaim<N>,
-    IBSWithFee<N>,
+    IBSWithClaim<TBSNeo3Name>,
+    IBSWithFee<TBSNeo3Name>,
     IBSWithNft,
     IBSWithExplorer,
-    IBSWithLedger<N>,
-    IBSWithNeo3NeoXBridge<N>,
-    IBSWithEncryption<N>,
-    IBSWithWalletConnect<N>,
-    IBSWithFullTransactions<N> {
-  generateSigningCallback(account: TBSAccount<N>): Promise<{
+    IBSWithLedger<TBSNeo3Name>,
+    IBSWithNeo3NeoXBridge<TBSNeo3Name>,
+    IBSWithEncryption<TBSNeo3Name>,
+    IBSWithWalletConnect<TBSNeo3Name>,
+    IBSWithFullTransactions<TBSNeo3Name> {
+  generateSigningCallback(account: TBSAccount<TBSNeo3Name>): Promise<{
     neonJsAccount: wallet.Account
     signingCallback: api.SigningFunction
   }>
@@ -57,8 +59,8 @@ export type TVoteServiceDetailsByAddressResponse = {
   address: string
 }
 
-export type TVoteServiceVoteParams<N extends string> = {
-  account: TBSAccount<N>
+export type TVoteServiceVoteParams = {
+  account: TBSAccount<TBSNeo3Name>
   candidatePubKey: string
 }
 
@@ -89,11 +91,11 @@ export type TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse = {
   balance: number
 }
 
-export interface IVoteService<N extends string> {
+export interface IVoteService {
   getCandidatesToVote(): Promise<TVoteServiceCandidate[]>
   getVoteDetailsByAddress(address: string): Promise<TVoteServiceDetailsByAddressResponse>
-  vote(params: TVoteServiceVoteParams<N>): Promise<TTransactionDefault<N>>
-  calculateVoteFee(params: TVoteServiceVoteParams<N>): Promise<string>
+  vote(params: TVoteServiceVoteParams): Promise<TTransactionDefault<TBSNeo3Name>>
+  calculateVoteFee(params: TVoteServiceVoteParams): Promise<string>
 }
 
 export type TRpcVoteServiceNeo3GetVoteCIMParams = {

@@ -1,12 +1,12 @@
 import type { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
 import type { IBSSolana } from '../../types'
 
-export class SolScanESSolana<N extends string> implements IExplorerService {
+export class SolScanESSolana implements IExplorerService {
   readonly #baseUrl = 'https://solscan.io'
   readonly #queryParams: string = ''
-  readonly #service: IBSSolana<N>
+  readonly #service: IBSSolana
 
-  constructor(service: IBSSolana<N>) {
+  constructor(service: IBSSolana) {
     if (service.network.type !== 'mainnet') {
       this.#queryParams = `?cluster=${service.network.id}`
     }

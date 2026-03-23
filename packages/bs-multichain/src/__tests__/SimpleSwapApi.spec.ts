@@ -5,7 +5,7 @@ import { BSCommonConstants } from '@cityofzion/blockchain-service'
 describe('SimpleSwapApi', () => {
   const simpleSwapApi = new SimpleSwapApi()
 
-  const gasCurrency: TSimpleSwapApiCurrency<'test'> = {
+  const gasCurrency: TSimpleSwapApiCurrency = {
     id: 'gasn3:neo3',
     ticker: 'gasn3',
     symbol: 'gasn3',
@@ -19,10 +19,10 @@ describe('SimpleSwapApi', () => {
     validationAddress: '^(N)[A-Za-z0-9]{33}$',
     addressTemplateUrl: `${BSCommonConstants.DORA_URL}/address/neo3/mainnet/{address}`,
     txTemplateUrl: `${BSCommonConstants.DORA_URL}/transaction/neo3/mainnet/{txId}`,
-    blockchain: 'test',
+    blockchain: 'neo3',
   }
 
-  const neoCurrency: TSimpleSwapApiCurrency<'test'> = {
+  const neoCurrency: TSimpleSwapApiCurrency = {
     id: 'neo3:neo3',
     ticker: 'neo3',
     symbol: 'NEO',
@@ -36,7 +36,7 @@ describe('SimpleSwapApi', () => {
     validationAddress: '^(N)[A-Za-z0-9]{33}$',
     addressTemplateUrl: `${BSCommonConstants.DORA_URL}/address/neo3/mainnet/{address}`,
     txTemplateUrl: `${BSCommonConstants.DORA_URL}/transaction/neo3/mainnet/{txId}`,
-    blockchain: 'test',
+    blockchain: 'neo3',
   }
 
   const xrpCurrency: TSimpleSwapApiCurrency = {

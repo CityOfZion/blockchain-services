@@ -21,11 +21,10 @@ const antiMevTestnetNetwork: TBSNetwork<TBSNeoXNetworkId> = {
 
 const neoToken = BSNeoXHelper.getNeoToken(testnetNetwork)
 
+let bsNeoX: BSNeoX
 describe('BSNeoX', () => {
-  let bsNeoX: BSNeoX<'test'>
-
   it('Should be able to transfer the native token (GAS) on Testnet', async () => {
-    bsNeoX = new BSNeoX('test', testnetNetwork)
+    bsNeoX = new BSNeoX(testnetNetwork)
 
     const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const { address } = senderAccount
@@ -98,7 +97,7 @@ describe('BSNeoX', () => {
   })
 
   it('Should be able to transfer the NEO token on Testnet', async () => {
-    bsNeoX = new BSNeoX('test', testnetNetwork)
+    bsNeoX = new BSNeoX(testnetNetwork)
 
     const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const { address } = senderAccount
@@ -171,7 +170,7 @@ describe('BSNeoX', () => {
   it.skip('Should be able to transfer the native token (GAS) on Testnet using Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', testnetNetwork, async () => transport)
+    bsNeoX = new BSNeoX(testnetNetwork, async () => transport)
 
     const senderAccount = await bsNeoX.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount
@@ -248,7 +247,7 @@ describe('BSNeoX', () => {
   it.skip('Should be able to transfer the NEO token on Testnet using Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', testnetNetwork, async () => transport)
+    bsNeoX = new BSNeoX(testnetNetwork, async () => transport)
 
     const senderAccount = await bsNeoX.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount
@@ -321,7 +320,7 @@ describe('BSNeoX', () => {
   }, 120000)
 
   it('Should be able to transfer the native token (GAS) on Testnet using Anti-MEV', async () => {
-    bsNeoX = new BSNeoX('test', antiMevTestnetNetwork)
+    bsNeoX = new BSNeoX(antiMevTestnetNetwork)
 
     const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const { address } = senderAccount
@@ -394,7 +393,7 @@ describe('BSNeoX', () => {
   })
 
   it('Should be able to transfer the NEO token on Testnet using Anti-MEV', async () => {
-    bsNeoX = new BSNeoX('test', antiMevTestnetNetwork)
+    bsNeoX = new BSNeoX(antiMevTestnetNetwork)
 
     const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const { address } = senderAccount
@@ -467,7 +466,7 @@ describe('BSNeoX', () => {
   it.skip('Should be able to transfer the native token (GAS) on Testnet using Anti-MEV and Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', antiMevTestnetNetwork, async () => transport)
+    bsNeoX = new BSNeoX(antiMevTestnetNetwork, async () => transport)
 
     const senderAccount = await bsNeoX.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount
@@ -544,7 +543,7 @@ describe('BSNeoX', () => {
   it.skip('Should be able to transfer the NEO token on Testnet using Anti-MEV and Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeoX = new BSNeoX('test', antiMevTestnetNetwork, async () => transport)
+    bsNeoX = new BSNeoX(antiMevTestnetNetwork, async () => transport)
 
     const senderAccount = await bsNeoX.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount

@@ -8,14 +8,14 @@ import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 import * as solanaKit from '@solana/kit'
 import * as solanaSystem from '@solana-program/system'
 
-let ledgerService: Web3LedgerServiceSolana<'test'>
+let ledgerService: Web3LedgerServiceSolana
 let transport: Transport
-let bsSolana: BSSolana<'test'>
+let bsSolana: BSSolana
 const network = BSSolanaConstants.TESTNET_NETWORK
 
 describe.skip('NeonDappKitLedgerServiceNeo3', () => {
   beforeAll(async () => {
-    bsSolana = new BSSolana('test', network)
+    bsSolana = new BSSolana(network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new Web3LedgerServiceSolana(bsSolana, async () => transport)

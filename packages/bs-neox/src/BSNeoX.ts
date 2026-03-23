@@ -16,7 +16,7 @@ import { FlamingoForthewinEDSNeoX } from './services/exchange-data/FlamingoForth
 import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
 import { GhostMarketNDSNeoX } from './services/nft-data/GhostMarketNDSNeoX'
 import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
-import type { IBSNeoX, TBSNeoXNetworkId, TSendTransactionParams, TSendTransactionResponse } from './types'
+import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId, TSendTransactionParams, TSendTransactionResponse } from './types'
 import { ethers } from 'ethers'
 import axios from 'axios'
 import { CONSENSUS_ABI } from './assets/abis/consensus'
@@ -26,14 +26,14 @@ import { concat, keccak256, pad, parseTransaction, toBytes, toHex } from 'viem'
 import { BlockscoutFullTransactionsDataService } from './services/full-transactions-data/BlockscoutFullTransactionsDataService'
 import { BSNeoXHelper } from './helpers/BSNeoXHelper'
 
-export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetworkId> implements IBSNeoX<N> {
-  neo3NeoXBridgeService!: INeo3NeoXBridgeService<N>
+export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements IBSNeoX {
+  neo3NeoXBridgeService!: INeo3NeoXBridgeService<TBSNeoXName>
 
   readonly defaultNetwork: TBSNetwork<TBSNeoXNetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeoXNetworkId>[]
 
-  constructor(name: N, network?: TBSNetwork<TBSNeoXNetworkId>, getLedgerTransport?: TGetLedgerTransport<N>) {
-    super(name, undefined, undefined, getLedgerTransport)
+  constructor(network?: TBSNetwork<TBSNeoXNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeoXName>) {
+    super('neox', undefined, getLedgerTransport)
 
     this.nativeTokens = [BSNeoXConstants.NATIVE_ASSET]
     this.feeToken = BSNeoXConstants.NATIVE_ASSET
@@ -61,7 +61,7 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     this.explorerService = new BlockscoutESNeoX(this)
     this.exchangeDataService = new FlamingoForthewinEDSNeoX(this)
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
-    this.blockchainDataService = new BlockscoutBDSNeoX<N>(this)
+    this.blockchainDataService = new BlockscoutBDSNeoX(this)
     this.tokenService = new TokenServiceEthereum()
     this.walletConnectService = new WalletConnectServiceNeoX(this)
     this.fullTransactionsDataService = new BlockscoutFullTransactionsDataService(this)
@@ -188,12 +188,15 @@ export class BSNeoX<N extends string = string> extends BSEthereum<N, TBSNeoXNetw
     return { transactionHash, fee }
   }
 
-  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+  async transfer({
+    senderAccount,
+    intents,
+  }: TTransferParams<TBSNeoXName>): Promise<TTransactionDefault<TBSNeoXName>[]> {
     const signer = await this.generateSigner(senderAccount)
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
     const nativeTokenHash = BSNeoXConstants.NATIVE_ASSET.hash
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault<TBSNeoXName>[] = []
     let error: Error | undefined
 
     for (const intent of intents) {

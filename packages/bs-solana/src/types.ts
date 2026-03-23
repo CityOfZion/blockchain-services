@@ -19,17 +19,23 @@ import type {
 
 export type TBSSolanaNetworkId = TBSNetworkId<'mainnet-beta' | 'devnet'>
 
-export interface IBSSolana<N extends string = string, A extends string = TBSSolanaNetworkId>
-  extends IBlockchainService<N, A>,
-    IBSWithFee<N>,
+export type TBSSolanaName = 'solana'
+
+export interface IBSSolana
+  extends
+    IBlockchainService<TBSSolanaName, TBSSolanaNetworkId>,
+    IBSWithFee<TBSSolanaName>,
     IBSWithNameService,
-    IBSWithLedger<N>,
+    IBSWithLedger<TBSSolanaName>,
     IBSWithNft,
     IBSWithExplorer,
-    IBSWithWalletConnect<N> {
+    IBSWithWalletConnect<TBSSolanaName> {
   solanaKitRpc: Rpc<SolanaRpcApi>
 
-  signTransaction(transaction: Transaction, senderAccount: TBSAccount<N>): Promise<Base64EncodedWireTransaction>
+  signTransaction(
+    transaction: Transaction,
+    senderAccount: TBSAccount<TBSSolanaName>
+  ): Promise<Base64EncodedWireTransaction>
 }
 
 export type TMetaplexAssetByOwnerResponse = {

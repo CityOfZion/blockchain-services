@@ -3,14 +3,14 @@ import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import type { IBSNeoLegacy } from '../types'
 import { NeoTubeESNeoLegacy } from '../services/explorer/NeoTubeESNeoLegacy'
 
-let service: IBSNeoLegacy<'test'>
-let neoTubeESNeoLegacy: NeoTubeESNeoLegacy<'test'>
+let service: IBSNeoLegacy
+let neoTubeESNeoLegacy: NeoTubeESNeoLegacy
 
 const INVALID_NETWORK = BSNeoLegacyConstants.TESTNET_NETWORK
 
 describe('NeoTubeESNeoLegacy', () => {
   beforeEach(() => {
-    service = new BSNeoLegacy('test', BSNeoLegacyConstants.MAINNET_NETWORK)
+    service = new BSNeoLegacy(BSNeoLegacyConstants.MAINNET_NETWORK)
     neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(service)
   })
 
@@ -29,7 +29,7 @@ describe('NeoTubeESNeoLegacy', () => {
   })
 
   it('Should return undefined when call the getAddressTemplateUrl method using a testnet network', () => {
-    service = new BSNeoLegacy('test', INVALID_NETWORK)
+    service = new BSNeoLegacy(INVALID_NETWORK)
     neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(service)
 
     const templateUrl = neoTubeESNeoLegacy.getAddressTemplateUrl()
@@ -38,7 +38,7 @@ describe('NeoTubeESNeoLegacy', () => {
   })
 
   it('Should return undefined when call the getTransactionTemplateUrl method using a testnet network', () => {
-    service = new BSNeoLegacy('test', INVALID_NETWORK)
+    service = new BSNeoLegacy(INVALID_NETWORK)
     neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(service)
 
     const templateUrl = neoTubeESNeoLegacy.getTransactionTemplateUrl()
@@ -59,7 +59,7 @@ describe('NeoTubeESNeoLegacy', () => {
   })
 
   it('Should return undefined when call the getNftTemplateUrl method using a testnet network', () => {
-    service = new BSNeoLegacy('test', INVALID_NETWORK)
+    service = new BSNeoLegacy(INVALID_NETWORK)
     neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(service)
 
     const templateUrl = neoTubeESNeoLegacy.getNftTemplateUrl()
@@ -68,7 +68,7 @@ describe('NeoTubeESNeoLegacy', () => {
   })
 
   it('Should return undefined when call the getContractTemplateUrl method using a testnet network', () => {
-    service = new BSNeoLegacy('test', INVALID_NETWORK)
+    service = new BSNeoLegacy(INVALID_NETWORK)
     neoTubeESNeoLegacy = new NeoTubeESNeoLegacy(service)
 
     const templateUrl = neoTubeESNeoLegacy.getContractTemplateUrl()

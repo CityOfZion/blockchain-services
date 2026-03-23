@@ -3,13 +3,13 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import { BSKeychainHelper, isClaimable } from '@cityofzion/blockchain-service'
 
-let service: BSNeoLegacy<'test'>
+let service: BSNeoLegacy
 
 const network = BSNeoLegacyConstants.TESTNET_NETWORK
 
 describe('BSNeoLegacy', () => {
   beforeEach(() => {
-    service = new BSNeoLegacy('test', network)
+    service = new BSNeoLegacy(network)
   })
 
   it('Should be able to claim', () => {
@@ -240,7 +240,7 @@ describe('BSNeoLegacy', () => {
 
   it.skip('Should be able to transfer with Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSNeoLegacy('test', undefined, async () => transport)
+    const service = new BSNeoLegacy(undefined, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount
     const amount = '0.00000001'

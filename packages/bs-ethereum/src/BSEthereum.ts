@@ -16,6 +16,7 @@ import {
   type IWalletConnectService,
   type IFullTransactionsDataService,
   type TTransactionDefault,
+  type TBSNetworkId,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
@@ -29,15 +30,16 @@ import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
 import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
-import type { IBSEthereum, TBSEthereumNetworkId, TSupportedEVM } from './types'
+import type { IBSEthereum, TBSEthereumName, TBSEthereumNetworkId } from './types'
 import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { WalletConnectServiceEthereum } from './services/wallet-connect/WalletConnectServiceEthereum'
 import axios from 'axios'
 import { MoralisFullTransactionsDataServiceEthereum } from './services/full-transactions-data/MoralisFullTransactionsDataServiceEthereum'
 
-export class BSEthereum<N extends string = string, A extends string = TBSEthereumNetworkId>
-  implements IBSEthereum<N, A>
-{
+export class BSEthereum<
+  N extends string = TBSEthereumName,
+  A extends TBSNetworkId = TBSEthereumNetworkId,
+> implements IBSEthereum<N, A> {
   readonly name: N
   readonly bipDerivationPath: string
 
@@ -62,14 +64,18 @@ export class BSEthereum<N extends string = string, A extends string = TBSEthereu
   walletConnectService!: IWalletConnectService<N>
   fullTransactionsDataService!: IFullTransactionsDataService<N>
 
-  constructor(name: N, evm?: TSupportedEVM, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(name: N, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
     this.bipDerivationPath = BSEthereumConstants.DEFAULT_BIP_DERIVATION_PATH
 
-    if (!evm) return
+    const networks = (BSEthereumConstants.NETWORKS_BY_EVM as any)[name]
+    // This case is hit when the user tries to initialize the service with a custom network that is not in our predefined list. We want to allow that, but in that case we won't have the default network and available networks list.
+    if (!networks || !networks.length) {
+      return
+    }
 
-    this.availableNetworks = BSEthereumConstants.NETWORKS_BY_EVM[evm] as TBSNetwork<A>[]
+    this.availableNetworks = networks as TBSNetwork<A>[]
     this.defaultNetwork = this.availableNetworks.find(network => network.type === 'mainnet')! as TBSNetwork<A>
 
     this.setNetwork(network ?? this.defaultNetwork)

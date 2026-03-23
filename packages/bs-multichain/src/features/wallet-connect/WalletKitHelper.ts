@@ -3,6 +3,7 @@ import {
   hasWalletConnect,
   type IBlockchainService,
   type IBSWithWalletConnect,
+  type TBSNetworkId,
   type TWalletConnectServiceRequestMethod,
 } from '@cityofzion/blockchain-service'
 import { ErrorResponse, formatJsonRpcError, formatJsonRpcResult } from '@walletconnect/jsonrpc-utils'
@@ -27,13 +28,14 @@ import type {
   TWalletKitHelperSessionDetails,
   TWalletKitHelperGetProposalServicesParams,
 } from './types'
+import type { TBSServiceName } from '../../types'
 
 export class WalletKitHelper {
-  static getProposalDetails<N extends string>({
+  static getProposalDetails({
     address,
     proposal,
     service,
-  }: TWalletKitHelperGetProposalDetailsParams<N>): TWalletKitHelperProposalDetails<N> {
+  }: TWalletKitHelperGetProposalDetailsParams): TWalletKitHelperProposalDetails {
     const mergedNamespacesObject = mergeRequiredAndOptionalNamespaces(
       proposal?.requiredNamespaces ?? {},
       proposal?.optionalNamespaces ?? {}
@@ -63,7 +65,7 @@ export class WalletKitHelper {
     return { approvedNamespaces, methods, service, blockchain: service.name }
   }
 
-  static getProposalServices<N extends string>({ proposal, services }: TWalletKitHelperGetProposalServicesParams<N>) {
+  static getProposalServices({ proposal, services }: TWalletKitHelperGetProposalServicesParams) {
     const mergedNamespacesObject = mergeRequiredAndOptionalNamespaces(
       proposal?.requiredNamespaces ?? {},
       proposal?.optionalNamespaces ?? {}
@@ -71,17 +73,17 @@ export class WalletKitHelper {
     const allChains = new Set(getChainsFromRequiredNamespaces(mergedNamespacesObject))
 
     const proposalServices = services.filter(
-      (service): service is IBlockchainService<N> & IBSWithWalletConnect<N> =>
+      (service): service is IBlockchainService<TBSServiceName, TBSNetworkId> & IBSWithWalletConnect<TBSServiceName> =>
         hasWalletConnect(service) && allChains.has(service.walletConnectService.chain)
     )
 
     return proposalServices
   }
 
-  static getSessionDetails<N extends string>({
+  static getSessionDetails({
     session,
     services,
-  }: TWalletKitHelperGetSessionDetailsParams<N>): TWalletKitHelperSessionDetails<N> {
+  }: TWalletKitHelperGetSessionDetailsParams): TWalletKitHelperSessionDetails {
     const sessionAccounts = getAccountsFromNamespaces(session.namespaces)
     const [sessionAddress] = getAddressesFromAccounts(sessionAccounts)
     if (!sessionAddress) throw new BSError('No accounts found in session', 'NO_ACCOUNTS')
@@ -89,7 +91,7 @@ export class WalletKitHelper {
     const chains = getChainsFromNamespaces(session.namespaces)
 
     const service = services.find(
-      (service): service is IBlockchainService<N> & IBSWithWalletConnect<N> =>
+      (service): service is IBlockchainService<TBSServiceName, TBSNetworkId> & IBSWithWalletConnect<TBSServiceName> =>
         hasWalletConnect(service) && chains.includes(service.walletConnectService.chain)
     )
     if (!service) throw new BSError('Requested chain not supported by any service', 'NO_SERVICE')
@@ -111,11 +113,7 @@ export class WalletKitHelper {
     return formatJsonRpcError(request.id, reason ?? getSdkError('USER_REJECTED'))
   }
 
-  static async processRequest<N extends string>({
-    sessionDetails,
-    account,
-    request,
-  }: TWalletKitHelperProcessRequestParams<N>) {
+  static async processRequest({ sessionDetails, account, request }: TWalletKitHelperProcessRequestParams) {
     if (account.address !== sessionDetails.address) {
       throw new BSError('Account address does not match session address', 'INVALID_ACCOUNT')
     }
@@ -127,7 +125,7 @@ export class WalletKitHelper {
     }
 
     const serviceMethod = sessionDetails.service.walletConnectService[method] as
-      | TWalletConnectServiceRequestMethod<N>
+      | TWalletConnectServiceRequestMethod<TBSServiceName>
       | undefined
 
     if (!serviceMethod || typeof serviceMethod !== 'function')

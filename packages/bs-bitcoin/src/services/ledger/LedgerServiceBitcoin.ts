@@ -11,6 +11,7 @@ import {
 import BitcoinLedgerApp from '@ledgerhq/hw-app-btc'
 import type {
   IBSBitcoin,
+  TBSBitcoinName,
   TLedgerServiceBitcoinGetTransactionHexParams,
   TLedgerServiceBitcoinSignMessageParams,
   TLedgerServiceBitcoinSignMessageResponse,
@@ -22,13 +23,13 @@ import type { Transaction } from '@ledgerhq/hw-app-btc/types'
 import * as bitcoinjs from 'bitcoinjs-lib'
 import * as bitcoinjsMessage from 'bitcoinjs-message'
 
-export class LedgerServiceBitcoin<N extends string = string> implements ILedgerService<N> {
-  readonly #service: IBSBitcoin<N>
-  readonly getLedgerTransport?: TGetLedgerTransport<N>
+export class LedgerServiceBitcoin implements ILedgerService<TBSBitcoinName> {
+  readonly #service: IBSBitcoin
+  readonly getLedgerTransport?: TGetLedgerTransport<TBSBitcoinName>
 
   emitter: TLedgerServiceEmitter = new EventEmitter() as TLedgerServiceEmitter
 
-  constructor(service: IBSBitcoin<N>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(service: IBSBitcoin, getLedgerTransport?: TGetLedgerTransport<TBSBitcoinName>) {
     this.#service = service
     this.getLedgerTransport = getLedgerTransport
   }
@@ -51,7 +52,7 @@ export class LedgerServiceBitcoin<N extends string = string> implements ILedgerS
     }
   }
 
-  async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
+  async getAccount(transport: Transport, index: number): Promise<TBSAccount<TBSBitcoinName>> {
     const ledgerApp = this.#getLedgerApp(transport)
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
     const bipPathWithoutMasterKey = BSKeychainHelper.removeMasterKeyFromBipPath(bipPath)
@@ -77,8 +78,8 @@ export class LedgerServiceBitcoin<N extends string = string> implements ILedgerS
 
   async getAccounts(
     transport: Transport,
-    untilIndexByBlockchainService?: TUntilIndexRecord<N>
-  ): Promise<TBSAccount<N>[]> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<TBSBitcoinName>
+  ): Promise<TBSAccount<TBSBitcoinName>[]> {
     const accountsByBlockchainServices = await generateAccountForBlockchainService(
       [this.#service],
       (_service, index) => this.getAccount(transport, index),
@@ -93,7 +94,7 @@ export class LedgerServiceBitcoin<N extends string = string> implements ILedgerS
     account,
     transport,
     signInputs,
-  }: TLedgerServiceBitcoinSignTransactionParams<N>): Promise<void> {
+  }: TLedgerServiceBitcoinSignTransactionParams): Promise<void> {
     try {
       const ledgerApp = this.#getLedgerApp(transport)
       const bipPathWithoutMasterKey = BSKeychainHelper.removeMasterKeyFromBipPath(account.bipPath!)
@@ -156,7 +157,7 @@ export class LedgerServiceBitcoin<N extends string = string> implements ILedgerS
     message,
     account,
     transport,
-  }: TLedgerServiceBitcoinSignMessageParams<N>): Promise<TLedgerServiceBitcoinSignMessageResponse> {
+  }: TLedgerServiceBitcoinSignMessageParams): Promise<TLedgerServiceBitcoinSignMessageResponse> {
     try {
       const ledgerApp = this.#getLedgerApp(transport)
       const bipPathWithoutMasterKey = BSKeychainHelper.removeMasterKeyFromBipPath(account.bipPath!)

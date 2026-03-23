@@ -2,10 +2,10 @@ import type { IClaimDataService } from '@cityofzion/blockchain-service'
 import type { IBSNeoLegacy } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 
-export class DoraCDSNeoLegacy<N extends string> implements IClaimDataService {
-  readonly #service: IBSNeoLegacy<N>
+export class DoraCDSNeoLegacy implements IClaimDataService {
+  readonly #service: IBSNeoLegacy
 
-  constructor(service: IBSNeoLegacy<N>) {
+  constructor(service: IBSNeoLegacy) {
     this.#service = service
   }
 

@@ -3,9 +3,9 @@ import {
   type TWalletConnectServiceRequestMethodParams,
   BSBigNumberHelper,
 } from '@cityofzion/blockchain-service'
-import type { IBSSolana, TBSSolanaNetworkId } from '../../types'
+import type { IBSSolana, TBSSolanaName, TBSSolanaNetworkId } from '../../types'
 import * as solanaKit from '@solana/kit'
-export class WalletConnectServiceSolana<N extends string> implements IWalletConnectService<N> {
+export class WalletConnectServiceSolana implements IWalletConnectService<TBSSolanaName> {
   static networkIdByNetworkType: Record<TBSSolanaNetworkId, string> = {
     'mainnet-beta': '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     devnet: 'EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
@@ -25,9 +25,9 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
   readonly calculableMethods: string[] = ['solana_signAndSendTransaction']
   readonly autoApproveMethods: string[] = ['solana_getAccounts', 'solana_requestAccounts']
 
-  readonly #service: IBSSolana<N>
+  readonly #service: IBSSolana
 
-  constructor(service: IBSSolana<N>) {
+  constructor(service: IBSSolana) {
     this.#service = service
 
     const networkId = WalletConnectServiceSolana.networkIdByNetworkType[this.#service.network.id]
@@ -44,15 +44,17 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
 
   [methodName: string]: any
 
-  async solana_getAccounts(args: TWalletConnectServiceRequestMethodParams<N>): Promise<{ pubkey: string }[]> {
+  async solana_getAccounts(
+    args: TWalletConnectServiceRequestMethodParams<TBSSolanaName>
+  ): Promise<{ pubkey: string }[]> {
     return [{ pubkey: args.account.address }]
   }
 
-  async solana_requestAccounts(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async solana_requestAccounts(args: TWalletConnectServiceRequestMethodParams<TBSSolanaName>) {
     return await this.solana_getAccounts(args)
   }
 
-  async solana_signMessage(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async solana_signMessage(args: TWalletConnectServiceRequestMethodParams<TBSSolanaName>) {
     if (typeof args.params.message !== 'string' || typeof args.params.pubkey !== 'string') {
       throw new Error('Invalid params')
     }
@@ -72,7 +74,7 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
     return { signature }
   }
 
-  async solana_signTransaction(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async solana_signTransaction(args: TWalletConnectServiceRequestMethodParams<TBSSolanaName>) {
     if (typeof args.params.transaction !== 'string') {
       throw new Error('Invalid params')
     }
@@ -84,7 +86,7 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
     return { transaction: signedTransaction }
   }
 
-  async solana_signAllTransactions(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async solana_signAllTransactions(args: TWalletConnectServiceRequestMethodParams<TBSSolanaName>) {
     if (!Array.isArray(args.params.transactions)) {
       throw new Error('Invalid params')
     }
@@ -102,7 +104,7 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
     }
   }
 
-  async solana_signAndSendTransaction(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async solana_signAndSendTransaction(args: TWalletConnectServiceRequestMethodParams<TBSSolanaName>) {
     if (typeof args.params.transaction !== 'string') {
       throw new Error('Invalid params')
     }
@@ -125,7 +127,7 @@ export class WalletConnectServiceSolana<N extends string> implements IWalletConn
     return { signature }
   }
 
-  async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
+  async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<TBSSolanaName>): Promise<string> {
     if (typeof args.params.transaction !== 'string') {
       throw new Error('Invalid params')
     }

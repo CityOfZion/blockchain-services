@@ -4,16 +4,17 @@ import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import { WalletConnectServiceSolana } from '../services/wallet-connect/WalletConnectServiceSolana'
 import * as solanaKit from '@solana/kit'
 import * as solanaSystem from '@solana-program/system'
+import type { TBSSolanaName } from '../types'
 
-let service: BSSolana<'test'>
-let walletConnectServiceSolana: WalletConnectServiceSolana<'test'>
-let account: TBSAccount<'test'>
+let service: BSSolana
+let walletConnectServiceSolana: WalletConnectServiceSolana
+let account: TBSAccount<TBSSolanaName>
 
 const mnemonic = process.env.TEST_MNEMONIC as string
 
 describe('WalletConnectServiceSolana', () => {
   beforeEach(async () => {
-    service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
+    service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK)
     walletConnectServiceSolana = new WalletConnectServiceSolana(service)
 
     account = await service.generateAccountFromMnemonic(mnemonic, 0)

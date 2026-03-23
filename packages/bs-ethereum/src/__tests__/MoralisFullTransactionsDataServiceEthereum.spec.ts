@@ -7,6 +7,7 @@ import {
 import { isLeapYear } from 'date-fns'
 import { BSEthereum } from '../BSEthereum'
 import { MoralisFullTransactionsDataServiceEthereum } from '../services/full-transactions-data/MoralisFullTransactionsDataServiceEthereum'
+import type { TBSEthereumName, TBSEthereumNetworkId } from '../types'
 
 const address = '0xd1d6634415be11a54664298373c57c131aa828d5'
 const polygonAddress = '0xbCc845dcfF7005c0ca7BD11eA8b5049a384a9f94'
@@ -43,7 +44,10 @@ const expectedResponse = {
 let dateFrom: Date
 let dateTo: Date
 let params: TGetFullTransactionsByAddressParams
-let moralisFullTransactionsDataServiceEthereum: MoralisFullTransactionsDataServiceEthereum<'test', TBSNetworkId>
+let moralisFullTransactionsDataServiceEthereum: MoralisFullTransactionsDataServiceEthereum<
+  TBSEthereumName,
+  TBSNetworkId
+>
 
 vi.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
   const GhostMarketNDSEthereum = vi.fn()
@@ -69,7 +73,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
 
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
-    const service = new BSEthereum('test', 'ethereum')
+    const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('ethereum')
     moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
     await BSUtilsHelper.wait(3000)
@@ -195,7 +199,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to get transactions when is using a Polygon Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'polygon')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('polygon')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
@@ -209,7 +213,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to get transactions when is using a Base Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'base')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('base')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
@@ -223,7 +227,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to get transactions when is using a Arbitrum Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'arbitrum')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('arbitrum')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
@@ -255,7 +259,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to get transactions when send the nextPageParams param using Polygon Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'polygon')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('polygon')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const newParams = {
@@ -277,7 +281,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to get transactions when send the nextPageParams param using Base Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'base')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('base')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const newParams = {
@@ -299,7 +303,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to get transactions when send the nextPageParams param using Arbitrum Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'arbitrum')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('arbitrum')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const newParams = {
@@ -324,7 +328,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to get transactions with NFTs when it was called using Polygon Mainnet network', async () => {
-      const service = new BSEthereum('test', 'polygon')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('polygon')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
@@ -368,7 +372,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to export transactions when is using a Polygon Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'polygon')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('polygon')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
@@ -381,7 +385,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to export transactions when is using a Base Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'base')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('base')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
@@ -394,7 +398,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     })
 
     it('Should be able to export transactions when is using a Arbitrum Mainnet network (EVM)', async () => {
-      const service = new BSEthereum('test', 'arbitrum')
+      const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('arbitrum')
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({

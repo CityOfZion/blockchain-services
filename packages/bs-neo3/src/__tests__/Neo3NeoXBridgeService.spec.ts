@@ -6,10 +6,11 @@ import { Neo3NeoXBridgeService } from '../services/neo3-neox-bridge/Neo3NeoXBrid
 import { NeonInvoker } from '@cityofzion/neon-dappkit'
 import axios from 'axios'
 import { api } from '@cityofzion/dora-ts'
+import type { TBSNeo3Name } from '../types'
 
-let neo3NeoXBridgeService: Neo3NeoXBridgeService<'test'>
-let bsNeo3Service: BSNeo3<'test'>
-let account: TBSAccount<'test'>
+let neo3NeoXBridgeService: Neo3NeoXBridgeService
+let bsNeo3Service: BSNeo3
+let account: TBSAccount<TBSNeo3Name>
 let receiverAddress: string
 
 const network = BSNeo3Constants.MAINNET_NETWORK
@@ -17,7 +18,7 @@ const network = BSNeo3Constants.MAINNET_NETWORK
 describe('Neo3NeoXBridgeService', () => {
   beforeAll(async () => {
     receiverAddress = process.env.TEST_BRIDGE_NEOX_ADDRESS
-    bsNeo3Service = new BSNeo3('test', network)
+    bsNeo3Service = new BSNeo3(network)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeo3Service)
 
     account = await bsNeo3Service.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)

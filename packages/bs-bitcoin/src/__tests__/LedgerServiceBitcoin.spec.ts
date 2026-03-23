@@ -1,19 +1,22 @@
 import Transport from '@ledgerhq/hw-transport'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import type { IBSBitcoin, TTatumUtxo, TTatumUtxosResponse } from '../types'
-import { BSBigNumber, BSBigNumberHelper, BSKeychainHelper } from '@cityofzion/blockchain-service'
+import type { IBSBitcoin, TBSBitcoinName, TTatumUtxo, TTatumUtxosResponse } from '../types'
+import {
+  BSBigNumber,
+  BSBigNumberHelper,
+  BSKeychainHelper,
+  type TGetLedgerTransport,
+} from '@cityofzion/blockchain-service'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 import { BSBitcoin } from '../BSBitcoin'
 import { LedgerServiceBitcoin } from '../services/ledger/LedgerServiceBitcoin'
 import * as bitcoinjs from 'bitcoinjs-lib'
 import { BSBitcoinTatumHelper } from '../helpers/BSBitcoinTatumHelper'
 
-const blockchain = 'test'
-
-let service: IBSBitcoin<'test'>
-let ledgerService: LedgerServiceBitcoin<'test'>
+let service: IBSBitcoin
+let ledgerService: LedgerServiceBitcoin
 let transport: Transport
-let getLedgerTransport: () => Promise<Transport>
+let getLedgerTransport: TGetLedgerTransport<TBSBitcoinName>
 
 describe.skip('LedgerServiceBitcoin', () => {
   beforeEach(async () => {
@@ -23,7 +26,7 @@ describe.skip('LedgerServiceBitcoin', () => {
 
     getLedgerTransport = async () => transport
 
-    service = new BSBitcoin(blockchain, undefined, getLedgerTransport)
+    service = new BSBitcoin(undefined, getLedgerTransport)
     ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
   })
 
@@ -40,7 +43,7 @@ describe.skip('LedgerServiceBitcoin', () => {
           type: 'publicKey',
           bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, index),
           isHardware: true,
-          blockchain,
+          blockchain: 'bitcoin',
         })
       )
     })
@@ -49,7 +52,7 @@ describe.skip('LedgerServiceBitcoin', () => {
   it.skip('Should be able to get all accounts until index', async () => {
     const firstAccount = await ledgerService.getAccount(transport, 0)
     const accounts = await ledgerService.getAccounts(transport, {
-      test: {
+      bitcoin: {
         [firstAccount.address]: 6,
       },
     })
@@ -64,7 +67,7 @@ describe.skip('LedgerServiceBitcoin', () => {
           type: 'publicKey',
           bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, index),
           isHardware: true,
-          blockchain,
+          blockchain: 'bitcoin',
         })
       )
     })
@@ -79,7 +82,7 @@ describe.skip('LedgerServiceBitcoin', () => {
       type: 'publicKey',
       bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, 0),
       isHardware: true,
-      blockchain,
+      blockchain: 'bitcoin',
     })
   })
 
@@ -94,7 +97,7 @@ describe.skip('LedgerServiceBitcoin', () => {
   })
 
   it.skip('Should be able to get all accounts automatically using Testnet', async () => {
-    service = new BSBitcoin(blockchain, BSBitcoinConstants.TESTNET_NETWORK, getLedgerTransport)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK, getLedgerTransport)
     ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
 
     const accounts = await ledgerService.getAccounts(transport)
@@ -109,19 +112,19 @@ describe.skip('LedgerServiceBitcoin', () => {
           type: 'publicKey',
           bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, index),
           isHardware: true,
-          blockchain,
+          blockchain: 'bitcoin',
         })
       )
     })
   })
 
   it.skip('Should be able to get all accounts until index using Testnet', async () => {
-    service = new BSBitcoin(blockchain, BSBitcoinConstants.TESTNET_NETWORK, getLedgerTransport)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK, getLedgerTransport)
     ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
 
     const firstAccount = await ledgerService.getAccount(transport, 0)
     const accounts = await ledgerService.getAccounts(transport, {
-      test: {
+      bitcoin: {
         [firstAccount.address]: 6,
       },
     })
@@ -136,14 +139,14 @@ describe.skip('LedgerServiceBitcoin', () => {
           type: 'publicKey',
           bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, index),
           isHardware: true,
-          blockchain,
+          blockchain: 'bitcoin',
         })
       )
     })
   })
 
   it.skip('Should be able to get account using Testnet', async () => {
-    service = new BSBitcoin(blockchain, BSBitcoinConstants.TESTNET_NETWORK, getLedgerTransport)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK, getLedgerTransport)
     ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
 
     const account = await ledgerService.getAccount(transport, 0)
@@ -154,14 +157,14 @@ describe.skip('LedgerServiceBitcoin', () => {
       type: 'publicKey',
       bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, 0),
       isHardware: true,
-      blockchain,
+      blockchain: 'bitcoin',
     })
   })
 
   it.skip('Should be able to sign transaction using Testnet', async () => {
     const network = BSBitcoinConstants.TESTNET_NETWORK
 
-    service = new BSBitcoin(blockchain, network, getLedgerTransport)
+    service = new BSBitcoin(network, getLedgerTransport)
     ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
 
     const account = await ledgerService.getAccount(transport, 0)
@@ -208,7 +211,7 @@ describe.skip('LedgerServiceBitcoin', () => {
   it.skip('Should be able to sign message using Testnet', async () => {
     const network = BSBitcoinConstants.TESTNET_NETWORK
 
-    service = new BSBitcoin(blockchain, network, getLedgerTransport)
+    service = new BSBitcoin(network, getLedgerTransport)
     ledgerService = new LedgerServiceBitcoin(service, getLedgerTransport)
 
     const account = await ledgerService.getAccount(transport, 0)

@@ -8,26 +8,28 @@ import {
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeoX, TBSNeoXNetworkId } from '../../types'
+import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 
-export class BlockscoutFullTransactionsDataService<N extends string> implements IFullTransactionsDataService<N> {
+export class BlockscoutFullTransactionsDataService implements IFullTransactionsDataService<TBSNeoXName> {
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeoXNetworkId[] = ['47763', '12227332']
   static readonly ERC721_STANDARDS = ['erc721', 'erc-721']
   static readonly ERC1155_STANDARDS = ['erc1155', 'erc-1155']
   static readonly ERC20_STANDARDS = ['erc20', 'erc-20']
 
-  #service: IBSNeoX<N>
+  #service: IBSNeoX
 
-  constructor(service: IBSNeoX<N>) {
+  constructor(service: IBSNeoX) {
     this.#service = service
   }
 
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  }: TGetFullTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeoXName, TTransactionDefault<TBSNeoXName>>
+  > {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: BlockscoutFullTransactionsDataService.SUPPORTED_NETWORKS_IDS,
@@ -43,14 +45,14 @@ export class BlockscoutFullTransactionsDataService<N extends string> implements 
       pageLimit: params.pageSize ?? 50,
     })
 
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault<TBSNeoXName>[] = []
     const items = response.data ?? []
 
     const itemPromises = items.map(async ({ networkFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      let newItem: TTransactionDefault<N> = {
+      let newItem: TTransactionDefault<TBSNeoXName> = {
         txId,
         txIdUrl,
         block: item.block,

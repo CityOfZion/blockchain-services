@@ -39,8 +39,10 @@ jobs:
           git config --global user.name github-actions
       - name: Install RushJS
         run: npm install -g @microsoft/rush
+      - name: Install PNPM
+        run: npm install -g pnpm@latest-10
       - name: Install Root Dependencies
-        run: npm install
+        run: pnpm install
       - name: Install Projects Dependencies
         run: rush update
       - name: Lint Projects

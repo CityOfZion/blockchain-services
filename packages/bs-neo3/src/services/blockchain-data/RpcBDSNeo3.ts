@@ -12,16 +12,16 @@ import {
   type TBridgeToken,
   type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeo3, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
+import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
-export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
+export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
-  readonly _service: IBSNeo3<N>
+  readonly _service: IBSNeo3
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     this._service = service
   }
 
@@ -32,7 +32,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
   }
 
   async _extractEventsFromNotifications(notifications: TRpcBDSNeo3Notification[] = []) {
-    const events: TTransactionDefault<N>['events'] = []
+    const events: TTransactionDefault<TBSNeo3Name>['events'] = []
 
     const promises = notifications.map(async ({ contract: contractHash, state, eventname }, index) => {
       const properties = (Array.isArray(state) ? state : (state?.value ?? [])) as TRpcBDSNeo3NotificationState[]
@@ -107,7 +107,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
 
     if (!notificationStateValue) return undefined
 
-    let tokenToUse: TBridgeToken<N> | undefined
+    let tokenToUse: TBridgeToken<TBSNeo3Name> | undefined
     let amountInDecimals: string | undefined
     let byteStringReceiverAddress: string | undefined
 
@@ -134,7 +134,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
     }
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeo3Name>> {
     try {
       const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
       const rpcClient = new rpc.RPCClient(this._service.network.url)
@@ -147,7 +147,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
       const txId = response.hash
       const txIdUrl = this._service.explorerService.buildTransactionUrl(txId)
 
-      let transaction: TTransactionDefault<N> = {
+      let transaction: TTransactionDefault<TBSNeo3Name> = {
         txId,
         txIdUrl,
         block: response.validuntilblock,
@@ -185,7 +185,7 @@ export class RpcBDSNeo3<N extends string> implements IBlockchainDataService<N> {
 
   async getTransactionsByAddress(
     _params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  ): Promise<TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>> {
     throw new Error('Method not supported.')
   }
 

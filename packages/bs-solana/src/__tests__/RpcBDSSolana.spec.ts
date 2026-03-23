@@ -3,11 +3,11 @@ import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import { RpcBDSSolana } from '../services/blockchain-data/RpcBDSSolana'
 
-let rpcBDSSolana: RpcBDSSolana<'test'>
+let rpcBDSSolana: RpcBDSSolana
 
 describe('RpcBDSSolana', () => {
   beforeEach(async () => {
-    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
+    const service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK)
     rpcBDSSolana = new RpcBDSSolana(service)
 
     await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit

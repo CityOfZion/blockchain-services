@@ -1,10 +1,11 @@
 import { BlockscoutESNeoX } from '../services/explorer/BlockscoutESNeoX'
 import { BSNeoX } from '../BSNeoX'
-let blockscoutESEthereum: BlockscoutESNeoX<'test'>
+
+let blockscoutESEthereum: BlockscoutESNeoX
 
 describe('BlockscoutESNeoX', () => {
   beforeEach(() => {
-    const service = new BSNeoX('test')
+    const service = new BSNeoX()
     blockscoutESEthereum = new BlockscoutESNeoX(service)
   })
 

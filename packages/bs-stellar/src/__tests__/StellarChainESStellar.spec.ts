@@ -2,11 +2,11 @@ import { BSStellar } from '../BSStellar'
 import { BSStellarConstants } from '../constants/BSStellarConstants'
 import { StellarChainESStellar } from '../services/explorer/StellarChainESStellar'
 
-let stellarChainESStellar: StellarChainESStellar<'test'>
+let stellarChainESStellar: StellarChainESStellar
 
 describe('StellarChainESStellar', () => {
   beforeEach(() => {
-    const service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK)
+    const service = new BSStellar(BSStellarConstants.TESTNET_NETWORK)
     stellarChainESStellar = new StellarChainESStellar(service)
   })
 

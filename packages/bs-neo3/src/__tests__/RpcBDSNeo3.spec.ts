@@ -4,11 +4,11 @@ import { RpcBDSNeo3 } from '../services/blockchain-data/RpcBDSNeo3'
 
 const network = BSNeo3Constants.TESTNET_NETWORK
 
-let rpcBDSNeo3: RpcBDSNeo3<'test'>
+let rpcBDSNeo3: RpcBDSNeo3
 
 describe('RpcBDSNeo3', () => {
   beforeEach(() => {
-    const service = new BSNeo3('test', network)
+    const service = new BSNeo3(network)
     rpcBDSNeo3 = new RpcBDSNeo3(service)
   })
 

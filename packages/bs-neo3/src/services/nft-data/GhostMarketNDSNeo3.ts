@@ -1,15 +1,15 @@
 import { BSError, GhostMarketNDS, type THasTokenParams } from '@cityofzion/blockchain-service'
 
-import type { IBSNeo3, TBSNeo3NetworkId } from '../../types'
+import type { IBSNeo3, TBSNeo3Name, TBSNeo3NetworkId } from '../../types'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
-export class GhostMarketNDSNeo3<N extends string> extends GhostMarketNDS<N, TBSNeo3NetworkId, IBSNeo3<N>> {
+export class GhostMarketNDSNeo3 extends GhostMarketNDS<TBSNeo3Name, TBSNeo3NetworkId, IBSNeo3> {
   static readonly CHAIN_BY_NETWORK_ID: Record<TBSNeo3NetworkId, string> = {
     mainnet: 'n3',
     testnet: 'n3t',
   }
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     super(service)
   }
 

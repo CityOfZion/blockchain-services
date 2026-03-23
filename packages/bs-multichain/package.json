@@ -10,7 +10,7 @@
     "/dist"
   ],
   "scripts": {
-    "build": "rm -rf ./dist && npm run typecheck && tsc --project tsconfig.build.json",
+    "build": "rm -rf ./dist && rm -f *.tgz && npm run typecheck && tsc --project tsconfig.build.json",
     "format": "eslint --fix",
     "lint": "eslint .",
     "package": "npm run build && npm pack",
@@ -27,6 +27,9 @@
     "@cityofzion/bs-ethereum": "workspace:*",
     "@cityofzion/bs-neo3": "workspace:*",
     "@cityofzion/bs-neox": "workspace:*",
+    "@cityofzion/bs-neo-legacy": "workspace:*",
+    "@cityofzion/bs-solana": "workspace:*",
+    "@cityofzion/bs-stellar": "workspace:*",
     "@types/node": "~24.5.2",
     "@walletconnect/types": "~2.21.9",
     "dotenv": "~17.3.1",

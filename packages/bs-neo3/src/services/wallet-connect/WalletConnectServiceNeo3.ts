@@ -1,10 +1,9 @@
 import type { IWalletConnectService, TWalletConnectServiceRequestMethodParams } from '@cityofzion/blockchain-service'
-import type { IBSNeo3 } from '../../types'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
+import type { IBSNeo3, TBSNeo3Name } from '../../types'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 
-export class WalletConnectServiceNeo3<N extends string> implements IWalletConnectService<N> {
+export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Name> {
   readonly namespace: string = 'neo3'
   readonly chain: string
   readonly supportedMethods: string[] = [
@@ -31,21 +30,19 @@ export class WalletConnectServiceNeo3<N extends string> implements IWalletConnec
     'calculateFee',
   ]
 
-  readonly #service: IBSNeo3<N>
+  readonly #service: IBSNeo3
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     this.#service = service
 
-    const networkId = BSNeo3Helper.isCustomNetwork(this.#service.network)
-      ? 'private'
-      : this.#service.network.id.toString()
+    const networkId = service.network.type === 'custom' ? 'private' : this.#service.network.id.toString()
 
     this.chain = `${this.namespace}:${networkId}`
   }
 
   [methodName: string]: any
 
-  async #getInvoker(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async #getInvoker(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const { neonJsAccount, signingCallback } = await this.#service.generateSigningCallback(args.account)
 
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
@@ -59,7 +56,7 @@ export class WalletConnectServiceNeo3<N extends string> implements IWalletConnec
     return invoker
   }
 
-  async #getSigner(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async #getSigner(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const { neonJsAccount } = await this.#service.generateSigningCallback(args.account)
 
     const { NeonSigner } = BSNeo3NeonDappKitSingletonHelper.getInstance()
@@ -69,37 +66,37 @@ export class WalletConnectServiceNeo3<N extends string> implements IWalletConnec
     return signer
   }
 
-  async invokeFunction(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async invokeFunction(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const invoker = await this.#getInvoker(args)
     return await invoker.invokeFunction(args.params)
   }
 
-  async testInvoke(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async testInvoke(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const invoker = await this.#getInvoker(args)
     return await invoker.testInvoke(args.params)
   }
 
-  async signMessage(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async signMessage(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const signer = await this.#getSigner(args)
     return await signer.signMessage(args.params)
   }
 
-  async verifyMessage(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async verifyMessage(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const signer = await this.#getSigner(args)
     return await signer.verifyMessage(args.params)
   }
 
-  async traverseIterator(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async traverseIterator(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const invoker = await this.#getInvoker(args)
     return await invoker.traverseIterator(args.params[0], args.params[1], args.params[2])
   }
 
-  async decrypt(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
+  async decrypt(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>): Promise<string> {
     const signer = await this.#getSigner(args)
     return await signer.decrypt(args.params[0])
   }
 
-  async encrypt(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async encrypt(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const signer = await this.#getSigner(args)
 
     let publicKeys = args.params[1]
@@ -110,7 +107,7 @@ export class WalletConnectServiceNeo3<N extends string> implements IWalletConnec
     return await signer.encrypt(args.params[0], publicKeys)
   }
 
-  async decryptFromArray(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async decryptFromArray(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const signer = await this.#getSigner(args)
     return await signer.decryptFromArray(args.params[0])
   }
@@ -125,23 +122,23 @@ export class WalletConnectServiceNeo3<N extends string> implements IWalletConnec
     }
   }
 
-  async calculateFee(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async calculateFee(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const invoker = await this.#getInvoker(args)
     return await invoker.calculateFee(args.params)
   }
 
-  async signTransaction(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async signTransaction(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     const invoker = await this.#getInvoker(args)
     return await invoker.signTransaction(args.params)
   }
 
-  async getWalletInfo(args: TWalletConnectServiceRequestMethodParams<N>) {
+  async getWalletInfo(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
     return {
       isLedger: args.account.isHardware || false,
     }
   }
 
-  async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
+  async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>): Promise<string> {
     const { total } = await this.calculateFee(args)
     return total.toString()
   }

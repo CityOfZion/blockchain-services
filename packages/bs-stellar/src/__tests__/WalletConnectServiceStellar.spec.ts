@@ -3,16 +3,17 @@ import { BSStellar } from '../BSStellar'
 import { WalletConnectServiceStellar } from '../services/wallet-connect/WalletConnectServiceStellar'
 import { BSStellarConstants } from '../constants/BSStellarConstants'
 import * as stellarSDK from '@stellar/stellar-sdk'
+import type { TBSStellarName } from '../types'
 
-let service: BSStellar<'test'>
-let walletConnectService: WalletConnectServiceStellar<'test'>
-let account: TBSAccount<'test'>
+let service: BSStellar
+let walletConnectService: WalletConnectServiceStellar
+let account: TBSAccount<TBSStellarName>
 
 const mnemonic = process.env.TEST_MNEMONIC
 
 describe('WalletConnectServiceStellar', () => {
   beforeEach(async () => {
-    service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK)
+    service = new BSStellar(BSStellarConstants.TESTNET_NETWORK)
     walletConnectService = new WalletConnectServiceStellar(service)
 
     account = await service.generateAccountFromMnemonic(mnemonic, 3)

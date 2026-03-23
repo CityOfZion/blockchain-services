@@ -7,6 +7,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import type {
   IBSBitcoin,
+  TBSBitcoinName,
   TBSBitcoinNetworkId,
   TSignInput,
   TWalletConnectServiceBitcoinGetAccountAddressResponse,
@@ -21,8 +22,8 @@ import * as bitcoinjs from 'bitcoinjs-lib'
 import * as bitcoinjsMessage from 'bitcoinjs-message'
 
 // Read the Reown documentation: https://docs.reown.com/advanced/multichain/rpc-reference/bitcoin-rpc
-export class WalletConnectServiceBitcoin<N extends string> implements IWalletConnectService<N> {
-  readonly #service: IBSBitcoin<N>
+export class WalletConnectServiceBitcoin implements IWalletConnectService<TBSBitcoinName> {
+  readonly #service: IBSBitcoin
 
   // BIP-122 chain IDs are derived from the first 32 bytes of the genesis block hash: https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-4.md
   readonly #networkIdByNetworkType: Record<TBSBitcoinNetworkId, string> = {
@@ -37,7 +38,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
   readonly calculableMethods = ['sendTransfer']
   readonly autoApproveMethods = ['getAccountAddresses']
 
-  constructor(service: IBSBitcoin<N>) {
+  constructor(service: IBSBitcoin) {
     this.#service = service
 
     const chainId = this.#networkIdByNetworkType[this.#service.network.id]
@@ -50,7 +51,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
   #transformSendTransferParams({
     account: senderAccount,
     params,
-  }: TWalletConnectServiceRequestMethodParams<N>): TWalletConnectServiceBitcoinTransformSendTransferParamsResponse {
+  }: TWalletConnectServiceRequestMethodParams<TBSBitcoinName>): TWalletConnectServiceBitcoinTransformSendTransferParamsResponse {
     const { account, amount, recipientAddress, changeAddress, memo } = params || {}
 
     if (!account) {
@@ -90,7 +91,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
   getAccountAddresses({
     account: senderAccount,
     params,
-  }: TWalletConnectServiceRequestMethodParams<N>): TWalletConnectServiceBitcoinGetAccountAddressResponse {
+  }: TWalletConnectServiceRequestMethodParams<TBSBitcoinName>): TWalletConnectServiceBitcoinGetAccountAddressResponse {
     const intention = 'payment'
     const { address } = senderAccount
     const { account, intentions } = params || {}
@@ -121,7 +122,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
   async signPsbt({
     account: senderAccount,
     params,
-  }: TWalletConnectServiceRequestMethodParams<N>): Promise<TWalletConnectServiceBitcoinSignPsbtResponse> {
+  }: TWalletConnectServiceRequestMethodParams<TBSBitcoinName>): Promise<TWalletConnectServiceBitcoinSignPsbtResponse> {
     const { account, psbt, signInputs, broadcast = false } = params || {}
 
     if (!account) {
@@ -168,7 +169,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
   async signMessage({
     account: senderAccount,
     params,
-  }: TWalletConnectServiceRequestMethodParams<N>): Promise<TWalletConnectServiceBitcoinSignMessageResponse> {
+  }: TWalletConnectServiceRequestMethodParams<TBSBitcoinName>): Promise<TWalletConnectServiceBitcoinSignMessageResponse> {
     const senderAddress = senderAccount.address
     const { account, message, address, protocol } = params || {}
 
@@ -221,7 +222,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
   }
 
   async sendTransfer(
-    params: TWalletConnectServiceRequestMethodParams<N>
+    params: TWalletConnectServiceRequestMethodParams<TBSBitcoinName>
   ): Promise<TWalletConnectServiceBitcoinSendTransferResponse> {
     const newParams = this.#transformSendTransferParams(params)
 
@@ -239,7 +240,7 @@ export class WalletConnectServiceBitcoin<N extends string> implements IWalletCon
     return { txid: txId }
   }
 
-  async calculateRequestFee(params: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
+  async calculateRequestFee(params: TWalletConnectServiceRequestMethodParams<TBSBitcoinName>): Promise<string> {
     const newParams = this.#transformSendTransferParams(params)
 
     return await this.#service.calculateTransferFee({

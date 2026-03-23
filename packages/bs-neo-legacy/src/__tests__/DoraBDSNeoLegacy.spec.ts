@@ -2,11 +2,11 @@ import { BSNeoLegacy } from '../BSNeoLegacy'
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { DoraBDSNeoLegacy } from '../services/blockchain-data/DoraBDSNeoLegacy'
 
-let doraBDSNeoLegacy: DoraBDSNeoLegacy<'test'>
+let doraBDSNeoLegacy: DoraBDSNeoLegacy
 
 describe('DoraBDSNeoLegacy', () => {
   beforeEach(() => {
-    const service = new BSNeoLegacy('test', BSNeoLegacyConstants.MAINNET_NETWORK)
+    const service = new BSNeoLegacy(BSNeoLegacyConstants.MAINNET_NETWORK)
     doraBDSNeoLegacy = new DoraBDSNeoLegacy(service)
   })
 

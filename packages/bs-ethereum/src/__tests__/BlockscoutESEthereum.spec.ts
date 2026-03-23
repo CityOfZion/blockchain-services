@@ -3,12 +3,12 @@ import type { TBSNetworkId } from '@cityofzion/blockchain-service'
 import type { IBSEthereum } from '../types'
 import { BSEthereum } from '../BSEthereum'
 
-let blockscoutESEthereum: BlockscoutESEthereum<'test', TBSNetworkId>
-let service: IBSEthereum<'test'>
+let blockscoutESEthereum: BlockscoutESEthereum<'ethereum', TBSNetworkId>
+let service: IBSEthereum<'ethereum'>
 
 describe('BlockscoutESEthereum', () => {
   beforeEach(() => {
-    service = new BSEthereum('test', 'ethereum')
+    service = new BSEthereum('ethereum')
     blockscoutESEthereum = new BlockscoutESEthereum(service)
   })
 

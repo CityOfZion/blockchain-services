@@ -49,7 +49,7 @@ export class MoralisEDSEthereum<N extends string, A extends TBSNetworkId> extend
   }
 
   async getTokenPrices({ tokens }: TGetTokenPricesParams): Promise<TTokenPricesResponse[]> {
-    if (!BSEthereumHelper.isMainnetNetwork(this.#service)) throw new Error('Exchange is only available on mainnet')
+    if (this.#service.network.type !== 'mainnet') throw new Error('Exchange is only available on mainnet')
 
     if (!MoralisBDSEthereum.isSupported(this.#service.network))
       throw new Error('Exchange is not supported on this network')
@@ -116,7 +116,7 @@ export class MoralisEDSEthereum<N extends string, A extends TBSNetworkId> extend
   }
 
   async getTokenPriceHistory(params: TGetTokenPriceHistoryParams): Promise<TTokenPricesHistoryResponse[]> {
-    if (!BSEthereumHelper.isMainnetNetwork(this.#service)) throw new Error('Exchange is only available on mainnet')
+    if (this.#service.network.type !== 'mainnet') throw new Error('Exchange is only available on mainnet')
     if (!MoralisBDSEthereum.isSupported(this.#service.network))
       throw new Error('Exchange is not supported on this network')
 

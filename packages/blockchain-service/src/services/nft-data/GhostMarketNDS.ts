@@ -2,6 +2,7 @@ import axios from 'axios'
 import type {
   IBlockchainService,
   INftDataService,
+  TBSNetworkId,
   TGetNftParams,
   TGetNftsByAddressParams,
   THasTokenParams,
@@ -13,9 +14,11 @@ import type { TGhostMarketNDSNeo3AssetApiResponse, TGhostMarketNDSNeo3GetAssetsA
 import { hasExplorerService } from '../../functions'
 import { BSError } from '../../error'
 
-export abstract class GhostMarketNDS<N extends string, A extends string, S extends IBlockchainService<N, A>>
-  implements INftDataService
-{
+export abstract class GhostMarketNDS<
+  N extends string,
+  A extends TBSNetworkId,
+  S extends IBlockchainService<N, A>,
+> implements INftDataService {
   static readonly BASE_URL: string = 'https://api.ghostmarket.io/api/v2'
 
   _service: S

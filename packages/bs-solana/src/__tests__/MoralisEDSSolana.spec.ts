@@ -2,11 +2,11 @@ import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import { MoralisEDSSolana } from '../services/exchange/MoralisEDSSolana'
 
-let moralisEDSSolana: MoralisEDSSolana<'test'>
+let moralisEDSSolana: MoralisEDSSolana
 
 describe('MoralisEDSSolana', () => {
   beforeAll(() => {
-    const service = new BSSolana('test')
+    const service = new BSSolana()
     moralisEDSSolana = new MoralisEDSSolana(service)
   })
 

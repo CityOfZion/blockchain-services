@@ -1,7 +1,7 @@
 import type { IExplorerService, TBuildNftUrlParams } from '@cityofzion/blockchain-service'
 import type { IBSStellar, TBSStellarNetworkId } from '../../types'
 
-export class StellarChainESStellar<N extends string> implements IExplorerService {
+export class StellarChainESStellar implements IExplorerService {
   #baseUrl: string
 
   readonly stellarChainUrlByNetworkType: Record<TBSStellarNetworkId, string> = {
@@ -9,7 +9,7 @@ export class StellarChainESStellar<N extends string> implements IExplorerService
     testnet: 'https://testnet.stellarchain.io',
   }
 
-  constructor(service: IBSStellar<N>) {
+  constructor(service: IBSStellar) {
     this.#baseUrl = this.stellarChainUrlByNetworkType[service.network.id]
   }
 

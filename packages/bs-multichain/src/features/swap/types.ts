@@ -1,11 +1,12 @@
-import type { IBlockchainService, TSwapToken } from '@cityofzion/blockchain-service'
+import type { IBlockchainService, TBSNetworkId, TSwapToken } from '@cityofzion/blockchain-service'
+import type { TBSServiceName } from '../../types'
 
-export type TSimpleSwapOrchestratorInitParams<N extends string = string> = {
-  blockchainServicesByName: Record<N, IBlockchainService<N>>
-  chainsByServiceName: Partial<Record<N, string[]>>
+export type TSimpleSwapOrchestratorInitParams = {
+  blockchainServicesByName: Record<TBSServiceName, IBlockchainService<TBSServiceName, TBSNetworkId>>
+  chainsByServiceName: Partial<Record<TBSServiceName, string[]>>
 }
 
-export type TSimpleSwapApiCurrency<N extends string = string> = TSwapToken<N> & {
+export type TSimpleSwapApiCurrency = TSwapToken<TBSServiceName> & {
   network: string
   ticker: string
   hasExtraId: boolean

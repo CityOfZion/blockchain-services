@@ -10,25 +10,25 @@ import {
   type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import type { IBSNeoLegacy } from '../../types'
+import type { IBSNeoLegacy, TBSNeoLegacyName } from '../../types'
 import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
-export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataService<N> {
+export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly #tokenCache: Map<string, TBSToken> = new Map()
-  readonly #service: IBSNeoLegacy<N>
+  readonly #service: IBSNeoLegacy
 
-  constructor(service: IBSNeoLegacy<N>) {
+  constructor(service: IBSNeoLegacy) {
     this.#service = service
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeoLegacyName>> {
     const data = await api.NeoLegacyREST.transaction(hash, this.#service.network.id)
 
     if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
 
     const vout: any[] = data.vout ?? []
-    const events: TTransactionDefault<N>['events'] = []
+    const events: TTransactionDefault<TBSNeoLegacyName>['events'] = []
     const from = vout[vout.length - 1]?.address
 
     const promises = vout.map(async (transfer, index) => {
@@ -73,9 +73,11 @@ export class DoraBDSNeoLegacy<N extends string> implements IBlockchainDataServic
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  }: TGetTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeoLegacyName, TTransactionDefault<TBSNeoLegacyName>>
+  > {
     const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#service.network.id)
-    const transactions = new Map<string, TTransactionDefault<N>>()
+    const transactions = new Map<string, TTransactionDefault<TBSNeoLegacyName>>()
 
     const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return

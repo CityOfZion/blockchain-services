@@ -13,16 +13,19 @@ import type { Horizon, rpc, Transaction } from '@stellar/stellar-sdk'
 
 export type TBSStellarNetworkId = TBSNetworkId<'pubnet' | 'testnet'>
 
-export interface IBSStellar<N extends string = string, A extends string = TBSStellarNetworkId>
-  extends IBlockchainService<N, A>,
-    IBSWithFee<N>,
+export type TBSStellarName = 'stellar'
+
+export interface IBSStellar
+  extends
+    IBlockchainService<TBSStellarName, TBSStellarNetworkId>,
+    IBSWithFee<TBSStellarName>,
     IBSWithExplorer,
-    IBSWithLedger<N>,
-    IBSWithWalletConnect<N> {
+    IBSWithLedger<TBSStellarName>,
+    IBSWithWalletConnect<TBSStellarName> {
   sorobanServer: rpc.Server
   horizonServer: Horizon.Server
 
-  signTransaction(transaction: Transaction, senderAccount: TBSAccount<N>): Promise<Transaction>
+  signTransaction(transaction: Transaction, senderAccount: TBSAccount<TBSStellarName>): Promise<Transaction>
   getFeeEstimate(length: number): Promise<TBSBigNumber>
-  createTrustline(senderAccount: TBSAccount<N>, token: TBSToken): Promise<string>
+  createTrustline(senderAccount: TBSAccount<TBSStellarName>, token: TBSToken): Promise<string>
 }
