@@ -205,6 +205,7 @@ export type TTransactionDefault<N extends string> = TTransactionBase<N> & {
 export type TTransactionUtxo<N extends string> = TTransactionBase<N> & {
   view: 'utxo'
   hex: string
+  totalAmount: string
   nfts: TNftResponse[]
   inputs: TTransactionInputOutput[]
   outputs: TTransactionInputOutput[]
