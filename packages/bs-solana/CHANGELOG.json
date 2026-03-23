@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-solana",
   "entries": [
     {
+      "version": "3.1.2",
+      "tag": "@cityofzion/bs-solana_v3.1.2",
+      "date": "Mon, 23 Mar 2026 12:43:32 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix contract hash URL"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.1",
       "tag": "@cityofzion/bs-solana_v3.1.1",
       "date": "Fri, 20 Mar 2026 19:51:05 GMT",
