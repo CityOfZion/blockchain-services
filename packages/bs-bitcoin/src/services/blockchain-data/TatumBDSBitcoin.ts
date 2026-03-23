@@ -61,6 +61,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     const lowercaseHex = hex.toLowerCase()
     const nfts: TNftResponse[] = []
     const inputs: TTransactionInputOutput[] = []
+    let totalAmount = BSBigNumberHelper.fromNumber('0')
 
     const hasNft =
       !!transaction.witnessHash && // SegWit or Taproot
@@ -98,6 +99,8 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
         decimals: tokenDecimals,
       })
 
+      totalAmount = totalAmount.plus(amount)
+
       return { address, addressUrl, amount, token }
     })
 
@@ -113,6 +116,9 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
       date: new Date(transaction.time * 1000).toJSON(),
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transaction.fee, feeDecimals), {
         decimals: feeDecimals,
+      }),
+      totalAmount: BSBigNumberHelper.format(totalAmount, {
+        decimals: BSBitcoinConstants.NATIVE_TOKEN.decimals,
       }),
       nfts,
       inputs,

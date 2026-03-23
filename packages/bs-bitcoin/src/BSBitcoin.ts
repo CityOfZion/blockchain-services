@@ -599,6 +599,18 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
       }
 
       const addressUrl = this.explorerService.buildAddressUrl(address)
+      let totalAmount = BSBigNumberHelper.fromNumber('0')
+
+      const outputs = intents.map(({ amount, receiverAddress, token }) => {
+        totalAmount = totalAmount.plus(amount)
+
+        return {
+          address: receiverAddress,
+          addressUrl: this.explorerService.buildAddressUrl(receiverAddress),
+          amount,
+          token,
+        }
+      })
 
       return [
         {
@@ -609,6 +621,9 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
           networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(fee, this.feeToken.decimals), {
             decimals: this.feeToken.decimals,
           }),
+          totalAmount: BSBigNumberHelper.format(totalAmount, {
+            decimals: BSBitcoinConstants.NATIVE_TOKEN.decimals,
+          }),
           type: 'default',
           view: 'utxo',
           nfts: [],
@@ -618,12 +633,7 @@ export class BSBitcoin<N extends string = string> implements IBSBitcoin<N> {
             amount: utxo.valueAsString,
             token: BSBitcoinConstants.NATIVE_TOKEN,
           })),
-          outputs: intents.map(({ amount, receiverAddress, token }) => ({
-            address: receiverAddress,
-            addressUrl: this.explorerService.buildAddressUrl(receiverAddress),
-            amount,
-            token,
-          })),
+          outputs,
         },
       ]
     } catch (error: any) {

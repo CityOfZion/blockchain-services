@@ -21,6 +21,7 @@ const expectedTransactions = expect.arrayContaining([
     block: expect.any(Number),
     date: expect.any(String),
     networkFeeAmount: expect.any(String),
+    totalAmount: expect.any(String),
     nfts: expect.any(Array),
     inputs: expectedInputsOutputs,
     outputs: expectedInputsOutputs,
@@ -195,6 +196,7 @@ describe('TatumBDSBitcoin', () => {
       block: 933101,
       date: expect.any(String),
       networkFeeAmount: '0.000099',
+      totalAmount: '0.02460883',
       nfts: [],
       inputs: [
         {
@@ -234,6 +236,7 @@ describe('TatumBDSBitcoin', () => {
       block: 767430,
       date: expect.any(String),
       networkFeeAmount: '0.00000322',
+      totalAmount: '0.00009678',
       nfts: [
         {
           hash: `${firstHash}i0`,
@@ -272,6 +275,7 @@ describe('TatumBDSBitcoin', () => {
       block: 775608,
       date: expect.any(String),
       networkFeeAmount: '0.00003456',
+      totalAmount: '0.0001',
       nfts: [
         {
           hash: `${secondHash}i0`,
@@ -314,6 +318,7 @@ describe('TatumBDSBitcoin', () => {
       block: 935255,
       date: expect.any(String),
       networkFeeAmount: '0.00000625',
+      totalAmount: '0.0000066',
       nfts: [
         {
           hash: `${thirdHash}i0`,
@@ -372,6 +377,7 @@ describe('TatumBDSBitcoin', () => {
       block: 4838842,
       date: expect.any(String),
       networkFeeAmount: '0.00000141',
+      totalAmount: '23.8481076',
       nfts: [],
       inputs: [
         {
