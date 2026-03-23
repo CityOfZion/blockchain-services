@@ -1,7 +1,7 @@
 import { BSBigNumber, BSBigNumberHelper, BSError, type TBSAccount } from '@cityofzion/blockchain-service'
 import { BSBitcoin } from '../BSBitcoin'
 import { WalletConnectServiceBitcoin } from '../services/wallet-connect/WalletConnectServiceBitcoin'
-import type { IBSBitcoin, TSignInput, TTatumUtxo, TTatumUtxosResponse } from '../types'
+import type { IBSBitcoin, TBSBitcoinName, TSignInput, TTatumUtxo, TTatumUtxosResponse } from '../types'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 import { BSBitcoinTatumHelper } from '../helpers/BSBitcoinTatumHelper'
 import * as bitcoinjs from 'bitcoinjs-lib'
@@ -12,13 +12,13 @@ const mainnetKey = process.env.TEST_MAINNET_PRIVATE_KEY
 const testnetKey = process.env.TEST_TESTNET_PRIVATE_KEY
 const mnemonic = process.env.TEST_MNEMONIC
 
-let service: IBSBitcoin<'test'>
-let walletConnectServiceBitcoin: WalletConnectServiceBitcoin<'test'>
-let account: TBSAccount<'test'>
-let accountFromMnemonic: TBSAccount<'test'>
+let service: IBSBitcoin
+let walletConnectServiceBitcoin: WalletConnectServiceBitcoin
+let account: TBSAccount<TBSBitcoinName>
+let accountFromMnemonic: TBSAccount<TBSBitcoinName>
 
 const buildTestnetData = async (transport?: Transport) => {
-  service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK, transport ? async () => transport : undefined)
+  service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK, transport ? async () => transport : undefined)
   walletConnectServiceBitcoin = new WalletConnectServiceBitcoin(service)
 
   account = await (transport
@@ -85,7 +85,7 @@ const buildSignPsbtTestnetParams = async () => {
 
 describe('WalletConnectServiceBitcoin', () => {
   beforeEach(async () => {
-    service = new BSBitcoin('test')
+    service = new BSBitcoin()
     walletConnectServiceBitcoin = new WalletConnectServiceBitcoin(service)
     account = await service.generateAccountFromKey(mainnetKey)
     accountFromMnemonic = await service.generateAccountFromMnemonic(mnemonic, 0)
@@ -179,7 +179,7 @@ describe('WalletConnectServiceBitcoin', () => {
   it.skip('Should be able to get accounts address with Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    service = new BSBitcoin('test', undefined, async () => transport)
+    service = new BSBitcoin(undefined, async () => transport)
     walletConnectServiceBitcoin = new WalletConnectServiceBitcoin(service)
     account = await service.ledgerService.getAccount(transport, 0)
 
@@ -320,7 +320,7 @@ describe('WalletConnectServiceBitcoin', () => {
   it.skip('Should be able to sign message with Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    service = new BSBitcoin('test', undefined, async () => transport)
+    service = new BSBitcoin(undefined, async () => transport)
     walletConnectServiceBitcoin = new WalletConnectServiceBitcoin(service)
     account = await service.ledgerService.getAccount(transport, 0)
     accountFromMnemonic = await service.generateAccountFromMnemonic(mnemonic, 0)

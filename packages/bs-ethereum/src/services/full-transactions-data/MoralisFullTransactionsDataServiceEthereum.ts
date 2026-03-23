@@ -13,9 +13,10 @@ import type { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 
-export class MoralisFullTransactionsDataServiceEthereum<N extends string, A extends TBSNetworkId>
-  implements IFullTransactionsDataService<N>
-{
+export class MoralisFullTransactionsDataServiceEthereum<
+  N extends string,
+  A extends TBSNetworkId,
+> implements IFullTransactionsDataService<N> {
   static readonly SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = ['1', '42161', '8453', '137']
   static readonly ERC721_STANDARDS = ['erc721', 'erc-721']
   static readonly ERC1155_STANDARDS = ['erc1155', 'erc-1155']

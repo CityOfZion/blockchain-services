@@ -4,13 +4,13 @@ import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { RpcBDSEthereum } from '../services/blockchain-data/RpcBDSEthereum'
 
-let service: BSEthereum<'test', TBSNetworkId>
-let rpcBDSEthereum: RpcBDSEthereum<'test', TBSNetworkId>
+let service: BSEthereum<'ethereum', TBSNetworkId>
+let rpcBDSEthereum: RpcBDSEthereum<'ethereum', TBSNetworkId>
 
 describe('RpcBDSEthereum', () => {
   beforeAll(async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
-    service = new BSEthereum('test', 'ethereum', network)
+    service = new BSEthereum('ethereum', network)
     rpcBDSEthereum = new RpcBDSEthereum(service)
   })
 

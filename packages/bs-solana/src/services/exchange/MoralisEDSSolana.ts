@@ -23,13 +23,13 @@ type MoralisGetPriceHistoryResponse = {
   }[]
 }
 
-export class MoralisEDSSolana<N extends string> extends CryptoCompareEDS {
+export class MoralisEDSSolana extends CryptoCompareEDS {
   readonly #client: AxiosInstance
-  readonly #service: IBSSolana<N>
+  readonly #service: IBSSolana
 
   #pairAddressCache: Map<string, string> = new Map()
 
-  constructor(service: IBSSolana<N>) {
+  constructor(service: IBSSolana) {
     super()
 
     this.#service = service

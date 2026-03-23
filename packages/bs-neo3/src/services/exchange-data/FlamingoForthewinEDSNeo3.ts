@@ -5,22 +5,21 @@ import {
   type TTokenPricesHistoryResponse,
   type TTokenPricesResponse,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeo3 } from '../../types'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
+import type { IBSNeo3, TBSNeo3Name, TBSNeo3NetworkId } from '../../types'
 
-export class FlamingoForthewinEDSNeo3<N extends string> extends FlamingoForthewinEDS<N> {
-  constructor(service: IBSNeo3<N>) {
+export class FlamingoForthewinEDSNeo3 extends FlamingoForthewinEDS<TBSNeo3Name, TBSNeo3NetworkId> {
+  constructor(service: IBSNeo3) {
     super(service)
   }
 
   async getTokenPrices(params: TGetTokenPricesParams): Promise<TTokenPricesResponse[]> {
-    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Exchange is only available on Mainnet')
+    if (this._service.network.type !== 'mainnet') throw new Error('Exchange is only available on Mainnet')
 
     return await super.getTokenPrices(params)
   }
 
   async getTokenPriceHistory(params: TGetTokenPriceHistoryParams): Promise<TTokenPricesHistoryResponse[]> {
-    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Exchange is only available on Mainnet')
+    if (this._service.network.type !== 'mainnet') throw new Error('Exchange is only available on Mainnet')
 
     return await super.getTokenPriceHistory(params)
   }

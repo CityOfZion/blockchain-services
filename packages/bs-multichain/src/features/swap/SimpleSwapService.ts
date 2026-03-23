@@ -1,8 +1,8 @@
 import type { ISwapService, TSwapServiceStatusResponse } from '@cityofzion/blockchain-service'
 import { SimpleSwapApi } from './SimpleSwapApi'
 
-export class SimpleSwapService<N extends string = string> implements ISwapService {
-  #api: SimpleSwapApi<N>
+export class SimpleSwapService implements ISwapService {
+  #api: SimpleSwapApi
 
   constructor() {
     this.#api = new SimpleSwapApi()

@@ -1,17 +1,17 @@
 import { BSNeo3Constants } from '../constants/BSNeo3Constants'
 import { DoraESNeo3 } from '../services/explorer/DoraESNeo3'
 import { BSCommonConstants, TBSNetwork } from '@cityofzion/blockchain-service'
-import type { IBSNeo3 } from '../types'
+import type { IBSNeo3, TBSNeo3NetworkId } from '../types'
 import { BSNeo3 } from '../BSNeo3'
 
-let doraESNeo3: DoraESNeo3<'test'>
-let service: IBSNeo3<'test'>
+let doraESNeo3: DoraESNeo3
+let service: IBSNeo3
 
-const INVALID_NETWORK: TBSNetwork = { id: '1234', name: 'name', url: 'INVALID_URL', type: 'custom' }
+const INVALID_NETWORK: TBSNetwork<TBSNeo3NetworkId> = { id: '1234', name: 'name', url: 'INVALID_URL', type: 'custom' }
 
 describe('DoraESNeo3', () => {
   beforeEach(() => {
-    service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3(BSNeo3Constants.MAINNET_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
   })
 
@@ -31,7 +31,7 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return undefined when call the getAddressTemplateUrl method using an invalid network', () => {
-    service = new BSNeo3('test', INVALID_NETWORK)
+    service = new BSNeo3(INVALID_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
     const templateUrl = doraESNeo3.getAddressTemplateUrl()
@@ -40,7 +40,7 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return undefined when call the getTransactionTemplateUrl method using an invalid network', () => {
-    service = new BSNeo3('test', INVALID_NETWORK)
+    service = new BSNeo3(INVALID_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
     const templateUrl = doraESNeo3.getTransactionTemplateUrl()
@@ -61,7 +61,7 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return an address template URL (Testnet) when call the getAddressTemplateUrl method with a Testnet network', () => {
-    service = new BSNeo3('test', BSNeo3Constants.TESTNET_NETWORK)
+    service = new BSNeo3(BSNeo3Constants.TESTNET_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
     const templateUrl = doraESNeo3.getAddressTemplateUrl()
@@ -70,7 +70,7 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return a transaction template URL (Testnet) when call the getTransactionTemplateUrl method with a Testnet network', () => {
-    service = new BSNeo3('test', BSNeo3Constants.TESTNET_NETWORK)
+    service = new BSNeo3(BSNeo3Constants.TESTNET_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
     const templateUrl = doraESNeo3.getTransactionTemplateUrl()
@@ -79,7 +79,7 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return undefined when call the getNftTemplateUrl method using an invalid network', () => {
-    service = new BSNeo3('test', INVALID_NETWORK)
+    service = new BSNeo3(INVALID_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
     const templateUrl = doraESNeo3.getNftTemplateUrl()
@@ -88,7 +88,7 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return undefined when call the getContractTemplateUrl method using an invalid network', () => {
-    service = new BSNeo3('test', INVALID_NETWORK)
+    service = new BSNeo3(INVALID_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
     const templateUrl = doraESNeo3.getContractTemplateUrl()
@@ -109,7 +109,7 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return an address template URL (Testnet) when call the getNftTemplateUrl method with a Testnet network', () => {
-    service = new BSNeo3('test', BSNeo3Constants.TESTNET_NETWORK)
+    service = new BSNeo3(BSNeo3Constants.TESTNET_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
     const templateUrl = doraESNeo3.getNftTemplateUrl()
@@ -118,7 +118,7 @@ describe('DoraESNeo3', () => {
   })
 
   it('Should return a transaction template URL (Testnet) when call the getContractTemplateUrl method with a Testnet network', () => {
-    service = new BSNeo3('test', BSNeo3Constants.TESTNET_NETWORK)
+    service = new BSNeo3(BSNeo3Constants.TESTNET_NETWORK)
     doraESNeo3 = new DoraESNeo3(service)
 
     const templateUrl = doraESNeo3.getContractTemplateUrl()

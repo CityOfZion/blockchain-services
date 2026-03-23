@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Improve service name typings",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

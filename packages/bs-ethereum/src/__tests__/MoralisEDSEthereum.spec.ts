@@ -3,12 +3,12 @@ import { MoralisEDSEthereum } from '../services/exchange-data/MoralisEDSEthereum
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { BSEthereum } from '../BSEthereum'
 
-let service: BSEthereum<'test', TBSNetworkId>
-let moralisEDSEthereum: MoralisEDSEthereum<'test', TBSNetworkId>
+let service: BSEthereum<'ethereum', TBSNetworkId>
+let moralisEDSEthereum: MoralisEDSEthereum<'ethereum', TBSNetworkId>
 
 describe('MoralisEDSEthereum', () => {
   beforeAll(() => {
-    service = new BSEthereum('test', 'ethereum')
+    service = new BSEthereum('ethereum')
     moralisEDSEthereum = new MoralisEDSEthereum(service)
   })
 

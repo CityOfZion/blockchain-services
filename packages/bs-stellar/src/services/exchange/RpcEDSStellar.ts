@@ -9,10 +9,10 @@ import * as stellarSDK from '@stellar/stellar-sdk'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
 import type { IBSStellar } from '../../types'
 
-export class RpcEDSStellar<N extends string> extends CryptoCompareEDS {
-  #service: IBSStellar<N>
+export class RpcEDSStellar extends CryptoCompareEDS {
+  #service: IBSStellar
 
-  constructor(service: IBSStellar<N>) {
+  constructor(service: IBSStellar) {
     super()
     this.#service = service
   }

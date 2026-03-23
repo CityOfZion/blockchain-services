@@ -20,25 +20,28 @@ import * as bitcoinjs from 'bitcoinjs-lib'
 
 export type TBSBitcoinNetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
-export interface IBSBitcoin<N extends string = string, A extends string = TBSBitcoinNetworkId>
-  extends IBlockchainService<N, A>,
+export type TBSBitcoinName = 'bitcoin'
+
+export interface IBSBitcoin
+  extends
+    IBlockchainService<TBSBitcoinName, TBSBitcoinNetworkId>,
     IBSWithNameService,
-    IBSWithFee<N>,
+    IBSWithFee<TBSBitcoinName>,
     IBSWithExplorer,
-    IBSWithEncryption<N>,
+    IBSWithEncryption<TBSBitcoinName>,
     IBSWithNft,
-    IBSWithLedger<N>,
-    IBSWithWalletConnect<N> {
-  blockchainDataService: TatumBDSBitcoin<N>
-  ledgerService: LedgerServiceBitcoin<N>
+    IBSWithLedger<TBSBitcoinName>,
+    IBSWithWalletConnect<TBSBitcoinName> {
+  blockchainDataService: TatumBDSBitcoin
+  ledgerService: LedgerServiceBitcoin
   bitcoinjsNetwork: bitcoinjs.Network
 
   isP2WPKHAddress(address: string): boolean
   isP2SHAddress(address: string): boolean
   isP2PKHAddress(address: string): boolean
   getKeyPair(key: string): ECPairInterface
-  getLedgerTransport(account: TBSAccount<N>): Promise<Transport>
-  signTransaction(params: TSignTransactionParams<N>): Promise<void>
+  getLedgerTransport(account: TBSAccount<TBSBitcoinName>): Promise<Transport>
+  signTransaction(params: TSignTransactionParams): Promise<void>
   broadcastTransaction(transactionHex: string): Promise<string>
 }
 
@@ -263,7 +266,7 @@ export type TTatumBroadcastResponse = {
   completed: boolean
 }
 
-export type TGetTransferDataParams<N extends string> = TTransferParams<N> & { shouldValidate?: boolean }
+export type TGetTransferDataParams = TTransferParams<TBSBitcoinName> & { shouldValidate?: boolean }
 
 export type TGetTransferDataResponse = {
   utxos: TTatumUtxo[]
@@ -277,9 +280,9 @@ export type TSignInput = {
   sighashTypes?: number[]
 }
 
-export type TSignTransactionParams<N extends string> = {
+export type TSignTransactionParams = {
   psbt: bitcoinjs.Psbt
-  account: TBSAccount<N>
+  account: TBSAccount<TBSBitcoinName>
   signInputs?: TSignInput[]
 }
 
@@ -310,16 +313,16 @@ export type TWalletConnectServiceBitcoinSendTransferResponse = {
   txid: string
 }
 
-export type TLedgerServiceBitcoinSignTransactionParams<N extends string> = {
+export type TLedgerServiceBitcoinSignTransactionParams = {
   psbt: bitcoinjs.Psbt
-  account: TBSAccount<N>
+  account: TBSAccount<TBSBitcoinName>
   transport: Transport
   signInputs?: TSignInput[]
 }
 
-export type TLedgerServiceBitcoinSignMessageParams<N extends string> = {
+export type TLedgerServiceBitcoinSignMessageParams = {
   message: string
-  account: TBSAccount<N>
+  account: TBSAccount<TBSBitcoinName>
   transport: Transport
 }
 

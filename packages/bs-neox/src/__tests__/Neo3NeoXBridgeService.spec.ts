@@ -4,11 +4,11 @@ import { Neo3NeoXBridgeService } from '../services/neo3-neox-bridge/Neo3NeoXBrid
 import { ethers } from 'ethers'
 import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
-import type { TBSNeoXNetworkId } from '../types'
+import type { TBSNeoXName, TBSNeoXNetworkId } from '../types'
 
-let neo3NeoXBridgeService: Neo3NeoXBridgeService<'test'>
-let bsNeoXService: BSNeoX<'test'>
-let account: TBSAccount<'test'>
+let neo3NeoXBridgeService: Neo3NeoXBridgeService
+let bsNeoXService: BSNeoX
+let account: TBSAccount<TBSNeoXName>
 let receiverAddress: string
 
 const tokenService = new TokenServiceEthereum()
@@ -28,7 +28,7 @@ const antiMevNetwork: TBSNetwork<TBSNeoXNetworkId> = {
 describe('Neo3NeoXBridgeService', () => {
   beforeAll(async () => {
     receiverAddress = process.env.TEST_BRIDGE_NEO3_ADDRESS
-    bsNeoXService = new BSNeoX('test', defaultNetwork)
+    bsNeoXService = new BSNeoX(defaultNetwork)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
 
     account = await bsNeoXService.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
@@ -213,7 +213,7 @@ describe('Neo3NeoXBridgeService', () => {
   })
 
   it.skip('Should be able to bridge GAS using Anti-MEV', async () => {
-    bsNeoXService = new BSNeoX('test', antiMevNetwork)
+    bsNeoXService = new BSNeoX(antiMevNetwork)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
 
     const { bridgeFee, bridgeMinAmount } = await neo3NeoXBridgeService.getBridgeConstants(
@@ -272,7 +272,7 @@ describe('Neo3NeoXBridgeService', () => {
   })
 
   it.skip('Should be able to bridge NEO using Anti-MEV', async () => {
-    bsNeoXService = new BSNeoX('test', antiMevNetwork)
+    bsNeoXService = new BSNeoX(antiMevNetwork)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
 
     const { bridgeFee, bridgeMinAmount } = await neo3NeoXBridgeService.getBridgeConstants(

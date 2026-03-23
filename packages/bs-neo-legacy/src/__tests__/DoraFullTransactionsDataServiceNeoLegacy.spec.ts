@@ -7,7 +7,7 @@ const address = 'AFnH8Cv7qzuxWZdeLqK9QqTrfPWCq5f8A3'
 let dateFrom: Date
 let dateTo: Date
 let params: TGetFullTransactionsByAddressParams
-let doraFullTransactionsDataServiceNeoLegacy: DoraFullTransactionsDataServiceNeoLegacy<'test'>
+let doraFullTransactionsDataServiceNeoLegacy: DoraFullTransactionsDataServiceNeoLegacy
 
 describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
   beforeEach(() => {
@@ -19,14 +19,14 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
 
     params = { address, dateTo: dateTo.toJSON(), dateFrom: dateFrom.toJSON() }
 
-    const service = new BSNeoLegacy('test', BSNeoLegacyConstants.MAINNET_NETWORK)
+    const service = new BSNeoLegacy(BSNeoLegacyConstants.MAINNET_NETWORK)
     doraFullTransactionsDataServiceNeoLegacy = new DoraFullTransactionsDataServiceNeoLegacy(service)
   })
 
   describe('getFullTransactionsByAddress', () => {
     it("Shouldn't be able to get transactions when is using a testnet network", async () => {
       doraFullTransactionsDataServiceNeoLegacy = new DoraFullTransactionsDataServiceNeoLegacy(
-        new BSNeoLegacy('test', BSNeoLegacyConstants.TESTNET_NETWORK)
+        new BSNeoLegacy(BSNeoLegacyConstants.TESTNET_NETWORK)
       )
 
       await expect(doraFullTransactionsDataServiceNeoLegacy.getFullTransactionsByAddress(params)).rejects.toThrow(

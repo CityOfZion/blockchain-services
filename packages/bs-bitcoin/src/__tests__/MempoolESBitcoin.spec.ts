@@ -8,12 +8,12 @@ const buildNftUrlParams: TBuildNftUrlParams = {
   tokenHash: 'fb8a9fab4a17c928b92d548575142281d6ebe492fe48ac796a25bb52ddf8f61bi0',
 }
 
-let service: IBSBitcoin<'test'>
-let explorerService: MempoolESBitcoin<'test'>
+let service: IBSBitcoin
+let explorerService: MempoolESBitcoin
 
 describe('MempoolESBitcoin', () => {
   beforeEach(() => {
-    service = new BSBitcoin('test')
+    service = new BSBitcoin()
     explorerService = new MempoolESBitcoin(service)
   })
 
@@ -25,7 +25,7 @@ describe('MempoolESBitcoin', () => {
   })
 
   it('Should be able to build the address URL using Testnet', () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     explorerService = new MempoolESBitcoin(service)
 
     const address = 'tb1qhdpfs3wzwywvxf0505h8dkyzmgtqp6grqte7lp'
@@ -42,7 +42,7 @@ describe('MempoolESBitcoin', () => {
   })
 
   it('Should be able to build the transaction URL using Testnet', () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     explorerService = new MempoolESBitcoin(service)
 
     const hash = '1234'
@@ -58,7 +58,7 @@ describe('MempoolESBitcoin', () => {
   })
 
   it("Shouldn't be able to build the NFT URL using Testnet", () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     explorerService = new MempoolESBitcoin(service)
 
     const url = explorerService.buildNftUrl(buildNftUrlParams)
@@ -79,7 +79,7 @@ describe('MempoolESBitcoin', () => {
   })
 
   it('Should be able to get the address template URL using Testnet', () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     explorerService = new MempoolESBitcoin(service)
 
     const url = explorerService.getAddressTemplateUrl()
@@ -94,7 +94,7 @@ describe('MempoolESBitcoin', () => {
   })
 
   it('Should be able to get the transaction template URL using Testnet', () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     explorerService = new MempoolESBitcoin(service)
 
     const url = explorerService.getTransactionTemplateUrl()
@@ -109,7 +109,7 @@ describe('MempoolESBitcoin', () => {
   })
 
   it("Shouldn't be able to get the NFT template URL using Testnet", () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
     explorerService = new MempoolESBitcoin(service)
 
     const url = explorerService.getNftTemplateUrl()

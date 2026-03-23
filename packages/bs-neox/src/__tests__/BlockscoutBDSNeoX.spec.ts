@@ -3,14 +3,13 @@ import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { BlockscoutBDSNeoX } from '../services/blockchain-data/BlockscoutBDSNeoX'
 
 import { BSNeoX } from '../BSNeoX'
-import type { TTransactionBridgeNeo3NeoXType, TTransactionDefault } from '@cityofzion/blockchain-service'
 
-let service: BSNeoX<'test'>
-let blockscoutBDSNeoX: BlockscoutBDSNeoX<'test'>
+let service: BSNeoX
+let blockscoutBDSNeoX: BlockscoutBDSNeoX
 
 describe('BlockscoutBDSNeoX', () => {
   beforeEach(() => {
-    service = new BSNeoX('test')
+    service = new BSNeoX()
     blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
   })
 
@@ -84,25 +83,37 @@ describe('BlockscoutBDSNeoX', () => {
   })
 
   it('Should return a bridge transaction details (GAS)', async () => {
-    const transaction = (await blockscoutBDSNeoX.getTransaction(
+    const transaction = await blockscoutBDSNeoX.getTransaction(
       '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-    )) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
+    )
 
-    expect(transaction.type).toBe('bridgeNeo3NeoX')
-    expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.gasToken)
-    expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
+    expect(transaction).toEqual(
+      expect.objectContaining({
+        type: 'bridgeNeo3NeoX',
+        data: expect.objectContaining({
+          amount: '1',
+          tokenToUse: service.neo3NeoXBridgeService.gasToken,
+          receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+        }),
+      })
+    )
   })
 
   it('Should return a bridge transaction details (NEO)', async () => {
-    const transaction = (await blockscoutBDSNeoX.getTransaction(
+    const transaction = await blockscoutBDSNeoX.getTransaction(
       '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-    )) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
+    )
 
-    expect(transaction.type).toBe('bridgeNeo3NeoX')
-    expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.neoToken)
-    expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
+    expect(transaction).toEqual(
+      expect.objectContaining({
+        type: 'bridgeNeo3NeoX',
+        data: expect.objectContaining({
+          amount: '1',
+          tokenToUse: service.neo3NeoXBridgeService.neoToken,
+          receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
+        }),
+      })
+    )
   })
 
   it('Should return transactions by address', async () => {
@@ -151,12 +162,18 @@ describe('BlockscoutBDSNeoX', () => {
 
     const transaction = response.transactions.find(
       ({ txId }) => txId === '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-    ) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
+    )
 
-    expect(transaction.type).toBe('bridgeNeo3NeoX')
-    expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.gasToken)
-    expect(transaction.data.receiverAddress).toBe('NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD')
+    expect(transaction).toEqual(
+      expect.objectContaining({
+        type: 'bridgeNeo3NeoX',
+        data: expect.objectContaining({
+          amount: '1',
+          tokenToUse: service.neo3NeoXBridgeService.gasToken,
+          receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+        }),
+      })
+    )
   })
 
   it.skip('Should return transactions by address that are marked as bridge (NEO)', async () => {
@@ -166,12 +183,18 @@ describe('BlockscoutBDSNeoX', () => {
 
     const transaction = response.transactions.find(
       ({ txId }) => txId === '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-    ) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
+    )
 
-    expect(transaction.type).toBe('bridgeNeo3NeoX')
-    expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.neoToken)
-    expect(transaction.data.receiverAddress).toBe('NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8')
+    expect(transaction).toEqual(
+      expect.objectContaining({
+        type: 'bridgeNeo3NeoX',
+        data: expect.objectContaining({
+          amount: '1',
+          tokenToUse: service.neo3NeoXBridgeService.gasToken,
+          receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
+        }),
+      })
+    )
   })
 
   it('Should return token info', async () => {
@@ -211,7 +234,7 @@ describe('BlockscoutBDSNeoX', () => {
   })
 
   it('Should return balance in Testnet', async () => {
-    service = new BSNeoX('test', BSNeoXConstants.TESTNET_NETWORK)
+    service = new BSNeoX(BSNeoXConstants.TESTNET_NETWORK)
     blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
 
     const address = '0xE3aBC0b2A74FD2eF662b1c25C9769398f53b4304'

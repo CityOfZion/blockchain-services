@@ -1,16 +1,15 @@
 import type { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
 import type { IBSNeoLegacy } from '../../types'
-import { BSNeoLegacyHelper } from '../../helpers/BSNeoLegacyHelper'
 
-export class NeoTubeESNeoLegacy<N extends string> implements IExplorerService {
+export class NeoTubeESNeoLegacy implements IExplorerService {
   #baseUrl: string | undefined
 
-  readonly #service: IBSNeoLegacy<N>
+  readonly #service: IBSNeoLegacy
 
-  constructor(service: IBSNeoLegacy<N>) {
+  constructor(service: IBSNeoLegacy) {
     this.#service = service
 
-    if (BSNeoLegacyHelper.isMainnetNetwork(this.#service.network)) {
+    if (this.#service.network.type === 'mainnet') {
       this.#baseUrl = 'https://neo2.neotube.io'
     }
   }

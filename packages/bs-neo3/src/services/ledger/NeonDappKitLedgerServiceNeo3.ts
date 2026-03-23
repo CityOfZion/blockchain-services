@@ -14,17 +14,18 @@ import {
   ENeonDappKitLedgerServiceNeo3SecondParameter,
   ENeonDappKitLedgerServiceNeo3Status,
   type IBSNeo3,
+  type TBSNeo3Name,
 } from '../../types'
 import { api, BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
-export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements ILedgerService<N> {
-  readonly #service: IBSNeo3<N>
-  readonly getLedgerTransport?: TGetLedgerTransport<N>
+export class NeonDappKitLedgerServiceNeo3 implements ILedgerService<TBSNeo3Name> {
+  readonly #service: IBSNeo3
+  readonly getLedgerTransport?: TGetLedgerTransport<TBSNeo3Name>
 
   emitter: TLedgerServiceEmitter = new EventEmitter() as TLedgerServiceEmitter
 
-  constructor(blockchainService: IBSNeo3<N>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(blockchainService: IBSNeo3, getLedgerTransport?: TGetLedgerTransport<TBSNeo3Name>) {
     this.#service = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
@@ -48,7 +49,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
     }
   }
 
-  async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
+  async getAccount(transport: Transport, index: number): Promise<TBSAccount<TBSNeo3Name>> {
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
     const bipPathHex = this.#bipPathToHex(bipPath)
 
@@ -79,8 +80,8 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
 
   async getAccounts(
     transport: Transport,
-    untilIndexByBlockchainService?: TUntilIndexRecord<N>
-  ): Promise<TBSAccount<N>[]> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<TBSNeo3Name>
+  ): Promise<TBSAccount<TBSNeo3Name>[]> {
     const accountsByBlockchainService = await generateAccountForBlockchainService(
       [this.#service],
       async (_service, index) => {
@@ -93,7 +94,7 @@ export class NeonDappKitLedgerServiceNeo3<N extends string = string> implements 
     return accounts ?? []
   }
 
-  getSigningCallback(transport: Transport, account: TBSAccount<N>): api.SigningFunction {
+  getSigningCallback(transport: Transport, account: TBSAccount<TBSNeo3Name>): api.SigningFunction {
     return async (transaction, { witnessIndex, network }) => {
       const isNeoN3App = await this.verifyAppName(transport)
       if (!isNeoN3App) throw new Error('App is not NEO N3')

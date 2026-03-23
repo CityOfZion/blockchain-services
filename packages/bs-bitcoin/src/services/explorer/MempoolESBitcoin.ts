@@ -1,10 +1,10 @@
 import type { TBuildNftUrlParams, IExplorerService } from '@cityofzion/blockchain-service'
 import type { IBSBitcoin } from '../../types'
 
-export class MempoolESBitcoin<N extends string> implements IExplorerService {
-  readonly #service: IBSBitcoin<N>
+export class MempoolESBitcoin implements IExplorerService {
+  readonly #service: IBSBitcoin
 
-  constructor(service: IBSBitcoin<N>) {
+  constructor(service: IBSBitcoin) {
     this.#service = service
   }
 

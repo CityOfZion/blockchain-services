@@ -28,11 +28,12 @@ import type {
   TBlockscoutBDSNeoXTokensApiResponse,
   TBlockscoutBDSNeoXTransactionApiResponse,
   TBlockscoutBDSNeoXTransactionByAddressApiResponse,
+  TBSNeoXName,
   TBSNeoXNetworkId,
 } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '@cityofzion/bs-neo3'
 
-export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNeoXNetworkId, IBSNeoX<N>> {
+export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetworkId, IBSNeoX> {
   static readonly BASE_URL_BY_CHAIN_ID: Partial<Record<TBSNeoXNetworkId, string>> = {
     '47763': `${BSCommonConstants.COZ_API_URL}/api/neox/mainnet`,
     '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
@@ -48,7 +49,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5 // 5 minutes
   readonly #apiInstance?: AxiosInstance
 
-  constructor(service: IBSNeoX<N>) {
+  constructor(service: IBSNeoX) {
     super(service)
   }
 
@@ -60,7 +61,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     return this.#apiInstance
   }
 
-  async getTransaction(txid: string): Promise<TTransactionDefault<N>> {
+  async getTransaction(txid: string): Promise<TTransactionDefault<TBSNeoXName>> {
     const { data: response } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
     if (!response || 'message' in response) {
@@ -69,7 +70,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
     const to = response.to?.hash
-    const events: TTransactionDefault<N>['events'] = []
+    const events: TTransactionDefault<TBSNeoXName>['events'] = []
 
     const hasNativeTokenBeingTransferred = response.value !== '0'
     if (hasNativeTokenBeingTransferred) {
@@ -159,7 +160,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
     const txId = response.hash
 
-    let transaction: TTransactionDefault<N> = {
+    let transaction: TTransactionDefault<TBSNeoXName> = {
       txId,
       txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
       block: response.block,
@@ -190,7 +191,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  ): Promise<TGetTransactionsByAddressResponse<TBSNeoXName, TTransactionDefault<TBSNeoXName>>> {
     const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionByAddressApiResponse>(
       `/addresses/${params.address}/transactions`,
       {
@@ -205,10 +206,10 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault<TBSNeoXName>[] = []
 
     const promises = data.items.map(async (item, index) => {
-      const events: TTransactionDefault<N>['events'] = []
+      const events: TTransactionDefault<TBSNeoXName>['events'] = []
       const hasNativeTokenBeingTransferred = item.value !== '0'
 
       if (hasNativeTokenBeingTransferred) {
@@ -275,7 +276,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
       const txId = item.hash
 
-      let transaction: TTransactionDefault<N> = {
+      let transaction: TTransactionDefault<TBSNeoXName> = {
         txId,
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
         block: item.block,
@@ -446,7 +447,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
 
   #getBridgeNeo3NeoXDataByBlockscoutTransaction(
     transactionResponse: TBlockscoutBDSNeoXTransactionApiResponse
-  ): TTransactionBridgeNeo3NeoXType<N>['data'] | undefined {
+  ): TTransactionBridgeNeo3NeoXType<TBSNeoXName>['data'] | undefined {
     const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
     const input = BridgeInterface.parseTransaction({ data: transactionResponse.raw_input })
 
@@ -455,7 +456,7 @@ export class BlockscoutBDSNeoX<N extends string> extends RpcBDSEthereum<N, TBSNe
     const to = input.args._to
     const receiverAddress = wallet.getAddressFromScriptHash(to.startsWith('0x') ? to.slice(2) : to)
 
-    let tokenToUse: TBridgeToken<N> | undefined
+    let tokenToUse: TBridgeToken<TBSNeoXName> | undefined
     let amountBn: TBSBigNumber | undefined
 
     if (input.name === 'withdrawNative') {

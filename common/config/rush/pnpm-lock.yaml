@@ -236,12 +236,21 @@ importers:
       '@cityofzion/bs-ethereum':
         specifier: workspace:*
         version: link:../bs-ethereum
+      '@cityofzion/bs-neo-legacy':
+        specifier: workspace:*
+        version: link:../bs-neo-legacy
       '@cityofzion/bs-neo3':
         specifier: workspace:*
         version: link:../bs-neo3
       '@cityofzion/bs-neox':
         specifier: workspace:*
         version: link:../bs-neox
+      '@cityofzion/bs-solana':
+        specifier: workspace:*
+        version: link:../bs-solana
+      '@cityofzion/bs-stellar':
+        specifier: workspace:*
+        version: link:../bs-stellar
       '@types/node':
         specifier: ~24.5.2
         version: 24.5.2

@@ -8,20 +8,20 @@ import {
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeo3, TBSNeo3NetworkId } from '../../types'
+import type { IBSNeo3, TBSNeo3Name, TBSNeo3NetworkId } from '../../types'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import type { api } from '@cityofzion/dora-ts'
 import type { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 
-export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IFullTransactionsDataService<N> {
+export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDataService<TBSNeo3Name> {
   static readonly SUPPORTED_NEP11_STANDARDS: string[] = ['nep11', 'nep-11']
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeo3NetworkId[] = ['mainnet', 'testnet']
 
-  readonly #service: IBSNeo3<N>
+  readonly #service: IBSNeo3
 
   #apiInstance?: api.NeoRESTApi
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     this.#service = service
   }
 
@@ -36,7 +36,9 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  }: TGetFullTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>
+  > {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: DoraFullTransactionsDataServiceNeo3.SUPPORTED_NETWORKS_IDS,
@@ -53,13 +55,13 @@ export class DoraFullTransactionsDataServiceNeo3<N extends string> implements IF
     })
 
     const items = response.data ?? []
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault<TBSNeo3Name>[] = []
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      let newItem: TTransactionDefault<N> = {
+      let newItem: TTransactionDefault<TBSNeo3Name> = {
         txId,
         txIdUrl,
         block: item.block,

@@ -9,23 +9,23 @@ import {
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
-import type { IBSStellar } from '../../types'
+import type { IBSStellar, TBSStellarName } from '../../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
 
-export class HorizonBDSStellar<N extends string> implements IBlockchainDataService<N> {
+export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName> {
   maxTimeToConfirmTransactionInMs: number = 1 * 60 * 1000 // 1 minute
 
-  #service: IBSStellar<N>
+  #service: IBSStellar
 
-  constructor(service: IBSStellar<N>) {
+  constructor(service: IBSStellar) {
     this.#service = service
   }
 
   async #parseTransaction(
     transaction: stellarSDK.Horizon.ServerApi.TransactionRecord
-  ): Promise<TTransactionDefault<N>> {
-    const events: TTransactionDefault<N>['events'] = []
+  ): Promise<TTransactionDefault<TBSStellarName>> {
+    const events: TTransactionDefault<TBSStellarName>['events'] = []
     const operations = await transaction.operations()
 
     const promises = operations.records.map(async (operation, index) => {
@@ -116,14 +116,14 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     }
   }
 
-  async getTransaction(txid: string): Promise<TTransactionDefault<N>> {
+  async getTransaction(txid: string): Promise<TTransactionDefault<TBSStellarName>> {
     const transaction = await this.#service.horizonServer.transactions().transaction(txid).call()
     return this.#parseTransaction(transaction)
   }
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  ): Promise<TGetTransactionsByAddressResponse<TBSStellarName, TTransactionDefault<TBSStellarName>>> {
     const query = this.#service.horizonServer.transactions().forAccount(params.address)
     if (params.nextPageParams) {
       query.cursor(params.nextPageParams)
@@ -134,7 +134,7 @@ export class HorizonBDSStellar<N extends string> implements IBlockchainDataServi
     const nextPageParams =
       response.records.length > 0 ? response.records[response.records.length - 1].paging_token : undefined
 
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault<TBSStellarName>[] = []
 
     const promises = response.records.map(async record => {
       const parsedTransaction = await this.#parseTransaction(record)

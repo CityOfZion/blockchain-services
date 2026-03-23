@@ -8,11 +8,9 @@ import {
   type TBridgeValidateValue,
   type TBridgeValue,
 } from '@cityofzion/blockchain-service'
-import { Neo3NeoXBridgeOrchestrator } from '../features/bridge'
+import { Neo3NeoXBridgeOrchestrator, type TBSBridgeName } from '../features/bridge'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX, BSNeoXConstants } from '@cityofzion/bs-neox'
-
-type TBridgeBlockchains = 'neo3' | 'neox'
 
 const defaultNetwork = {
   ...BSNeoXConstants.MAINNET_NETWORK,
@@ -21,15 +19,15 @@ const defaultNetwork = {
   )!,
 }
 
-let neo3Service: BSNeo3<TBridgeBlockchains>
-let neoXService: BSNeoX<TBridgeBlockchains>
-let neo3NeoXBridgeOrchestrator: Neo3NeoXBridgeOrchestrator<TBridgeBlockchains>
-let tokenToUse: TBridgeValue<TBridgeToken<TBridgeBlockchains>>
-let accountToUse: TBridgeValue<TBSAccount<TBridgeBlockchains>>
+let neo3Service: BSNeo3
+let neoXService: BSNeoX
+let neo3NeoXBridgeOrchestrator: Neo3NeoXBridgeOrchestrator
+let tokenToUse: TBridgeValue<TBridgeToken<TBSBridgeName>>
+let accountToUse: TBridgeValue<TBSAccount<TBSBridgeName>>
 let amountToUse: TBridgeValidateValue<string>
 let amountToUseMin: TBridgeValue<string>
 let amountToUseMax: TBridgeValue<string>
-let tokenToReceive: TBridgeValue<TBridgeToken<TBridgeBlockchains>>
+let tokenToReceive: TBridgeValue<TBridgeToken<TBSBridgeName>>
 let addressToReceive: TBridgeValidateValue<string>
 let amountToReceive: TBridgeValue<string>
 let tokenToUseBalance: TBridgeValue<TBalanceResponse | undefined>
@@ -50,10 +48,10 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     tokenToUseBalance = { value: null, loading: false, error: null }
     bridgeFee = { value: null, loading: false, error: null }
 
-    neo3Service = new BSNeo3<'neo3' | 'neox'>('neo3')
-    neoXService = new BSNeoX<'neo3' | 'neox'>('neox', defaultNetwork)
+    neo3Service = new BSNeo3()
+    neoXService = new BSNeoX(defaultNetwork)
 
-    neo3NeoXBridgeOrchestrator = new Neo3NeoXBridgeOrchestrator<'neo3' | 'neox'>({
+    neo3NeoXBridgeOrchestrator = new Neo3NeoXBridgeOrchestrator({
       neo3Service,
       neoXService,
     })

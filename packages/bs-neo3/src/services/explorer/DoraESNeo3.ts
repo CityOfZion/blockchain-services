@@ -1,15 +1,14 @@
 import { BSCommonConstants, type TBuildNftUrlParams, type IExplorerService } from '@cityofzion/blockchain-service'
 import type { IBSNeo3 } from '../../types'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 
-export class DoraESNeo3<N extends string> implements IExplorerService {
-  readonly #service: IBSNeo3<N>
+export class DoraESNeo3 implements IExplorerService {
+  readonly #service: IBSNeo3
   #baseUrl: string | undefined
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     this.#service = service
 
-    if (!BSNeo3Helper.isCustomNetwork(this.#service.network)) {
+    if (service.network.type !== 'custom') {
       this.#baseUrl = BSCommonConstants.DORA_URL
     }
   }

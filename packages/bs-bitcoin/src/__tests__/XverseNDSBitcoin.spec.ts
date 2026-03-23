@@ -16,12 +16,11 @@ const expectedNfts = expect.arrayContaining([
   }),
 ])
 
-let nftDataService: XverseNDSBitcoin<'test'>
+let nftDataService: XverseNDSBitcoin
 
 describe('XverseNDSBitcoin', () => {
   beforeEach(() => {
-    const service = new BSBitcoin('test')
-
+    const service = new BSBitcoin()
     nftDataService = new XverseNDSBitcoin(service)
   })
 
@@ -49,7 +48,7 @@ describe('XverseNDSBitcoin', () => {
   })
 
   it("Shouldn't be able to get NFTs by address using Testnet", async () => {
-    const service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    const service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     nftDataService = new XverseNDSBitcoin(service)
 
@@ -111,7 +110,7 @@ describe('XverseNDSBitcoin', () => {
   })
 
   it("Shouldn't be able to get NFT using Testnet", async () => {
-    const service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    const service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     nftDataService = new XverseNDSBitcoin(service)
 
@@ -133,7 +132,7 @@ describe('XverseNDSBitcoin', () => {
   })
 
   it("Shouldn't be able to verify if has token by address and collection using Testnet", async () => {
-    const service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    const service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     nftDataService = new XverseNDSBitcoin(service)
 

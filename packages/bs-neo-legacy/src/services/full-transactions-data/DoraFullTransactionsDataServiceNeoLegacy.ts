@@ -9,24 +9,26 @@ import {
   type TTransactionDefault,
   type TTransactionTokenEvent,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeoLegacy, TBSNeoLegacyNetworkId } from '../../types'
+import type { IBSNeoLegacy, TBSNeoLegacyName, TBSNeoLegacyNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 
-export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implements IFullTransactionsDataService<N> {
+export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactionsDataService<TBSNeoLegacyName> {
   static readonly SUPPORTED_NEP5_STANDARDS: string[] = ['nep5', 'nep-5']
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeoLegacyNetworkId[] = ['mainnet']
   static readonly MAX_PAGE_SIZE = 30
 
-  readonly #service: IBSNeoLegacy<N>
+  readonly #service: IBSNeoLegacy
 
-  constructor(service: IBSNeoLegacy<N>) {
+  constructor(service: IBSNeoLegacy) {
     this.#service = service
   }
 
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  }: TGetFullTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeoLegacyName, TTransactionDefault<TBSNeoLegacyName>>
+  > {
     const pageSize =
       params.pageSize && params.pageSize > DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
         ? DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
@@ -40,7 +42,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
       pageSize,
     })
 
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault<TBSNeoLegacyName>[] = []
 
     const response = await api.NeoLegacyREST.getFullTransactionsByAddress({
       address: params.address,
@@ -57,7 +59,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy<N extends string> implemen
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      const newItem: TTransactionDefault<N> = {
+      const newItem: TTransactionDefault<TBSNeoLegacyName> = {
         txId,
         txIdUrl,
         block: item.block,

@@ -4,13 +4,13 @@ import { BSNeo3Constants } from '../constants/BSNeo3Constants'
 import { BSKeychainHelper, isClaimable, type TBSNetwork } from '@cityofzion/blockchain-service'
 import type { TBSNeo3NetworkId } from '../types'
 
-let bsNeo3: BSNeo3<'test'>
+let bsNeo3: BSNeo3
 let network: TBSNetwork<TBSNeo3NetworkId>
 
 describe('BSNeo3', () => {
   beforeAll(() => {
     network = BSNeo3Constants.TESTNET_NETWORK
-    bsNeo3 = new BSNeo3('test', network)
+    bsNeo3 = new BSNeo3(network)
   })
 
   it('Should be able to claim', () => {
@@ -150,7 +150,7 @@ describe('BSNeo3', () => {
 
   it.skip('Should be able to transfer with Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSNeo3('test', network, async () => transport)
+    const service = new BSNeo3(network, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount
     const amount = '0.00000001'
@@ -235,7 +235,7 @@ describe('BSNeo3', () => {
   it.skip('Should be able to calculate the claim fee with Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeo3 = new BSNeo3('test', network, async () => transport)
+    bsNeo3 = new BSNeo3(network, async () => transport)
 
     const account = await bsNeo3.ledgerService.getAccount(transport, 0)
     const fee = await bsNeo3.calculateClaimFee(account)
@@ -246,7 +246,7 @@ describe('BSNeo3', () => {
   it.skip('Should be able to claim with Ledger', async () => {
     const transport = await TransportNodeHid.create()
 
-    bsNeo3 = new BSNeo3('test', network, async () => transport)
+    bsNeo3 = new BSNeo3(network, async () => transport)
 
     const account = await bsNeo3.ledgerService.getAccount(transport, 0)
     const unclaimed = await bsNeo3.claimDataService.getUnclaimed(account.address)
@@ -374,7 +374,7 @@ describe('BSNeo3', () => {
 
   it.skip('Should be able to transfer more than one intent with Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSNeo3('test', network, async () => transport)
+    const service = new BSNeo3(network, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount
     const gasToken = BSNeo3Constants.GAS_TOKEN

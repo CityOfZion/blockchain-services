@@ -1,16 +1,15 @@
 import { BSNeo3Constants } from '../constants/BSNeo3Constants'
 import { DoraBDSNeo3 } from '../services/blockchain-data/DoraBDSNeo3'
 import { BSNeo3 } from '../BSNeo3'
-import type { TTransactionBridgeNeo3NeoXType, TTransactionDefault } from '@cityofzion/blockchain-service'
 
 const network = BSNeo3Constants.TESTNET_NETWORK
 
-let service: BSNeo3<'test'>
-let doraBDSNeo3: DoraBDSNeo3<'test'>
+let service: BSNeo3
+let doraBDSNeo3: DoraBDSNeo3
 
 describe('DoraBDSNeo3', () => {
   beforeEach(() => {
-    service = new BSNeo3('test', network)
+    service = new BSNeo3(network)
     doraBDSNeo3 = new DoraBDSNeo3(service)
   })
 
@@ -142,7 +141,7 @@ describe('DoraBDSNeo3', () => {
   })
 
   it.skip('Should be able to get transactions that are marked as bridge (GAS)', async () => {
-    service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3(BSNeo3Constants.MAINNET_NETWORK)
     doraBDSNeo3 = new DoraBDSNeo3(service)
 
     const address = 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD'
@@ -150,16 +149,22 @@ describe('DoraBDSNeo3', () => {
 
     const transaction = response.transactions.find(
       ({ txId }) => txId === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
-    ) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
+    )
 
-    expect(transaction.type).toBe('bridgeNeo3NeoX')
-    expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.gasToken)
-    expect(transaction.data.receiverAddress).toBe('0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9')
+    expect(transaction).toEqual(
+      expect.objectContaining({
+        type: 'bridgeNeo3NeoX',
+        data: expect.objectContaining({
+          amount: '1',
+          tokenToUse: service.neo3NeoXBridgeService.gasToken,
+          receiverAddress: '0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9',
+        }),
+      })
+    )
   })
 
   it.skip('Should be able to get transactions that are marked as bridge (NEO)', async () => {
-    service = new BSNeo3('test', BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3(BSNeo3Constants.MAINNET_NETWORK)
     doraBDSNeo3 = new DoraBDSNeo3(service)
 
     const address = 'NcTRyXXr2viSowk913dMTvws6sDNbmt8tj'
@@ -167,11 +172,17 @@ describe('DoraBDSNeo3', () => {
 
     const transaction = response.transactions.find(
       ({ txId }) => txId === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
-    ) as TTransactionDefault<'test'> & TTransactionBridgeNeo3NeoXType<'test'>
+    )
 
-    expect(transaction.type).toBe('bridgeNeo3NeoX')
-    expect(transaction.data.amount).toBe('1')
-    expect(transaction.data.tokenToUse).toEqual(service.neo3NeoXBridgeService.neoToken)
-    expect(transaction.data.receiverAddress).toBe('0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da')
+    expect(transaction).toEqual(
+      expect.objectContaining({
+        type: 'bridgeNeo3NeoX',
+        data: expect.objectContaining({
+          amount: '1',
+          tokenToUse: service.neo3NeoXBridgeService.neoToken,
+          receiverAddress: '0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da',
+        }),
+      })
+    )
   })
 })

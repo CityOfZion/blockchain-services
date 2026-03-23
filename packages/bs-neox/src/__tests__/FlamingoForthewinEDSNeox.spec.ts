@@ -3,11 +3,11 @@ import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { FlamingoForthewinEDSNeoX } from '../services/exchange-data/FlamingoForthewinEDSNeoX'
 import { BSNeoX } from '../BSNeoX'
 
-let flamingoForthewinEDSNeoX: FlamingoForthewinEDSNeoX<'test'>
+let flamingoForthewinEDSNeoX: FlamingoForthewinEDSNeoX
 
 describe('FlamingoForthewinEDSNeox', () => {
   beforeEach(() => {
-    const service = new BSNeoX('test')
+    const service = new BSNeoX()
     flamingoForthewinEDSNeoX = new FlamingoForthewinEDSNeoX(service)
   })
 

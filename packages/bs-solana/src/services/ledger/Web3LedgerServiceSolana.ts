@@ -11,23 +11,24 @@ import {
 import LedgerSolanaApp from '@ledgerhq/hw-app-solana'
 import EventEmitter from 'events'
 import Transport from '@ledgerhq/hw-transport'
-import type { IBSSolana } from '../../types'
+import type { IBSSolana, TBSSolanaName } from '../../types'
 import * as solanaKit from '@solana/kit'
-export class Web3LedgerServiceSolana<N extends string = string> implements ILedgerService<N> {
-  readonly #service: IBSSolana<N>
-  readonly getLedgerTransport?: TGetLedgerTransport<N>
+
+export class Web3LedgerServiceSolana implements ILedgerService<TBSSolanaName> {
+  readonly #service: IBSSolana
+  readonly getLedgerTransport?: TGetLedgerTransport<TBSSolanaName>
 
   emitter: TLedgerServiceEmitter = new EventEmitter() as TLedgerServiceEmitter
 
-  constructor(blockchainService: IBSSolana<N>, getLedgerTransport?: TGetLedgerTransport<N>) {
+  constructor(blockchainService: IBSSolana, getLedgerTransport?: TGetLedgerTransport<TBSSolanaName>) {
     this.#service = blockchainService
     this.getLedgerTransport = getLedgerTransport
   }
 
   async getAccounts(
     transport: Transport,
-    untilIndexByBlockchainService?: TUntilIndexRecord<N>
-  ): Promise<TBSAccount<N>[]> {
+    untilIndexByBlockchainService?: TUntilIndexRecord<TBSSolanaName>
+  ): Promise<TBSAccount<TBSSolanaName>[]> {
     const accountsByBlockchainService = await generateAccountForBlockchainService(
       [this.#service],
       async (_service, index) => {
@@ -40,7 +41,7 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
     return accounts ?? []
   }
 
-  async getAccount(transport: Transport, index: number): Promise<TBSAccount<N>> {
+  async getAccount(transport: Transport, index: number): Promise<TBSAccount<TBSSolanaName>> {
     const ledgerApp = new LedgerSolanaApp(transport)
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
     const bipPathWithoutMasterKey = BSKeychainHelper.removeMasterKeyFromBipPath(bipPath)
@@ -64,7 +65,7 @@ export class Web3LedgerServiceSolana<N extends string = string> implements ILedg
   async signTransaction(
     transport: Transport,
     transaction: solanaKit.Transaction,
-    account: TBSAccount<N>
+    account: TBSAccount<TBSSolanaName>
   ): Promise<solanaKit.Base64EncodedWireTransaction> {
     if (!account.bipPath) {
       throw new Error('Account must have BIP path to sign with Ledger')

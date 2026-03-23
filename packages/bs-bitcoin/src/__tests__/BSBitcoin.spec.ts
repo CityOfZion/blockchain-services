@@ -21,16 +21,16 @@ const testnetKey = process.env.TEST_TESTNET_PRIVATE_KEY
 
 const hexKey = process.env.TEST_HEX_PRIVATE_KEY
 
-let service: IBSBitcoin<'test'>
+let service: IBSBitcoin
 
 describe('BSBitcoin', () => {
   beforeEach(() => {
-    service = new BSBitcoin('test')
+    service = new BSBitcoin()
   })
 
   it("Shouldn't be able to instantiate the service using Custom network", () => {
     try {
-      new BSBitcoin('test', {
+      new BSBitcoin({
         id: 'custom-network',
         name: 'Custom Network',
         url: 'https://custom-network.com',
@@ -52,7 +52,7 @@ describe('BSBitcoin', () => {
   })
 
   it("Shouldn't be set network from Testnet to Mainnet", () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     try {
       service.setNetwork(BSBitcoinConstants.MAINNET_NETWORK)
@@ -67,7 +67,7 @@ describe('BSBitcoin', () => {
   })
 
   it('Should be set network from Testnet to Testnet', () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     expect(() => service.setNetwork(BSBitcoinConstants.TESTNET_NETWORK)).not.toThrow()
   })
@@ -85,7 +85,7 @@ describe('BSBitcoin', () => {
   })
 
   it('Should be able to validate an address using Testnet', () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     expect(service.validateAddress(testnetAddress)).toBe(true)
     expect(service.validateAddress(testnetLegacyAddress)).toBe(true)
@@ -107,7 +107,7 @@ describe('BSBitcoin', () => {
   })
 
   it('Should be able to validate a key using Testnet', () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     expect(service.validateKey(testnetKey)).toBe(true)
 
@@ -127,7 +127,7 @@ describe('BSBitcoin', () => {
   })
 
   it('Should be able to validate an encrypted key using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const encryptedKey = await service.encrypt(testnetKey, 'password')
 
@@ -163,7 +163,7 @@ describe('BSBitcoin', () => {
         key: expect.any(String),
         type: 'wif',
         bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, 0),
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
 
@@ -173,13 +173,13 @@ describe('BSBitcoin', () => {
         key: expect.any(String),
         type: 'wif',
         bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, 1),
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
   })
 
   it('Should be able to generate an account from mnemonic using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const firstAccount = await service.generateAccountFromMnemonic(mnemonic, 0)
@@ -197,7 +197,7 @@ describe('BSBitcoin', () => {
         key: expect.any(String),
         type: 'wif',
         bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, 0),
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
 
@@ -207,7 +207,7 @@ describe('BSBitcoin', () => {
         key: expect.any(String),
         type: 'wif',
         bipPath: BSKeychainHelper.getBipPath(service.bipDerivationPath, 1),
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
   })
@@ -222,7 +222,7 @@ describe('BSBitcoin', () => {
         address: mainnetAddress,
         key: expect.any(String),
         type: 'publicKey',
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
 
@@ -231,7 +231,7 @@ describe('BSBitcoin', () => {
         address: mainnetLegacyAddress,
         key: expect.any(String),
         type: 'publicKey',
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
 
@@ -240,13 +240,13 @@ describe('BSBitcoin', () => {
         address: mainnetP2SHAddress,
         key: expect.any(String),
         type: 'publicKey',
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
   })
 
   it('Should be able to generate an account from public key using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const account = await service.generateAccountFromPublicKey(testnetAddress)
     const legacyAccount = await service.generateAccountFromPublicKey(testnetLegacyAddress)
@@ -257,7 +257,7 @@ describe('BSBitcoin', () => {
         address: testnetAddress,
         key: expect.any(String),
         type: 'publicKey',
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
 
@@ -266,7 +266,7 @@ describe('BSBitcoin', () => {
         address: testnetLegacyAddress,
         key: expect.any(String),
         type: 'publicKey',
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
 
@@ -275,7 +275,7 @@ describe('BSBitcoin', () => {
         address: testnetP2SHAddress,
         key: expect.any(String),
         type: 'publicKey',
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
   })
@@ -288,13 +288,13 @@ describe('BSBitcoin', () => {
         address: expect.any(String),
         key: expect.any(String),
         type: 'wif',
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
   })
 
   it('Should be able to generate an account from key using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const account = await service.generateAccountFromKey(testnetKey)
 
@@ -303,7 +303,7 @@ describe('BSBitcoin', () => {
         address: expect.any(String),
         key: expect.any(String),
         type: 'wif',
-        blockchain: 'test',
+        blockchain: 'bitcoin',
       })
     )
   })
@@ -327,7 +327,7 @@ describe('BSBitcoin', () => {
   })
 
   it('Should be able to decrypt an encrypted key using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = await service.generateAccountFromMnemonic(mnemonic, 0)
@@ -339,7 +339,7 @@ describe('BSBitcoin', () => {
   })
 
   it('Should be able to encrypt a key using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = await service.generateAccountFromMnemonic(mnemonic, 0)
@@ -359,7 +359,7 @@ describe('BSBitcoin', () => {
   })
 
   it('Should be able to ping network using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const response = await service.pingNetwork()
 
@@ -381,7 +381,7 @@ describe('BSBitcoin', () => {
   })
 
   it("Shouldn't be able to resolve a name service domain using Testnet", async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     await expect(service.resolveNameServiceDomain('satoshi.btc')).rejects.toSatisfy((error: Error) => {
       expect(error).toBeInstanceOf(BSError)
@@ -392,7 +392,7 @@ describe('BSBitcoin', () => {
   })
 
   it.skip('Should be able to calculate fee using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
 
@@ -411,7 +411,7 @@ describe('BSBitcoin', () => {
   })
 
   it.skip('Should be able to calculate fee with tip using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
 
@@ -437,7 +437,7 @@ describe('BSBitcoin', () => {
   })
 
   it("Shouldn't be able to calculate fee if there isn't UTXO available using Testnet", async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const senderAccount = await service.generateAccountFromMnemonic(mnemonic, 0)
@@ -494,7 +494,7 @@ describe('BSBitcoin', () => {
   })
 
   it("Shouldn't be able to calculate fee if available UTXOs doesn't pay the transaction using Testnet", async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
 
@@ -518,7 +518,7 @@ describe('BSBitcoin', () => {
   })
 
   it.skip('Should be able to calculate fee with max balance using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
     const balance = await service.blockchainDataService.getBalance(senderAccount.address)
@@ -545,7 +545,7 @@ describe('BSBitcoin', () => {
   it.skip('Should be able to calculate fee with max balance with Ledger using Testnet', async () => {
     const transport = await TransportNodeHid.create()
 
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK, async () => transport)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK, async () => transport)
 
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const balance = await service.blockchainDataService.getBalance(senderAccount.address)
@@ -572,7 +572,7 @@ describe('BSBitcoin', () => {
   })
 
   it.skip('Should be able to transfer using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
     const firstAmount = '0.005'
@@ -634,7 +634,7 @@ describe('BSBitcoin', () => {
   it.skip('Should be able to transfer with Ledger using Testnet', async () => {
     const transport = await TransportNodeHid.create()
 
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK, async () => transport)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK, async () => transport)
 
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const firstAmount = '0.005'
@@ -696,7 +696,7 @@ describe('BSBitcoin', () => {
   })
 
   it.skip('Should be able to transfer the max balance using Testnet', async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
     const balance = await service.blockchainDataService.getBalance(senderAccount.address)
@@ -764,7 +764,7 @@ describe('BSBitcoin', () => {
   it.skip('Should be able to transfer the max balance with Ledger using Testnet', async () => {
     const transport = await TransportNodeHid.create()
 
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK, async () => transport)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK, async () => transport)
 
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const balance = await service.blockchainDataService.getBalance(senderAccount.address)
@@ -832,7 +832,7 @@ describe('BSBitcoin', () => {
   })
 
   it("Shouldn't be able to transfer if available UTXOs doesn't pay the transaction using Testnet", async () => {
-    service = new BSBitcoin('test', BSBitcoinConstants.TESTNET_NETWORK)
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
 

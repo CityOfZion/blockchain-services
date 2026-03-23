@@ -6,14 +6,14 @@ import { BSEthereum } from '../BSEthereum'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
-let ledgerService: EthersLedgerServiceEthereum<'test'>
+let ledgerService: EthersLedgerServiceEthereum<'ethereum'>
 let transport: Transport
-let bsEthereum: BSEthereum<'test'>
+let bsEthereum: BSEthereum<'ethereum'>
 
 describe.skip('EthersLedgerServiceEthereum', () => {
   beforeAll(async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
-    bsEthereum = new BSEthereum('test', 'ethereum', network)
+    bsEthereum = new BSEthereum('ethereum', network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new EthersLedgerServiceEthereum(bsEthereum, async () => transport)
@@ -140,7 +140,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
     const firstAccount = await ledgerService.getAccount(transport, 0)
 
     const accounts = await ledgerService.getAccounts(transport, {
-      test: {
+      ethereum: {
         [firstAccount.address]: 6,
       },
     })

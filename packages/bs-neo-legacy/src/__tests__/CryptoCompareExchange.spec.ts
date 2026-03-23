@@ -3,12 +3,12 @@ import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import type { IBSNeoLegacy } from '../types'
 
-let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy<'test'>
-let service: IBSNeoLegacy<'test'>
+let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
+let service: IBSNeoLegacy
 
 describe('CryptoCompareEDSNeoLegacy', () => {
   beforeAll(() => {
-    service = new BSNeoLegacy('test', BSNeoLegacyConstants.MAINNET_NETWORK)
+    service = new BSNeoLegacy(BSNeoLegacyConstants.MAINNET_NETWORK)
     cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(service)
   })
 

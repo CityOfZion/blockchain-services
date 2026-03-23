@@ -19,6 +19,7 @@ import type {
   TOrdinalsContentResponse,
   TTatumBalanceResponse,
   TTatumTransactionResponse,
+  TBSBitcoinName,
 } from '../../types'
 import { BSBitcoinConstants } from '../../constants/BSBitcoinConstants'
 import { BSBitcoinTatumHelper } from '../../helpers/BSBitcoinTatumHelper'
@@ -26,8 +27,8 @@ import { BSBitcoinOrdinalsHelper } from '../../helpers/BSBitcoinOrdinalsHelper'
 import { BSBitcoinXverseHelper } from '../../helpers/BSBitcoinXverseHelper'
 import { AxiosInstance } from 'axios'
 
-export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService<N> {
-  readonly #service: IBSBitcoin<N>
+export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
+  readonly #service: IBSBitcoin
   readonly #cachedTokens = new Map<string, TBSToken>()
   readonly #tatumApi: AxiosInstance
   readonly #xverseApi = BSBitcoinXverseHelper.getApi()
@@ -35,7 +36,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
 
   readonly maxTimeToConfirmTransactionInMs = 1000 * 60 * 10 // 10 minutes
 
-  constructor(service: IBSBitcoin<N>) {
+  constructor(service: IBSBitcoin) {
     this.#service = service
     this.#tatumApi = BSBitcoinTatumHelper.getApi(this.#service.network)
   }
@@ -54,7 +55,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     hex,
     hash,
     ...transaction
-  }: TTatumTransactionResponse): Promise<TTransactionUtxo<N>> {
+  }: TTatumTransactionResponse): Promise<TTransactionUtxo<TBSBitcoinName>> {
     const token = BSBitcoinConstants.NATIVE_TOKEN
     const tokenDecimals = token.decimals
     const feeDecimals = this.#service.feeToken.decimals
@@ -148,7 +149,7 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
     return token
   }
 
-  async getTransaction(transactionId: string): Promise<TTransactionUtxo<N>> {
+  async getTransaction(transactionId: string): Promise<TTransactionUtxo<TBSBitcoinName>> {
     const { data } = await this.#tatumApi.get<TTatumTransactionResponse>('/v4/data/blockchains/transaction', {
       params: { hash: transactionId },
     })
@@ -163,10 +164,12 @@ export class TatumBDSBitcoin<N extends string> implements IBlockchainDataService
   async getTransactionsByAddress({
     address,
     nextPageParams,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionUtxo<N>>> {
+  }: TGetTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSBitcoinName, TTransactionUtxo<TBSBitcoinName>>
+  > {
     if (!this.#isNumberValid(nextPageParams)) nextPageParams = 1
 
-    const transactions: TTransactionUtxo<N>[] = []
+    const transactions: TTransactionUtxo<TBSBitcoinName>[] = []
     const pageSize = 50
     const offset = (nextPageParams - 1) * pageSize
 

@@ -2,10 +2,10 @@ import type { IClaimDataService } from '@cityofzion/blockchain-service'
 import type { IBSNeo3 } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 
-export class RpcCDSNeo3<N extends string> implements IClaimDataService {
-  readonly _service: IBSNeo3<N>
+export class RpcCDSNeo3 implements IClaimDataService {
+  readonly _service: IBSNeo3
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     this._service = service
   }
 

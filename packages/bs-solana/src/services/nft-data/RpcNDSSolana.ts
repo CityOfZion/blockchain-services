@@ -10,16 +10,16 @@ import type { IBSSolana, TMetaplexAssetByOwnerResponse, TMetaplexAssetResponse }
 import axios from 'axios'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 
-export class RpcNDSSolana<N extends string> implements INftDataService {
+export class RpcNDSSolana implements INftDataService {
   static readonly SUPPORTED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/gif']
 
-  #service: IBSSolana<N>
+  #service: IBSSolana
 
   #nftsCache: Map<string, TNftResponse> = new Map()
 
   #rpcUrl: string
 
-  constructor(service: IBSSolana<N>) {
+  constructor(service: IBSSolana) {
     this.#service = service
     this.#rpcUrl = BSSolanaConstants.PUBLIC_RPC_LIST_BY_NETWORK_ID[service.network.id]
   }

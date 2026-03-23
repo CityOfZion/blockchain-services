@@ -17,24 +17,26 @@ import { BRIDGE_ABI } from '../../assets/abis/bridge'
 import { ERC20_ABI } from '@cityofzion/bs-ethereum'
 import axios from 'axios'
 import { BlockscoutBDSNeoX } from '../blockchain-data/BlockscoutBDSNeoX'
-import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
 import type {
   TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse,
   TNeo3NeoXBridgeServiceTransactionLogApiResponse,
   IBSNeoX,
+  TBSNeoXName,
 } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '@cityofzion/bs-neo3'
+import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
 
-export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeService<N> {
+export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName> {
   static readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
   static readonly BRIDGE_FEE = 0.1
   static readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
 
-  readonly #service: IBSNeoX<N>
-  readonly gasToken: TBridgeToken<N>
-  readonly neoToken: TBridgeToken<N>
+  readonly gasToken: TBridgeToken<TBSNeoXName>
+  readonly neoToken: TBridgeToken<TBSNeoXName>
 
-  constructor(service: IBSNeoX<N>) {
+  readonly #service: IBSNeoX
+
+  constructor(service: IBSNeoX) {
     this.#service = service
 
     const neoToken = BSNeoXHelper.getNeoToken(this.#service.network)
@@ -43,7 +45,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     this.neoToken = { ...neoToken, blockchain: service.name, multichainId: 'neo' }
   }
 
-  async #buildApproveTransactionParam(params: TNeo3NeoXBridgeServiceGetApprovalParam<N>) {
+  async #buildApproveTransactionParam(params: TNeo3NeoXBridgeServiceGetApprovalParam<TBSNeoXName>) {
     const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
     const erc20Contract = new ethers.Contract(params.token.hash, ERC20_ABI, provider)
 
@@ -62,7 +64,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     return await erc20Contract.populateTransaction.approve(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, amount)
   }
 
-  async getBridgeConstants(token: TBridgeToken<N>): Promise<TNeo3NeoXBridgeServiceConstants> {
+  async getBridgeConstants(token: TBridgeToken<TBSNeoXName>): Promise<TNeo3NeoXBridgeServiceConstants> {
     try {
       const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
       const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI, provider)
@@ -94,7 +96,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     }
   }
 
-  async getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam<N>): Promise<string> {
+  async getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam<TBSNeoXName>): Promise<string> {
     try {
       const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
 
@@ -134,8 +136,8 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     }
   }
 
-  async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<N>): Promise<string> {
-    if (!BSNeoXHelper.isMainnetNetwork(this.#service.network)) {
+  async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<TBSNeoXName>): Promise<string> {
+    if (this.#service.network.type !== 'mainnet') {
       throw new BSError('Bridging to Neo3 is only supported on mainnet', 'UNSUPPORTED_NETWORK')
     }
 
@@ -186,7 +188,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     return transactionHash
   }
 
-  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<N>): Promise<string> {
+  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<TBSNeoXName>): Promise<string> {
     const [transactionLogsResponse, transactionLogsResponseError] = await BSUtilsHelper.tryCatch(async () => {
       const client = BlockscoutBDSNeoX.getClient(this.#service.network)
       return await client.get<TNeo3NeoXBridgeServiceTransactionLogApiResponse>(
@@ -218,7 +220,9 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     return nonce
   }
 
-  async getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N>): Promise<string> {
+  async getTransactionHashByNonce(
+    params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<TBSNeoXName>
+  ): Promise<string> {
     try {
       let url: string
 
@@ -242,7 +246,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     }
   }
 
-  getTokenByMultichainId(multichainId: string): TBridgeToken<N> | undefined {
+  getTokenByMultichainId(multichainId: string): TBridgeToken<TBSNeoXName> | undefined {
     const tokens = [this.gasToken, this.neoToken]
     return tokens.find(token => token.multichainId === multichainId)
   }

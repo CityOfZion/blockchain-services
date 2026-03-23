@@ -1,5 +1,5 @@
 import type { TBSNetwork } from '@cityofzion/blockchain-service'
-import type { TBSEthereumNetworkId, TSupportedEVM } from '../types'
+import type { TBSEthereumNetworkId, TBSEthereumName } from '../types'
 
 export class BSEthereumConstants {
   static readonly DEFAULT_DECIMALS = 18
@@ -125,7 +125,7 @@ export class BSEthereumConstants {
     ],
   }
 
-  static readonly NETWORKS_BY_EVM: Record<TSupportedEVM, TBSNetwork<TBSEthereumNetworkId>[]> = {
+  static readonly NETWORKS_BY_EVM: Record<TBSEthereumName, TBSNetwork<TBSEthereumNetworkId>[]> = {
     ethereum: [
       {
         id: '1',

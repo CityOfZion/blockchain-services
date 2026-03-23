@@ -6,7 +6,7 @@ import * as solanaKit from '@solana/kit'
 
 const mnemonic = process.env.TEST_MNEMONIC as string
 let accountKeypair: { base58Key: string; base58Address: string }
-let bsSolana: BSSolana<'test'>
+let bsSolana: BSSolana
 
 const splToken = {
   hash: 'Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr',
@@ -17,7 +17,7 @@ const splToken = {
 
 describe('BSSolana', () => {
   beforeEach(async () => {
-    bsSolana = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK)
+    bsSolana = new BSSolana(BSSolanaConstants.TESTNET_NETWORK)
 
     await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit
   })
@@ -290,7 +290,7 @@ describe('BSSolana', () => {
   })
 
   it('Should be able to resolve a name service domain', async () => {
-    const newBSSolana = new BSSolana('test', BSSolanaConstants.MAINNET_NETWORK)
+    const newBSSolana = new BSSolana(BSSolanaConstants.MAINNET_NETWORK)
     const address = await newBSSolana.resolveNameServiceDomain('bonfida.sol')
     expect(address).toEqual('Fw1ETanDZafof7xEULsnq9UY6o71Tpds89tNwPkWLb1v')
   })
@@ -298,7 +298,7 @@ describe('BSSolana', () => {
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to calculate transfer fee for more than one intent using Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
+    const service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
 
@@ -323,7 +323,7 @@ describe('BSSolana', () => {
 
   it.skip('Should be able to transfer the native token using Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
+    const service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
     const amount = '0.1'
@@ -364,7 +364,7 @@ describe('BSSolana', () => {
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer a SPL token using Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
+    const service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
     const amount = '0.1'
@@ -404,7 +404,7 @@ describe('BSSolana', () => {
   // Use https://spl-token-faucet.com/ to get some tokens to test this
   it.skip('Should be able to transfer more than one intent using Ledger', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSSolana('test', BSSolanaConstants.TESTNET_NETWORK, async () => transport)
+    const service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const receiverAccount = await service.ledgerService.getAccount(transport, 1)
     const amount = '0.1'

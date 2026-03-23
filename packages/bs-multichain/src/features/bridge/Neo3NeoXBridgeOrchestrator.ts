@@ -12,37 +12,46 @@ import {
   type TBridgeValidateValue,
   type TBridgeValue,
   type TSwapOrchestratorEvents,
+  type INeo3NeoXBridgeService,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX } from '@cityofzion/bs-neox'
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
-import type { TNeo3NeoXBridgeOrchestratorInitParams, TNeo3NeoXBridgeOrchestratorWaitParams } from './types'
+import type {
+  TBSBridgeName,
+  TNeo3NeoXBridgeOrchestratorInitParams,
+  TNeo3NeoXBridgeOrchestratorWaitParams,
+} from './types'
 
-export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrchestrator<N> {
-  eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<N>>
+export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridgeName> {
+  eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<TBSBridgeName>>
 
-  fromService: BSNeo3<N> | BSNeoX<N>
-  toService: BSNeo3<N> | BSNeoX<N>
+  fromService: BSNeo3 | BSNeoX
+  toService: BSNeo3 | BSNeoX
   #balances: TBalanceResponse[] | null = null
   #feeTokenBalance: TBalanceResponse | null | undefined = null
   #addressToReceiveTimeout: NodeJS.Timeout | undefined = undefined
   #amountToUseTimeout: NodeJS.Timeout | undefined = undefined
 
-  #internalAvailableTokensToUse: TBridgeValue<TBridgeToken<N>[]> = { value: null, loading: false, error: null }
-  #internalTokenToUse: TBridgeValue<TBridgeToken<N>> = { value: null, loading: false, error: null }
-  #internalAccountToUse: TBridgeValue<TBSAccount<N>> = { value: null, loading: false, error: null }
+  #internalAvailableTokensToUse: TBridgeValue<TBridgeToken<TBSBridgeName>[]> = {
+    value: null,
+    loading: false,
+    error: null,
+  }
+  #internalTokenToUse: TBridgeValue<TBridgeToken<TBSBridgeName>> = { value: null, loading: false, error: null }
+  #internalAccountToUse: TBridgeValue<TBSAccount<TBSBridgeName>> = { value: null, loading: false, error: null }
   #internalAmountToUse: TBridgeValidateValue<string> = { value: null, valid: null, loading: false, error: null }
   #internalAmountToUseMin: TBridgeValue<string> = { value: null, loading: false, error: null }
   #internalAmountToUseMax: TBridgeValue<string> = { value: null, loading: false, error: null }
-  #internalTokenToReceive: TBridgeValue<TBridgeToken<N>> = { value: null, loading: false, error: null }
+  #internalTokenToReceive: TBridgeValue<TBridgeToken<TBSBridgeName>> = { value: null, loading: false, error: null }
   #internalAddressToReceive: TBridgeValidateValue<string> = { value: null, valid: null, loading: false, error: null }
   #internalAmountToReceive: TBridgeValue<string> = { value: null, loading: false, error: null }
   #internalTokenToUseBalance: TBridgeValue<TBalanceResponse | undefined> = { value: null, loading: false, error: null }
   #internalBridgeFee: TBridgeValue<string> = { value: null, loading: false, error: null }
 
-  constructor(params: TNeo3NeoXBridgeOrchestratorInitParams<N>) {
-    this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents<N>>
+  constructor(params: TNeo3NeoXBridgeOrchestratorInitParams) {
+    this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents<TBSBridgeName>>
 
     const isInitialNeoX = params.initialFromServiceName === params.neoXService.name
 
@@ -50,10 +59,10 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     this.toService = isInitialNeoX ? params.neo3Service : params.neoXService
   }
 
-  get #availableTokensToUse(): TBridgeValue<TBridgeToken<N>[]> {
+  get #availableTokensToUse(): TBridgeValue<TBridgeToken<TBSBridgeName>[]> {
     return this.#internalAvailableTokensToUse
   }
-  set #availableTokensToUse(value: Partial<TBridgeValue<TBridgeToken<N>[]>>) {
+  set #availableTokensToUse(value: Partial<TBridgeValue<TBridgeToken<TBSBridgeName>[]>>) {
     this.#internalAvailableTokensToUse = {
       ...this.#internalAvailableTokensToUse,
       ...value,
@@ -61,10 +70,10 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     this.eventEmitter.emit('availableTokensToUse', this.#internalAvailableTokensToUse)
   }
 
-  get #tokenToUse(): TBridgeValue<TBridgeToken<N>> {
+  get #tokenToUse(): TBridgeValue<TBridgeToken<TBSBridgeName>> {
     return this.#internalTokenToUse
   }
-  set #tokenToUse(value: Partial<TBridgeValue<TBridgeToken<N>>>) {
+  set #tokenToUse(value: Partial<TBridgeValue<TBridgeToken<TBSBridgeName>>>) {
     this.#internalTokenToUse = {
       ...this.#internalTokenToUse,
       ...value,
@@ -72,10 +81,10 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     this.eventEmitter.emit('tokenToUse', this.#internalTokenToUse)
   }
 
-  get #accountToUse(): TBridgeValue<TBSAccount<N>> {
+  get #accountToUse(): TBridgeValue<TBSAccount<TBSBridgeName>> {
     return this.#internalAccountToUse
   }
-  set #accountToUse(value: Partial<TBridgeValue<TBSAccount<N>>>) {
+  set #accountToUse(value: Partial<TBridgeValue<TBSAccount<TBSBridgeName>>>) {
     this.#internalAccountToUse = {
       ...this.#internalAccountToUse,
       ...value,
@@ -116,10 +125,10 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     this.eventEmitter.emit('amountToUseMax', this.#internalAmountToUseMax)
   }
 
-  get #tokenToReceive(): TBridgeValue<TBridgeToken<N>> {
+  get #tokenToReceive(): TBridgeValue<TBridgeToken<TBSBridgeName>> {
     return this.#internalTokenToReceive
   }
-  set #tokenToReceive(value: Partial<TBridgeValue<TBridgeToken<N>>>) {
+  set #tokenToReceive(value: Partial<TBridgeValue<TBridgeToken<TBSBridgeName>>>) {
     this.#internalTokenToReceive = {
       ...this.#internalTokenToReceive,
       ...value,
@@ -208,8 +217,8 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     await this.setTokenToUse(tokenToReceive)
   }
 
-  async setTokenToUse(token: TBridgeToken<N> | null): Promise<void> {
-    let tokenToReceive: TBridgeToken<N> | undefined
+  async setTokenToUse(token: TBridgeToken<TBSBridgeName> | null): Promise<void> {
+    let tokenToReceive: TBridgeToken<TBSBridgeName> | undefined
 
     try {
       if (!this.#availableTokensToUse.value) throw new BSError('No available tokens to use', 'NO_AVAILABLE_TOKENS')
@@ -246,7 +255,7 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     await Promise.allSettled([this.setBalances(this.#balances), this.setAmountToUse(null)])
   }
 
-  async setAccountToUse(account: TBSAccount<N> | null): Promise<void> {
+  async setAccountToUse(account: TBSAccount<TBSBridgeName> | null): Promise<void> {
     try {
       if (account) {
         if (this.#accountToUse.value && BSAccountHelper.predicate(account)(this.#accountToUse.value)) return
@@ -315,7 +324,8 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     this.#bridgeFee = { loading: true, error: null }
 
     try {
-      const constants = await this.fromService.neo3NeoXBridgeService.getBridgeConstants(this.#tokenToUse.value)
+      const neo3NeoXBridgeService = this.fromService.neo3NeoXBridgeService as INeo3NeoXBridgeService<TBSBridgeName>
+      const constants = await neo3NeoXBridgeService.getBridgeConstants(this.#tokenToUse.value)
       this.#amountToUseMin = { value: constants.bridgeMinAmount }
       this.#bridgeFee = { value: constants.bridgeFee }
 
@@ -392,7 +402,9 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
           throw new BSError('Amount is above the maximum', 'AMOUNT_ABOVE_MAXIMUM')
         }
 
-        const approvalFee = await this.fromService.neo3NeoXBridgeService
+        const neo3NeoXBridgeService = this.fromService.neo3NeoXBridgeService as INeo3NeoXBridgeService<TBSBridgeName>
+
+        const approvalFee = await neo3NeoXBridgeService
           .getApprovalFee({
             account: this.#accountToUse.value,
             token: this.#tokenToUse.value,
@@ -444,7 +456,9 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
       throw new BSError('Required parameters are not set for bridging', 'BRIDGE_NOT_READY')
     }
 
-    return await this.fromService.neo3NeoXBridgeService.bridge({
+    const neo3NeoXBridgeService = this.fromService.neo3NeoXBridgeService as INeo3NeoXBridgeService<TBSBridgeName>
+
+    return await neo3NeoXBridgeService.bridge({
       account: this.#accountToUse.value,
       token: this.#tokenToUse.value,
       amount: this.#amountToUse.value,
@@ -453,21 +467,24 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     })
   }
 
-  static async wait<N extends string = string>({
+  static async wait({
     tokenToUse,
     tokenToReceive,
     transactionHash,
     neo3Service,
     neoXService,
-  }: TNeo3NeoXBridgeOrchestratorWaitParams<N>) {
+  }: TNeo3NeoXBridgeOrchestratorWaitParams) {
     const isNeo3Service = tokenToUse.blockchain === neo3Service.name
 
     const fromService = isNeo3Service ? neo3Service : neoXService
     const toService = isNeo3Service ? neoXService : neo3Service
 
+    const fromNeo3NeoXBridgeService = fromService.neo3NeoXBridgeService as INeo3NeoXBridgeService<TBSBridgeName>
+    const toNeo3NeoXBridgeService = toService.neo3NeoXBridgeService as INeo3NeoXBridgeService<TBSBridgeName>
+
     const nonce = await BSUtilsHelper.retry(
       () =>
-        fromService.neo3NeoXBridgeService.getNonce({
+        fromNeo3NeoXBridgeService.getNonce({
           token: tokenToUse,
           transactionHash,
         }),
@@ -478,7 +495,7 @@ export class Neo3NeoXBridgeOrchestrator<N extends string> implements IBridgeOrch
     )
 
     await BSUtilsHelper.retry(
-      () => toService.neo3NeoXBridgeService.getTransactionHashByNonce({ nonce, token: tokenToReceive }),
+      () => toNeo3NeoXBridgeService.getTransactionHashByNonce({ nonce, token: tokenToReceive }),
       {
         retries: 10,
         delay: 30000,

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Improve service name typings",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

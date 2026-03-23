@@ -5,9 +5,9 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 
-let bsEthereum: BSEthereum<'test'>
+let bsEthereum: BSEthereum<'ethereum'>
 let wallet: ethers.Wallet
-let account: TBSAccount<'test'>
+let account: TBSAccount<'ethereum'>
 let nativeToken: TBSToken
 
 // Faucet: https://faucet.circle.com/
@@ -22,14 +22,14 @@ describe('BSEthereum', () => {
   beforeEach(async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
 
-    bsEthereum = new BSEthereum('test', 'ethereum', network)
+    bsEthereum = new BSEthereum('ethereum', network)
     wallet = ethers.Wallet.createRandom()
 
     account = {
       key: wallet.privateKey,
       type: 'privateKey',
       address: wallet.address,
-      blockchain: 'test',
+      blockchain: 'ethereum',
     }
 
     nativeToken = BSEthereumHelper.getNativeAsset(network)
@@ -196,7 +196,7 @@ describe('BSEthereum', () => {
 
   it.skip('Should be able to transfer a native token with Ledger using Testnet', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSEthereum('test', 'ethereum', bsEthereum.network, async () => transport)
+    const service = new BSEthereum('ethereum', bsEthereum.network, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount
     const amount = '0.00000001'
@@ -236,7 +236,7 @@ describe('BSEthereum', () => {
 
   it.skip('Should be able to transfer an ERC-20 token with Ledger using Testnet', async () => {
     const transport = await TransportNodeHid.create()
-    const service = new BSEthereum('test', 'ethereum', bsEthereum.network, async () => transport)
+    const service = new BSEthereum('ethereum', bsEthereum.network, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)
     const { address } = senderAccount
     const amount = '0.000001'
@@ -281,7 +281,7 @@ describe('BSEthereum', () => {
 
   it.skip('Should be able to transfer a native token using an EVM using Testnet', async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.polygon.find(network => network.id === '80002')! // Amoy network
-    const service = new BSEthereum('test', 'polygon', network)
+    const service = new BSEthereum('polygon', network)
     const senderAccount = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const { address } = senderAccount
     const amount = '0.000001'

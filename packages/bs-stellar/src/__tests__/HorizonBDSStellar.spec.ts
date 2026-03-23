@@ -3,11 +3,11 @@ import { HorizonBDSStellar } from '../services/blockchain-data/HorizonBDSStellar
 import { BSStellar } from '../BSStellar'
 import { BSStellarConstants } from '../constants/BSStellarConstants'
 
-let horizonBDSStellar: HorizonBDSStellar<'test'>
+let horizonBDSStellar: HorizonBDSStellar
 
 describe('HorizonBDSStellar', () => {
   beforeEach(async () => {
-    const service = new BSStellar('test', BSStellarConstants.TESTNET_NETWORK)
+    const service = new BSStellar(BSStellarConstants.TESTNET_NETWORK)
     horizonBDSStellar = new HorizonBDSStellar(service)
 
     await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit

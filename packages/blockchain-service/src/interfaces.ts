@@ -1,6 +1,6 @@
 import Transport from '@ledgerhq/hw-transport'
 import TypedEmitter from 'typed-emitter'
-import { BSError } from './error'
+import type { BSError } from './error'
 
 export type TUntilIndexRecord<N extends string> = Partial<Record<N, Record<string, number>>>
 

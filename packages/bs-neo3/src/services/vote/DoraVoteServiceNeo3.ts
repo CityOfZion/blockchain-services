@@ -3,6 +3,7 @@ import axios, { AxiosInstance } from 'axios'
 import type {
   IBSNeo3,
   IVoteService,
+  TBSNeo3Name,
   TDoraVoteServiceNeo3GetCommitteeApiResponse,
   TDoraVoteServiceNeo3GetVoteCIMParams,
   TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse,
@@ -10,7 +11,6 @@ import type {
   TVoteServiceDetailsByAddressResponse,
   TVoteServiceVoteParams,
 } from '../../types'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import {
   BSNeo3NeonDappKitSingletonHelper,
@@ -18,12 +18,12 @@ import {
 } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 
-export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
-  readonly _service: IBSNeo3<N>
+export class DoraVoteServiceNeo3 implements IVoteService {
+  readonly _service: IBSNeo3
 
   #apiInstance?: AxiosInstance
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     this._service = service
   }
 
@@ -35,7 +35,7 @@ export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
   }
 
   async getCandidatesToVote(): Promise<TVoteServiceCandidate[]> {
-    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Only Mainnet is supported')
+    if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
 
     const { data } = await this.#api.get<TDoraVoteServiceNeo3GetCommitteeApiResponse[]>('/mainnet/committee')
 
@@ -59,7 +59,7 @@ export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
   }
 
   async getVoteDetailsByAddress(address: string): Promise<TVoteServiceDetailsByAddressResponse> {
-    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Only Mainnet is supported')
+    if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
     if (!address) throw new Error('Missing address')
     if (!this._service.validateAddress(address)) throw new Error('Invalid address')
 
@@ -75,8 +75,8 @@ export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
     }
   }
 
-  async vote({ account, candidatePubKey }: TVoteServiceVoteParams<N>): Promise<TTransactionDefault<N>> {
-    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Only Mainnet is supported')
+  async vote({ account, candidatePubKey }: TVoteServiceVoteParams): Promise<TTransactionDefault<TBSNeo3Name>> {
+    if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
     if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
 
     const { neonJsAccount, signingCallback } = await this._service.generateSigningCallback(account)
@@ -121,8 +121,8 @@ export class DoraVoteServiceNeo3<N extends string> implements IVoteService<N> {
     }
   }
 
-  async calculateVoteFee({ account, candidatePubKey }: TVoteServiceVoteParams<N>): Promise<string> {
-    if (!BSNeo3Helper.isMainnetNetwork(this._service.network)) throw new Error('Only Mainnet is supported')
+  async calculateVoteFee({ account, candidatePubKey }: TVoteServiceVoteParams): Promise<string> {
+    if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
     if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
 
     const { neonJsAccount } = await this._service.generateSigningCallback(account)

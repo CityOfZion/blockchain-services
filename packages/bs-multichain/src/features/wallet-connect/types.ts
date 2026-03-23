@@ -1,40 +1,41 @@
-import type { IBlockchainService, IBSWithWalletConnect, TBSAccount } from '@cityofzion/blockchain-service'
+import type { IBlockchainService, IBSWithWalletConnect, TBSAccount, TBSNetworkId } from '@cityofzion/blockchain-service'
 import type { PendingRequestTypes, ProposalTypes, SessionTypes } from '@walletconnect/types'
+import type { TBSServiceName } from '../../types'
 
-export type TWalletKitHelperGetProposalDetailsParams<N extends string = string> = {
+export type TWalletKitHelperGetProposalDetailsParams = {
   proposal: ProposalTypes.Struct
   address: string
-  service: IBlockchainService<N>
+  service: IBlockchainService<TBSServiceName, TBSNetworkId>
 }
 
-export type TWalletKitHelperGetProposalServicesParams<N extends string = string> = {
+export type TWalletKitHelperGetProposalServicesParams = {
   proposal: ProposalTypes.Struct
-  services: IBlockchainService<N>[]
+  services: IBlockchainService<TBSServiceName, TBSNetworkId>[]
 }
 
-export type TWalletKitHelperProposalDetails<N extends string = string> = {
+export type TWalletKitHelperProposalDetails = {
   methods: string[]
   approvedNamespaces: SessionTypes.Namespaces
-  service: IBlockchainService<N> & IBSWithWalletConnect<N>
-  blockchain: N
+  service: IBlockchainService<TBSServiceName, TBSNetworkId> & IBSWithWalletConnect<TBSServiceName>
+  blockchain: TBSServiceName
 }
 
-export type TWalletKitHelperGetSessionDetailsParams<N extends string = string> = {
+export type TWalletKitHelperGetSessionDetailsParams = {
   session: SessionTypes.Struct
-  services: IBlockchainService<N>[]
+  services: IBlockchainService<TBSServiceName, TBSNetworkId>[]
 }
 
-export type TWalletKitHelperSessionDetails<N extends string = string> = {
+export type TWalletKitHelperSessionDetails = {
   address: string
   methods: string[]
-  service: IBlockchainService<N> & IBSWithWalletConnect<N>
-  blockchain: N
+  service: IBlockchainService<TBSServiceName, TBSNetworkId> & IBSWithWalletConnect<TBSServiceName>
+  blockchain: TBSServiceName
 }
 
-export type TWalletKitHelperProcessRequestParams<N extends string = string> = {
+export type TWalletKitHelperProcessRequestParams = {
   request: PendingRequestTypes.Struct
-  sessionDetails: TWalletKitHelperSessionDetails<N>
-  account: TBSAccount<N>
+  sessionDetails: TWalletKitHelperSessionDetails
+  account: TBSAccount<TBSServiceName>
 }
 
 export type TWalletKitHelperFilterSessionsParams = { addresses?: string[]; chains?: string[] }

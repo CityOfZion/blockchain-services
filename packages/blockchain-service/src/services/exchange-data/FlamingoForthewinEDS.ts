@@ -3,6 +3,7 @@ import type {
   IBlockchainService,
   IExchangeDataService,
   TTokenPricesResponse,
+  TBSNetworkId,
 } from '../../interfaces'
 import axios, { AxiosInstance } from 'axios'
 import { CryptoCompareEDS } from './CryptoCompareEDS'
@@ -11,13 +12,16 @@ import type {
   TFlamingoForthewinEDSForthewinPricesApiResponse,
 } from '../../types'
 
-export class FlamingoForthewinEDS<N extends string> extends CryptoCompareEDS implements IExchangeDataService {
-  readonly _service: IBlockchainService<N>
+export class FlamingoForthewinEDS<N extends string, A extends TBSNetworkId>
+  extends CryptoCompareEDS
+  implements IExchangeDataService
+{
+  readonly _service: IBlockchainService<N, A>
 
   #forthewinApiInstance?: AxiosInstance
   #flamingoApiInstance?: AxiosInstance
 
-  constructor(service: IBlockchainService<N>) {
+  constructor(service: IBlockchainService<N, A>) {
     super()
     this._service = service
   }

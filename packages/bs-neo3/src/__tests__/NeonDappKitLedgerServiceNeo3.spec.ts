@@ -5,14 +5,14 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSNeo3Constants } from '../constants/BSNeo3Constants'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
-let ledgerService: NeonDappKitLedgerServiceNeo3<'test'>
+let ledgerService: NeonDappKitLedgerServiceNeo3
 let transport: Transport
-let bsNeo3: BSNeo3<'test'>
+let bsNeo3: BSNeo3
 
 describe.skip('NeonDappKitLedgerServiceNeo3', () => {
   beforeAll(async () => {
     const network = BSNeo3Constants.TESTNET_NETWORK
-    bsNeo3 = new BSNeo3('test', network)
+    bsNeo3 = new BSNeo3(network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new NeonDappKitLedgerServiceNeo3(bsNeo3, async () => transport)
@@ -37,7 +37,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
   it('Should be able to get all accounts until index', async () => {
     const firstAccount = await ledgerService.getAccount(transport, 0)
     const accounts = await ledgerService.getAccounts(transport, {
-      test: {
+      neo3: {
         [firstAccount.address]: 6,
       },
     })

@@ -5,13 +5,13 @@ import { FlamingoForthewinEDSNeo3 } from '../services/exchange-data/FlamingoFort
 import type { TBSNeo3NetworkId } from '../types'
 import { BSNeo3 } from '../BSNeo3'
 
-let flamingoForthewinEDSNeo3: FlamingoForthewinEDSNeo3<'test'>
+let flamingoForthewinEDSNeo3: FlamingoForthewinEDSNeo3
 let network: TBSNetwork<TBSNeo3NetworkId>
 
 describe('FlamingoForthewinEDSNeo3', () => {
   beforeAll(() => {
     network = BSNeo3Constants.MAINNET_NETWORK
-    const service = new BSNeo3('test', network)
+    const service = new BSNeo3(network)
     flamingoForthewinEDSNeo3 = new FlamingoForthewinEDSNeo3(service)
   })
 

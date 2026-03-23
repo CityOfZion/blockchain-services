@@ -2,11 +2,11 @@ import { BSUtilsHelper } from '@cityofzion/blockchain-service'
 import { BSSolana } from '../BSSolana'
 import { RpcNDSSolana } from '../services/nft-data/RpcNDSSolana'
 
-let rpcNDSSolana: RpcNDSSolana<'test'>
+let rpcNDSSolana: RpcNDSSolana
 
 describe('RpcNDSSolana.spec', () => {
   beforeEach(async () => {
-    const service = new BSSolana('test')
+    const service = new BSSolana()
     rpcNDSSolana = new RpcNDSSolana(service)
 
     await BSUtilsHelper.wait(2000) // Wait 2 seconds to avoid rate limit

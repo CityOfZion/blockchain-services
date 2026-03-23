@@ -14,9 +14,11 @@ import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import type { IBSEthereum } from '../../types'
 
-export class RpcBDSEthereum<N extends string, A extends TBSNetworkId, S extends IBSEthereum<N, A> = IBSEthereum<N, A>>
-  implements IBlockchainDataService<N>
-{
+export class RpcBDSEthereum<
+  N extends string,
+  A extends TBSNetworkId,
+  S extends IBSEthereum<N, A> = IBSEthereum<N, A>,
+> implements IBlockchainDataService<N> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5 // 5 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
   readonly _service: S

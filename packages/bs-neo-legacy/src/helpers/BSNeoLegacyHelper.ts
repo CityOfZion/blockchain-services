@@ -8,8 +8,4 @@ export class BSNeoLegacyHelper {
     if (!legacyNetwork) throw new Error('Unsupported network')
     return legacyNetwork
   }
-
-  static isMainnetNetwork(network: TBSNetwork<TBSNeoLegacyNetworkId>) {
-    return network.id === BSNeoLegacyConstants.MAINNET_NETWORK.id && network.type === 'mainnet'
-  }
 }

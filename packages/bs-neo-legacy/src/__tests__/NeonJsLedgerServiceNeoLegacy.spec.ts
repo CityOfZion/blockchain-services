@@ -5,14 +5,14 @@ import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
-let ledgerService: NeonJsLedgerServiceNeoLegacy<'test'>
+let ledgerService: NeonJsLedgerServiceNeoLegacy
 let transport: Transport
-let bsNeoLegacy: BSNeoLegacy<'test'>
+let bsNeoLegacy: BSNeoLegacy
 
 describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
   beforeAll(async () => {
     const network = BSNeoLegacyConstants.TESTNET_NETWORK
-    bsNeoLegacy = new BSNeoLegacy('test', network)
+    bsNeoLegacy = new BSNeoLegacy(network)
 
     transport = await TransportNodeHid.create()
     ledgerService = new NeonJsLedgerServiceNeoLegacy(bsNeoLegacy, async () => transport)
@@ -37,7 +37,7 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
   it('Should be able to get all accounts until index', async () => {
     const firstAccount = await ledgerService.getAccount(transport, 0)
     const accounts = await ledgerService.getAccounts(transport, {
-      test: {
+      neoLegacy: {
         [firstAccount.address]: 6,
       },
     })

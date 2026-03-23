@@ -1,11 +1,11 @@
 import { BSNeoX } from '../BSNeoX'
 import { GhostMarketNDSNeoX } from '../services/nft-data/GhostMarketNDSNeoX'
 
-let ghostMarketNDSEthereum: GhostMarketNDSNeoX<'test'>
+let ghostMarketNDSEthereum: GhostMarketNDSNeoX
 
 describe('Neo X Blockchain', () => {
   beforeAll(() => {
-    const service = new BSNeoX('test')
+    const service = new BSNeoX()
     ghostMarketNDSEthereum = new GhostMarketNDSNeoX(service)
   })
 

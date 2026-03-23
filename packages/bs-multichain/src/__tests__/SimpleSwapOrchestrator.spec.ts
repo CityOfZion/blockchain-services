@@ -11,8 +11,8 @@ import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { SimpleSwapApi } from '../features/swap'
 import { BSEthereum } from '@cityofzion/bs-ethereum'
 
-let blockchainServicesByName: Record<string, BSNeo3<'neo3'> | BSEthereum<'ethereum'>>
-let simpleSwapOrchestrator: SimpleSwapOrchestrator<'neo3' | 'ethereum'>
+let blockchainServicesByName: Record<string, BSNeo3 | BSEthereum<'ethereum'>>
+let simpleSwapOrchestrator: SimpleSwapOrchestrator
 let availableTokensToUse: TSwapLoadableValue<TSwapToken<'neo3' | 'ethereum'>[]>
 let availableTokensToReceive: TSwapLoadableValue<TSwapToken<'neo3' | 'ethereum'>[]>
 let tokenToUse: TSwapLoadableValue<TSwapToken<'neo3' | 'ethereum'>>
@@ -42,8 +42,8 @@ describe('SimpleSwapOrchestrator', () => {
     accountToUse = { loading: false, value: null, valid: null }
 
     blockchainServicesByName = {
-      neo3: new BSNeo3('neo3'),
-      ethereum: new BSEthereum('ethereum', 'ethereum'),
+      neo3: new BSNeo3(),
+      ethereum: new BSEthereum('ethereum'),
     }
 
     simpleSwapOrchestrator = new SimpleSwapOrchestrator({
@@ -55,19 +55,19 @@ describe('SimpleSwapOrchestrator', () => {
     })
 
     simpleSwapOrchestrator.eventEmitter.on('availableTokensToUse', value => {
-      availableTokensToUse = value
+      availableTokensToUse = value as TSwapLoadableValue<TSwapToken<'neo3' | 'ethereum'>[]>
     })
 
     simpleSwapOrchestrator.eventEmitter.on('availableTokensToReceive', value => {
-      availableTokensToReceive = value
+      availableTokensToReceive = value as TSwapLoadableValue<TSwapToken<'neo3' | 'ethereum'>[]>
     })
 
     simpleSwapOrchestrator.eventEmitter.on('tokenToUse', value => {
-      tokenToUse = value
+      tokenToUse = value as TSwapLoadableValue<TSwapToken<'neo3' | 'ethereum'>>
     })
 
     simpleSwapOrchestrator.eventEmitter.on('tokenToReceive', value => {
-      tokenToReceive = value
+      tokenToReceive = value as TSwapLoadableValue<TSwapToken<'neo3' | 'ethereum'>>
     })
 
     simpleSwapOrchestrator.eventEmitter.on('amountToUse', value => {
@@ -91,7 +91,7 @@ describe('SimpleSwapOrchestrator', () => {
     })
 
     simpleSwapOrchestrator.eventEmitter.on('accountToUse', value => {
-      accountToUse = value
+      accountToUse = value as TSwapValidateValue<TBSAccount<'neo3' | 'ethereum'>>
     })
 
     simpleSwapOrchestrator.eventEmitter.on('error', value => {

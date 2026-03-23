@@ -10,8 +10,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import axios from 'axios'
-import type { IBSNeo3, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
-import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
+import type { IBSNeo3, TBSNeo3Name, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import { LogResponse, type Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 import {
@@ -21,15 +20,15 @@ import {
 } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 import type { StateResponse, TypedResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
 
-export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeService<N> {
+export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name> {
   static readonly BRIDGE_SCRIPT_HASH: string = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
 
-  readonly #service: IBSNeo3<N>
+  readonly #service: IBSNeo3
 
-  readonly gasToken: TBridgeToken<N>
-  readonly neoToken: TBridgeToken<N>
+  readonly gasToken: TBridgeToken<TBSNeo3Name>
+  readonly neoToken: TBridgeToken<TBSNeo3Name>
 
-  constructor(service: IBSNeo3<N>) {
+  constructor(service: IBSNeo3) {
     this.#service = service
 
     this.gasToken = { ...BSNeo3Constants.GAS_TOKEN, blockchain: service.name, multichainId: 'gas' }
@@ -40,7 +39,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     throw new BSError('Neo3 does not require approval', 'APPROVAl_NOT_NEEDED')
   }
 
-  async getBridgeConstants(token: TBridgeToken<N>): Promise<TNeo3NeoXBridgeServiceConstants> {
+  async getBridgeConstants(token: TBridgeToken<TBSNeo3Name>): Promise<TNeo3NeoXBridgeServiceConstants> {
     const { TypeChecker, NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
     const invoker = await NeonInvoker.init({
@@ -108,8 +107,8 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     }
   }
 
-  async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<N>): Promise<string> {
-    if (!BSNeo3Helper.isMainnetNetwork(this.#service.network)) {
+  async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<TBSNeo3Name>): Promise<string> {
+    if (this.#service.network.type !== 'mainnet') {
       throw new BSError('Bridging to NeoX is only supported on mainnet', 'UNSUPPORTED_NETWORK')
     }
 
@@ -164,7 +163,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     })
   }
 
-  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<N>): Promise<string> {
+  async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<TBSNeo3Name>): Promise<string> {
     let log: LogResponse | undefined
     try {
       const api = DoraBDSNeo3.getClient()
@@ -202,7 +201,9 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     return nonce
   }
 
-  async getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N>): Promise<string> {
+  async getTransactionHashByNonce(
+    params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<TBSNeo3Name>
+  ): Promise<string> {
     let data: TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse | undefined
     try {
       const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
@@ -240,7 +241,7 @@ export class Neo3NeoXBridgeService<N extends string> implements INeo3NeoXBridgeS
     return data.result.txid
   }
 
-  getTokenByMultichainId(multichainId: string): TBridgeToken<N> | undefined {
+  getTokenByMultichainId(multichainId: string): TBridgeToken<TBSNeo3Name> | undefined {
     const tokens = [this.gasToken, this.neoToken]
     return tokens.find(token => token.multichainId === multichainId)
   }

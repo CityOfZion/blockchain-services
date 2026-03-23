@@ -1,6 +1,6 @@
 import { BSError } from '../error'
 import isEqual from 'lodash.isequal'
-import type { TBSNetwork } from '../interfaces'
+import type { TBSNetwork, TBSNetworkId } from '../interfaces'
 import { TBSUtilsHelperRetryOptions } from '../types'
 
 export class BSUtilsHelper {
@@ -32,7 +32,11 @@ export class BSUtilsHelper {
     })
   }
 
-  static validateNetwork(network: TBSNetwork, availableNetworks: TBSNetwork[], networkUrls: string[]) {
+  static validateNetwork<A extends TBSNetworkId>(
+    network: TBSNetwork<A>,
+    availableNetworks: TBSNetwork<A>[],
+    networkUrls: string[]
+  ) {
     const isValid = availableNetworks.some(networkItem =>
       isEqual(
         { id: network.id, type: network.type, name: network.name },
