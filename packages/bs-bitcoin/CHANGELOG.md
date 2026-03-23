@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-bitcoin
 
-This log was last generated on Mon, 23 Mar 2026 12:43:32 GMT and should not be manually modified.
+This log was last generated on Mon, 23 Mar 2026 16:17:33 GMT and should not be manually modified.
+
+## 3.1.3
+Mon, 23 Mar 2026 16:17:33 GMT
+
+### Updates
+
+- Add totalAmount in transactions
 
 ## 3.1.2
 Mon, 23 Mar 2026 12:43:32 GMT
