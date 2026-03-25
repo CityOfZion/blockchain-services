@@ -6,14 +6,15 @@ import {
   type TContractResponse,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TTransactionTokenEvent,
+  type TTransactionDefaultTokenEvent,
   type TTransactionDefault,
+  type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import type { IBSNeoLegacy, TBSNeoLegacyName } from '../../types'
+import type { IBSNeoLegacy } from '../../types'
 import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
-export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName> {
+export class DoraBDSNeoLegacy implements IBlockchainDataService {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly #tokenCache: Map<string, TBSToken> = new Map()
   readonly #service: IBSNeoLegacy
@@ -22,13 +23,13 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
     this.#service = service
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeoLegacyName>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault> {
     const data = await api.NeoLegacyREST.transaction(hash, this.#service.network.id)
 
     if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
 
     const vout: any[] = data.vout ?? []
-    const events: TTransactionDefault<TBSNeoLegacyName>['events'] = []
+    const events: TTransactionDefaultEvent[] = []
     const from = vout[vout.length - 1]?.address
 
     const promises = vout.map(async (transfer, index) => {
@@ -45,7 +46,6 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
         fromUrl,
         to,
         toUrl,
-        tokenType: 'nep-5',
         tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
         token,
       })
@@ -64,7 +64,6 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
       systemFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.sys_fee), {
         decimals: this.#service.feeToken.decimals,
       }),
-      type: 'default',
       view: 'default',
       events,
     }
@@ -73,11 +72,9 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<
-    TGetTransactionsByAddressResponse<TBSNeoLegacyName, TTransactionDefault<TBSNeoLegacyName>>
-  > {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#service.network.id)
-    const transactions = new Map<string, TTransactionDefault<TBSNeoLegacyName>>()
+    const transactions = new Map<string, TTransactionDefault>()
 
     const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return
@@ -88,7 +85,7 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
       const toUrl = this.#service.explorerService.buildAddressUrl(to)
       const token = await this.getTokenInfo(entry.asset)
 
-      const event: TTransactionTokenEvent = {
+      const event: TTransactionDefaultTokenEvent = {
         eventType: 'token',
         amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(entry.amount), { decimals: token.decimals }),
         methodName: 'transfer',
@@ -96,7 +93,6 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
         fromUrl,
         to,
         toUrl,
-        tokenType: 'nep-5',
         tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
         token,
       }
@@ -113,7 +109,6 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
         txIdUrl: this.#service.explorerService.buildTransactionUrl(entry.txid),
         block: entry.block_height,
         date: new Date(entry.time).toJSON(),
-        type: 'default',
         view: 'default',
         events: [event],
       })

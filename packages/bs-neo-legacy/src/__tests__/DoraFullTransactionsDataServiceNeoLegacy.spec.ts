@@ -146,7 +146,6 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
             date: expect.any(String),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
-            type: expect.any(String),
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
@@ -157,7 +156,6 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                tokenType: expect.any(String),
                 tokenUrl: expect.any(String),
                 token: expect.objectContaining({
                   decimals: expect.any(Number),

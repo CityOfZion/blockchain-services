@@ -3,7 +3,6 @@ import { BSNeoXConstants } from './constants/BSNeoXConstants'
 import {
   BSError,
   BSUtilsHelper,
-  type INeo3NeoXBridgeService,
   type TBSNetwork,
   type TGetLedgerTransport,
   type THexString,
@@ -27,7 +26,7 @@ import { BlockscoutFullTransactionsDataService } from './services/full-transacti
 import { BSNeoXHelper } from './helpers/BSNeoXHelper'
 
 export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements IBSNeoX {
-  neo3NeoXBridgeService!: INeo3NeoXBridgeService<TBSNeoXName>
+  neo3NeoXBridgeService!: Neo3NeoXBridgeService
 
   readonly defaultNetwork: TBSNetwork<TBSNeoXNetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeoXNetworkId>[]
@@ -44,30 +43,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     this.setNetwork(network || this.defaultNetwork)
   }
 
-  setNetwork(network: TBSNetwork<TBSNeoXNetworkId>) {
-    const networkUrls = BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
-    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
-
-    if (!isValidNetwork) {
-      throw new BSError(`Network with id ${network.id} is not available for ${this.name}`, 'INVALID_NETWORK')
-    }
-
-    this.network = network
-    this.networkUrls = networkUrls
-
-    this.tokens = [BSNeoXConstants.NATIVE_ASSET, BSNeoXHelper.getNeoToken(this.network)]
-
-    this.nftDataService = new GhostMarketNDSNeoX(this)
-    this.explorerService = new BlockscoutESNeoX(this)
-    this.exchangeDataService = new FlamingoForthewinEDSNeoX(this)
-    this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
-    this.blockchainDataService = new BlockscoutBDSNeoX(this)
-    this.tokenService = new TokenServiceEthereum()
-    this.walletConnectService = new WalletConnectServiceNeoX(this)
-    this.fullTransactionsDataService = new BlockscoutFullTransactionsDataService(this)
-  }
-
-  async sendTransaction({ signer, gasPrice, params }: TSendTransactionParams): Promise<TSendTransactionResponse> {
+  async _sendTransaction({ signer, gasPrice, params }: TSendTransactionParams): Promise<TSendTransactionResponse> {
     const chainId = parseInt(this.network.id)
 
     if (isNaN(chainId)) {
@@ -188,33 +164,50 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     return { transactionHash, fee }
   }
 
-  async transfer({
-    senderAccount,
-    intents,
-  }: TTransferParams<TBSNeoXName>): Promise<TTransactionDefault<TBSNeoXName>[]> {
-    const signer = await this.generateSigner(senderAccount)
+  setNetwork(network: TBSNetwork<TBSNeoXNetworkId>) {
+    const networkUrls = BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
+    const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
+
+    if (!isValidNetwork) {
+      throw new BSError(`Network with id ${network.id} is not available for ${this.name}`, 'INVALID_NETWORK')
+    }
+
+    this.network = network
+    this.networkUrls = networkUrls
+
+    this.tokens = [BSNeoXConstants.NATIVE_ASSET, BSNeoXHelper.getNeoToken(this.network)]
+
+    this.nftDataService = new GhostMarketNDSNeoX(this)
+    this.explorerService = new BlockscoutESNeoX(this)
+    this.exchangeDataService = new FlamingoForthewinEDSNeoX(this)
+    this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
+    this.blockchainDataService = new BlockscoutBDSNeoX(this)
+    this.tokenService = new TokenServiceEthereum(this)
+    this.walletConnectService = new WalletConnectServiceNeoX(this)
+    this.fullTransactionsDataService = new BlockscoutFullTransactionsDataService(this)
+  }
+
+  async transfer({ senderAccount, intents }: TTransferParams<TBSNeoXName>): Promise<TTransactionDefault[]> {
+    const signer = await this._generateSigner(senderAccount)
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
-    const nativeTokenHash = BSNeoXConstants.NATIVE_ASSET.hash
-    const transactions: TTransactionDefault<TBSNeoXName>[] = []
+    const transactions: TTransactionDefault[] = []
     let error: Error | undefined
 
     for (const intent of intents) {
       try {
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
-        const { transactionHash, fee } = await this.sendTransaction({ signer, gasPrice, params: transactionParams })
+        const { transactionHash, fee } = await this._sendTransaction({ signer, gasPrice, params: transactionParams })
 
         if (transactionHash) {
           const { receiverAddress, token } = intent
           const tokenHash = token.hash
-          const isNativeToken = this.tokenService.predicateByHash(nativeTokenHash, tokenHash)
 
           transactions.push({
             txId: transactionHash,
             txIdUrl: this.explorerService.buildTransactionUrl(transactionHash),
             date: new Date().toJSON(),
             networkFeeAmount: fee,
-            type: 'default',
             view: 'default',
             events: [
               {
@@ -225,7 +218,6 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
                 fromUrl: addressUrl,
                 to: receiverAddress,
                 toUrl: this.explorerService.buildAddressUrl(receiverAddress),
-                tokenType: isNativeToken ? 'native' : 'erc-20',
                 tokenUrl: this.explorerService.buildContractUrl(tokenHash),
                 token,
               },

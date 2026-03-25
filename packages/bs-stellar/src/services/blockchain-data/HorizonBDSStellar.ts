@@ -8,12 +8,13 @@ import {
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
+  type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
-import type { IBSStellar, TBSStellarName } from '../../types'
+import type { IBSStellar } from '../../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
 
-export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName> {
+export class HorizonBDSStellar implements IBlockchainDataService {
   maxTimeToConfirmTransactionInMs: number = 1 * 60 * 1000 // 1 minute
 
   #service: IBSStellar
@@ -22,78 +23,110 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
     this.#service = service
   }
 
-  async #parseTransaction(
-    transaction: stellarSDK.Horizon.ServerApi.TransactionRecord
-  ): Promise<TTransactionDefault<TBSStellarName>> {
-    const events: TTransactionDefault<TBSStellarName>['events'] = []
-    const operations = await transaction.operations()
+  #getEventFromCreateAccont(operation: stellarSDK.Horizon.ServerApi.OperationRecord): TTransactionDefaultEvent {
+    const castOperation = operation as stellarSDK.Horizon.ServerApi.CreateAccountOperationRecord
+
+    const token = BSStellarConstants.NATIVE_TOKEN
+
+    return {
+      eventType: 'token',
+      amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(castOperation.starting_balance), {
+        decimals: token.decimals,
+      }),
+      methodName: operation.type,
+      from: castOperation.funder,
+      fromUrl: this.#service.explorerService.buildAddressUrl(castOperation.funder),
+      to: castOperation.account,
+      toUrl: this.#service.explorerService.buildAddressUrl(castOperation.account),
+      tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
+      token,
+    }
+  }
+
+  #getEventFromPayment(operation: stellarSDK.Horizon.ServerApi.OperationRecord): TTransactionDefaultEvent | undefined {
+    const castOperation = operation as
+      | stellarSDK.Horizon.ServerApi.PaymentOperationRecord
+      | stellarSDK.Horizon.ServerApi.PathPaymentOperationRecord
+      | stellarSDK.Horizon.ServerApi.PathPaymentStrictSendOperationRecord
+
+    let token: TBSToken
+    let amountBn: TBSBigNumber
+    let to: string
+    let from: string
+
+    if (castOperation.asset_type === 'native') {
+      token = BSStellarConstants.NATIVE_TOKEN
+      amountBn = BSBigNumberHelper.fromNumber(castOperation.amount)
+      to = castOperation.to
+      from = castOperation.from
+    } else if (
+      (castOperation.asset_type === 'credit_alphanum4' || castOperation.asset_type === 'credit_alphanum12') &&
+      castOperation.asset_code &&
+      castOperation.asset_issuer
+    ) {
+      token = {
+        hash: castOperation.asset_issuer,
+        name: castOperation.asset_code,
+        symbol: castOperation.asset_code,
+        decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
+      }
+      amountBn = BSBigNumberHelper.fromNumber(castOperation.amount)
+      to = castOperation.to
+      from = castOperation.from
+    } else {
+      // TODO: implement support for NFT
+      return
+    }
+
+    return {
+      eventType: 'token',
+      amount: BSBigNumberHelper.format(amountBn, { decimals: token.decimals }),
+      methodName: castOperation.type,
+      from,
+      fromUrl: this.#service.explorerService.buildAddressUrl(from),
+      to,
+      toUrl: this.#service.explorerService.buildAddressUrl(to),
+      tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
+      token,
+    }
+  }
+
+  #getEventFromChangeTrust(operation: stellarSDK.Horizon.ServerApi.OperationRecord): TTransactionDefaultEvent {
+    const castOperation = operation as stellarSDK.Horizon.ServerApi.ChangeTrustOperationRecord
+
+    return {
+      eventType: 'generic',
+      from: castOperation.source_account,
+      fromUrl: this.#service.explorerService.buildAddressUrl(castOperation.source_account),
+      methodName: castOperation.type,
+      data: {
+        limit: castOperation.limit,
+        token: castOperation.asset_code,
+      },
+    }
+  }
+
+  async #parseTransaction(transaction: stellarSDK.Horizon.ServerApi.TransactionRecord): Promise<TTransactionDefault> {
+    const events: TTransactionDefaultEvent[] = []
+    const operations = await this.#service._horizonServer.operations().forTransaction(transaction.hash).call()
 
     const promises = operations.records.map(async (operation, index) => {
-      if (
-        operation.type !== stellarSDK.Horizon.HorizonApi.OperationResponseType.payment &&
-        operation.type !== stellarSDK.Horizon.HorizonApi.OperationResponseType.pathPayment &&
-        operation.type !== stellarSDK.Horizon.HorizonApi.OperationResponseType.pathPaymentStrictSend &&
-        operation.type !== stellarSDK.Horizon.HorizonApi.OperationResponseType.createAccount
-      )
-        return
-
-      let token: TBSToken
-      let amountBn: TBSBigNumber
-      let to: string
-      let from: string
-      let methodName: string
-      let tokenType: string
-
-      if (operation.type === stellarSDK.Horizon.HorizonApi.OperationResponseType.createAccount) {
-        token = BSStellarConstants.NATIVE_TOKEN
-        amountBn = BSBigNumberHelper.fromNumber(operation.starting_balance)
-        to = operation.account
-        from = operation.funder
-        methodName = stellarSDK.Horizon.HorizonApi.OperationResponseType.createAccount
-        tokenType = 'native'
-      } else if (operation.asset_type === 'native') {
-        token = BSStellarConstants.NATIVE_TOKEN
-        amountBn = BSBigNumberHelper.fromNumber(operation.amount)
-        to = operation.to
-        from = operation.from
-        methodName = operation.type
-        tokenType = 'native'
-      } else if (
-        (operation.asset_type === 'credit_alphanum4' || operation.asset_type === 'credit_alphanum12') &&
-        operation.asset_code &&
-        operation.asset_issuer
-      ) {
-        token = {
-          hash: operation.asset_issuer,
-          name: operation.asset_code,
-          symbol: operation.asset_code,
-          decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
-        }
-        amountBn = BSBigNumberHelper.fromNumber(operation.amount)
-        to = operation.to
-        from = operation.from
-        methodName = operation.type
-        tokenType = 'sac'
-      } else {
-        // TODO: implement support for NFT
-        return
+      const getEventFnByOperationType: Record<
+        string,
+        (operation: stellarSDK.Horizon.ServerApi.OperationRecord) => TTransactionDefaultEvent | undefined
+      > = {
+        [stellarSDK.Horizon.HorizonApi.OperationResponseType.createAccount]: this.#getEventFromCreateAccont.bind(this),
+        [stellarSDK.Horizon.HorizonApi.OperationResponseType.payment]: this.#getEventFromPayment.bind(this),
+        [stellarSDK.Horizon.HorizonApi.OperationResponseType.pathPayment]: this.#getEventFromPayment.bind(this),
+        [stellarSDK.Horizon.HorizonApi.OperationResponseType.pathPaymentStrictSend]:
+          this.#getEventFromPayment.bind(this),
+        [stellarSDK.Horizon.HorizonApi.OperationResponseType.changeTrust]: this.#getEventFromChangeTrust.bind(this),
       }
 
-      const toUrl = this.#service.explorerService.buildAddressUrl(to)
-      const fromUrl = this.#service.explorerService.buildAddressUrl(from)
-
-      events.splice(index, 0, {
-        eventType: 'token',
-        amount: BSBigNumberHelper.format(amountBn, { decimals: token.decimals }),
-        methodName,
-        from,
-        fromUrl,
-        to,
-        toUrl,
-        tokenType,
-        tokenUrl: this.#service.explorerService.buildContractUrl(token.hash),
-        token,
-      })
+      const event = getEventFnByOperationType[operation.type]?.(operation)
+      if (event) {
+        events.splice(index, 0, event)
+      }
     })
 
     await Promise.allSettled(promises)
@@ -110,21 +143,21 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
         BSBigNumberHelper.fromDecimals(transaction.fee_charged, this.#service.feeToken.decimals),
         { decimals: this.#service.feeToken.decimals }
       ),
-      type: 'default',
       view: 'default',
       events,
     }
   }
 
-  async getTransaction(txid: string): Promise<TTransactionDefault<TBSStellarName>> {
-    const transaction = await this.#service.horizonServer.transactions().transaction(txid).call()
+  async getTransaction(txid: string): Promise<TTransactionDefault> {
+    const transaction = await this.#service._horizonServer.transactions().transaction(txid).call()
     return this.#parseTransaction(transaction)
   }
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<TBSStellarName, TTransactionDefault<TBSStellarName>>> {
-    const query = this.#service.horizonServer.transactions().forAccount(params.address)
+  ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+    const query = this.#service._horizonServer.transactions().forAccount(params.address).limit(15)
+
     if (params.nextPageParams) {
       query.cursor(params.nextPageParams)
     }
@@ -134,7 +167,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
     const nextPageParams =
       response.records.length > 0 ? response.records[response.records.length - 1].paging_token : undefined
 
-    const transactions: TTransactionDefault<TBSStellarName>[] = []
+    const transactions: TTransactionDefault[] = []
 
     const promises = response.records.map(async record => {
       const parsedTransaction = await this.#parseTransaction(record)
@@ -155,7 +188,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
       return BSStellarConstants.NATIVE_TOKEN
     }
 
-    const response = await this.#service.horizonServer.assets().forIssuer(tokenHash).limit(1).call()
+    const response = await this.#service._horizonServer.assets().forIssuer(tokenHash).limit(1).call()
 
     const { asset_code: code, asset_issuer: issuer } = response.records[0] || {}
     if (!code || !issuer) {
@@ -171,7 +204,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
-    const account = await this.#service.horizonServer.loadAccount(address)
+    const account = await this.#service._horizonServer.loadAccount(address)
 
     const balances: TBalanceResponse[] = []
 
@@ -199,7 +232,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
   }
 
   async getBlockHeight(): Promise<number> {
-    const response = await this.#service.sorobanServer.getLatestLedger()
+    const response = await this.#service._sorobanServer.getLatestLedger()
     return response.sequence
   }
 }

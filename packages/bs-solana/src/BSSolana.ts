@@ -53,13 +53,13 @@ export class BSSolana implements IBSSolana {
 
   ledgerService: Web3LedgerServiceSolana
   exchangeDataService!: IExchangeDataService
-  blockchainDataService!: IBlockchainDataService<TBSSolanaName>
+  blockchainDataService!: IBlockchainDataService
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
   walletConnectService!: IWalletConnectService<TBSSolanaName>
 
-  solanaKitRpc!: solanaKit.Rpc<solanaKit.SolanaRpcApi>
+  _solanaKitRpc!: solanaKit.Rpc<solanaKit.SolanaRpcApi>
 
   constructor(network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSSolanaName>) {
     this.bipDerivationPath = BSSolanaConstants.DEFAULT_BIP_DERIVATION_PATH
@@ -75,7 +75,7 @@ export class BSSolana implements IBSSolana {
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  async signTransaction(
+  async _signTransaction(
     transaction: solanaKit.Transaction,
     senderAccount: TBSAccount<TBSSolanaName>
   ): Promise<solanaKit.Base64EncodedWireTransaction> {
@@ -133,7 +133,7 @@ export class BSSolana implements IBSSolana {
         tokenProgram: solanaToken.TOKEN_PROGRAM_ADDRESS,
       })
 
-      const receiverAccountInfo = await this.solanaKitRpc.getAccountInfo(receiverATA, { encoding: 'base64' }).send()
+      const receiverAccountInfo = await this._solanaKitRpc.getAccountInfo(receiverATA, { encoding: 'base64' }).send()
 
       if (!receiverAccountInfo.value) {
         // Create associated token account for receiver
@@ -159,7 +159,7 @@ export class BSSolana implements IBSSolana {
       instructions.push(transferInstruction)
     }
 
-    const { value: latestBlockhash } = await this.solanaKitRpc.getLatestBlockhash().send()
+    const { value: latestBlockhash } = await this._solanaKitRpc.getLatestBlockhash().send()
 
     const transactionMessage = solanaKit.pipe(
       solanaKit.createTransactionMessage({ version: 0 }),
@@ -176,7 +176,7 @@ export class BSSolana implements IBSSolana {
   async #getFeeByMessageBytes(messageBytes: ReadonlyUint8Array): Promise<string> {
     const messageBase64 = solanaKit.getBase64Decoder().decode(messageBytes)
 
-    const feeResponse = await this.solanaKitRpc
+    const feeResponse = await this._solanaKitRpc
       .getFeeForMessage(messageBase64 as any, { commitment: 'confirmed' })
       .send()
 
@@ -200,14 +200,14 @@ export class BSSolana implements IBSSolana {
     this.network = network
     this.networkUrls = networkUrls
 
-    this.tokenService = new TokenServiceSolana()
+    this.tokenService = new TokenServiceSolana(this)
     this.blockchainDataService = new RpcBDSSolana(this)
     this.nftDataService = new RpcNDSSolana(this)
     this.explorerService = new SolScanESSolana(this)
     this.exchangeDataService = new MoralisEDSSolana(this)
     this.walletConnectService = new WalletConnectServiceSolana(this)
 
-    this.solanaKitRpc = solanaKit.createSolanaRpc(this.network.url)
+    this._solanaKitRpc = solanaKit.createSolanaRpc(this.network.url)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
@@ -219,7 +219,7 @@ export class BSSolana implements IBSSolana {
     }, 5000)
 
     const timeStart = Date.now()
-    const blockHeight = await this.solanaKitRpc.getBlockHeight().send({ abortSignal: abortController.signal })
+    const blockHeight = await this._solanaKitRpc.getBlockHeight().send({ abortSignal: abortController.signal })
     const latency = Date.now() - timeStart
 
     clearTimeout(timeout)
@@ -290,13 +290,13 @@ export class BSSolana implements IBSSolana {
     }
   }
 
-  async transfer(params: TTransferParams<TBSSolanaName>): Promise<TTransactionDefault<TBSSolanaName>[]> {
+  async transfer(params: TTransferParams<TBSSolanaName>): Promise<TTransactionDefault[]> {
     const { transactionMessage } = await this.#buildTransferParams(params)
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
     const fee = await this.#getFeeByMessageBytes(compiledTransaction.messageBytes)
     const { intents, senderAccount } = params
-    const encodedSignedTransaction = await this.signTransaction(compiledTransaction, senderAccount)
-    const txId = await this.solanaKitRpc.sendTransaction(encodedSignedTransaction, { encoding: 'base64' }).send()
+    const encodedSignedTransaction = await this._signTransaction(compiledTransaction, senderAccount)
+    const txId = await this._solanaKitRpc.sendTransaction(encodedSignedTransaction, { encoding: 'base64' }).send()
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
     const nativeTokenHash = BSSolanaConstants.NATIVE_TOKEN.hash
@@ -307,7 +307,6 @@ export class BSSolana implements IBSSolana {
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),
         networkFeeAmount: fee,
-        type: 'default',
         view: 'default',
         events: intents.map(({ amount, receiverAddress, token }) => {
           const tokenHash = token.hash
@@ -321,7 +320,6 @@ export class BSSolana implements IBSSolana {
             fromUrl: addressUrl,
             to: receiverAddress,
             toUrl: this.explorerService.buildAddressUrl(receiverAddress),
-            tokenType: isNativeToken ? 'native' : 'spl',
             tokenUrl: this.explorerService.buildContractUrl(tokenHash),
             token,
           }

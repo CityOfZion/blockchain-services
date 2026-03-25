@@ -64,14 +64,14 @@ export class BSBitcoin implements IBSBitcoin {
 
   #tatumApi!: AxiosInstance
 
-  bitcoinjsNetwork!: bitcoinjs.Network
+  _bitcoinjsNetwork!: bitcoinjs.Network
   bipDerivationPath!: string
   network!: TBSNetwork<TBSBitcoinNetworkId>
   networkUrls!: string[]
   blockchainDataService!: TatumBDSBitcoin
   walletConnectService!: WalletConnectServiceBitcoin
   ledgerService: LedgerServiceBitcoin
-  tokenService: ITokenService = new TokenServiceBitcoin()
+  tokenService: ITokenService = new TokenServiceBitcoin(this)
   explorerService: IExplorerService = new MempoolESBitcoin(this)
   exchangeDataService: IExchangeDataService = new CryptoCompareEDSBitcoin(this)
   nftDataService: INftDataService = new XverseNDSBitcoin(this)
@@ -89,16 +89,98 @@ export class BSBitcoin implements IBSBitcoin {
     this.setNetwork(network)
   }
 
+  // P2WPKH (SegWit): starts with bc1 (mainnet) or tb1 (testnet)
+  _isP2WPKHAddress(address: string) {
+    const lowercaseAddress = address.toLowerCase()
+
+    return lowercaseAddress.startsWith('bc1') || lowercaseAddress.startsWith('tb1')
+  }
+
+  // P2PKH (legacy): starts with 1 (mainnet) or m/n (testnet)
+  _isP2PKHAddress(address: string) {
+    const lowercaseAddress = address.toLowerCase()
+
+    return lowercaseAddress.startsWith('1') || lowercaseAddress.startsWith('m') || lowercaseAddress.startsWith('n')
+  }
+
+  // P2SH: starts with 3 (mainnet) or 2 (testnet)
+  _isP2SHAddress(address: string) {
+    return address.startsWith('3') || address.startsWith('2')
+  }
+
+  _getKeyPair(key: string): ECPairInterface {
+    const ecpair = BSBitcoinECPairSingletonHelper.getInstance()
+
+    return ecpair.fromWIF(key, this._bitcoinjsNetwork)
+  }
+
+  async _getLedgerTransport(account: TBSAccount<TBSBitcoinName>) {
+    if (!this.ledgerService.getLedgerTransport) {
+      throw new BSError('You must provide getLedgerTransport function to use Ledger', 'GET_LEDGER_TRANSPORT_NOT_FOUND')
+    }
+
+    if (!account.bipPath) {
+      throw new BSError('Account must have BIP path to use Ledger', 'BIP_PATH_NOT_FOUND')
+    }
+
+    return await this.ledgerService.getLedgerTransport(account)
+  }
+
+  async _signTransaction({ psbt, account, signInputs }: TSignTransactionParams) {
+    if (account.isHardware) {
+      const transport = await this._getLedgerTransport(account)
+
+      await this.ledgerService.signTransaction({ psbt, account, transport, signInputs })
+
+      return
+    }
+
+    const keyPair = this._getKeyPair(account.key)
+    const defaultSighashTypes = [bitcoinjs.Transaction.SIGHASH_ALL]
+
+    if (signInputs && signInputs.length > 0) {
+      for (const { index, address, sighashTypes } of signInputs) {
+        if (typeof index !== 'number' || isNaN(index) || index < 0) {
+          throw new BSError('Invalid index', 'INVALID_INDEX')
+        }
+
+        if (!address) {
+          throw new BSError('Address not found', 'ADDRESS_NOT_FOUND')
+        }
+
+        await psbt.signInputAsync(index, keyPair, sighashTypes || defaultSighashTypes)
+      }
+
+      return
+    }
+
+    await psbt.signAllInputsAsync(keyPair, defaultSighashTypes)
+  }
+
+  async _broadcastTransaction(transactionHex: string): Promise<string> {
+    const { data } = await this.#tatumApi.post<TTatumBroadcastResponse>('/v3/bitcoin/broadcast', {
+      txData: transactionHex,
+    })
+
+    const transactionId = data?.txId
+
+    if (!transactionId) {
+      throw new BSError('Transaction failed', 'TRANSACTION_FAILED')
+    }
+
+    return transactionId
+  }
+
   #getInputSize(address: string) {
-    if (this.isP2WPKHAddress(address)) {
+    if (this._isP2WPKHAddress(address)) {
       return BSBigNumberHelper.fromNumber('68')
     }
 
-    if (this.isP2PKHAddress(address)) {
+    if (this._isP2PKHAddress(address)) {
       return BSBigNumberHelper.fromNumber('148')
     }
 
-    if (this.isP2SHAddress(address)) {
+    if (this._isP2SHAddress(address)) {
       return BSBigNumberHelper.fromNumber('91')
     }
 
@@ -106,15 +188,15 @@ export class BSBitcoin implements IBSBitcoin {
   }
 
   #getOutputSize(address: string) {
-    if (this.isP2WPKHAddress(address)) {
+    if (this._isP2WPKHAddress(address)) {
       return BSBigNumberHelper.fromNumber('31')
     }
 
-    if (this.isP2PKHAddress(address)) {
+    if (this._isP2PKHAddress(address)) {
       return BSBigNumberHelper.fromNumber('34')
     }
 
-    if (this.isP2SHAddress(address)) {
+    if (this._isP2SHAddress(address)) {
       return BSBigNumberHelper.fromNumber('32')
     }
 
@@ -238,74 +320,6 @@ export class BSBitcoin implements IBSBitcoin {
     }
   }
 
-  // P2WPKH (SegWit): starts with bc1 (mainnet) or tb1 (testnet)
-  isP2WPKHAddress(address: string) {
-    const lowercaseAddress = address.toLowerCase()
-
-    return lowercaseAddress.startsWith('bc1') || lowercaseAddress.startsWith('tb1')
-  }
-
-  // P2PKH (legacy): starts with 1 (mainnet) or m/n (testnet)
-  isP2PKHAddress(address: string) {
-    const lowercaseAddress = address.toLowerCase()
-
-    return lowercaseAddress.startsWith('1') || lowercaseAddress.startsWith('m') || lowercaseAddress.startsWith('n')
-  }
-
-  // P2SH: starts with 3 (mainnet) or 2 (testnet)
-  isP2SHAddress(address: string) {
-    return address.startsWith('3') || address.startsWith('2')
-  }
-
-  getKeyPair(key: string): ECPairInterface {
-    const ecpair = BSBitcoinECPairSingletonHelper.getInstance()
-
-    return ecpair.fromWIF(key, this.bitcoinjsNetwork)
-  }
-
-  async getLedgerTransport(account: TBSAccount<TBSBitcoinName>) {
-    if (!this.ledgerService.getLedgerTransport) {
-      throw new BSError('You must provide getLedgerTransport function to use Ledger', 'GET_LEDGER_TRANSPORT_NOT_FOUND')
-    }
-
-    if (!account.bipPath) {
-      throw new BSError('Account must have BIP path to use Ledger', 'BIP_PATH_NOT_FOUND')
-    }
-
-    return await this.ledgerService.getLedgerTransport(account)
-  }
-
-  async signTransaction({ psbt, account, signInputs }: TSignTransactionParams) {
-    if (account.isHardware) {
-      const transport = await this.getLedgerTransport(account)
-
-      await this.ledgerService.signTransaction({ psbt, account, transport, signInputs })
-
-      return
-    }
-
-    const keyPair = this.getKeyPair(account.key)
-    const defaultSighashTypes = [bitcoinjs.Transaction.SIGHASH_ALL]
-
-    if (signInputs && signInputs.length > 0) {
-      for (const { index, address, sighashTypes } of signInputs) {
-        if (typeof index !== 'number' || isNaN(index) || index < 0) {
-          throw new BSError('Invalid index', 'INVALID_INDEX')
-        }
-
-        if (!address) {
-          throw new BSError('Address not found', 'ADDRESS_NOT_FOUND')
-        }
-
-        await psbt.signInputAsync(index, keyPair, sighashTypes || defaultSighashTypes)
-      }
-
-      return
-    }
-
-    await psbt.signAllInputsAsync(keyPair, defaultSighashTypes)
-  }
-
   setNetwork(network: TBSNetwork<TBSBitcoinNetworkId>) {
     const isMainnetNetwork = network.type === 'mainnet'
 
@@ -325,7 +339,7 @@ export class BSBitcoin implements IBSBitcoin {
     this.networkUrls = networkUrls
     this.#tatumApi = BSBitcoinTatumHelper.getApi(this.network)
     this.bipDerivationPath = BSBitcoinConstants.BIP_DERIVATION_PATHS_BY_NETWORK_ID[this.network.id]
-    this.bitcoinjsNetwork = isMainnetNetwork ? bitcoinjs.networks.bitcoin : bitcoinjs.networks.testnet
+    this._bitcoinjsNetwork = isMainnetNetwork ? bitcoinjs.networks.bitcoin : bitcoinjs.networks.testnet
     this.blockchainDataService = new TatumBDSBitcoin(this)
     this.walletConnectService = new WalletConnectServiceBitcoin(this)
   }
@@ -348,7 +362,7 @@ export class BSBitcoin implements IBSBitcoin {
 
   validateAddress(address: string): boolean {
     try {
-      bitcoinjs.address.toOutputScript(address, this.bitcoinjsNetwork)
+      bitcoinjs.address.toOutputScript(address, this._bitcoinjsNetwork)
 
       return true
     } catch {
@@ -358,7 +372,7 @@ export class BSBitcoin implements IBSBitcoin {
 
   validateKey(key: string): boolean {
     try {
-      this.getKeyPair(key)
+      this._getKeyPair(key)
 
       return true
     } catch {
@@ -372,7 +386,7 @@ export class BSBitcoin implements IBSBitcoin {
 
       const ecpair = BSBitcoinECPairSingletonHelper.getInstance()
 
-      ecpair.fromPrivateKey(buffer, { network: this.bitcoinjsNetwork })
+      ecpair.fromPrivateKey(buffer, { network: this._bitcoinjsNetwork })
 
       return true
     } catch {
@@ -410,12 +424,12 @@ export class BSBitcoin implements IBSBitcoin {
     const mnemonicText = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
     const seed = bip39.mnemonicToSeedSync(mnemonicText)
     const bip32 = BSBitcoinBIP32SingletonHelper.getInstance()
-    const root = bip32.fromSeed(seed, this.bitcoinjsNetwork)
+    const root = bip32.fromSeed(seed, this._bitcoinjsNetwork)
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
     const derivedPath = root.derivePath(bipPath)
     const key = derivedPath.toWIF()
-    const keyPair = this.getKeyPair(key)
-    const { address } = bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey, network: this.bitcoinjsNetwork })
+    const keyPair = this._getKeyPair(key)
+    const { address } = bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey, network: this._bitcoinjsNetwork })
 
     if (!address) {
       throw new BSError("Address can't be found", 'ADDRESS_NOT_FOUND')
@@ -444,10 +458,10 @@ export class BSBitcoin implements IBSBitcoin {
   }
 
   async generateAccountFromKey(key: string): Promise<TBSAccount<TBSBitcoinName>> {
-    const keyPair = this.getKeyPair(key)
+    const keyPair = this._getKeyPair(key)
 
     // Generate P2WPKH address
-    const { address } = bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey, network: this.bitcoinjsNetwork })
+    const { address } = bitcoinjs.payments.p2wpkh({ pubkey: keyPair.publicKey, network: this._bitcoinjsNetwork })
 
     if (!address) {
       throw new BSError("Address can't be found", 'ADDRESS_NOT_FOUND')
@@ -462,7 +476,7 @@ export class BSBitcoin implements IBSBitcoin {
 
     const keyPair = ecpair.fromPrivateKey(decryptedKey.privateKey, {
       compressed: decryptedKey.compressed,
-      network: this.bitcoinjsNetwork,
+      network: this._bitcoinjsNetwork,
     })
 
     const key = keyPair.toWIF()
@@ -499,7 +513,7 @@ export class BSBitcoin implements IBSBitcoin {
 
     const { address } = bitcoinjs.payments.p2wpkh({
       hash: Buffer.from(hash160, 'hex'),
-      network: this.bitcoinjsNetwork,
+      network: this._bitcoinjsNetwork,
     })
 
     if (!address) {
@@ -509,21 +523,21 @@ export class BSBitcoin implements IBSBitcoin {
     return address
   }
 
-  async transfer(params: TTransferParams<TBSBitcoinName>): Promise<TTransactionUtxo<TBSBitcoinName>[]> {
+  async transfer(params: TTransferParams<TBSBitcoinName>): Promise<TTransactionUtxo[]> {
     const { utxos, fee, change } = await this.#getTransferData(params)
     const { senderAccount, intents } = params
     const { address, isHardware } = senderAccount
-    const psbt = new bitcoinjs.Psbt({ network: this.bitcoinjsNetwork })
-    const isP2PKHAddress = this.isP2PKHAddress(address)
-    const isP2SHAddress = this.isP2SHAddress(address)
-    const keyPair: ECPairInterface | undefined = isP2SHAddress ? this.getKeyPair(senderAccount.key) : undefined
+    const psbt = new bitcoinjs.Psbt({ network: this._bitcoinjsNetwork })
+    const isP2PKHAddress = this._isP2PKHAddress(address)
+    const isP2SHAddress = this._isP2SHAddress(address)
+    const keyPair: ECPairInterface | undefined = isP2SHAddress ? this._getKeyPair(senderAccount.key) : undefined
 
     let redeemScript: Uint8Array<ArrayBufferLike> | undefined
 
     if (keyPair) {
       redeemScript = bitcoinjs.payments.p2wpkh({
         pubkey: keyPair.publicKey,
-        network: this.bitcoinjsNetwork,
+        network: this._bitcoinjsNetwork,
       }).output
     }
 
@@ -569,7 +583,7 @@ export class BSBitcoin implements IBSBitcoin {
     }
 
     // Sign the inputs
-    await this.signTransaction({ psbt, account: senderAccount })
+    await this._signTransaction({ psbt, account: senderAccount })
 
     const ecpair = BSBitcoinECPairSingletonHelper.getInstance()
 
@@ -591,7 +605,7 @@ export class BSBitcoin implements IBSBitcoin {
     const transactionHash = transaction.getId()
 
     try {
-      const transactionId = await this.broadcastTransaction(transactionHex)
+      const transactionId = await this._broadcastTransaction(transactionHex)
 
       if (transactionHash !== transactionId) {
         throw new BSError('Invalid transaction hash', 'INVALID_TRANSACTION_HASH')
@@ -623,7 +637,6 @@ export class BSBitcoin implements IBSBitcoin {
           totalAmount: BSBigNumberHelper.format(totalAmount, {
             decimals: BSBitcoinConstants.NATIVE_TOKEN.decimals,
           }),
-          type: 'default',
           view: 'utxo',
           nfts: [],
           inputs: utxos.map(utxo => ({
@@ -646,19 +659,5 @@ export class BSBitcoin implements IBSBitcoin {
 
       throw new BSError('Transaction failed', 'TRANSACTION_FAILED', error)
     }
-  }
-
-  async broadcastTransaction(transactionHex: string): Promise<string> {
-    const { data } = await this.#tatumApi.post<TTatumBroadcastResponse>('/v3/bitcoin/broadcast', {
-      txData: transactionHex,
-    })
-
-    const transactionId = data?.txId
-
-    if (!transactionId) {
-      throw new BSError('Transaction failed', 'TRANSACTION_FAILED')
-    }
-
-    return transactionId
   }
 }

@@ -1,13 +1,15 @@
 import type { IBSWithNeo3NeoXBridge, TBSNetworkId } from '@cityofzion/blockchain-service'
 import { ERC20_ABI, IBSEthereum } from '@cityofzion/bs-ethereum'
 import { ethers, Signer } from 'ethers'
+import type { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
 
 export type TBSNeoXNetworkId = TBSNetworkId<'47763' | '12227332'>
 
 export type TBSNeoXName = 'neox'
 
 export interface IBSNeoX extends IBSEthereum<TBSNeoXName, TBSNeoXNetworkId>, IBSWithNeo3NeoXBridge<TBSNeoXName> {
-  sendTransaction(params: TSendTransactionParams): Promise<TSendTransactionResponse>
+  neo3NeoXBridgeService: Neo3NeoXBridgeService
+  _sendTransaction(params: TSendTransactionParams): Promise<TSendTransactionResponse>
 }
 
 export type TBlockscoutBDSNeoXTransactionApiResponse = {

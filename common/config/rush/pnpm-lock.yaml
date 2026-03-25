@@ -233,6 +233,9 @@ importers:
         specifier: 1.13.5
         version: 1.13.5
     devDependencies:
+      '@cityofzion/bs-bitcoin':
+        specifier: workspace:*
+        version: link:../bs-bitcoin
       '@cityofzion/bs-ethereum':
         specifier: workspace:*
         version: link:../bs-ethereum

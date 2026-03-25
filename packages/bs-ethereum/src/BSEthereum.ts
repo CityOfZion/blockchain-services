@@ -55,14 +55,14 @@ export class BSEthereum<
   readonly defaultNetwork!: TBSNetwork<A>
   readonly availableNetworks!: TBSNetwork<A>[]
 
-  blockchainDataService!: IBlockchainDataService<N>
+  blockchainDataService!: IBlockchainDataService
   exchangeDataService!: IExchangeDataService
   ledgerService: EthersLedgerServiceEthereum<N>
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
   walletConnectService!: IWalletConnectService<N>
-  fullTransactionsDataService!: IFullTransactionsDataService<N>
+  fullTransactionsDataService!: IFullTransactionsDataService
 
   constructor(name: N, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -81,7 +81,25 @@ export class BSEthereum<
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  protected async _buildTransferParams(intent: TTransferIntent) {
+  async _generateSigner(account: TBSAccount<N>): Promise<ethers.Signer & TypedDataSigner> {
+    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+
+    if (account.isHardware) {
+      if (!this.ledgerService.getLedgerTransport)
+        throw new Error('You must provide getLedgerTransport function to use Ledger')
+
+      if (!account.bipPath) {
+        throw new Error('Account must have BIP path to use Ledger')
+      }
+
+      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+      return this.ledgerService.getSigner(ledgerTransport, account.bipPath, provider)
+    }
+
+    return new ethers.Wallet(account.key, provider)
+  }
+
+  async _buildTransferParams(intent: TTransferIntent) {
     const provider = new ethers.providers.JsonRpcProvider(this.network.url)
 
     const amount = ethersBigNumber.parseFixed(intent.amount, intent.token.decimals)
@@ -121,24 +139,6 @@ export class BSEthereum<
     this.feeToken = nativeAsset
   }
 
-  async generateSigner(account: TBSAccount<N>): Promise<ethers.Signer & TypedDataSigner> {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
-
-    if (account.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide getLedgerTransport function to use Ledger')
-
-      if (!account.bipPath) {
-        throw new Error('Account must have BIP path to use Ledger')
-      }
-
-      const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
-      return this.ledgerService.getSigner(ledgerTransport, account.bipPath, provider)
-    }
-
-    return new ethers.Wallet(account.key, provider)
-  }
-
   setNetwork(network: TBSNetwork<A>) {
     const networkUrls = BSEthereumConstants.RPC_LIST_BY_NETWORK_ID[network.id] || []
     const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
@@ -156,7 +156,7 @@ export class BSEthereum<
     this.explorerService = new BlockscoutESEthereum(this)
     this.exchangeDataService = new MoralisEDSEthereum(this)
     this.blockchainDataService = new MoralisBDSEthereum(this)
-    this.tokenService = new TokenServiceEthereum()
+    this.tokenService = new TokenServiceEthereum(this)
     this.walletConnectService = new WalletConnectServiceEthereum(this)
     this.fullTransactionsDataService = new MoralisFullTransactionsDataServiceEthereum(this)
   }
@@ -262,12 +262,11 @@ export class BSEthereum<
     return wallet.encrypt(password)
   }
 
-  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
-    const signer = await this.generateSigner(senderAccount)
+  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault[]> {
+    const signer = await this._generateSigner(senderAccount)
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
-    const nativeTokenHash = BSEthereumHelper.getNativeAsset(this.network).hash
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault[] = []
     let error: Error | undefined
 
     for (const intent of intents) {
@@ -295,14 +294,12 @@ export class BSEthereum<
         if (txId) {
           const { receiverAddress, token } = intent
           const tokenHash = token.hash
-          const isNativeToken = this.tokenService.predicateByHash(nativeTokenHash, tokenHash)
 
           transactions.push({
             txId,
             txIdUrl: this.explorerService.buildTransactionUrl(txId),
             date: new Date().toJSON(),
             networkFeeAmount: fee,
-            type: 'default',
             view: 'default',
             events: [
               {
@@ -313,7 +310,6 @@ export class BSEthereum<
                 fromUrl: addressUrl,
                 to: receiverAddress,
                 toUrl: this.explorerService.buildAddressUrl(receiverAddress),
-                tokenType: isNativeToken ? 'native' : 'erc-20',
                 tokenUrl: this.explorerService.buildContractUrl(tokenHash),
                 token,
               },
@@ -333,7 +329,7 @@ export class BSEthereum<
   }
 
   async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
-    const signer = await this.generateSigner(params.senderAccount)
+    const signer = await this._generateSigner(params.senderAccount)
     let fee = ethers.utils.parseEther('0')
 
     for (const intent of params.intents) {

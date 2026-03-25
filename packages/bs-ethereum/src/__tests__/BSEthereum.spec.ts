@@ -138,7 +138,6 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -151,7 +150,6 @@ describe('BSEthereum', () => {
             toUrl: expect.any(String),
             token: nativeToken,
             tokenUrl: undefined,
-            tokenType: 'native',
           },
         ],
       },
@@ -174,7 +172,6 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -185,7 +182,6 @@ describe('BSEthereum', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: usdcToken,
           },
@@ -214,7 +210,6 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -225,7 +220,6 @@ describe('BSEthereum', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token: nativeToken,
           },
@@ -254,7 +248,6 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -265,7 +258,6 @@ describe('BSEthereum', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: usdcToken,
           },
@@ -298,7 +290,6 @@ describe('BSEthereum', () => {
         txIdUrl: undefined,
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -309,7 +300,6 @@ describe('BSEthereum', () => {
             fromUrl: undefined,
             to: address,
             toUrl: undefined,
-            tokenType: expect.any(String),
             tokenUrl: undefined,
             token,
           },
@@ -367,7 +357,6 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -378,7 +367,6 @@ describe('BSEthereum', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token: nativeToken,
           },
@@ -389,7 +377,6 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -400,7 +387,6 @@ describe('BSEthereum', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token: nativeToken,
           },

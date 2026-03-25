@@ -11,7 +11,7 @@ let bsNeoXService: BSNeoX
 let account: TBSAccount<TBSNeoXName>
 let receiverAddress: string
 
-const tokenService = new TokenServiceEthereum()
+let tokenService: TokenServiceEthereum<TBSNeoXName, TBSNeoXNetworkId>
 
 const defaultNetwork: TBSNetwork<TBSNeoXNetworkId> = {
   ...BSNeoXConstants.MAINNET_NETWORK,
@@ -30,7 +30,7 @@ describe('Neo3NeoXBridgeService', () => {
     receiverAddress = process.env.TEST_BRIDGE_NEO3_ADDRESS
     bsNeoXService = new BSNeoX(defaultNetwork)
     neo3NeoXBridgeService = new Neo3NeoXBridgeService(bsNeoXService)
-
+    tokenService = new TokenServiceEthereum(bsNeoXService)
     account = await bsNeoXService.generateAccountFromKey(process.env.TEST_BRIDGE_PRIVATE_KEY)
   })
 

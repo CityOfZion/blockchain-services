@@ -409,7 +409,7 @@ export class SimpleSwapOrchestrator implements ISwapOrchestrator<TBSServiceName>
     await this.#recalculateValues([])
   }
 
-  async swap(): Promise<TSwapResponse<TBSServiceName>> {
+  async swap(): Promise<TSwapResponse> {
     if (
       !this.#tokenToUse.value ||
       !this.#tokenToReceive.value ||
@@ -427,7 +427,7 @@ export class SimpleSwapOrchestrator implements ISwapOrchestrator<TBSServiceName>
       throw new BSError('Not all required fields are set', 'MISSING_REQUIRED_FIELDS')
     }
 
-    const response: TSwapResponse<TBSServiceName> = {
+    const response: TSwapResponse = {
       id: '',
       transaction: undefined,
       log: undefined,

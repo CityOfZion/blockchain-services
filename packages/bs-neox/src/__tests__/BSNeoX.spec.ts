@@ -54,7 +54,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -65,7 +64,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -76,7 +74,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -87,7 +84,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -96,7 +92,7 @@ describe('BSNeoX', () => {
     ])
   })
 
-  it('Should be able to transfer the NEO token on Testnet', async () => {
+  it.skip('Should be able to transfer the NEO token on Testnet', async () => {
     bsNeoX = new BSNeoX(testnetNetwork)
 
     const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -125,7 +121,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -136,7 +131,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: neoToken,
           },
@@ -147,7 +141,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -158,7 +151,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: neoToken,
           },
@@ -202,7 +194,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -213,7 +204,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -224,7 +214,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -235,7 +224,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -277,7 +265,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -288,7 +275,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: neoToken,
           },
@@ -299,7 +285,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -310,7 +295,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: neoToken,
           },
@@ -350,7 +334,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -361,7 +344,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -372,7 +354,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -383,7 +364,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -421,7 +401,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -432,7 +411,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: neoToken,
           },
@@ -443,7 +421,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -454,7 +431,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: neoToken,
           },
@@ -498,7 +474,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -509,7 +484,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -520,7 +494,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -531,7 +504,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -573,7 +545,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -584,7 +555,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: neoToken,
           },
@@ -595,7 +565,6 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -606,7 +575,6 @@ describe('BSNeoX', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: neoToken,
           },

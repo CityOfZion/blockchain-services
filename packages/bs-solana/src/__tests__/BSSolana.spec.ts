@@ -161,7 +161,6 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -172,7 +171,6 @@ describe('BSSolana', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -199,7 +197,6 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -210,7 +207,6 @@ describe('BSSolana', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'spl',
             tokenUrl: expect.any(String),
             token: splToken,
           },
@@ -249,7 +245,6 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -260,7 +255,6 @@ describe('BSSolana', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -272,7 +266,6 @@ describe('BSSolana', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'spl',
             tokenUrl: expect.any(String),
             token: splToken,
           },
@@ -341,7 +334,6 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -352,7 +344,6 @@ describe('BSSolana', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -381,7 +372,6 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -392,7 +382,6 @@ describe('BSSolana', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'spl',
             tokenUrl: expect.any(String),
             token: splToken,
           },
@@ -433,7 +422,6 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -444,7 +432,6 @@ describe('BSSolana', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -456,7 +443,6 @@ describe('BSSolana', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'spl',
             tokenUrl: expect.any(String),
             token: splToken,
           },

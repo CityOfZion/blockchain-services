@@ -25,7 +25,6 @@ describe('BlockscoutBDSNeoX', () => {
         block: 3561140,
         date: expect.any(String),
         networkFeeAmount: '0.00084',
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -36,7 +35,6 @@ describe('BlockscoutBDSNeoX', () => {
             fromUrl: expect.any(String),
             to: '0xc17f96Dba5358a86659de53F7F1ab6D9227C8174',
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token: BSNeoXConstants.NATIVE_ASSET,
           },
@@ -57,7 +55,6 @@ describe('BlockscoutBDSNeoX', () => {
         block: 3415495,
         date: expect.any(String),
         networkFeeAmount: '0.00218104',
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -68,7 +65,6 @@ describe('BlockscoutBDSNeoX', () => {
             fromUrl: expect.any(String),
             to: '0xE78FD95780d54E63cC4c1D0Df7DbC4487a6C72D4',
             toUrl: expect.any(String),
-            tokenType: 'erc-20',
             tokenUrl: expect.any(String),
             token: {
               decimals: 18,
@@ -89,11 +85,12 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        type: 'bridgeNeo3NeoX',
         data: expect.objectContaining({
-          amount: '1',
-          tokenToUse: service.neo3NeoXBridgeService.gasToken,
-          receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+          neo3NeoxBridge: {
+            amount: '1',
+            tokenToUse: service.neo3NeoXBridgeService.gasToken,
+            receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+          },
         }),
       })
     )
@@ -106,11 +103,12 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        type: 'bridgeNeo3NeoX',
         data: expect.objectContaining({
-          amount: '1',
-          tokenToUse: service.neo3NeoXBridgeService.neoToken,
-          receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
+          neo3NeoxBridge: {
+            amount: '1',
+            tokenToUse: service.neo3NeoXBridgeService.neoToken,
+            receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
+          },
         }),
       })
     )
@@ -129,7 +127,6 @@ describe('BlockscoutBDSNeoX', () => {
           block: expect.any(Number),
           date: expect.any(String),
           networkFeeAmount: expect.anything(),
-          type: expect.any(String),
           view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({
@@ -140,7 +137,6 @@ describe('BlockscoutBDSNeoX', () => {
               fromUrl: expect.anything(),
               to: expect.anything(),
               toUrl: expect.anything(),
-              tokenType: expect.any(String),
               tokenUrl: expect.any(String),
               token: expect.objectContaining({
                 decimals: expect.any(Number),
@@ -166,11 +162,12 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        type: 'bridgeNeo3NeoX',
         data: expect.objectContaining({
-          amount: '1',
-          tokenToUse: service.neo3NeoXBridgeService.gasToken,
-          receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+          neo3NeoxBridge: {
+            amount: '1',
+            tokenToUse: service.neo3NeoXBridgeService.gasToken,
+            receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+          },
         }),
       })
     )
@@ -187,11 +184,12 @@ describe('BlockscoutBDSNeoX', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        type: 'bridgeNeo3NeoX',
         data: expect.objectContaining({
-          amount: '1',
-          tokenToUse: service.neo3NeoXBridgeService.gasToken,
-          receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
+          neo3NeoxBridge: {
+            amount: '1',
+            tokenToUse: service.neo3NeoXBridgeService.gasToken,
+            receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
+          },
         }),
       })
     )

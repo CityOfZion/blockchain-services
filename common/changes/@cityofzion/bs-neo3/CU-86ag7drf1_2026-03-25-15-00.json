@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Replace RpcCDSNeo3 with ClaimServiceNeo3 and rename DoraVoteServiceNeo3 to VoteServiceNeo3",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Centralize bridge, claim, and vote data extraction into their respective services",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

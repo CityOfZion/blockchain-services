@@ -22,7 +22,6 @@ describe('DoraBDSNeoLegacy', () => {
         date: expect.any(String),
         networkFeeAmount: expect.anything(),
         systemFeeAmount: expect.anything(),
-        type: expect.any(String),
         view: 'default',
         events: expect.arrayContaining([
           expect.objectContaining({
@@ -33,7 +32,6 @@ describe('DoraBDSNeoLegacy', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            tokenType: expect.any(String),
             tokenUrl: expect.any(String),
             token: expect.objectContaining({
               decimals: expect.any(Number),
@@ -58,13 +56,11 @@ describe('DoraBDSNeoLegacy', () => {
           txIdUrl: expect.any(String),
           block: expect.any(Number),
           date: expect.any(String),
-          type: expect.any(String),
           view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({
               eventType: expect.any(String),
               methodName: expect.any(String),
-              tokenType: expect.any(String),
               tokenUrl: expect.any(String),
               token: expect.objectContaining({
                 decimals: expect.any(Number),

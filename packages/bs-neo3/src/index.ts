@@ -17,7 +17,7 @@ export * from './services/ledger/NeonDappKitLedgerServiceNeo3'
 
 export * from './services/nft-data/GhostMarketNDSNeo3'
 
-export * from './services/vote/DoraVoteServiceNeo3'
+export * from './services/vote/VoteServiceNeo3'
 
 export * from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
 

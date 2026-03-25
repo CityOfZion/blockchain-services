@@ -14,6 +14,8 @@ import type {
   IBSWithWalletConnect,
   IBSWithFullTransactions,
   TBSNetworkId,
+  IBSWithFaucet,
+  TBSBridgeName,
 } from './interfaces'
 
 export function hasNameService<N extends string, A extends TBSNetworkId>(
@@ -25,13 +27,7 @@ export function hasNameService<N extends string, A extends TBSNetworkId>(
 export function isClaimable<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithClaim<N> {
-  return (
-    'claimToken' in service &&
-    'burnToken' in service &&
-    'claimDataService' in service &&
-    'calculateClaimFee' in service &&
-    'claim' in service
-  )
+  return 'claimService' in service
 }
 
 export function isCalculableFee<N extends string, A extends TBSNetworkId>(
@@ -60,7 +56,7 @@ export function hasLedger<N extends string, A extends TBSNetworkId>(
 
 export function hasNeo3NeoXBridge<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
-): service is IBlockchainService<N, A> & IBSWithNeo3NeoXBridge<N> {
+): service is N extends TBSBridgeName ? IBlockchainService<N, A> & IBSWithNeo3NeoXBridge<N> : never {
   return 'neo3NeoXBridgeService' in service
 }
 
@@ -78,8 +74,14 @@ export function hasWalletConnect<N extends string, A extends TBSNetworkId>(
 
 export function hasFullTransactions<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
-): service is IBlockchainService<N, A> & IBSWithFullTransactions<N> {
+): service is IBlockchainService<N, A> & IBSWithFullTransactions {
   return 'fullTransactionsDataService' in service
+}
+
+export function hasFaucet<N extends string, A extends TBSNetworkId>(
+  service: IBlockchainService<N, A>
+): service is IBlockchainService<N, A> & IBSWithFaucet {
+  return 'faucet' in service
 }
 
 /**

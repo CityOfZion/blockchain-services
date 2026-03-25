@@ -7,13 +7,13 @@ import {
   type TGetFullTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
+  type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeo3, TBSNeo3Name, TBSNeo3NetworkId } from '../../types'
+import type { IBSNeo3, TBSNeo3NetworkId } from '../../types'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import type { api } from '@cityofzion/dora-ts'
-import type { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 
-export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDataService<TBSNeo3Name> {
+export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDataService {
   static readonly SUPPORTED_NEP11_STANDARDS: string[] = ['nep11', 'nep-11']
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeo3NetworkId[] = ['mainnet', 'testnet']
 
@@ -36,9 +36,7 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<
-    TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>
-  > {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: DoraFullTransactionsDataServiceNeo3.SUPPORTED_NETWORKS_IDS,
@@ -55,32 +53,16 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
     })
 
     const items = response.data ?? []
-    const transactions: TTransactionDefault<TBSNeo3Name>[] = []
+    const transactions: TTransactionDefault[] = []
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      let newItem: TTransactionDefault<TBSNeo3Name> = {
-        txId,
-        txIdUrl,
-        block: item.block,
-        date: item.date,
-        invocationCount: item.invocationCount,
-        notificationCount: item.notificationCount,
-        networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#service.feeToken.decimals })
-          : undefined,
-        systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
-          : undefined,
-        type: 'default',
-        view: 'default',
-        events: [],
-      }
+      const events: TTransactionDefaultEvent[] = []
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
-        const { methodName, tokenID: tokenHash, contractHash, contractName } = event
+        const { methodName, tokenID: tokenHash, contractHash } = event
         const from = event.from || undefined
         const to = event.to || undefined
         const fromUrl = from ? this.#service.explorerService.buildAddressUrl(from) : undefined
@@ -93,7 +75,7 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
             this.#service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
           )
 
-          newItem.events.splice(eventIndex, 0, {
+          events.splice(eventIndex, 0, {
             eventType: 'nft',
             amount: '1',
             methodName,
@@ -101,7 +83,6 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
             fromUrl,
             to,
             toUrl,
-            tokenType: 'nep-11',
             nft,
           })
 
@@ -112,7 +93,7 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
           this.#service.blockchainDataService.getTokenInfo(contractHash)
         )
 
-        newItem.events.splice(eventIndex, 0, {
+        events.splice(eventIndex, 0, {
           eventType: 'token',
           amount: event.amount
             ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
@@ -122,24 +103,51 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
           fromUrl,
           to,
           toUrl,
-          tokenType: 'nep-17',
           tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         })
-
-        if (newItem.type === 'default' && contractName === 'NeoXBridge') {
-          const [log] = await BSUtilsHelper.tryCatch(() => this.#api.log(txId, this.#service.network.id))
-
-          if (!!log && log.vmstate === 'HALT') {
-            const notifications = log.notifications as unknown as Notification[]
-            const data = DoraBDSNeo3.getBridgeNeo3NeoXDataByNotifications(notifications ?? [], this.#service)
-
-            if (data) newItem = { ...newItem, type: 'bridgeNeo3NeoX', data }
-          }
-        }
       })
 
       await Promise.allSettled(eventPromises)
+
+      let data = {
+        ...this.#service.claimService._getTransactionDataFromEvents(events),
+        ...this.#service.voteService._getTransactionDataFromEvents(events),
+      }
+
+      if (item.events.some(event => event.contractName === 'NeoXBridge')) {
+        const [log] = await BSUtilsHelper.tryCatch(() => this.#api.log(txId, this.#service.network.id))
+        if (log) {
+          data = {
+            ...data,
+            ...this.#service.neo3NeoXBridgeService._getDataFromNotifications(
+              log.notifications.map((notification: any) => ({
+                contract: notification.contract,
+                eventname: notification.event_name,
+                state: notification.state,
+              }))
+            ),
+          }
+        }
+      }
+
+      const newItem: TTransactionDefault = {
+        txId,
+        txIdUrl,
+        block: item.block,
+        date: item.date,
+        invocationCount: item.invocationCount,
+        notificationCount: item.notificationCount,
+        networkFeeAmount: networkFeeAmount
+          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#service.feeToken.decimals })
+          : undefined,
+        systemFeeAmount: systemFeeAmount
+          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
+          : undefined,
+        view: 'default',
+        events,
+        data,
+      }
 
       transactions.splice(index, 0, newItem)
     })

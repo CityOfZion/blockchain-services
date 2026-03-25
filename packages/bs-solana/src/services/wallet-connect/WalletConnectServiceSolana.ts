@@ -81,7 +81,7 @@ export class WalletConnectServiceSolana implements IWalletConnectService<TBSSola
 
     const parsedTransaction = this.#parseTransaction(args.params.transaction)
 
-    const signedTransaction = await this.#service.signTransaction(parsedTransaction, args.account)
+    const signedTransaction = await this.#service._signTransaction(parsedTransaction, args.account)
 
     return { transaction: signedTransaction }
   }
@@ -95,7 +95,7 @@ export class WalletConnectServiceSolana implements IWalletConnectService<TBSSola
 
     for (const transaction of args.params.transactions) {
       const parsedTransaction = this.#parseTransaction(transaction)
-      const signedTransaction = await this.#service.signTransaction(parsedTransaction, args.account)
+      const signedTransaction = await this.#service._signTransaction(parsedTransaction, args.account)
       signedTransactions.push(signedTransaction)
     }
 
@@ -113,9 +113,9 @@ export class WalletConnectServiceSolana implements IWalletConnectService<TBSSola
 
     const parsedTransaction = this.#parseTransaction(args.params.transaction)
 
-    const signedTransaction = await this.#service.signTransaction(parsedTransaction, args.account)
+    const signedTransaction = await this.#service._signTransaction(parsedTransaction, args.account)
 
-    const signature = await this.#service.solanaKitRpc
+    const signature = await this.#service._solanaKitRpc
       .sendTransaction(signedTransaction, {
         maxRetries: options.maxRetries,
         preflightCommitment: options.preflightCommitment,
@@ -136,7 +136,7 @@ export class WalletConnectServiceSolana implements IWalletConnectService<TBSSola
 
     const messageBase64 = solanaKit.getBase64Decoder().decode(transaction.messageBytes)
 
-    const feeResponse = await this.#service.solanaKitRpc
+    const feeResponse = await this.#service._solanaKitRpc
       .getFeeForMessage(messageBase64 as any, { commitment: 'confirmed' })
       .send()
 

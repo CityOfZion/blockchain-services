@@ -14,7 +14,7 @@ describe('HorizonBDSStellar', () => {
   })
 
   it('Should be able to get a transaction', async () => {
-    const hash = '150a8ef7a581538887e774b0472cf8dacc25da1c2546a78677e06893dcd162ef'
+    const hash = 'a8a9bbe1b24d132c927dc13df965b08bb67badd26729af5c9233463c330d87c6'
     const transaction = await horizonBDSStellar.getTransaction(hash)
 
     expect(transaction).toEqual(
@@ -24,35 +24,45 @@ describe('HorizonBDSStellar', () => {
         block: expect.any(Number),
         date: expect.any(String),
         networkFeeAmount: expect.anything(),
-        type: expect.any(String),
         view: 'default',
       })
     )
 
     transaction.events.forEach(event => {
       expect(event).toEqual(
-        expect.objectContaining({
-          eventType: expect.any(String),
-          amount: expect.anything(),
-          methodName: expect.any(String),
-          from: expect.anything(),
-          fromUrl: expect.anything(),
-          to: expect.anything(),
-          toUrl: expect.anything(),
-          tokenType: expect.any(String),
-          token: expect.objectContaining({
-            decimals: expect.any(Number),
-            symbol: expect.any(String),
-            name: expect.any(String),
-            hash: expect.any(String),
+        expect.toBeOneOf([
+          expect.objectContaining({
+            eventType: 'token',
+            amount: expect.any(String),
+            methodName: expect.any(String),
+            from: expect.any(String),
+            fromUrl: expect.any(String),
+            to: expect.any(String),
+            toUrl: expect.any(String),
+            token: expect.objectContaining({
+              decimals: expect.any(Number),
+              symbol: expect.any(String),
+              name: expect.any(String),
+              hash: expect.any(String),
+            }),
           }),
-        })
+          expect.objectContaining({
+            eventType: 'generic',
+            methodName: 'change_trust',
+            from: expect.any(String),
+            fromUrl: expect.any(String),
+            data: {
+              limit: expect.any(String),
+              token: expect.any(String),
+            },
+          }),
+        ])
       )
     })
   })
 
   it('Should be able to get transactions of address', async () => {
-    const address = 'GD3N5SWQIWHIDPXTLIOHVMWQ7U6T3LIONHD6XZZLXZLIHEZIOFNS3MQZ'
+    const address = 'GAIYCJMFIEZDTPFQ7RDPL35AFGJHEKDYF6VCT2ESBH3QVD6FLJ7IPPMQ'
     const response = await horizonBDSStellar.getTransactionsByAddress({ address: address })
 
     expect(response.transactions.length).toBeGreaterThan(0)
@@ -64,29 +74,39 @@ describe('HorizonBDSStellar', () => {
           block: expect.any(Number),
           date: expect.any(String),
           networkFeeAmount: expect.anything(),
-          type: expect.any(String),
           view: 'default',
         })
       )
 
       transaction.events.forEach(event => {
         expect(event).toEqual(
-          expect.objectContaining({
-            eventType: expect.any(String),
-            amount: expect.anything(),
-            methodName: expect.any(String),
-            from: expect.anything(),
-            fromUrl: expect.anything(),
-            to: expect.anything(),
-            toUrl: expect.anything(),
-            tokenType: expect.any(String),
-            token: expect.objectContaining({
-              decimals: expect.any(Number),
-              symbol: expect.any(String),
-              name: expect.any(String),
-              hash: expect.any(String),
+          expect.toBeOneOf([
+            expect.objectContaining({
+              eventType: 'token',
+              amount: expect.any(String),
+              methodName: expect.any(String),
+              from: expect.any(String),
+              fromUrl: expect.any(String),
+              to: expect.any(String),
+              toUrl: expect.any(String),
+              token: expect.objectContaining({
+                decimals: expect.any(Number),
+                symbol: expect.any(String),
+                name: expect.any(String),
+                hash: expect.any(String),
+              }),
             }),
-          })
+            expect.objectContaining({
+              eventType: 'generic',
+              methodName: 'change_trust',
+              from: expect.any(String),
+              fromUrl: expect.any(String),
+              data: {
+                limit: expect.any(String),
+                token: expect.any(String),
+              },
+            }),
+          ])
         )
       })
     })

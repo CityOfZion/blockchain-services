@@ -25,7 +25,6 @@ describe('RpcBDSEthereum', () => {
         block: expect.any(Number),
         date: expect.any(String),
         networkFeeAmount: expect.anything(),
-        type: expect.any(String),
         view: 'default',
       })
     )
@@ -39,7 +38,6 @@ describe('RpcBDSEthereum', () => {
           fromUrl: expect.anything(),
           to: expect.anything(),
           toUrl: expect.anything(),
-          tokenType: expect.any(String),
         })
       )
     })

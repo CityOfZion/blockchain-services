@@ -6,7 +6,7 @@ export class BSNeoXConstants {
     symbol: 'GAS',
     name: 'GAS',
     decimals: 18,
-    hash: '0x',
+    hash: '-',
   }
 
   static readonly ANTI_MEV_RPC_LIST_BY_NETWORK_ID: Record<TBSNeoXNetworkId, string[]> = {

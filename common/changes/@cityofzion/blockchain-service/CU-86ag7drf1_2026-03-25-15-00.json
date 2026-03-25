@@ -1,0 +1,20 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Remove generic parameters from transaction types and data service interfaces",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Replace transaction type discriminator and event tokenType with a flexible data field and getTransactionData pattern",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Introduce IClaimService, IBSWithFaucet, and generic TokenService with validation methods",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

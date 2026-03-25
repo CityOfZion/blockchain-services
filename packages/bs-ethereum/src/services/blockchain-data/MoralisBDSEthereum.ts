@@ -11,6 +11,7 @@ import {
   type TGetTransactionsByAddressResponse,
   type TGetTransactionsByAddressParams,
   type TTransactionDefault,
+  type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
@@ -142,13 +143,13 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     return token
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransaction(hash)
     }
 
     const { data } = await this.#api.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
-    const events: TTransactionDefault<N>['events'] = []
+    const events: TTransactionDefaultEvent[] = []
 
     if (data.value && Number(data.value) > 0) {
       const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
@@ -165,7 +166,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         fromUrl,
         to: data.to_address,
         toUrl,
-        tokenType: 'native',
         tokenUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
         token: nativeToken,
       })
@@ -199,7 +199,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
             fromUrl,
             to,
             toUrl,
-            tokenType: 'erc-20',
             tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
             token,
           })
@@ -220,7 +219,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           fromUrl,
           to,
           toUrl,
-          tokenType: 'erc-721',
           nft,
         })
       })
@@ -236,7 +234,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.transaction_fee), {
         decimals: this._service.feeToken.decimals,
       }),
-      type: 'default',
       view: 'default',
       events,
     }
@@ -244,7 +241,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransactionsByAddress(params)
     }
@@ -256,11 +253,11 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       },
     })
 
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault[] = []
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
 
     const promises = data.result.map(async (item, index) => {
-      const events: TTransactionDefault<N>['events'] = []
+      const events: TTransactionDefaultEvent[] = []
 
       item.native_transfers.forEach(transfer => {
         const fromUrl = this._service.explorerService.buildAddressUrl(transfer.from_address)
@@ -276,7 +273,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           fromUrl,
           to: transfer.to_address,
           toUrl,
-          tokenType: 'native',
           tokenUrl: this._service.explorerService.buildContractUrl(nativeAsset.hash),
           token: nativeAsset,
         })
@@ -306,7 +302,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           fromUrl,
           to: transfer.to_address,
           toUrl,
-          tokenType: 'erc-20',
           tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
           token,
         })
@@ -329,7 +324,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
           fromUrl,
           to: transfer.to_address,
           toUrl,
-          tokenType: 'erc-721',
           nft,
         })
       })
@@ -344,7 +338,6 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(item.transaction_fee), {
           decimals: this._service.feeToken.decimals,
         }),
-        type: 'default',
         view: 'default',
         events,
       })

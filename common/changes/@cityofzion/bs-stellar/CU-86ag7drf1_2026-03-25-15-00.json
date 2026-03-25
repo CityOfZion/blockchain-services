@@ -1,0 +1,20 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Extract TrustlineServiceStellar from BSStellar with trustline management methods",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Add faucet support and prefix internal methods with underscore",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Enhance HorizonBDSStellar with generic event handling",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-stellar"
+}

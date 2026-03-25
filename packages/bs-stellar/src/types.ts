@@ -8,8 +8,11 @@ import type {
   TBSAccount,
   TBSBigNumber,
   TBSToken,
+  IBSWithFaucet,
 } from '@cityofzion/blockchain-service'
 import type { Horizon, rpc, Transaction } from '@stellar/stellar-sdk'
+import * as stellarSDK from '@stellar/stellar-sdk'
+import type { TrustlineServiceStellar } from './services/trustline/TrustlineServiceStellar'
 
 export type TBSStellarNetworkId = TBSNetworkId<'pubnet' | 'testnet'>
 
@@ -21,11 +24,40 @@ export interface IBSStellar
     IBSWithFee<TBSStellarName>,
     IBSWithExplorer,
     IBSWithLedger<TBSStellarName>,
-    IBSWithWalletConnect<TBSStellarName> {
-  sorobanServer: rpc.Server
-  horizonServer: Horizon.Server
+    IBSWithWalletConnect<TBSStellarName>,
+    IBSWithFaucet {
+  trustlineService: TrustlineServiceStellar
 
-  signTransaction(transaction: Transaction, senderAccount: TBSAccount<TBSStellarName>): Promise<Transaction>
-  getFeeEstimate(length: number): Promise<TBSBigNumber>
-  createTrustline(senderAccount: TBSAccount<TBSStellarName>, token: TBSToken): Promise<string>
+  _sorobanServer: rpc.Server
+  _horizonServer: Horizon.Server
+
+  _signTransaction(transaction: Transaction, senderAccount: TBSAccount<TBSStellarName>): Promise<Transaction>
+  _getFeeEstimate(length: number): Promise<TBSBigNumber>
+  _ensureAccountOnChain(address: string): Promise<stellarSDK.Account>
+}
+
+export type TTrustlineServiceStellarChangeTrustlineParams = {
+  senderAccount: TBSAccount<TBSStellarName>
+  token: TBSToken
+  limit?: string
+}
+
+export type TTrustlineServiceStellarHasTrustlineParams = {
+  address: string
+  token: TBSToken
+}
+
+export type TTrustlineServiceStellarGetTrustlinesResponse = {
+  token: TBSToken
+  limit: string
+}
+
+export type TTTrustlineServiceStellarGetAllTokensParams = {
+  code: string
+}
+
+export type TBSStellarFriendBotResponse = {
+  successful: boolean
+  hash: string
+  envelope_xdr: string
 }

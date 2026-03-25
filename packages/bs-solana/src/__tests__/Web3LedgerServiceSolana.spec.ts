@@ -54,7 +54,7 @@ describe.skip('NeonDappKitLedgerServiceNeo3', () => {
     const account = await ledgerService.getAccount(transport, 0)
     const source = solanaKit.createNoopSigner(solanaKit.address(account.address))
 
-    const { value: latestBlockhash } = await bsSolana.solanaKitRpc.getLatestBlockhash().send()
+    const { value: latestBlockhash } = await bsSolana._solanaKitRpc.getLatestBlockhash().send()
 
     const transactionMessage = solanaKit.pipe(
       solanaKit.createTransactionMessage({ version: 0 }),

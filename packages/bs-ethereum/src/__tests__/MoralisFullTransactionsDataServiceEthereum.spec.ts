@@ -2,7 +2,7 @@ import {
   BSUtilsHelper,
   type TBSNetworkId,
   type TGetFullTransactionsByAddressParams,
-  type TTransactionNftEvent,
+  type TTransactionDefaultNftEvent,
 } from '@cityofzion/blockchain-service'
 import { isLeapYear } from 'date-fns'
 import { BSEthereum } from '../BSEthereum'
@@ -10,7 +10,7 @@ import { MoralisFullTransactionsDataServiceEthereum } from '../services/full-tra
 import type { TBSEthereumName, TBSEthereumNetworkId } from '../types'
 
 const address = '0xd1d6634415be11a54664298373c57c131aa828d5'
-const polygonAddress = '0xbCc845dcfF7005c0ca7BD11eA8b5049a384a9f94'
+const polygonAddress = '0x54ea1b43097a68c0435bbcb9f222dd300bc4d2f5'
 const baseAddress = '0x4088e9E4d61B8F575aB7518fe46D741980017daA'
 const arbitrumAddress = '0x0b07f64ABc342B68AEc57c0936E4B6fD4452967E'
 
@@ -23,7 +23,6 @@ const expectedResponse = {
       block: expect.any(Number),
       date: expect.any(String),
       networkFeeAmount: expect.anything(),
-      type: expect.any(String),
       view: 'default',
       events: expect.arrayContaining([
         expect.objectContaining({
@@ -34,7 +33,6 @@ const expectedResponse = {
           fromUrl: expect.anything(),
           to: expect.anything(),
           toUrl: expect.anything(),
-          tokenType: expect.any(String),
         }),
       ]),
     }),
@@ -62,7 +60,7 @@ vi.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
   return { GhostMarketNDSEthereum }
 })
 
-describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
+describe('MoralisFullTransactionsDataServiceEthereum', () => {
   beforeEach(async () => {
     dateFrom = new Date()
     dateTo = new Date()
@@ -76,7 +74,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
     const service = new BSEthereum<TBSEthereumName, TBSEthereumNetworkId>('ethereum')
     moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
-    await BSUtilsHelper.wait(3000)
+    await BSUtilsHelper.wait(5000)
   })
 
   describe('getFullTransactionsByAddress', () => {
@@ -204,8 +202,8 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
 
       const response = await moralisFullTransactionsDataServiceEthereum.getFullTransactionsByAddress({
         ...params,
-        dateFrom: new Date('2024-04-26T12:00:00').toJSON(),
-        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        dateFrom: new Date('2026-02-25T12:00:00').toJSON(),
+        dateTo: new Date('2026-03-25T12:00:00').toJSON(),
         address: polygonAddress,
       })
 
@@ -264,8 +262,8 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
 
       const newParams = {
         ...params,
-        dateFrom: new Date('2025-02-25T12:00:00').toJSON(),
-        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        dateFrom: new Date('2025-10-25T12:00:00').toJSON(),
+        dateTo: new Date('2026-03-25T12:00:00').toJSON(),
         address: polygonAddress,
       }
 
@@ -340,7 +338,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
 
       const nftEvents = response.transactions
         .flatMap(({ events }) => events)
-        .filter(({ eventType }) => eventType === 'nft') as TTransactionNftEvent[]
+        .filter(({ eventType }) => eventType === 'nft') as TTransactionDefaultNftEvent[]
 
       expect(nftEvents).toEqual(
         expect.arrayContaining([
@@ -348,11 +346,10 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
             eventType: 'nft',
             methodName: expect.any(String),
             amount: '1',
-            from: expect.anything(),
-            fromUrl: expect.anything(),
-            to: expect.anything(),
-            toUrl: expect.anything(),
-            tokenType: expect.any(String),
+            from: expect.toBeOneOf([expect.any(String), undefined]),
+            fromUrl: expect.toBeOneOf([expect.any(String), undefined]),
+            to: expect.toBeOneOf([expect.any(String), undefined]),
+            toUrl: expect.toBeOneOf([expect.any(String), undefined]),
             nft: expect.anything(),
           }),
         ])
@@ -376,8 +373,8 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
-        dateFrom: new Date('2025-02-25T12:00:00').toJSON(),
-        dateTo: new Date('2025-04-25T12:00:00').toJSON(),
+        dateFrom: new Date('2026-02-25T12:00:00').toJSON(),
+        dateTo: new Date('2026-03-25T12:00:00').toJSON(),
         address: polygonAddress,
       })
 
@@ -389,7 +386,7 @@ describe.skip('MoralisFullTransactionsDataServiceEthereum', () => {
       moralisFullTransactionsDataServiceEthereum = new MoralisFullTransactionsDataServiceEthereum(service)
 
       const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
-        dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
+        dateFrom: new Date('2025-01-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
         address: baseAddress,
       })

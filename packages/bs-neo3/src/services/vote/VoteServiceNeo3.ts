@@ -1,14 +1,21 @@
-import { BSBigNumberHelper, BSCommonConstants, TTransactionDefault } from '@cityofzion/blockchain-service'
+import {
+  BSBigNumberHelper,
+  BSCommonConstants,
+  TTransactionDefault,
+  type TTransaction,
+  type TTransactionDefaultEvent,
+  type TTransactionDefaultGenericEvent,
+} from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import type {
   IBSNeo3,
   IVoteService,
-  TBSNeo3Name,
   TDoraVoteServiceNeo3GetCommitteeApiResponse,
   TDoraVoteServiceNeo3GetVoteCIMParams,
   TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse,
   TVoteServiceCandidate,
   TVoteServiceDetailsByAddressResponse,
+  TVoteServiceNeo3TransactionData,
   TVoteServiceVoteParams,
 } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
@@ -18,7 +25,7 @@ import {
 } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 
-export class DoraVoteServiceNeo3 implements IVoteService {
+export class VoteServiceNeo3 implements IVoteService {
   readonly _service: IBSNeo3
 
   #apiInstance?: AxiosInstance
@@ -32,6 +39,54 @@ export class DoraVoteServiceNeo3 implements IVoteService {
       this.#apiInstance = axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/neo3` })
     }
     return this.#apiInstance
+  }
+
+  #buildVoteInvocation({ address, candidatePubKey }: TDoraVoteServiceNeo3GetVoteCIMParams): ContractInvocationMulti {
+    const { tx } = BSNeo3NeonJsSingletonHelper.getInstance()
+
+    return {
+      invocations: [
+        {
+          scriptHash: BSNeo3Constants.NEO_TOKEN.hash,
+          operation: 'vote',
+          args: [
+            { type: 'Hash160', value: address },
+            { type: 'PublicKey', value: candidatePubKey },
+          ],
+        },
+      ],
+      signers: [{ scopes: tx.WitnessScope.CalledByEntry }],
+    }
+  }
+
+  _buildTransactionEvent(address: string, candidate: string): TTransactionDefaultGenericEvent {
+    return {
+      eventType: 'generic',
+      methodName: 'vote',
+      from: address,
+      fromUrl: this._service.explorerService.buildAddressUrl(address),
+      amount: '1',
+      data: { candidate, token: BSNeo3Constants.NEO_TOKEN.symbol },
+    }
+  }
+
+  _getTransactionDataFromEvents(events: TTransactionDefaultEvent[]): TVoteServiceNeo3TransactionData | undefined {
+    if (!events?.length) return
+
+    const hasVoteEvent = events.some(
+      event =>
+        event.eventType === 'generic' &&
+        event.methodName === 'vote' &&
+        event.data?.token === BSNeo3Constants.NEO_TOKEN.symbol
+    )
+
+    if (!hasVoteEvent) return
+
+    return { isVote: true }
+  }
+
+  getTransactionData(transaction: TTransaction): TVoteServiceNeo3TransactionData | undefined {
+    return transaction.data?.isVote === true ? transaction.data : undefined
   }
 
   async getCandidatesToVote(): Promise<TVoteServiceCandidate[]> {
@@ -75,11 +130,11 @@ export class DoraVoteServiceNeo3 implements IVoteService {
     }
   }
 
-  async vote({ account, candidatePubKey }: TVoteServiceVoteParams): Promise<TTransactionDefault<TBSNeo3Name>> {
+  async vote({ account, candidatePubKey }: TVoteServiceVoteParams): Promise<TTransactionDefault> {
     if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
     if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
 
-    const { neonJsAccount, signingCallback } = await this._service.generateSigningCallback(account)
+    const { neonJsAccount, signingCallback } = await this._service._generateSigningCallback(account)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
     const invoker = await NeonInvoker.init({
@@ -88,16 +143,18 @@ export class DoraVoteServiceNeo3 implements IVoteService {
       signingCallback,
     })
 
-    const cim = this.#getVoteCIM({
-      address: account.address,
-      candidatePubKey,
-    })
+    // Since we are interacting with Neo, the chain will automatically claim GAS for the user
+    const claimEvent = await this._service.claimService._buildTransactionEvent(account.address)
 
-    const fees = await invoker.calculateFee(cim)
-    const invocationCount = cim.invocations.length
-    const txId = await invoker.invokeFunction(cim)
-    const token = BSNeo3Constants.NEO_TOKEN
+    const voteEvent = this._buildTransactionEvent(account.address, candidatePubKey)
+
+    const invocationMulti = this.#buildVoteInvocation({ address: account.address, candidatePubKey })
+    const fees = await invoker.calculateFee(invocationMulti)
+    const txId = await invoker.invokeFunction(invocationMulti)
+
     const feeDecimals = this._service.feeToken.decimals
+    const invocationCount = invocationMulti.invocations.length
+    const data = { isVote: true } as TVoteServiceNeo3TransactionData
 
     return {
       txId,
@@ -106,18 +163,9 @@ export class DoraVoteServiceNeo3 implements IVoteService {
       invocationCount,
       networkFeeAmount: BSBigNumberHelper.format(fees.networkFee, { decimals: feeDecimals }),
       systemFeeAmount: BSBigNumberHelper.format(fees.systemFee, { decimals: feeDecimals }),
-      type: 'vote',
       view: 'default',
-      events: [
-        {
-          eventType: 'token',
-          amount: '0',
-          methodName: 'vote',
-          tokenType: 'nep-17',
-          tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
-          token,
-        },
-      ],
+      events: [claimEvent, voteEvent],
+      data,
     }
   }
 
@@ -125,7 +173,7 @@ export class DoraVoteServiceNeo3 implements IVoteService {
     if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
     if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
 
-    const { neonJsAccount } = await this._service.generateSigningCallback(account)
+    const { neonJsAccount } = await this._service._generateSigningCallback(account)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
     const invoker = await NeonInvoker.init({
@@ -133,31 +181,10 @@ export class DoraVoteServiceNeo3 implements IVoteService {
       account: neonJsAccount,
     })
 
-    const cim = this.#getVoteCIM({
-      address: account.address,
-      candidatePubKey,
-    })
+    const cim = this.#buildVoteInvocation({ address: account.address, candidatePubKey })
 
     const { total } = await invoker.calculateFee(cim)
 
     return BSBigNumberHelper.format(total, { decimals: this._service.feeToken.decimals })
-  }
-
-  #getVoteCIM({ address, candidatePubKey }: TDoraVoteServiceNeo3GetVoteCIMParams): ContractInvocationMulti {
-    const { tx } = BSNeo3NeonJsSingletonHelper.getInstance()
-
-    return {
-      invocations: [
-        {
-          scriptHash: 'ef4073a0f2b305a38ec4050e4d3d28bc40ea63f5',
-          operation: 'vote',
-          args: [
-            { type: 'Hash160', value: address },
-            { type: 'PublicKey', value: candidatePubKey },
-          ],
-        },
-      ],
-      signers: [{ scopes: tx.WitnessScope.CalledByEntry }],
-    }
   }
 }

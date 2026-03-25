@@ -26,26 +26,34 @@ describe('RpcBDSNeo3', () => {
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
         systemFeeAmount: expect.anything(),
-        type: expect.any(String),
         view: 'default',
         events: expect.arrayContaining([
-          expect.objectContaining({
-            eventType: expect.any(String),
-            amount: expect.anything(),
-            methodName: expect.any(String),
-            from: expect.anything(),
-            fromUrl: expect.anything(),
-            to: expect.anything(),
-            toUrl: expect.anything(),
-            tokenType: expect.any(String),
-            tokenUrl: expect.any(String),
-            token: expect.objectContaining({
-              decimals: expect.any(Number),
-              symbol: expect.any(String),
-              name: expect.any(String),
-              hash: expect.any(String),
+          expect.toBeOneOf([
+            expect.objectContaining({
+              eventType: expect.any(String),
+              amount: expect.anything(),
+              methodName: 'transfer',
+              from: expect.anything(),
+              fromUrl: expect.anything(),
+              to: expect.anything(),
+              toUrl: expect.anything(),
+              tokenUrl: expect.any(String),
+              token: expect.objectContaining({
+                decimals: expect.any(Number),
+                symbol: expect.any(String),
+                name: expect.any(String),
+                hash: expect.any(String),
+              }),
             }),
-          }),
+            expect.objectContaining({
+              amount: expect.any(String),
+              data: { candidate: expect.any(String), token: BSNeo3Constants.NEO_TOKEN.symbol },
+              eventType: 'generic',
+              from: expect.any(String),
+              fromUrl: expect.any(String),
+              methodName: 'vote',
+            }),
+          ]),
         ]),
       })
     )
