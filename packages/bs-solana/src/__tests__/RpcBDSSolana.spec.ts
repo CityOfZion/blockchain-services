@@ -26,7 +26,6 @@ describe('RpcBDSSolana', () => {
         block: expect.any(Number),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
-        type: expect.any(String),
         view: 'default',
       })
     )
@@ -42,7 +41,6 @@ describe('RpcBDSSolana', () => {
           fromUrl: expect.anything(),
           to: expect.anything(),
           toUrl: expect.anything(),
-          tokenType: expect.any(String),
           tokenUrl: expect.any(String),
           token: expect.objectContaining({
             decimals: expect.any(Number),
@@ -69,7 +67,6 @@ describe('RpcBDSSolana', () => {
           block: expect.any(Number),
           date: expect.any(String),
           networkFeeAmount: expect.anything(),
-          type: expect.any(String),
           view: 'default',
         })
       )
@@ -84,7 +81,6 @@ describe('RpcBDSSolana', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            tokenType: expect.any(String),
             tokenUrl: expect.any(String),
             token: expect.objectContaining({
               decimals: expect.any(Number),

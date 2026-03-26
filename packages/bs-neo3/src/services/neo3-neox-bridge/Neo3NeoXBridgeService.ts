@@ -7,10 +7,18 @@ import {
   TNeo3NeoXBridgeServiceConstants,
   TNeo3NeoXBridgeServiceGetNonceParams,
   TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams,
+  type TNeo3NeoXBridgeTransactionData,
+  type TTransaction,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import axios from 'axios'
-import type { IBSNeo3, TBSNeo3Name, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
+import type {
+  IBSNeo3,
+  TBSNeo3Name,
+  TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse,
+  TRpcBDSNeo3Notification,
+  TRpcBDSNeo3NotificationState,
+} from '../../types'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import { LogResponse, type Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 import {
@@ -19,6 +27,7 @@ import {
   Signer,
 } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 import type { StateResponse, TypedResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
+import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 
 export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name> {
   static readonly BRIDGE_SCRIPT_HASH: string = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
@@ -33,6 +42,51 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
 
     this.gasToken = { ...BSNeo3Constants.GAS_TOKEN, blockchain: service.name, multichainId: 'gas' }
     this.neoToken = { ...BSNeo3Constants.NEO_TOKEN, blockchain: service.name, multichainId: 'neo' }
+  }
+
+  _getDataFromNotifications(
+    notifications: TRpcBDSNeo3Notification[]
+  ): TNeo3NeoXBridgeTransactionData<TBSNeo3Name> | undefined {
+    const gasNotification = notifications.find(({ eventname }) => eventname === 'NativeDeposit')
+    const isNativeToken = !!gasNotification
+
+    const neoNotification = !isNativeToken
+      ? notifications.find(({ eventname }) => eventname === 'TokenDeposit')
+      : undefined
+
+    const notification = isNativeToken ? gasNotification : neoNotification
+    const notificationStateValue = (notification?.state as TRpcBDSNeo3NotificationState)
+      ?.value as TRpcBDSNeo3NotificationState[]
+
+    if (!notificationStateValue) return undefined
+
+    let tokenToUse: TBridgeToken<TBSNeo3Name> | undefined
+    let amountInDecimals: string | undefined
+    let byteStringReceiverAddress: string | undefined
+
+    if (isNativeToken) {
+      tokenToUse = this.gasToken
+      amountInDecimals = notificationStateValue[2]?.value as string
+      byteStringReceiverAddress = notificationStateValue[1]?.value as string
+    } else {
+      tokenToUse = this.neoToken
+      amountInDecimals = notificationStateValue[4]?.value as string
+      byteStringReceiverAddress = notificationStateValue[3]?.value as string
+    }
+
+    if (!tokenToUse || !amountInDecimals || !byteStringReceiverAddress) return undefined
+
+    const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
+
+    return {
+      neo3NeoxBridge: {
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals), {
+          decimals: tokenToUse.decimals,
+        }),
+        tokenToUse,
+        receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
+      },
+    }
   }
 
   async getApprovalFee(): Promise<string> {
@@ -114,7 +168,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
 
     const { account } = params
 
-    const { neonJsAccount, signingCallback } = await this.#service.generateSigningCallback(account)
+    const { neonJsAccount, signingCallback } = await this.#service._generateSigningCallback(account)
 
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
@@ -244,5 +298,9 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
   getTokenByMultichainId(multichainId: string): TBridgeToken<TBSNeo3Name> | undefined {
     const tokens = [this.gasToken, this.neoToken]
     return tokens.find(token => token.multichainId === multichainId)
+  }
+
+  getTransactionData(transaction: TTransaction): TNeo3NeoXBridgeTransactionData<TBSNeo3Name> | undefined {
+    return transaction.data?.neo3NeoxBridge ? transaction.data : undefined
   }
 }

@@ -602,7 +602,6 @@ describe('BSBitcoin', () => {
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         totalAmount: expect.any(String),
-        type: 'default',
         view: 'utxo',
         nfts: [],
         inputs: expect.arrayContaining([
@@ -666,7 +665,6 @@ describe('BSBitcoin', () => {
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         totalAmount: expect.any(String),
-        type: 'default',
         view: 'utxo',
         nfts: [],
         inputs: expect.arrayContaining([
@@ -738,7 +736,6 @@ describe('BSBitcoin', () => {
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         totalAmount: expect.any(String),
-        type: 'default',
         view: 'utxo',
         nfts: [],
         inputs: expect.arrayContaining([
@@ -808,7 +805,6 @@ describe('BSBitcoin', () => {
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         totalAmount: expect.any(String),
-        type: 'default',
         view: 'utxo',
         nfts: [],
         inputs: expect.arrayContaining([

@@ -42,4 +42,6 @@ export class BSStellarConstants {
     pubnet: 'https://horizon.stellar.org',
     testnet: 'https://horizon-testnet.stellar.org',
   }
+
+  static readonly INVALID_TRANSACTION_STATUS: stellarSDK.rpc.Api.SendTransactionStatus[] = ['ERROR', 'DUPLICATE']
 }

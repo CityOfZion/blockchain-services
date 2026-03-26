@@ -30,9 +30,9 @@ export interface IBSSolana
     IBSWithNft,
     IBSWithExplorer,
     IBSWithWalletConnect<TBSSolanaName> {
-  solanaKitRpc: Rpc<SolanaRpcApi>
+  _solanaKitRpc: Rpc<SolanaRpcApi>
 
-  signTransaction(
+  _signTransaction(
     transaction: Transaction,
     senderAccount: TBSAccount<TBSSolanaName>
   ): Promise<Base64EncodedWireTransaction>

@@ -13,16 +13,13 @@ import {
   type TBridgeValue,
   type TSwapOrchestratorEvents,
   type INeo3NeoXBridgeService,
+  type TBSBridgeName,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX } from '@cityofzion/bs-neox'
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
-import type {
-  TBSBridgeName,
-  TNeo3NeoXBridgeOrchestratorInitParams,
-  TNeo3NeoXBridgeOrchestratorWaitParams,
-} from './types'
+import type { TNeo3NeoXBridgeOrchestratorInitParams, TNeo3NeoXBridgeOrchestratorWaitParams } from './types'
 
 export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridgeName> {
   eventEmitter: TypedEmitter<TBridgeOrchestratorEvents<TBSBridgeName>>

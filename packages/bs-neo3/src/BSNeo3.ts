@@ -3,10 +3,8 @@ import {
   BSKeychainHelper,
   BSUtilsHelper,
   type IBlockchainDataService,
-  type IClaimDataService,
   type IExchangeDataService,
   type IExplorerService,
-  type INeo3NeoXBridgeService,
   type INftDataService,
   type ITokenService,
   type IWalletConnectService,
@@ -19,6 +17,9 @@ import {
   type IFullTransactionsDataService,
   type TTransactionDefault,
   BSError,
+  type TClaimServiceTransactionData,
+  type TTransactionDefaultTokenEvent,
+  type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
@@ -28,15 +29,15 @@ import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedge
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
 import { BSNeo3Constants } from './constants/BSNeo3Constants'
 import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
-import { DoraVoteServiceNeo3 } from './services/vote/DoraVoteServiceNeo3'
-import type { IBSNeo3, IVoteService, TBSNeo3Name, TBSNeo3NetworkId } from './types'
+import { VoteServiceNeo3 } from './services/vote/VoteServiceNeo3'
+import type { IBSNeo3, TBSNeo3Name, TBSNeo3NetworkId } from './types'
 import { TokenServiceNeo3 } from './services/token/TokenServiceNeo3'
-import { RpcCDSNeo3 } from './services/chaim-data/RpcCDSNeo3'
 import { api, BSNeo3NeonJsSingletonHelper, wallet } from './helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper, ContractInvocation } from './helpers/BSNeo3NeonDappKitSingletonHelper'
 import axios from 'axios'
 import { WalletConnectServiceNeo3 } from './services/wallet-connect/WalletConnectServiceNeo3'
 import { DoraFullTransactionsDataServiceNeo3 } from './services/full-transactions-data/DoraFullTransactionsDataServiceNeo3'
+import { ClaimServiceNeo3 } from './services/claim/ClaimServiceNeo3'
 
 export class BSNeo3 implements IBSNeo3 {
   readonly name = 'neo3'
@@ -48,25 +49,23 @@ export class BSNeo3 implements IBSNeo3 {
 
   readonly nativeTokens!: TBSToken[]
   readonly feeToken!: TBSToken
-  readonly claimToken!: TBSToken
-  readonly burnToken!: TBSToken
 
   network!: TBSNetwork<TBSNeo3NetworkId>
   networkUrls!: string[]
   readonly defaultNetwork: TBSNetwork<TBSNeo3NetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeo3NetworkId>[]
 
-  blockchainDataService!: IBlockchainDataService<TBSNeo3Name>
+  blockchainDataService!: IBlockchainDataService
   nftDataService!: INftDataService
   ledgerService!: NeonDappKitLedgerServiceNeo3
   exchangeDataService!: IExchangeDataService
   explorerService!: IExplorerService
-  voteService!: IVoteService
-  neo3NeoXBridgeService!: INeo3NeoXBridgeService<TBSNeo3Name>
+  voteService!: VoteServiceNeo3
+  neo3NeoXBridgeService!: Neo3NeoXBridgeService
   tokenService!: ITokenService
-  claimDataService!: IClaimDataService
+  claimService!: ClaimServiceNeo3
   walletConnectService!: IWalletConnectService<TBSNeo3Name>
-  fullTransactionsDataService!: IFullTransactionsDataService<TBSNeo3Name>
+  fullTransactionsDataService!: IFullTransactionsDataService
 
   constructor(network?: TBSNetwork<TBSNeo3NetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeo3Name>) {
     this.ledgerService = new NeonDappKitLedgerServiceNeo3(this, getLedgerTransport)
@@ -74,8 +73,6 @@ export class BSNeo3 implements IBSNeo3 {
 
     this.nativeTokens = BSNeo3Constants.NATIVE_ASSETS
     this.feeToken = BSNeo3Constants.GAS_TOKEN
-    this.burnToken = BSNeo3Constants.NEO_TOKEN
-    this.claimToken = BSNeo3Constants.GAS_TOKEN
 
     this.availableNetworks = BSNeo3Constants.ALL_NETWORKS
     this.defaultNetwork = BSNeo3Constants.MAINNET_NETWORK
@@ -114,13 +111,6 @@ export class BSNeo3 implements IBSNeo3 {
     return invocations
   }
 
-  #buildClaimParams(senderAccount: TBSAccount<TBSNeo3Name>): TTransferParams<TBSNeo3Name> {
-    return {
-      senderAccount,
-      intents: [{ amount: '0', receiverAddress: senderAccount.address, token: this.burnToken }],
-    }
-  }
-
   setNetwork(network: TBSNetwork<TBSNeo3NetworkId>) {
     const networkUrls = BSNeo3Constants.RPC_LIST_BY_NETWORK_ID[network.id] || []
 
@@ -141,14 +131,14 @@ export class BSNeo3 implements IBSNeo3 {
     this.network = network
     this.networkUrls = networkUrls
 
-    this.tokenService = new TokenServiceNeo3()
+    this.tokenService = new TokenServiceNeo3(this)
     this.nftDataService = new GhostMarketNDSNeo3(this)
     this.explorerService = new DoraESNeo3(this)
-    this.voteService = new DoraVoteServiceNeo3(this)
+    this.voteService = new VoteServiceNeo3(this)
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
     this.blockchainDataService = new DoraBDSNeo3(this)
     this.exchangeDataService = new FlamingoForthewinEDSNeo3(this)
-    this.claimDataService = new RpcCDSNeo3(this)
+    this.claimService = new ClaimServiceNeo3(this)
     this.walletConnectService = new WalletConnectServiceNeo3(this)
     this.fullTransactionsDataService = new DoraFullTransactionsDataServiceNeo3(this)
   }
@@ -184,7 +174,7 @@ export class BSNeo3 implements IBSNeo3 {
     }
   }
 
-  async generateSigningCallback(account: TBSAccount<TBSNeo3Name>): Promise<{
+  async _generateSigningCallback(account: TBSAccount<TBSNeo3Name>): Promise<{
     neonJsAccount: wallet.Account
     signingCallback: api.SigningFunction
   }> {
@@ -288,7 +278,7 @@ export class BSNeo3 implements IBSNeo3 {
   }
 
   async calculateTransferFee(params: TTransferParams<TBSNeo3Name>): Promise<string> {
-    const { neonJsAccount } = await this.generateSigningCallback(params.senderAccount)
+    const { neonJsAccount } = await this._generateSigningCallback(params.senderAccount)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
     const invoker = await NeonInvoker.init({
@@ -306,23 +296,50 @@ export class BSNeo3 implements IBSNeo3 {
     return total.toString()
   }
 
-  async transfer(params: TTransferParams<TBSNeo3Name>): Promise<TTransactionDefault<TBSNeo3Name>[]> {
+  async transfer(params: TTransferParams<TBSNeo3Name>): Promise<TTransactionDefault[]> {
     const { senderAccount } = params
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
+    const { neonJsAccount, signingCallback } = await this._generateSigningCallback(senderAccount)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
+
+    // Verify if the transfer includes any NEO token, if so the chain will automatically claim the GAS for the sender
+    let data: any | undefined
+    let claimEvent: TTransactionDefaultTokenEvent | undefined = undefined
+
+    if (
+      params.intents.some(intent => this.tokenService.predicateByHash(intent.token.hash, BSNeo3Constants.NEO_TOKEN))
+    ) {
+      claimEvent = await this.claimService._buildTransactionEvent(senderAccount.address)
+      data = { isClaim: true } as TClaimServiceTransactionData
+    }
+
+    const { address } = senderAccount
+
+    const invocations = await this.#buildTransferInvocation(params, neonJsAccount)
+    const invocationMulti = { invocations, signers: [] }
 
     const invoker = await NeonInvoker.init({
       rpcAddress: this.network.url,
       account: neonJsAccount,
       signingCallback: signingCallback,
     })
+    const fees = await invoker.calculateFee(invocationMulti)
+    const txId = await invoker.invokeFunction(invocationMulti)
 
-    const invocations = await this.#buildTransferInvocation(params, neonJsAccount)
-    const cim = { invocations, signers: [] }
-    const fees = await invoker.calculateFee(cim)
-    const txId = await invoker.invokeFunction(cim)
-    const { address } = senderAccount
-    const addressUrl = this.explorerService.buildAddressUrl(address)
+    const events: TTransactionDefaultEvent[] = params.intents.map(({ receiverAddress, amount, token }) => ({
+      eventType: 'token',
+      amount,
+      methodName: 'transfer',
+      from: address,
+      fromUrl: this.explorerService.buildAddressUrl(address),
+      to: receiverAddress,
+      toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+      tokenUrl: this.explorerService.buildContractUrl(token.hash),
+      token,
+    }))
+
+    if (claimEvent) {
+      events.unshift(claimEvent)
+    }
 
     return [
       {
@@ -332,38 +349,11 @@ export class BSNeo3 implements IBSNeo3 {
         invocationCount: invocations.length,
         networkFeeAmount: BSBigNumberHelper.format(fees.networkFee, { decimals: this.feeToken.decimals }),
         systemFeeAmount: BSBigNumberHelper.format(fees.systemFee, { decimals: this.feeToken.decimals }),
-        type: 'default',
         view: 'default',
-        events: params.intents.map(({ receiverAddress, amount, token }) => {
-          const tokenHash = token.hash
-
-          return {
-            eventType: 'token',
-            amount,
-            methodName: 'transfer',
-            from: address,
-            fromUrl: addressUrl,
-            to: receiverAddress,
-            toUrl: this.explorerService.buildAddressUrl(receiverAddress),
-            tokenType: 'nep-17',
-            tokenUrl: this.explorerService.buildContractUrl(tokenHash),
-            token,
-          }
-        }),
+        events,
+        data,
       },
     ]
-  }
-
-  async calculateClaimFee(senderAccount: TBSAccount<TBSNeo3Name>): Promise<string> {
-    return this.calculateTransferFee(this.#buildClaimParams(senderAccount))
-  }
-
-  async claim(senderAccount: TBSAccount<TBSNeo3Name>): Promise<TTransactionDefault<TBSNeo3Name>> {
-    const [transaction] = await this.transfer(this.#buildClaimParams(senderAccount))
-
-    transaction.type = 'claim'
-
-    return transaction
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {

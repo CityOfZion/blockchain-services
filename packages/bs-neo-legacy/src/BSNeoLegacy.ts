@@ -6,7 +6,6 @@ import {
   type TGetLedgerTransport,
   type ITokenService,
   type TBSNetwork,
-  type IClaimDataService,
   type IExchangeDataService,
   type IExplorerService,
   type TPingNetworkResponse,
@@ -14,7 +13,6 @@ import {
   type IBlockchainDataService,
   type IFullTransactionsDataService,
   type TTransactionDefault,
-  BSError,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
 import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
@@ -23,7 +21,7 @@ import { NeoTubeESNeoLegacy } from './services/explorer/NeoTubeESNeoLegacy'
 import { NeonJsLedgerServiceNeoLegacy } from './services/ledger/NeonJsLedgerServiceNeoLegacy'
 import { TokenServiceNeoLegacy } from './services/token/TokenServiceNeoLegacy'
 import type { IBSNeoLegacy, TBSNeoLegacyName, TBSNeoLegacyNetworkId, TSigningCallback } from './types'
-import { DoraCDSNeoLegacy } from './services/claim-data/DoraCDSNeoLegacy'
+import { ClaimServiceNeoLegacy } from './services/claim/ClaimServiceNeoLegacy'
 import { BSNeoLegacyNeonJsSingletonHelper } from './helpers/BSNeoLegacyNeonJsSingletonHelper'
 import axios from 'axios'
 import { DoraFullTransactionsDataServiceNeoLegacy } from './services/full-transactions-data/DoraFullTransactionsDataServiceNeoLegacy'
@@ -37,22 +35,20 @@ export class BSNeoLegacy implements IBSNeoLegacy {
   readonly tokens!: TBSToken[]
   readonly nativeTokens!: TBSToken[]
   readonly feeToken!: TBSToken
-  readonly claimToken!: TBSToken
-  readonly burnToken!: TBSToken
 
   network!: TBSNetwork<TBSNeoLegacyNetworkId>
   networkUrls!: string[]
-  legacyNetwork!: string
+  _legacyNetwork!: string
   readonly defaultNetwork: TBSNetwork<TBSNeoLegacyNetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeoLegacyNetworkId>[]
 
-  blockchainDataService!: IBlockchainDataService<TBSNeoLegacyName>
+  blockchainDataService!: IBlockchainDataService
   exchangeDataService!: IExchangeDataService
   ledgerService: NeonJsLedgerServiceNeoLegacy
   explorerService!: IExplorerService
   tokenService!: ITokenService
-  claimDataService!: IClaimDataService
-  fullTransactionsDataService!: IFullTransactionsDataService<TBSNeoLegacyName>
+  claimService!: ClaimServiceNeoLegacy
+  fullTransactionsDataService!: IFullTransactionsDataService
 
   constructor(network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeoLegacyName>) {
     this.ledgerService = new NeonJsLedgerServiceNeoLegacy(this, getLedgerTransport)
@@ -60,8 +56,6 @@ export class BSNeoLegacy implements IBSNeoLegacy {
 
     this.nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
     this.feeToken = BSNeoLegacyConstants.GAS_ASSET
-    this.burnToken = BSNeoLegacyConstants.NEO_ASSET
-    this.claimToken = BSNeoLegacyConstants.GAS_ASSET
     this.tokens = this.nativeTokens
 
     this.availableNetworks = BSNeoLegacyConstants.ALL_NETWORKS
@@ -70,7 +64,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  #hasTransactionMoreThanMaxSize(config: any) {
+  _hasTransactionMoreThanMaxSize(config: any) {
     if (!config.fees || config.fees < BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION) {
       const serializedTransaction = config.tx.serialize(true)
       const transactionSize = serializedTransaction.length / 2
@@ -83,7 +77,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     return false
   }
 
-  #getRequiredTransactionFeeConfig(config: any) {
+  _getRequiredTransactionFeeConfig(config: any) {
     config.fees = BSNeoLegacyConstants.FEE_APPLIED_TO_PLAYABLE_TRANSACTION
 
     const gasIntent = config.intents
@@ -95,30 +89,6 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     }
 
     return config
-  }
-
-  async #signClaim(config: any) {
-    const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-    config = await api.createClaimTx(config)
-    config = await api.addAttributeIfExecutingAsSmartContract(config)
-    config = await api.signTx(config)
-    config = await api.addSignatureIfExecutingAsSmartContract(config)
-
-    return config
-  }
-
-  async #sendClaim(config: any): Promise<string> {
-    const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-    const sharedConfig = await api.fillClaims(config)
-    let signedConfig = await this.#signClaim({ ...sharedConfig })
-
-    if (this.#hasTransactionMoreThanMaxSize(signedConfig)) {
-      signedConfig = await this.#signClaim(this.#getRequiredTransactionFeeConfig(sharedConfig))
-    }
-
-    signedConfig = await api.sendTx(signedConfig)
-
-    return signedConfig.response.txid
   }
 
   async #signTransfer(config: any, nep5ScriptBuilder?: any) {
@@ -138,14 +108,14 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     return config
   }
 
-  async sendTransfer(config: any, nep5ScriptBuilder?: any) {
+  async _sendTransfer(config: any, nep5ScriptBuilder?: any) {
     const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 
     const sharedConfig = await api.fillBalance(config)
     let signedConfig = await this.#signTransfer({ ...sharedConfig }, nep5ScriptBuilder)
 
-    if (this.#hasTransactionMoreThanMaxSize(signedConfig)) {
-      signedConfig = await this.#signTransfer(this.#getRequiredTransactionFeeConfig(sharedConfig), nep5ScriptBuilder)
+    if (this._hasTransactionMoreThanMaxSize(signedConfig)) {
+      signedConfig = await this.#signTransfer(this._getRequiredTransactionFeeConfig(sharedConfig), nep5ScriptBuilder)
     }
 
     signedConfig = await api.sendTx(signedConfig)
@@ -153,7 +123,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     return signedConfig.response.txid
   }
 
-  async generateSigningCallback(
+  async _generateSigningCallback(
     account: TBSAccount<TBSNeoLegacyName>
   ): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }> {
     const { wallet, api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
@@ -191,14 +161,14 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     }
 
     this.network = network
-    this.legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
+    this._legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
     this.networkUrls = networkUrls
 
-    this.tokenService = new TokenServiceNeoLegacy()
+    this.tokenService = new TokenServiceNeoLegacy(this)
     this.explorerService = new NeoTubeESNeoLegacy(this)
     this.blockchainDataService = new DoraBDSNeoLegacy(this)
     this.exchangeDataService = new CryptoCompareEDSNeoLegacy(this)
-    this.claimDataService = new DoraCDSNeoLegacy(this)
+    this.claimService = new ClaimServiceNeoLegacy()
     this.fullTransactionsDataService = new DoraFullTransactionsDataServiceNeoLegacy(this)
   }
 
@@ -297,11 +267,8 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     return wallet.encrypt(key, password)
   }
 
-  async transfer({
-    senderAccount,
-    intents,
-  }: TTransferParams<TBSNeoLegacyName>): Promise<TTransactionDefault<TBSNeoLegacyName>[]> {
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(senderAccount)
+  async transfer({ senderAccount, intents }: TTransferParams<TBSNeoLegacyName>): Promise<TTransactionDefault[]> {
+    const { neonJsAccount, signingCallback } = await this._generateSigningCallback(senderAccount)
     const { api, sc, u, wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     const apiProvider = new api.neoCli.instance(this.network.url)
     const nativeIntents: ReturnType<typeof api.makeIntent> = []
@@ -328,7 +295,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
       ])
     }
 
-    const txId = await this.sendTransfer(
+    const txId = await this._sendTransfer(
       {
         account: neonJsAccount,
         api: apiProvider,
@@ -347,7 +314,6 @@ export class BSNeoLegacy implements IBSNeoLegacy {
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),
-        type: 'default',
         view: 'default',
         events: intents.map(({ amount, receiverAddress, token }) => ({
           eventType: 'token',
@@ -357,50 +323,10 @@ export class BSNeoLegacy implements IBSNeoLegacy {
           fromUrl: addressUrl,
           to: receiverAddress,
           toUrl: this.explorerService.buildAddressUrl(receiverAddress),
-          tokenType: 'nep-5',
           tokenUrl: this.explorerService.buildContractUrl(token.hash),
           token,
         })),
       },
     ]
-  }
-
-  async calculateClaimFee(_account: TBSAccount<TBSNeoLegacyName>): Promise<string> {
-    throw new BSError('Method not supported', 'METHOD_NOT_SUPPORTED')
-  }
-
-  async claim(account: TBSAccount<TBSNeoLegacyName>): Promise<TTransactionDefault<TBSNeoLegacyName>> {
-    const { neonJsAccount, signingCallback } = await this.generateSigningCallback(account)
-    const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-    const apiProvider = new api.neoCli.instance(this.legacyNetwork)
-
-    const txId = await this.#sendClaim({
-      api: apiProvider,
-      account: neonJsAccount,
-      url: this.network.url,
-      signingFunction: signingCallback,
-    })
-
-    const { address } = account
-
-    return {
-      txId,
-      txIdUrl: this.explorerService.buildTransactionUrl(txId),
-      date: new Date().toJSON(),
-      type: 'claim',
-      view: 'default',
-      events: [
-        {
-          eventType: 'token',
-          amount: '0',
-          methodName: 'transfer',
-          to: address,
-          toUrl: this.explorerService.buildAddressUrl(address),
-          tokenType: 'nep-5',
-          tokenUrl: this.explorerService.buildContractUrl(this.claimToken.hash),
-          token: this.claimToken,
-        },
-      ],
-    }
   }
 }

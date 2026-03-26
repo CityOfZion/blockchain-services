@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Replace DoraCDSNeoLegacy with ClaimServiceNeoLegacy, moving claim logic out of BSNeoLegacy",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Prefix internal methods with underscore and make TokenServiceNeoLegacy generic",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

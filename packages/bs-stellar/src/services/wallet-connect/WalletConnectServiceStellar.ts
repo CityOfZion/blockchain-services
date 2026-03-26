@@ -45,7 +45,7 @@ export class WalletConnectServiceStellar implements IWalletConnectService<TBSSte
       BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.#service.network.id]
     )
 
-    const signedTransaction = await this.#service.signTransaction(transaction, args.account)
+    const signedTransaction = await this.#service._signTransaction(transaction, args.account)
 
     const signedXDR = signedTransaction.toXDR()
 
@@ -64,9 +64,9 @@ export class WalletConnectServiceStellar implements IWalletConnectService<TBSSte
       BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.#service.network.id]
     )
 
-    const signedTransaction = await this.#service.signTransaction(transaction, args.account)
+    const signedTransaction = await this.#service._signTransaction(transaction, args.account)
 
-    const response = await this.#service.sorobanServer.sendTransaction(signedTransaction)
+    const response = await this.#service._sorobanServer.sendTransaction(signedTransaction)
 
     return { status: response.status, hash: response.hash }
   }
@@ -135,7 +135,7 @@ export class WalletConnectServiceStellar implements IWalletConnectService<TBSSte
       BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.#service.network.id]
     )
 
-    const feeBn = await this.#service.getFeeEstimate(transaction.operations.length)
+    const feeBn = await this.#service._getFeeEstimate(transaction.operations.length)
 
     return BSBigNumberHelper.toNumber(feeBn, this.#service.feeToken.decimals)
   }

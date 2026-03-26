@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Prefix internal methods with underscore and make TokenServiceSolana generic",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Remove legacy tokenType and type fields from transaction outputs",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

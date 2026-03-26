@@ -99,7 +99,6 @@ describe('BSNeoLegacy', () => {
         txId: expect.any(String),
         txIdUrl: undefined,
         date: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -110,7 +109,6 @@ describe('BSNeoLegacy', () => {
             fromUrl: undefined,
             to: address,
             toUrl: undefined,
-            tokenType: 'nep-5',
             tokenUrl: undefined,
             token,
           },
@@ -136,7 +134,6 @@ describe('BSNeoLegacy', () => {
         txId: expect.any(String),
         txIdUrl: undefined,
         date: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -147,7 +144,6 @@ describe('BSNeoLegacy', () => {
             fromUrl: undefined,
             to: address,
             toUrl: undefined,
-            tokenType: 'nep-5',
             tokenUrl: undefined,
             token,
           },
@@ -194,7 +190,6 @@ describe('BSNeoLegacy', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -205,7 +200,6 @@ describe('BSNeoLegacy', () => {
             fromUrl: expect.any(String),
             to: firstAddress,
             toUrl: expect.any(String),
-            tokenType: 'nep-5',
             tokenUrl: expect.any(String),
             token: lxToken,
           },
@@ -217,7 +211,6 @@ describe('BSNeoLegacy', () => {
             fromUrl: expect.any(String),
             to: secondAddress,
             toUrl: expect.any(String),
-            tokenType: 'nep-5',
             tokenUrl: expect.any(String),
             token: lxToken,
           },
@@ -229,7 +222,6 @@ describe('BSNeoLegacy', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'nep-5',
             tokenUrl: expect.any(String),
             token: gasToken,
           },
@@ -258,7 +250,6 @@ describe('BSNeoLegacy', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -270,7 +261,6 @@ describe('BSNeoLegacy', () => {
             to: address,
             toUrl: expect.any(String),
             tokenUrl: expect.any(String),
-            tokenType: 'nep-5',
             token,
           },
         ],

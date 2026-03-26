@@ -8,15 +8,14 @@ import {
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId } from '../../types'
+import type { IBSNeoX, TBSNeoXNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 
-export class BlockscoutFullTransactionsDataService implements IFullTransactionsDataService<TBSNeoXName> {
+export class BlockscoutFullTransactionsDataService implements IFullTransactionsDataService {
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeoXNetworkId[] = ['47763', '12227332']
   static readonly ERC721_STANDARDS = ['erc721', 'erc-721']
   static readonly ERC1155_STANDARDS = ['erc1155', 'erc-1155']
-  static readonly ERC20_STANDARDS = ['erc20', 'erc-20']
 
   #service: IBSNeoX
 
@@ -27,9 +26,7 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<
-    TGetTransactionsByAddressResponse<TBSNeoXName, TTransactionDefault<TBSNeoXName>>
-  > {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: BlockscoutFullTransactionsDataService.SUPPORTED_NETWORKS_IDS,
@@ -45,14 +42,14 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
       pageLimit: params.pageSize ?? 50,
     })
 
-    const transactions: TTransactionDefault<TBSNeoXName>[] = []
+    const transactions: TTransactionDefault[] = []
     const items = response.data ?? []
 
     const itemPromises = items.map(async ({ networkFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      let newItem: TTransactionDefault<TBSNeoXName> = {
+      let newItem: TTransactionDefault = {
         txId,
         txIdUrl,
         block: item.block,
@@ -60,7 +57,6 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
         networkFeeAmount: networkFeeAmount
           ? BSBigNumberHelper.format(networkFeeAmount, { decimals: BSNeoXConstants.NATIVE_ASSET.decimals })
           : undefined,
-        type: 'default',
         view: 'default',
         events: [],
       }
@@ -71,7 +67,6 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isErc1155 = BlockscoutFullTransactionsDataService.ERC1155_STANDARDS.includes(standard)
         const isErc721 = BlockscoutFullTransactionsDataService.ERC721_STANDARDS.includes(standard)
-        const isErc20 = BlockscoutFullTransactionsDataService.ERC20_STANDARDS.includes(standard)
         const isNft = (isErc1155 || isErc721) && !!tokenHash
 
         const from = event.from ?? undefined
@@ -93,7 +88,6 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
             fromUrl,
             to,
             toUrl,
-            tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
             nft,
           })
 
@@ -114,7 +108,6 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
           fromUrl,
           to,
           toUrl,
-          tokenType: isErc20 ? 'erc-20' : 'generic',
           tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         })
@@ -130,11 +123,12 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
 
           newItem = {
             ...newItem,
-            type: 'bridgeNeo3NeoX',
             data: {
-              amount: BSBigNumberHelper.format(bridgeData.amount, { decimals: tokenToUse.decimals }),
-              tokenToUse,
-              receiverAddress: bridgeData.receiverBridgeAddress,
+              neo3NeoxBridge: {
+                amount: BSBigNumberHelper.format(bridgeData.amount, { decimals: tokenToUse.decimals }),
+                tokenToUse,
+                receiverAddress: bridgeData.receiverBridgeAddress,
+              },
             },
           }
         }

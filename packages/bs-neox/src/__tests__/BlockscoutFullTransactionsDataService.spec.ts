@@ -1,6 +1,6 @@
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { BSNeoX } from '../BSNeoX'
-import type { TGetFullTransactionsByAddressParams, TTransactionNftEvent } from '@cityofzion/blockchain-service'
+import type { TGetFullTransactionsByAddressParams, TTransactionDefaultNftEvent } from '@cityofzion/blockchain-service'
 import { BlockscoutFullTransactionsDataService } from '../services/full-transactions-data/BlockscoutFullTransactionsDataService'
 
 const address = '0x889D02c0df966Ea5BE11dd8E3Eb0d5E4BD0500dD'
@@ -154,7 +154,6 @@ describe('BlockscoutFullTransactionsDataService', () => {
             block: expect.any(Number),
             date: expect.any(String),
             networkFeeAmount: expect.anything(),
-            type: expect.any(String),
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
@@ -165,7 +164,6 @@ describe('BlockscoutFullTransactionsDataService', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                tokenType: expect.any(String),
               }),
             ]),
           }),
@@ -189,7 +187,6 @@ describe('BlockscoutFullTransactionsDataService', () => {
             block: expect.any(Number),
             date: expect.any(String),
             networkFeeAmount: expect.anything(),
-            type: expect.any(String),
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
@@ -200,7 +197,6 @@ describe('BlockscoutFullTransactionsDataService', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                tokenType: 'generic',
               }),
             ]),
           }),
@@ -238,7 +234,7 @@ describe('BlockscoutFullTransactionsDataService', () => {
 
       const nftEvents = response.transactions
         .flatMap(({ events }) => events)
-        .filter(({ eventType }) => eventType === 'nft') as TTransactionNftEvent[]
+        .filter(({ eventType }) => eventType === 'nft') as TTransactionDefaultNftEvent[]
 
       expect(nftEvents).toEqual(
         expect.arrayContaining([
@@ -250,7 +246,6 @@ describe('BlockscoutFullTransactionsDataService', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            tokenType: 'generic',
             nft: expect.anything(),
           }),
         ])
@@ -287,11 +282,12 @@ describe('BlockscoutFullTransactionsDataService', () => {
 
       expect(transaction).toEqual(
         expect.objectContaining({
-          type: 'bridgeNeo3NeoX',
           data: expect.objectContaining({
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.gasToken,
-            receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+            neo3NeoxBridge: {
+              amount: '1',
+              tokenToUse: service.neo3NeoXBridgeService.gasToken,
+              receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
+            },
           }),
         })
       )
@@ -313,11 +309,12 @@ describe('BlockscoutFullTransactionsDataService', () => {
 
       expect(transaction).toEqual(
         expect.objectContaining({
-          type: 'bridgeNeo3NeoX',
           data: expect.objectContaining({
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.neoToken,
-            receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
+            neo3NeoxBridge: {
+              amount: '1',
+              tokenToUse: service.neo3NeoXBridgeService.neoToken,
+              receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
+            },
           }),
         })
       )

@@ -16,11 +16,10 @@ import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 export class MoralisFullTransactionsDataServiceEthereum<
   N extends string,
   A extends TBSNetworkId,
-> implements IFullTransactionsDataService<N> {
+> implements IFullTransactionsDataService {
   static readonly SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = ['1', '42161', '8453', '137']
   static readonly ERC721_STANDARDS = ['erc721', 'erc-721']
   static readonly ERC1155_STANDARDS = ['erc1155', 'erc-1155']
-  static readonly ERC20_STANDARDS = ['erc20', 'erc-20']
 
   readonly #service: IBSEthereum<N, A>
 
@@ -31,14 +30,14 @@ export class MoralisFullTransactionsDataServiceEthereum<
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: MoralisFullTransactionsDataServiceEthereum.SUPPORTED_NETWORKS_IDS,
       ...params,
     })
 
-    const transactions: TTransactionDefault<N>[] = []
+    const transactions: TTransactionDefault[] = []
 
     const response = await api.EthereumREST.getFullTransactionsByAddress({
       address: params.address,
@@ -55,7 +54,7 @@ export class MoralisFullTransactionsDataServiceEthereum<
     const itemPromises = items.map(async ({ networkFeeAmount, ...item }, index) => {
       const txId = item.transactionID
 
-      const newItem: TTransactionDefault<N> = {
+      const newItem: TTransactionDefault = {
         txId,
         txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
         block: item.block,
@@ -63,7 +62,6 @@ export class MoralisFullTransactionsDataServiceEthereum<
         networkFeeAmount: networkFeeAmount
           ? BSBigNumberHelper.format(networkFeeAmount, { decimals: nativeToken.decimals })
           : undefined,
-        type: 'default',
         view: 'default',
         events: [],
       }
@@ -75,7 +73,6 @@ export class MoralisFullTransactionsDataServiceEthereum<
         const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
         const isErc1155 = MoralisFullTransactionsDataServiceEthereum.ERC1155_STANDARDS.includes(standard)
         const isErc721 = MoralisFullTransactionsDataServiceEthereum.ERC721_STANDARDS.includes(standard)
-        const isErc20 = MoralisFullTransactionsDataServiceEthereum.ERC20_STANDARDS.includes(standard)
         const isNft = (isErc1155 || isErc721) && !!tokenHash
         const fromUrl = from ? this.#service.explorerService.buildAddressUrl(from) : undefined
         const toUrl = to ? this.#service.explorerService.buildAddressUrl(to) : undefined
@@ -93,7 +90,6 @@ export class MoralisFullTransactionsDataServiceEthereum<
             fromUrl,
             to,
             toUrl,
-            tokenType: isErc1155 ? 'erc-1155' : 'erc-721',
             nft,
           })
 
@@ -114,7 +110,6 @@ export class MoralisFullTransactionsDataServiceEthereum<
           fromUrl,
           to,
           toUrl,
-          tokenType: isErc20 ? 'erc-20' : 'generic',
           tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         })

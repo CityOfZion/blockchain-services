@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Prefix internal methods with underscore and remove tokenType/type from transaction events",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-ethereum",
+      "comment": "Make TokenServiceEthereum generic and re-enable skipped tests",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-ethereum"
+}

@@ -100,6 +100,9 @@ rush-pnpm --subspace default patch-commit /ABSOLUTE_PATH/blockchain-services/com
 | @cityofzion/bs-stellar         | Implementation of interfaces and methods for the Stellar blockchain                                                                                            |
 | @cityofzion/bs-bitcoin         | Implementation of interfaces and methods for the Bitcoin blockchain                                                                                            |
 
+## Conventions
+- Protected methods should start with `_` (e.g. `_myMethod`) since `bs-electron` excludes methods prefixed with `_` from the exposed API.
+
 ## Technologies Used
 - **pnpm**
 - **Rush.js**

@@ -9,14 +9,17 @@ import {
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TContractResponse,
-  type TBridgeToken,
   type TTransactionDefault,
+  type TTransactionDefaultGenericEvent,
+  type TTransactionDefaultTokenEvent,
+  type TTransactionDefaultNftEvent,
+  type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
+import type { IBSNeo3, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
-export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
+export class RpcBDSNeo3 implements IBlockchainDataService {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
   readonly _service: IBSNeo3
@@ -31,61 +34,91 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
     return account.address
   }
 
-  async _extractEventsFromNotifications(notifications: TRpcBDSNeo3Notification[] = []) {
-    const events: TTransactionDefault<TBSNeo3Name>['events'] = []
+  async #parseTransferNotification({
+    contract: contractHash,
+    state,
+  }: TRpcBDSNeo3Notification): Promise<TTransactionDefaultTokenEvent | TTransactionDefaultNftEvent | undefined> {
+    const properties = (Array.isArray(state) ? state : (state?.value ?? [])) as TRpcBDSNeo3NotificationState[]
 
-    const promises = notifications.map(async ({ contract: contractHash, state, eventname }, index) => {
-      const properties = (Array.isArray(state) ? state : (state?.value ?? [])) as TRpcBDSNeo3NotificationState[]
+    if (properties.length !== 3 && properties.length !== 4) return
 
-      if (eventname !== 'Transfer' || (properties.length !== 3 && properties.length !== 4)) return
+    const isAsset = properties.length === 3
+    const from = properties[0].value as string
+    const to = properties[1].value as string
+    const convertedFrom = from ? this.#convertByteStringToAddress(from) : undefined
+    const convertedTo = to ? this.#convertByteStringToAddress(to) : undefined
+    const fromUrl = convertedFrom ? this._service.explorerService.buildAddressUrl(convertedFrom) : undefined
+    const toUrl = convertedTo ? this._service.explorerService.buildAddressUrl(convertedTo) : undefined
 
-      const isAsset = properties.length === 3
-      const from = properties[0].value as string
-      const to = properties[1].value as string
-      const convertedFrom = from ? this.#convertByteStringToAddress(from) : 'Mint'
-      const convertedTo = to ? this.#convertByteStringToAddress(to) : 'Burn'
-      const fromUrl = from ? this._service.explorerService.buildAddressUrl(convertedFrom) : undefined
-      const toUrl = to ? this._service.explorerService.buildAddressUrl(convertedTo) : undefined
+    if (isAsset) {
+      const token = await this.getTokenInfo(contractHash)
+      const amount = properties[2].value || '0'
 
-      if (isAsset) {
-        const token = await this.getTokenInfo(contractHash)
-        const amount = properties[2].value || '0'
-
-        events.splice(index, 0, {
-          eventType: 'token',
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount, token.decimals), {
-            decimals: token.decimals,
-          }),
-          methodName: 'transfer',
-          from: convertedFrom,
-          fromUrl,
-          to: convertedTo,
-          toUrl,
-          tokenType: 'nep-17',
-          tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
-          token,
-        })
-
-        return
-      }
-
-      const tokenHash = properties[3].value as string
-
-      const [nft] = await BSUtilsHelper.tryCatch(() =>
-        this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
-      )
-
-      events.splice(index, 0, {
-        eventType: 'nft',
-        amount: '1',
+      return {
+        eventType: 'token',
+        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount, token.decimals), {
+          decimals: token.decimals,
+        }),
         methodName: 'transfer',
         from: convertedFrom,
         fromUrl,
         to: convertedTo,
         toUrl,
-        tokenType: 'nep-11',
-        nft,
-      })
+        tokenUrl: this._service.explorerService.buildContractUrl(contractHash),
+        token,
+      }
+    }
+
+    const tokenHash = properties[3].value as string
+
+    const [nft] = await BSUtilsHelper.tryCatch(() =>
+      this._service.nftDataService.getNft({ collectionHash: contractHash, tokenHash })
+    )
+
+    return {
+      eventType: 'nft',
+      amount: '1',
+      methodName: 'transfer',
+      from: convertedFrom,
+      fromUrl,
+      to: convertedTo,
+      toUrl,
+      nft,
+    }
+  }
+
+  #parseVoteNotification({ state }: TRpcBDSNeo3Notification): TTransactionDefaultGenericEvent | undefined {
+    const properties = (Array.isArray(state) ? state : (state?.value ?? [])) as TRpcBDSNeo3NotificationState[]
+    if (properties.length !== 4) return
+
+    const from = properties[0].value as string
+    const convertedFrom = this.#convertByteStringToAddress(from)
+
+    const candidatePubKeyBase64 = properties[2].value as string
+    const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
+    const candidate = u.HexString.fromBase64(candidatePubKeyBase64).toString()
+
+    return this._service.voteService._buildTransactionEvent(convertedFrom, candidate)
+  }
+
+  async _extractEventsFromNotifications(notifications: TRpcBDSNeo3Notification[] = []) {
+    const events: TTransactionDefaultEvent[] = []
+
+    const promises = notifications.map(async (notification, index) => {
+      const eventName = notification.eventname.toLowerCase()
+      if (eventName === 'transfer') {
+        const transferEvent = await this.#parseTransferNotification(notification)
+        if (transferEvent) {
+          events.splice(index, 0, transferEvent)
+        }
+      }
+
+      if (eventName === 'vote') {
+        const voteEvent = this.#parseVoteNotification(notification)
+        if (voteEvent) {
+          events.splice(index, 0, voteEvent)
+        }
+      }
     })
 
     await Promise.allSettled(promises)
@@ -93,48 +126,7 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
     return events
   }
 
-  getBridgeNeo3NeoXDataByNotifications(notifications: TRpcBDSNeo3Notification[]) {
-    const gasNotification = notifications.find(({ eventname }) => eventname === 'NativeDeposit')
-    const isNativeToken = !!gasNotification
-
-    const neoNotification = !isNativeToken
-      ? notifications.find(({ eventname }) => eventname === 'TokenDeposit')
-      : undefined
-
-    const notification = isNativeToken ? gasNotification : neoNotification
-    const notificationStateValue = (notification?.state as TRpcBDSNeo3NotificationState)
-      ?.value as TRpcBDSNeo3NotificationState[]
-
-    if (!notificationStateValue) return undefined
-
-    let tokenToUse: TBridgeToken<TBSNeo3Name> | undefined
-    let amountInDecimals: string | undefined
-    let byteStringReceiverAddress: string | undefined
-
-    if (isNativeToken) {
-      tokenToUse = this._service.neo3NeoXBridgeService.gasToken
-      amountInDecimals = notificationStateValue[2]?.value as string
-      byteStringReceiverAddress = notificationStateValue[1]?.value as string
-    } else {
-      tokenToUse = this._service.neo3NeoXBridgeService.neoToken
-      amountInDecimals = notificationStateValue[4]?.value as string
-      byteStringReceiverAddress = notificationStateValue[3]?.value as string
-    }
-
-    if (!tokenToUse || !amountInDecimals || !byteStringReceiverAddress) return undefined
-
-    const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
-
-    return {
-      amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals), {
-        decimals: tokenToUse.decimals,
-      }),
-      tokenToUse,
-      receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
-    }
-  }
-
-  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeo3Name>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault> {
     try {
       const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
       const rpcClient = new rpc.RPCClient(this._service.network.url)
@@ -147,7 +139,13 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
       const txId = response.hash
       const txIdUrl = this._service.explorerService.buildTransactionUrl(txId)
 
-      let transaction: TTransactionDefault<TBSNeo3Name> = {
+      const data = {
+        ...this._service.neo3NeoXBridgeService._getDataFromNotifications(notifications),
+        ...this._service.claimService._getTransactionDataFromEvents(events),
+        ...this._service.voteService._getTransactionDataFromEvents(events),
+      }
+
+      const transaction: TTransactionDefault = {
         txId,
         txIdUrl,
         block: response.validuntilblock,
@@ -166,15 +164,9 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
         ),
         invocationCount: 0,
         notificationCount: notifications.length,
-        type: 'default',
         view: 'default',
         events,
-      }
-
-      const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)
-
-      if (bridgeNeo3NeoXData) {
-        transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
+        data,
       }
 
       return transaction
@@ -185,7 +177,7 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
 
   async getTransactionsByAddress(
     _params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>> {
+  ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     throw new Error('Method not supported.')
   }
 

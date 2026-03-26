@@ -13,8 +13,13 @@ import type {
   IBSWithWalletConnect,
   IBSWithFullTransactions,
   TTransactionDefault,
+  TTransferParams,
+  TTransaction,
 } from '@cityofzion/blockchain-service'
 import { wallet, api } from './helpers/BSNeo3NeonJsSingletonHelper'
+import type { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
+import type { ClaimServiceNeo3 } from './services/claim/ClaimServiceNeo3'
+import type { VoteServiceNeo3 } from './services/vote/VoteServiceNeo3'
 
 export type TBSNeo3NetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
@@ -31,8 +36,14 @@ export interface IBSNeo3
     IBSWithNeo3NeoXBridge<TBSNeo3Name>,
     IBSWithEncryption<TBSNeo3Name>,
     IBSWithWalletConnect<TBSNeo3Name>,
-    IBSWithFullTransactions<TBSNeo3Name> {
-  generateSigningCallback(account: TBSAccount<TBSNeo3Name>): Promise<{
+    IBSWithFullTransactions {
+  neo3NeoXBridgeService: Neo3NeoXBridgeService
+  claimService: ClaimServiceNeo3
+  voteService: VoteServiceNeo3
+
+  transfer(params: TTransferParams<TBSNeo3Name>): Promise<TTransactionDefault[]>
+
+  _generateSigningCallback(account: TBSAccount<TBSNeo3Name>): Promise<{
     neonJsAccount: wallet.Account
     signingCallback: api.SigningFunction
   }>
@@ -91,11 +102,16 @@ export type TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse = {
   balance: number
 }
 
+export type TVoteServiceNeo3TransactionData = {
+  isVote: true
+}
+
 export interface IVoteService {
   getCandidatesToVote(): Promise<TVoteServiceCandidate[]>
   getVoteDetailsByAddress(address: string): Promise<TVoteServiceDetailsByAddressResponse>
-  vote(params: TVoteServiceVoteParams): Promise<TTransactionDefault<TBSNeo3Name>>
+  vote(params: TVoteServiceVoteParams): Promise<TTransactionDefault>
   calculateVoteFee(params: TVoteServiceVoteParams): Promise<string>
+  getTransactionData(transaction: TTransaction): TVoteServiceNeo3TransactionData | undefined
 }
 
 export type TRpcVoteServiceNeo3GetVoteCIMParams = {

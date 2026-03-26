@@ -3,7 +3,6 @@ import {
   BSBigNumberHelper,
   type TBalanceResponse,
   type TBSToken,
-  type TBridgeToken,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TContractResponse,
@@ -11,54 +10,12 @@ import {
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
-import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification } from '../../types'
-import { StateResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
+import type { IBSNeo3, TRpcBDSNeo3Notification } from '../../types'
 import { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
-import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 
 export class DoraBDSNeo3 extends RpcBDSNeo3 {
   static getClient() {
     return new api.NeoRESTApi({ url: BSCommonConstants.COZ_API_URL, endpoint: '/api/v2/neo3' })
-  }
-
-  static getBridgeNeo3NeoXDataByNotifications(notifications: Notification[], service: IBSNeo3) {
-    const gasNotification = notifications.find(({ event_name }) => event_name === 'NativeDeposit')
-    const isNativeToken = !!gasNotification
-
-    const neoNotification = !isNativeToken
-      ? notifications.find(({ event_name }) => event_name === 'TokenDeposit')
-      : undefined
-
-    const notification = isNativeToken ? gasNotification : neoNotification
-    const notificationStateValue = (notification?.state as StateResponse)?.value as StateResponse[]
-
-    if (!notificationStateValue) return undefined
-
-    let tokenToUse: TBridgeToken<TBSNeo3Name> | undefined
-    let amountInDecimals: string | undefined
-    let byteStringReceiverAddress: string | undefined
-
-    if (isNativeToken) {
-      tokenToUse = service.neo3NeoXBridgeService.gasToken
-      amountInDecimals = notificationStateValue[2]?.value as string
-      byteStringReceiverAddress = notificationStateValue[1]?.value as string
-    } else {
-      tokenToUse = service.neo3NeoXBridgeService.neoToken
-      amountInDecimals = notificationStateValue[4]?.value as string
-      byteStringReceiverAddress = notificationStateValue[3]?.value as string
-    }
-
-    if (!tokenToUse || !amountInDecimals || !byteStringReceiverAddress) return undefined
-
-    const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
-
-    return {
-      amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals), {
-        decimals: tokenToUse.decimals,
-      }),
-      tokenToUse,
-      receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
-    }
   }
 
   #apiInstance?: api.NeoRESTApi
@@ -75,7 +32,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     return this.#apiInstance
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeo3Name>> {
+  async getTransaction(hash: string): Promise<TTransactionDefault> {
     if (this._service.network.type === 'custom') {
       return await super.getTransaction(hash)
     }
@@ -96,7 +53,13 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
 
     const events = await this._extractEventsFromNotifications(notifications)
 
-    let transaction: TTransactionDefault<TBSNeo3Name> = {
+    const data = {
+      ...this._service.neo3NeoXBridgeService._getDataFromNotifications(notifications),
+      ...this._service.claimService._getTransactionDataFromEvents(events),
+      ...this._service.voteService._getTransactionDataFromEvents(events),
+    }
+
+    const transaction: TTransactionDefault = {
       txId,
       txIdUrl,
       block: response.block,
@@ -111,15 +74,9 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       ),
       invocationCount: 0,
       notificationCount: 0,
-      type: 'default',
       view: 'default',
       events,
-    }
-
-    const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)
-
-    if (bridgeNeo3NeoXData) {
-      transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
+      data,
     }
 
     return transaction
@@ -128,16 +85,14 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<
-    TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>
-  > {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     if (this._service.network.type === 'custom') {
       return await super.getTransactionsByAddress({ address, nextPageParams })
     }
 
     const data = await this.#api.addressTXFull(address, nextPageParams, this._service.network.id)
 
-    const transactions: TTransactionDefault<TBSNeo3Name>[] = []
+    const transactions: TTransactionDefault[] = []
 
     const promises = data.items.map(async (item, index) => {
       const notifications = item.notifications?.map<TRpcBDSNeo3Notification>(({ contract, state, event_name }) => ({
@@ -151,7 +106,13 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       const txId = item.hash
       const txIdUrl = this._service.explorerService.buildTransactionUrl(txId)
 
-      let transaction: TTransactionDefault<TBSNeo3Name> = {
+      const data = {
+        ...this._service.neo3NeoXBridgeService._getDataFromNotifications(notifications),
+        ...this._service.claimService._getTransactionDataFromEvents(events),
+        ...this._service.voteService._getTransactionDataFromEvents(events),
+      }
+
+      const transaction: TTransactionDefault = {
         txId,
         txIdUrl,
         block: item.block,
@@ -166,14 +127,9 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         ),
         invocationCount: 0,
         notificationCount: notifications?.length ?? 0,
-        type: 'default',
         view: 'default',
         events,
-      }
-
-      const bridgeNeo3NeoXData = this.getBridgeNeo3NeoXDataByNotifications(notifications)
-      if (bridgeNeo3NeoXData) {
-        transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
+        data,
       }
 
       transactions.splice(index, 0, transaction)

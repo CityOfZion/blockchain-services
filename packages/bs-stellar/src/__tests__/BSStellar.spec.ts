@@ -1,4 +1,4 @@
-import { BSKeychainHelper, type TBSToken } from '@cityofzion/blockchain-service'
+import { BSKeychainHelper, BSUtilsHelper, type TBSToken } from '@cityofzion/blockchain-service'
 import { BSStellar } from '../BSStellar'
 import { BSStellarConstants } from '../constants/BSStellarConstants'
 import * as stellarSDK from '@stellar/stellar-sdk'
@@ -28,6 +28,9 @@ describe('BSStellar', () => {
     const bipPath2 = BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, 1)
     const key2 = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath2)
     keypair2 = stellarSDK.Keypair.fromRawEd25519Seed(key2)
+
+    // Avoid hitting rate limits in tests
+    await BSUtilsHelper.wait(500)
   })
 
   it('Should be able to validate an address', () => {
@@ -115,7 +118,6 @@ describe('BSStellar', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -126,7 +128,6 @@ describe('BSStellar', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -171,7 +172,6 @@ describe('BSStellar', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -182,7 +182,6 @@ describe('BSStellar', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -194,7 +193,6 @@ describe('BSStellar', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'sac',
             tokenUrl: expect.any(String),
             token: sacToken,
           },
@@ -248,7 +246,6 @@ describe('BSStellar', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -259,7 +256,6 @@ describe('BSStellar', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -306,7 +302,6 @@ describe('BSStellar', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -317,7 +312,6 @@ describe('BSStellar', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'native',
             tokenUrl: undefined,
             token,
           },
@@ -329,7 +323,6 @@ describe('BSStellar', () => {
             fromUrl: expect.any(String),
             to: receiverAddress,
             toUrl: expect.any(String),
-            tokenType: 'sac',
             tokenUrl: expect.any(String),
             token: sacToken,
           },

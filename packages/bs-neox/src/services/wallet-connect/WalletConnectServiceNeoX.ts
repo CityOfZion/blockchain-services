@@ -17,7 +17,7 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<TBSNe
   }
 
   async eth_getTransactionCount(args: TWalletConnectServiceRequestMethodParams<TBSNeoXName>): Promise<number> {
-    const wallet = await this._service.generateSigner(args.account)
+    const wallet = await this._service._generateSigner(args.account)
     const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
     const connectedWallet = wallet.connect(provider)
 
@@ -26,7 +26,7 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<TBSNe
 
   async eth_getCachedTransaction(args: TWalletConnectServiceRequestMethodParams<TBSNeoXName>): Promise<THexString> {
     const url = this._service.network.url
-    const wallet = await this._service.generateSigner(args.account)
+    const wallet = await this._service._generateSigner(args.account)
     const provider = new ethers.providers.JsonRpcProvider(url)
     const connectedWallet = wallet.connect(provider)
     const nonce = args.params[0]

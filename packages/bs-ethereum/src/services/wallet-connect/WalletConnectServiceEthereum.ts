@@ -82,7 +82,7 @@ export class WalletConnectServiceEthereum<
       param.gasPrice = param.gasPrice ?? gasPrice
     }
 
-    const wallet = await this._service.generateSigner(args.account)
+    const wallet = await this._service._generateSigner(args.account)
     const connectedWallet = wallet.connect(provider)
 
     if (!param.gasLimit) {
@@ -114,7 +114,7 @@ export class WalletConnectServiceEthereum<
   }
 
   async personal_sign(args: TWalletConnectServiceRequestMethodParams<N>) {
-    const wallet = await this._service.generateSigner(args.account)
+    const wallet = await this._service._generateSigner(args.account)
 
     const message = args.params.filter((param: any) => !ethers.utils.isAddress(param))[0]
     const convertedMessage = this.#convertHexToUtf8(message)
@@ -133,7 +133,7 @@ export class WalletConnectServiceEthereum<
   }
 
   async eth_signTypedData(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const wallet = await this._service.generateSigner(args.account)
+    const wallet = await this._service._generateSigner(args.account)
 
     const data = args.params.filter((param: any) => !ethers.utils.isAddress(param))[0]
     const parsedData = typeof data === 'string' ? JSON.parse(data) : data
@@ -171,7 +171,7 @@ export class WalletConnectServiceEthereum<
   }
 
   async eth_requestAccounts(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string[]> {
-    const wallet = await this._service.generateSigner(args.account)
+    const wallet = await this._service._generateSigner(args.account)
     return [await wallet.getAddress()]
   }
 

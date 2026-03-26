@@ -168,7 +168,7 @@ export class LedgerServiceBitcoin implements ILedgerService<TBSBitcoinName> {
 
       const { v, r, s } = await ledgerApp.signMessage(bipPathWithoutMasterKey, messageHex)
       const { address } = account
-      const isP2WPKHAddress = this.#service.isP2WPKHAddress(address)
+      const isP2WPKHAddress = this.#service._isP2WPKHAddress(address)
       const messageHash = bitcoinjsMessage.magicHash(messageBuffer)
 
       const signature = Buffer.concat([

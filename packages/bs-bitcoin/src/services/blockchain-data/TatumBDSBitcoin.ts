@@ -9,7 +9,7 @@ import {
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TNftResponse,
-  type TTransactionInputOutput,
+  type TTransactionUtxoInputOutput,
   type TTransactionUtxo,
 } from '@cityofzion/blockchain-service'
 import type {
@@ -19,7 +19,6 @@ import type {
   TOrdinalsContentResponse,
   TTatumBalanceResponse,
   TTatumTransactionResponse,
-  TBSBitcoinName,
 } from '../../types'
 import { BSBitcoinConstants } from '../../constants/BSBitcoinConstants'
 import { BSBitcoinTatumHelper } from '../../helpers/BSBitcoinTatumHelper'
@@ -27,7 +26,7 @@ import { BSBitcoinOrdinalsHelper } from '../../helpers/BSBitcoinOrdinalsHelper'
 import { BSBitcoinXverseHelper } from '../../helpers/BSBitcoinXverseHelper'
 import { AxiosInstance } from 'axios'
 
-export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
+export class TatumBDSBitcoin implements IBlockchainDataService {
   readonly #service: IBSBitcoin
   readonly #cachedTokens = new Map<string, TBSToken>()
   readonly #tatumApi: AxiosInstance
@@ -55,13 +54,13 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
     hex,
     hash,
     ...transaction
-  }: TTatumTransactionResponse): Promise<TTransactionUtxo<TBSBitcoinName>> {
+  }: TTatumTransactionResponse): Promise<TTransactionUtxo> {
     const token = BSBitcoinConstants.NATIVE_TOKEN
     const tokenDecimals = token.decimals
     const feeDecimals = this.#service.feeToken.decimals
     const lowercaseHex = hex.toLowerCase()
     const nfts: TNftResponse[] = []
-    const inputs: TTransactionInputOutput[] = []
+    const inputs: TTransactionUtxoInputOutput[] = []
     let totalAmount = BSBigNumberHelper.fromNumber('0')
 
     const hasNft =
@@ -92,7 +91,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
       inputs.splice(index, 0, { address, addressUrl, amount, token })
     })
 
-    const outputs = transaction.outputs.map<TTransactionInputOutput>(output => {
+    const outputs = transaction.outputs.map<TTransactionUtxoInputOutput>(output => {
       const address = output.address || undefined
       const addressUrl = address ? this.#service.explorerService.buildAddressUrl(address) : undefined
 
@@ -111,7 +110,6 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
       txId: hash,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(hash),
       hex,
-      type: 'default',
       view: 'utxo',
       block: transaction.blockNumber!,
       date: new Date(transaction.time * 1000).toJSON(),
@@ -149,7 +147,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
     return token
   }
 
-  async getTransaction(transactionId: string): Promise<TTransactionUtxo<TBSBitcoinName>> {
+  async getTransaction(transactionId: string): Promise<TTransactionUtxo> {
     const { data } = await this.#tatumApi.get<TTatumTransactionResponse>('/v4/data/blockchains/transaction', {
       params: { hash: transactionId },
     })
@@ -164,12 +162,10 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
   async getTransactionsByAddress({
     address,
     nextPageParams,
-  }: TGetTransactionsByAddressParams): Promise<
-    TGetTransactionsByAddressResponse<TBSBitcoinName, TTransactionUtxo<TBSBitcoinName>>
-  > {
+  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionUtxo>> {
     if (!this.#isNumberValid(nextPageParams)) nextPageParams = 1
 
-    const transactions: TTransactionUtxo<TBSBitcoinName>[] = []
+    const transactions: TTransactionUtxo[] = []
     const pageSize = 50
     const offset = (nextPageParams - 1) * pageSize
 

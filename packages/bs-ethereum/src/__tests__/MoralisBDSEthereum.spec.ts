@@ -24,7 +24,6 @@ describe('MoralisBDSEthereum', () => {
         block: expect.any(Number),
         date: expect.any(String),
         networkFeeAmount: expect.anything(),
-        type: expect.any(String),
         view: 'default',
       })
     )
@@ -38,7 +37,6 @@ describe('MoralisBDSEthereum', () => {
           fromUrl: expect.anything(),
           to: expect.anything(),
           toUrl: expect.anything(),
-          tokenType: expect.any(String),
         })
       )
     })
@@ -56,7 +54,6 @@ describe('MoralisBDSEthereum', () => {
           block: expect.any(Number),
           date: expect.any(String),
           networkFeeAmount: expect.anything(),
-          type: expect.any(String),
           view: 'default',
         })
       )
@@ -71,7 +68,6 @@ describe('MoralisBDSEthereum', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            tokenType: expect.any(String),
           })
         )
       })

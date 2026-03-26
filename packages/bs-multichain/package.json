@@ -24,6 +24,7 @@
     "axios": "~1.13.5"
   },
   "devDependencies": {
+    "@cityofzion/bs-bitcoin": "workspace:*",
     "@cityofzion/bs-ethereum": "workspace:*",
     "@cityofzion/bs-neo3": "workspace:*",
     "@cityofzion/bs-neox": "workspace:*",

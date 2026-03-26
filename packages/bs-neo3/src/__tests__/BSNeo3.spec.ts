@@ -92,7 +92,12 @@ describe('BSNeo3', () => {
     })
   })
 
-  it.skip('Should be able to calculate transfer fee', async () => {
+  it('Should be able to resolve a name service domain', async () => {
+    const owner = await bsNeo3.resolveNameServiceDomain('neo.neo')
+    expect(owner).toEqual('Nj39M97Rk2e23JiULBBMQmvpcnKaRHqxFf')
+  })
+
+  it('Should be able to calculate transfer fee', async () => {
     const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
     const fee = await bsNeo3.calculateTransferFee({
@@ -102,6 +107,28 @@ describe('BSNeo3', () => {
           amount: '0.00000001',
           receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
           token: BSNeo3Constants.GAS_TOKEN,
+        },
+      ],
+    })
+
+    expect(fee).toEqual(expect.any(String))
+  })
+
+  it('Should be able to calculate transfer fee more than one intent', async () => {
+    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+
+    const fee = await bsNeo3.calculateTransferFee({
+      senderAccount: account,
+      intents: [
+        {
+          amount: '0.00000001',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          token: BSNeo3Constants.GAS_TOKEN,
+        },
+        {
+          amount: '1',
+          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
+          token: BSNeo3Constants.NEO_TOKEN,
         },
       ],
     })
@@ -128,7 +155,6 @@ describe('BSNeo3', () => {
         invocationCount: expect.any(Number),
         networkFeeAmount: expect.any(String),
         systemFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -139,11 +165,75 @@ describe('BSNeo3', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'nep-17',
             tokenUrl: expect.any(String),
             token,
           },
         ],
+      },
+    ])
+  })
+
+  it.skip('Should be able to transfer more than one intent', async () => {
+    const senderAccount = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const { address } = senderAccount
+    const gasToken = BSNeo3Constants.GAS_TOKEN
+    const gasAmount = '0.00000001'
+    const neoToken = BSNeo3Constants.NEO_TOKEN
+    const neoAmount = '1'
+
+    const claimEvent = await bsNeo3.claimService._buildTransactionEvent(senderAccount.address)
+
+    const transactions = await bsNeo3.transfer({
+      senderAccount,
+      intents: [
+        {
+          amount: gasAmount,
+          receiverAddress: address,
+          token: gasToken,
+        },
+        {
+          amount: neoAmount,
+          receiverAddress: address,
+          token: neoToken,
+        },
+      ],
+    })
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        invocationCount: expect.any(Number),
+        networkFeeAmount: expect.any(String),
+        systemFeeAmount: expect.any(String),
+        view: 'default',
+        events: [
+          claimEvent,
+          {
+            eventType: 'token',
+            amount: gasAmount,
+            methodName: 'transfer',
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            tokenUrl: expect.any(String),
+            token: gasToken,
+          },
+          {
+            eventType: 'token',
+            amount: neoAmount,
+            methodName: 'transfer',
+            from: address,
+            fromUrl: expect.any(String),
+            to: address,
+            toUrl: expect.any(String),
+            tokenUrl: expect.any(String),
+            token: neoToken,
+          },
+        ],
+        data: { isClaim: true },
       },
     ])
   })
@@ -171,7 +261,6 @@ describe('BSNeo3', () => {
         invocationCount: expect.any(Number),
         networkFeeAmount: expect.any(String),
         systemFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -182,190 +271,8 @@ describe('BSNeo3', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'nep-17',
             tokenUrl: expect.any(String),
             token,
-          },
-        ],
-      },
-    ])
-  })
-
-  it.skip('Should be able to calculate the claim fee', async () => {
-    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-    const fee = await bsNeo3.calculateClaimFee(account)
-
-    expect(fee).toEqual(expect.stringMatching(/^0\.0\d*[1-9]$/))
-  })
-
-  it.skip('Should be able to claim', async () => {
-    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-    const unclaimed = await bsNeo3.claimDataService.getUnclaimed(account.address)
-
-    expect(Number(unclaimed)).toBeGreaterThan(0)
-
-    const transaction = await bsNeo3.claim(account)
-
-    expect(transaction).toEqual({
-      txId: expect.any(String),
-      txIdUrl: expect.any(String),
-      date: expect.any(String),
-      invocationCount: expect.any(Number),
-      networkFeeAmount: expect.any(String),
-      systemFeeAmount: expect.any(String),
-      type: 'claim',
-      view: 'default',
-      events: [
-        {
-          eventType: 'token',
-          amount: '0',
-          methodName: 'transfer',
-          from: account.address,
-          fromUrl: expect.any(String),
-          to: account.address,
-          toUrl: expect.any(String),
-          tokenType: 'nep-17',
-          tokenUrl: expect.any(String),
-          token: bsNeo3.burnToken,
-        },
-      ],
-    })
-  })
-
-  it.skip('Should be able to calculate the claim fee with Ledger', async () => {
-    const transport = await TransportNodeHid.create()
-
-    bsNeo3 = new BSNeo3(network, async () => transport)
-
-    const account = await bsNeo3.ledgerService.getAccount(transport, 0)
-    const fee = await bsNeo3.calculateClaimFee(account)
-
-    expect(fee).toEqual(expect.stringMatching(/^0\.0\d*[1-9]$/))
-  })
-
-  it.skip('Should be able to claim with Ledger', async () => {
-    const transport = await TransportNodeHid.create()
-
-    bsNeo3 = new BSNeo3(network, async () => transport)
-
-    const account = await bsNeo3.ledgerService.getAccount(transport, 0)
-    const unclaimed = await bsNeo3.claimDataService.getUnclaimed(account.address)
-
-    expect(Number(unclaimed)).toBeGreaterThan(0)
-
-    const transaction = await bsNeo3.claim(account)
-
-    expect(transaction).toEqual({
-      txId: expect.any(String),
-      txIdUrl: expect.any(String),
-      date: expect.any(String),
-      invocationCount: expect.any(Number),
-      networkFeeAmount: expect.any(String),
-      systemFeeAmount: expect.any(String),
-      type: 'claim',
-      view: 'default',
-      events: [
-        {
-          eventType: 'token',
-          amount: '0',
-          methodName: 'transfer',
-          from: account.address,
-          fromUrl: expect.any(String),
-          to: account.address,
-          toUrl: expect.any(String),
-          tokenType: 'nep-17',
-          tokenUrl: expect.any(String),
-          token: bsNeo3.burnToken,
-        },
-      ],
-    })
-  })
-
-  it('Should be able to resolve a name service domain', async () => {
-    const owner = await bsNeo3.resolveNameServiceDomain('neo.neo')
-    expect(owner).toEqual('Nj39M97Rk2e23JiULBBMQmvpcnKaRHqxFf')
-  })
-
-  it.skip('Should be able to calculate transfer fee more than one intent', async () => {
-    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-
-    const fee = await bsNeo3.calculateTransferFee({
-      senderAccount: account,
-      intents: [
-        {
-          amount: '0.00000001',
-          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          token: BSNeo3Constants.GAS_TOKEN,
-        },
-        {
-          amount: '1',
-          receiverAddress: 'NPRMF5bmYuW23DeDJqsDJenhXkAPSJyuYe',
-          token: BSNeo3Constants.NEO_TOKEN,
-        },
-      ],
-    })
-
-    expect(fee).toEqual(expect.any(String))
-  })
-
-  it.skip('Should be able to transfer more than one intent', async () => {
-    const senderAccount = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
-    const { address } = senderAccount
-    const gasToken = BSNeo3Constants.GAS_TOKEN
-    const gasAmount = '0.00000001'
-    const neoToken = BSNeo3Constants.NEO_TOKEN
-    const neoAmount = '1'
-
-    const transactions = await bsNeo3.transfer({
-      senderAccount,
-      intents: [
-        {
-          amount: gasAmount,
-          receiverAddress: address,
-          token: gasToken,
-        },
-        {
-          amount: neoAmount,
-          receiverAddress: address,
-          token: neoToken,
-        },
-      ],
-    })
-
-    expect(transactions).toEqual([
-      {
-        txId: expect.any(String),
-        txIdUrl: expect.any(String),
-        date: expect.any(String),
-        invocationCount: expect.any(Number),
-        networkFeeAmount: expect.any(String),
-        systemFeeAmount: expect.any(String),
-        type: 'default',
-        view: 'default',
-        events: [
-          {
-            eventType: 'token',
-            amount: gasAmount,
-            methodName: 'transfer',
-            from: address,
-            fromUrl: expect.any(String),
-            to: address,
-            toUrl: expect.any(String),
-            tokenType: 'nep-17',
-            tokenUrl: expect.any(String),
-            token: gasToken,
-          },
-          {
-            eventType: 'token',
-            amount: neoAmount,
-            methodName: 'transfer',
-            from: address,
-            fromUrl: expect.any(String),
-            to: address,
-            toUrl: expect.any(String),
-            tokenType: 'nep-17',
-            tokenUrl: expect.any(String),
-            token: neoToken,
           },
         ],
       },
@@ -408,7 +315,6 @@ describe('BSNeo3', () => {
         invocationCount: expect.any(Number),
         networkFeeAmount: expect.any(String),
         systemFeeAmount: expect.any(String),
-        type: 'default',
         view: 'default',
         events: [
           {
@@ -419,7 +325,6 @@ describe('BSNeo3', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'nep-17',
             tokenUrl: expect.any(String),
             token: gasToken,
           },
@@ -431,7 +336,6 @@ describe('BSNeo3', () => {
             fromUrl: expect.any(String),
             to: address,
             toUrl: expect.any(String),
-            tokenType: 'nep-17',
             tokenUrl: expect.any(String),
             token: neoToken,
           },

@@ -65,7 +65,7 @@ describe('WalletConnectServiceSolana', () => {
   it("Should be able to sign transaction with 'solana_signTransaction'", async () => {
     const source = solanaKit.createNoopSigner(solanaKit.address(account.address))
 
-    const { value: latestBlockhash } = await service.solanaKitRpc.getLatestBlockhash().send()
+    const { value: latestBlockhash } = await service._solanaKitRpc.getLatestBlockhash().send()
 
     const transactionMessage = solanaKit.pipe(
       solanaKit.createTransactionMessage({ version: 0 }),
@@ -101,7 +101,7 @@ describe('WalletConnectServiceSolana', () => {
   it("Should be able to sign all transaction with 'solana_signAllTransaction'", async () => {
     const source = solanaKit.createNoopSigner(solanaKit.address(account.address))
 
-    const { value: latestBlockhash } = await service.solanaKitRpc.getLatestBlockhash().send()
+    const { value: latestBlockhash } = await service._solanaKitRpc.getLatestBlockhash().send()
 
     const transactionMessage = solanaKit.pipe(
       solanaKit.createTransactionMessage({ version: 0 }),
@@ -137,7 +137,7 @@ describe('WalletConnectServiceSolana', () => {
   it('Should be able to calculate fees', async () => {
     const source = solanaKit.createNoopSigner(solanaKit.address(account.address))
 
-    const { value: latestBlockhash } = await service.solanaKitRpc.getLatestBlockhash().send()
+    const { value: latestBlockhash } = await service._solanaKitRpc.getLatestBlockhash().send()
 
     const transactionMessage = solanaKit.pipe(
       solanaKit.createTransactionMessage({ version: 0 }),

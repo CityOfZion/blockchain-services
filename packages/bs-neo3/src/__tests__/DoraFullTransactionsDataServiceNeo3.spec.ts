@@ -1,7 +1,8 @@
 import {
+  BSUtilsHelper,
   TBSNetwork,
   type TGetFullTransactionsByAddressParams,
-  type TTransactionNftEvent,
+  type TTransactionDefaultNftEvent,
 } from '@cityofzion/blockchain-service'
 import { isLeapYear } from 'date-fns'
 import { BSNeo3 } from '../BSNeo3'
@@ -38,7 +39,7 @@ vi.mock('../services/nft-data/GhostMarketNDSNeo3', () => {
 })
 
 describe('DoraFullTransactionsDataServiceNeo3', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     dateFrom = new Date()
     dateTo = new Date()
 
@@ -50,6 +51,8 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
 
     service = new BSNeo3(BSNeo3Constants.MAINNET_NETWORK)
     doraFullTransactionsDataServiceNeo3 = new DoraFullTransactionsDataServiceNeo3(service)
+
+    await BSUtilsHelper.wait(1000)
   })
 
   describe('getFullTransactionsByAddress', () => {
@@ -180,14 +183,12 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
-            type: expect.any(String),
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
                 amount: expect.anything(),
                 methodName: expect.any(String),
-                tokenType: expect.any(String),
               }),
             ]),
           }),
@@ -214,7 +215,6 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
-            type: expect.any(String),
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
@@ -225,7 +225,6 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
                 fromUrl: expect.anything(),
                 to: expect.anything(),
                 toUrl: expect.anything(),
-                tokenType: expect.any(String),
                 tokenUrl: expect.any(String),
                 token: expect.objectContaining({
                   decimals: expect.any(Number),
@@ -271,7 +270,7 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
 
       const nftEvents = response.transactions
         .flatMap(({ events }) => events)
-        .filter(({ eventType }) => eventType === 'nft') as TTransactionNftEvent[]
+        .filter(({ eventType }) => eventType === 'nft') as TTransactionDefaultNftEvent[]
 
       expect(nftEvents).toEqual(
         expect.arrayContaining([
@@ -283,7 +282,6 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             fromUrl: expect.anything(),
             to: expect.anything(),
             toUrl: expect.anything(),
-            tokenType: 'nep-11',
             nft: expect.anything(),
           }),
         ])
@@ -320,11 +318,12 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
 
       expect(transaction).toEqual(
         expect.objectContaining({
-          type: 'bridgeNeo3NeoX',
           data: expect.objectContaining({
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.gasToken,
-            receiverAddress: '0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9',
+            neo3NeoxBridge: {
+              amount: '1',
+              tokenToUse: service.neo3NeoXBridgeService.gasToken,
+              receiverAddress: '0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9',
+            },
           }),
         })
       )
@@ -346,12 +345,13 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
 
       expect(transaction).toEqual(
         expect.objectContaining({
-          type: 'bridgeNeo3NeoX',
-          data: expect.objectContaining({
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.neoToken,
-            receiverAddress: '0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da',
-          }),
+          data: {
+            neo3NeoxBridge: {
+              amount: '1',
+              tokenToUse: service.neo3NeoXBridgeService.neoToken,
+              receiverAddress: '0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da',
+            },
+          },
         })
       )
     })

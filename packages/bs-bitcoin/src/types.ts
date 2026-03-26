@@ -34,15 +34,15 @@ export interface IBSBitcoin
     IBSWithWalletConnect<TBSBitcoinName> {
   blockchainDataService: TatumBDSBitcoin
   ledgerService: LedgerServiceBitcoin
-  bitcoinjsNetwork: bitcoinjs.Network
+  _bitcoinjsNetwork: bitcoinjs.Network
 
-  isP2WPKHAddress(address: string): boolean
-  isP2SHAddress(address: string): boolean
-  isP2PKHAddress(address: string): boolean
-  getKeyPair(key: string): ECPairInterface
-  getLedgerTransport(account: TBSAccount<TBSBitcoinName>): Promise<Transport>
-  signTransaction(params: TSignTransactionParams): Promise<void>
-  broadcastTransaction(transactionHex: string): Promise<string>
+  _isP2WPKHAddress(address: string): boolean
+  _isP2SHAddress(address: string): boolean
+  _isP2PKHAddress(address: string): boolean
+  _getKeyPair(key: string): ECPairInterface
+  _getLedgerTransport(account: TBSAccount<TBSBitcoinName>): Promise<Transport>
+  _signTransaction(params: TSignTransactionParams): Promise<void>
+  _broadcastTransaction(transactionHex: string): Promise<string>
 }
 
 export type TOrdinalsContentResponse = {

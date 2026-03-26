@@ -2,7 +2,7 @@ import { BSNeo3Constants } from '../constants/BSNeo3Constants'
 import { DoraBDSNeo3 } from '../services/blockchain-data/DoraBDSNeo3'
 import { BSNeo3 } from '../BSNeo3'
 
-const network = BSNeo3Constants.TESTNET_NETWORK
+const network = BSNeo3Constants.MAINNET_NETWORK
 
 let service: BSNeo3
 let doraBDSNeo3: DoraBDSNeo3
@@ -14,7 +14,7 @@ describe('DoraBDSNeo3', () => {
   })
 
   it('Should be able to get transaction', async () => {
-    const hash = '0x70e7381c5dee6e81becd02844e4e0199f6b3df834213bc89418dc4da32cf3f21'
+    const hash = '0xa170403e1470d0a10c5f6261c46e2b714cebf7ed0196cd2c830099e7e2e05b3e'
     const transaction = await doraBDSNeo3.getTransaction(hash)
 
     expect(transaction).toEqual(
@@ -27,26 +27,34 @@ describe('DoraBDSNeo3', () => {
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
         systemFeeAmount: expect.anything(),
-        type: expect.any(String),
         view: 'default',
         events: expect.arrayContaining([
-          expect.objectContaining({
-            eventType: expect.any(String),
-            amount: expect.anything(),
-            methodName: expect.any(String),
-            from: expect.anything(),
-            fromUrl: expect.anything(),
-            to: expect.anything(),
-            toUrl: expect.anything(),
-            tokenType: expect.any(String),
-            tokenUrl: expect.any(String),
-            token: expect.objectContaining({
-              decimals: expect.any(Number),
-              symbol: expect.any(String),
-              name: expect.any(String),
-              hash: expect.any(String),
+          expect.toBeOneOf([
+            expect.objectContaining({
+              eventType: expect.any(String),
+              amount: expect.anything(),
+              methodName: 'transfer',
+              from: expect.anything(),
+              fromUrl: expect.anything(),
+              to: expect.anything(),
+              toUrl: expect.anything(),
+              tokenUrl: expect.any(String),
+              token: expect.objectContaining({
+                decimals: expect.any(Number),
+                symbol: expect.any(String),
+                name: expect.any(String),
+                hash: expect.any(String),
+              }),
             }),
-          }),
+            expect.objectContaining({
+              amount: expect.any(String),
+              data: { candidate: expect.any(String), token: BSNeo3Constants.NEO_TOKEN.symbol },
+              eventType: 'generic',
+              from: expect.any(String),
+              fromUrl: expect.any(String),
+              methodName: 'vote',
+            }),
+          ]),
         ]),
       })
     )
@@ -67,26 +75,34 @@ describe('DoraBDSNeo3', () => {
           notificationCount: expect.any(Number),
           networkFeeAmount: expect.anything(),
           systemFeeAmount: expect.anything(),
-          type: expect.any(String),
           view: 'default',
           events: expect.arrayContaining([
-            expect.objectContaining({
-              eventType: expect.any(String),
-              amount: expect.anything(),
-              methodName: expect.any(String),
-              from: expect.anything(),
-              fromUrl: expect.anything(),
-              to: expect.anything(),
-              toUrl: expect.anything(),
-              tokenType: expect.any(String),
-              tokenUrl: expect.any(String),
-              token: expect.objectContaining({
-                decimals: expect.any(Number),
-                symbol: expect.any(String),
-                name: expect.any(String),
-                hash: expect.any(String),
+            expect.toBeOneOf([
+              expect.objectContaining({
+                eventType: expect.any(String),
+                amount: expect.anything(),
+                methodName: 'transfer',
+                from: expect.anything(),
+                fromUrl: expect.anything(),
+                to: expect.anything(),
+                toUrl: expect.anything(),
+                tokenUrl: expect.any(String),
+                token: expect.objectContaining({
+                  decimals: expect.any(Number),
+                  symbol: expect.any(String),
+                  name: expect.any(String),
+                  hash: expect.any(String),
+                }),
               }),
-            }),
+              expect.objectContaining({
+                amount: expect.any(String),
+                data: { candidate: expect.any(String), token: BSNeo3Constants.NEO_TOKEN.symbol },
+                eventType: 'generic',
+                from: expect.any(String),
+                fromUrl: expect.any(String),
+                methodName: 'vote',
+              }),
+            ]),
           ]),
         })
       )
@@ -153,11 +169,12 @@ describe('DoraBDSNeo3', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        type: 'bridgeNeo3NeoX',
         data: expect.objectContaining({
-          amount: '1',
-          tokenToUse: service.neo3NeoXBridgeService.gasToken,
-          receiverAddress: '0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9',
+          neo3NeoxBridge: {
+            amount: '1',
+            tokenToUse: service.neo3NeoXBridgeService.gasToken,
+            receiverAddress: '0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9',
+          },
         }),
       })
     )
@@ -176,11 +193,12 @@ describe('DoraBDSNeo3', () => {
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        type: 'bridgeNeo3NeoX',
         data: expect.objectContaining({
-          amount: '1',
-          tokenToUse: service.neo3NeoXBridgeService.neoToken,
-          receiverAddress: '0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da',
+          neo3NeoxBridge: {
+            amount: '1',
+            tokenToUse: service.neo3NeoXBridgeService.neoToken,
+            receiverAddress: '0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da',
+          },
         }),
       })
     )

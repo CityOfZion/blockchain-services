@@ -43,7 +43,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
   [methodName: string]: any
 
   async #getInvoker(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
-    const { neonJsAccount, signingCallback } = await this.#service.generateSigningCallback(args.account)
+    const { neonJsAccount, signingCallback } = await this.#service._generateSigningCallback(args.account)
 
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
@@ -57,7 +57,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
   }
 
   async #getSigner(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>) {
-    const { neonJsAccount } = await this.#service.generateSigningCallback(args.account)
+    const { neonJsAccount } = await this.#service._generateSigningCallback(args.account)
 
     const { NeonSigner } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 

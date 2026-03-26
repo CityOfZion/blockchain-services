@@ -7,17 +7,17 @@ import {
   type IExchangeDataService,
   type IExplorerService,
   type ITokenService,
-  type IWalletConnectService,
   type TBSAccount,
   type TBSBigNumber,
   type TBSNetwork,
   type TBSToken,
   type TGetLedgerTransport,
   type TPingNetworkResponse,
+  type TTransaction,
   type TTransactionDefault,
   type TTransferParams,
 } from '@cityofzion/blockchain-service'
-import type { IBSStellar, TBSStellarName, TBSStellarNetworkId } from './types'
+import type { IBSStellar, TBSStellarFriendBotResponse, TBSStellarName, TBSStellarNetworkId } from './types'
 import { BSStellarConstants } from './constants/BSStellarConstants'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import axios from 'axios'
@@ -27,6 +27,7 @@ import { RpcEDSStellar } from './services/exchange/RpcEDSStellar'
 import { StellarChainESStellar } from './services/explorer/StellarChainESStellar'
 import { LedgerServiceStellar } from './services/ledger/LedgerServiceStellar'
 import { WalletConnectServiceStellar } from './services/wallet-connect/WalletConnectServiceStellar'
+import { TrustlineServiceStellar } from './services/trustline/TrustlineServiceStellar'
 
 export class BSStellar implements IBSStellar {
   readonly name = 'stellar'
@@ -34,26 +35,26 @@ export class BSStellar implements IBSStellar {
   readonly bipDerivationPath: string
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
-
-  readonly #invalidTransactionStatus: stellarSDK.rpc.Api.SendTransactionStatus[] = ['ERROR', 'DUPLICATE']
+  readonly amountToCreateAccount: string = '1'
 
   network!: TBSNetwork<TBSStellarNetworkId>
   networkUrls!: string[]
   readonly defaultNetwork: TBSNetwork<TBSStellarNetworkId>
   readonly availableNetworks: TBSNetwork<TBSStellarNetworkId>[]
-  sorobanServer!: stellarSDK.rpc.Server
-  horizonServer!: stellarSDK.Horizon.Server
+  _sorobanServer!: stellarSDK.rpc.Server
+  _horizonServer!: stellarSDK.Horizon.Server
 
   readonly feeToken: TBSToken
   readonly tokens: TBSToken[]
   readonly nativeTokens: TBSToken[]
 
   exchangeDataService!: IExchangeDataService
-  blockchainDataService!: IBlockchainDataService<TBSStellarName>
+  blockchainDataService!: IBlockchainDataService
   tokenService!: ITokenService
   explorerService!: IExplorerService
   ledgerService!: LedgerServiceStellar
-  walletConnectService!: IWalletConnectService<TBSStellarName>
+  walletConnectService!: WalletConnectServiceStellar
+  trustlineService!: TrustlineServiceStellar
 
   constructor(network?: TBSNetwork<TBSStellarNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSStellarName>) {
     this.bipDerivationPath = BSStellarConstants.DEFAULT_BIP_DERIVATION_PATH
@@ -70,34 +71,16 @@ export class BSStellar implements IBSStellar {
     this.ledgerService = new LedgerServiceStellar(this, getLedgerTransport)
   }
 
-  async getFeeEstimate(length: number): Promise<TBSBigNumber> {
-    const feeStats = await this.sorobanServer.getFeeStats()
+  async _getFeeEstimate(length: number): Promise<TBSBigNumber> {
+    const feeStats = await this._sorobanServer.getFeeStats()
     const feePerOperation = BSBigNumberHelper.fromDecimals(feeStats.sorobanInclusionFee.min, this.feeToken.decimals)
 
     return feePerOperation.multipliedBy(length)
   }
 
-  async #ensureTrustline(address: string, asset: stellarSDK.Asset) {
-    const account = await this.horizonServer.loadAccount(address)
-
-    const hasTrustline = account.balances.some(
-      balance =>
-        (balance.asset_type === 'credit_alphanum4' || balance.asset_type === 'credit_alphanum12') &&
-        balance.asset_code === asset.getCode() &&
-        balance.asset_issuer === asset.getIssuer()
-    )
-
-    if (!hasTrustline) {
-      throw new BSError(
-        `Address ${address} does not have a trustline for asset ${asset.getCode()} issued by ${asset.getIssuer()}. Please create the trustline before sending tokens.`,
-        'TRUSTLINE_NOT_FOUND'
-      )
-    }
-  }
-
-  async #ensureAccountOnChain(address: string) {
+  async _ensureAccountOnChain(address: string): Promise<stellarSDK.Account> {
     try {
-      return await this.sorobanServer.getAccount(address)
+      return await this._sorobanServer.getAccount(address)
     } catch (error) {
       throw new BSError(
         `Address ${address} does not exist on the Stellar network. Please fund the account before sending tokens.`,
@@ -107,42 +90,7 @@ export class BSStellar implements IBSStellar {
     }
   }
 
-  async #buildTransferTransaction({ intents, senderAccount }: TTransferParams<TBSStellarName>) {
-    const sourceAccount = await this.#ensureAccountOnChain(senderAccount.address)
-
-    const feeBn = await this.getFeeEstimate(intents.length)
-
-    const transaction = new stellarSDK.TransactionBuilder(sourceAccount, {
-      fee: BSBigNumberHelper.toDecimals(feeBn, this.feeToken.decimals),
-      networkPassphrase: BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.network.id],
-    })
-
-    for (const intent of intents) {
-      await this.#ensureAccountOnChain(intent.receiverAddress)
-
-      const isNative = this.tokenService.predicateByHash(intent.token.hash, BSStellarConstants.NATIVE_TOKEN.hash)
-
-      let asset: stellarSDK.Asset
-      if (isNative) {
-        asset = stellarSDK.Asset.native()
-      } else {
-        asset = new stellarSDK.Asset(intent.token.symbol, intent.token.hash)
-        await this.#ensureTrustline(intent.receiverAddress, asset)
-      }
-
-      transaction.addOperation(
-        stellarSDK.Operation.payment({
-          destination: intent.receiverAddress,
-          asset,
-          amount: intent.amount,
-        })
-      )
-    }
-
-    return transaction.setTimeout(30).build()
-  }
-
-  async signTransaction(transaction: stellarSDK.Transaction, senderAccount: TBSAccount<TBSStellarName>) {
+  async _signTransaction(transaction: stellarSDK.Transaction, senderAccount: TBSAccount<TBSStellarName>) {
     if (senderAccount.isHardware) {
       if (!this.ledgerService.getLedgerTransport) {
         throw new BSError(
@@ -164,43 +112,50 @@ export class BSStellar implements IBSStellar {
     return transaction
   }
 
-  async createTrustline(senderAccount: TBSAccount<TBSStellarName>, token: TBSToken): Promise<string> {
-    const asset = new stellarSDK.Asset(token.symbol, token.hash)
-    let alreadyHaveTrustline = false
+  async #buildTransferTransaction({ intents, senderAccount }: TTransferParams<TBSStellarName>) {
+    const sourceAccount = await this._ensureAccountOnChain(senderAccount.address)
 
-    try {
-      await this.#ensureTrustline(senderAccount.address, asset)
+    const feeBn = await this._getFeeEstimate(intents.length)
 
-      alreadyHaveTrustline = true
-    } catch {
-      /* empty */
-    }
-
-    if (alreadyHaveTrustline) {
-      throw new BSError('Trustline already exists', 'TRUSTLINE_EXISTS')
-    }
-
-    const sourceAccount = await this.#ensureAccountOnChain(senderAccount.address)
-
-    const fee = await this.getFeeEstimate(1)
-
-    const builtTransaction = new stellarSDK.TransactionBuilder(sourceAccount, {
-      fee: BSBigNumberHelper.toDecimals(fee, this.feeToken.decimals),
+    const transaction = new stellarSDK.TransactionBuilder(sourceAccount, {
+      fee: BSBigNumberHelper.toDecimals(feeBn, this.feeToken.decimals),
       networkPassphrase: BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.network.id],
     })
-      .addOperation(stellarSDK.Operation.changeTrust({ asset }))
-      .setTimeout(30)
-      .build()
 
-    const signedTransaction = await this.signTransaction(builtTransaction, senderAccount)
+    for (const intent of intents) {
+      await this._ensureAccountOnChain(intent.receiverAddress)
 
-    const response = await this.sorobanServer.sendTransaction(signedTransaction)
+      const isNative = this.tokenService.predicateByHash(intent.token.hash, BSStellarConstants.NATIVE_TOKEN.hash)
 
-    if (this.#invalidTransactionStatus.includes(response.status)) {
-      throw new BSError(`Transaction failed: ${response.errorResult?.result}`, 'TRANSACTION_FAILED')
+      let asset: stellarSDK.Asset
+      if (isNative) {
+        asset = stellarSDK.Asset.native()
+      } else {
+        asset = new stellarSDK.Asset(intent.token.symbol, intent.token.hash)
+
+        const hasTrustline = await this.trustlineService.hasTrustline({
+          address: senderAccount.address,
+          token: intent.token,
+        })
+
+        if (!hasTrustline) {
+          throw new BSError(
+            `Sender account does not have a trustline for token ${intent.token.symbol}. Please create a trustline before sending this token.`,
+            'TRUSTLINE_NOT_FOUND'
+          )
+        }
+      }
+
+      transaction.addOperation(
+        stellarSDK.Operation.payment({
+          destination: intent.receiverAddress,
+          asset,
+          amount: intent.amount,
+        })
+      )
     }
 
-    return response.hash
+    return transaction.setTimeout(30).build()
   }
 
   setNetwork(network: TBSNetwork<TBSStellarNetworkId>) {
@@ -213,14 +168,15 @@ export class BSStellar implements IBSStellar {
 
     this.network = network
     this.networkUrls = networkUrls
-    this.sorobanServer = new stellarSDK.rpc.Server(this.network.url)
-    this.horizonServer = new stellarSDK.Horizon.Server(BSStellarConstants.HORIZON_URL_BY_NETWORK_ID[network.id])
+    this._sorobanServer = new stellarSDK.rpc.Server(this.network.url)
+    this._horizonServer = new stellarSDK.Horizon.Server(BSStellarConstants.HORIZON_URL_BY_NETWORK_ID[network.id])
 
-    this.tokenService = new TokenServiceStellar()
+    this.tokenService = new TokenServiceStellar(this)
     this.blockchainDataService = new HorizonBDSStellar(this)
     this.exchangeDataService = new RpcEDSStellar(this)
     this.explorerService = new StellarChainESStellar(this)
     this.walletConnectService = new WalletConnectServiceStellar(this)
+    this.trustlineService = new TrustlineServiceStellar(this)
   }
 
   // This method is done manually because we need to ensure that the request is aborted after timeout
@@ -301,24 +257,22 @@ export class BSStellar implements IBSStellar {
   }
 
   async calculateTransferFee(params: TTransferParams<TBSStellarName>): Promise<string> {
-    const feeBn = await this.getFeeEstimate(params.intents.length)
-
+    const feeBn = await this._getFeeEstimate(params.intents.length)
     return BSBigNumberHelper.toNumber(feeBn, this.feeToken.decimals)
   }
 
-  async transfer(params: TTransferParams<TBSStellarName>): Promise<TTransactionDefault<TBSStellarName>[]> {
+  async transfer(params: TTransferParams<TBSStellarName>): Promise<TTransactionDefault[]> {
     const transaction = await this.#buildTransferTransaction(params)
     const { senderAccount } = params
-    const signedTransaction = await this.signTransaction(transaction, senderAccount)
-    const response = await this.sorobanServer.sendTransaction(signedTransaction)
+    const signedTransaction = await this._signTransaction(transaction, senderAccount)
+    const response = await this._sorobanServer.sendTransaction(signedTransaction)
 
-    if (this.#invalidTransactionStatus.includes(response.status)) {
+    if (BSStellarConstants.INVALID_TRANSACTION_STATUS.includes(response.status)) {
       throw new BSError(`Transaction failed: ${response.errorResult?.result}`, 'TRANSACTION_FAILED')
     }
 
     const txId = response.hash
     const { address } = senderAccount
-    const nativeTokenHash = BSStellarConstants.NATIVE_TOKEN.hash
 
     return [
       {
@@ -329,7 +283,6 @@ export class BSStellar implements IBSStellar {
           BSBigNumberHelper.fromDecimals(transaction.fee, this.feeToken.decimals),
           { decimals: this.feeToken.decimals }
         ),
-        type: 'default',
         view: 'default',
         events: params.intents.map(({ amount, receiverAddress, token }, index) => {
           const tokenHash = token.hash
@@ -342,12 +295,56 @@ export class BSStellar implements IBSStellar {
             fromUrl: this.explorerService.buildAddressUrl(address),
             to: receiverAddress,
             toUrl: this.explorerService.buildAddressUrl(receiverAddress),
-            tokenType: this.tokenService.predicateByHash(nativeTokenHash, tokenHash) ? 'native' : 'sac',
             tokenUrl: this.explorerService.buildContractUrl(tokenHash),
             token,
           }
         }),
       },
     ]
+  }
+
+  async faucet(address: string): Promise<TTransaction> {
+    const response = await axios.get<TBSStellarFriendBotResponse>('https://friendbot.stellar.org', {
+      params: { addr: address },
+    })
+
+    if (response.status !== 200 || response.data.successful !== true) {
+      throw new BSError(`Failed to fund account: ${response.statusText}`, 'FUNDING_FAILED')
+    }
+
+    const transaction = stellarSDK.TransactionBuilder.fromXDR(
+      response.data.envelope_xdr,
+      BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.network.id]
+    )
+
+    const operation = transaction.operations[0] as stellarSDK.Operation.Payment
+
+    const from = operation.source
+    const to = operation.destination
+    const txId = response.data.hash
+
+    return {
+      txId: txId,
+      txIdUrl: this.explorerService.buildTransactionUrl(txId),
+      date: new Date().toJSON(),
+      view: 'default',
+      networkFeeAmount: BSBigNumberHelper.format(
+        BSBigNumberHelper.fromDecimals(transaction.fee, this.feeToken.decimals),
+        { decimals: this.feeToken.decimals }
+      ),
+      events: [
+        {
+          eventType: 'token',
+          methodName: 'payment',
+          from,
+          fromUrl: from ? this.explorerService.buildAddressUrl(from) : undefined,
+          to,
+          toUrl: to ? this.explorerService.buildAddressUrl(to) : undefined,
+          token: BSStellarConstants.NATIVE_TOKEN,
+          amount: operation.amount,
+          tokenUrl: this.explorerService.buildContractUrl(BSStellarConstants.NATIVE_TOKEN.hash),
+        },
+      ],
+    }
   }
 }

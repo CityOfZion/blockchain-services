@@ -1,8 +1,6 @@
-import type { TBridgeToken } from '@cityofzion/blockchain-service'
+import type { TBridgeToken, TBSBridgeName } from '@cityofzion/blockchain-service'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX } from '@cityofzion/bs-neox'
-
-export type TBSBridgeName = BSNeo3['name'] | BSNeoX['name']
 
 export type TNeo3NeoXBridgeOrchestratorInitParams = {
   neo3Service: BSNeo3

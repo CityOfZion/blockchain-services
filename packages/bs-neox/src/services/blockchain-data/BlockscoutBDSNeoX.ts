@@ -4,22 +4,18 @@ import {
   BSUtilsHelper,
   type TBalanceResponse,
   type TContractMethod,
-  type TBridgeToken,
   type TBSNetwork,
   type TBSToken,
-  type TTransactionBridgeNeo3NeoXType,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TContractResponse,
-  type TBSBigNumber,
   type TTransactionDefault,
+  type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
 import { BSEthereumConstants, ERC20_ABI, RpcBDSEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
-import { BRIDGE_ABI } from '../../assets/abis/bridge'
-import { Neo3NeoXBridgeService } from '../neo3-neox-bridge/Neo3NeoXBridgeService'
 import type {
   IBSNeoX,
   TBlockscoutBDSNeoXBalanceApiResponse,
@@ -31,7 +27,6 @@ import type {
   TBSNeoXName,
   TBSNeoXNetworkId,
 } from '../../types'
-import { BSNeo3NeonJsSingletonHelper } from '@cityofzion/bs-neo3'
 
 export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetworkId, IBSNeoX> {
   static readonly BASE_URL_BY_CHAIN_ID: Partial<Record<TBSNeoXNetworkId, string>> = {
@@ -61,7 +56,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     return this.#apiInstance
   }
 
-  async getTransaction(txid: string): Promise<TTransactionDefault<TBSNeoXName>> {
+  async getTransaction(txid: string): Promise<TTransactionDefault> {
     const { data: response } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
     if (!response || 'message' in response) {
@@ -69,8 +64,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
-    const to = response.to?.hash
-    const events: TTransactionDefault<TBSNeoXName>['events'] = []
+    const events: TTransactionDefaultEvent[] = []
 
     const hasNativeTokenBeingTransferred = response.value !== '0'
     if (hasNativeTokenBeingTransferred) {
@@ -89,7 +83,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         fromUrl,
         to,
         toUrl,
-        tokenType: 'native',
         tokenUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
         token: nativeToken,
       })
@@ -126,7 +119,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
             fromUrl,
             to,
             toUrl,
-            tokenType: 'erc-20',
             tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
             token,
           })
@@ -149,7 +141,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
             fromUrl,
             to,
             toUrl,
-            tokenType: 'erc-721',
             nft,
           })
         }
@@ -158,9 +149,11 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
       await Promise.allSettled(promises)
     }
 
+    const data = this._service.neo3NeoXBridgeService._getDataFromBlockscoutTransaction(response)
+
     const txId = response.hash
 
-    let transaction: TTransactionDefault<TBSNeoXName> = {
+    const transaction: TTransactionDefault = {
       txId,
       txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
       block: response.block,
@@ -171,19 +164,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
           decimals: this._service.feeToken.decimals,
         }
       ),
-      type: 'default',
       view: 'default',
       events,
-    }
-
-    if (to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH) {
-      const [bridgeNeo3NeoXData] = BSUtilsHelper.tryCatch(() =>
-        this.#getBridgeNeo3NeoXDataByBlockscoutTransaction(response)
-      )
-
-      if (bridgeNeo3NeoXData) {
-        transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
-      }
+      data,
     }
 
     return transaction
@@ -191,7 +174,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<TBSNeoXName, TTransactionDefault<TBSNeoXName>>> {
+  ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionByAddressApiResponse>(
       `/addresses/${params.address}/transactions`,
       {
@@ -206,10 +189,10 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
-    const transactions: TTransactionDefault<TBSNeoXName>[] = []
+    const transactions: TTransactionDefault[] = []
 
     const promises = data.items.map(async (item, index) => {
-      const events: TTransactionDefault<TBSNeoXName>['events'] = []
+      const events: TTransactionDefaultEvent[] = []
       const hasNativeTokenBeingTransferred = item.value !== '0'
 
       if (hasNativeTokenBeingTransferred) {
@@ -228,7 +211,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
           fromUrl,
           to,
           toUrl,
-          tokenType: 'native',
           tokenUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
           token: nativeToken,
         })
@@ -261,7 +243,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
             fromUrl,
             to,
             toUrl,
-            tokenType: 'erc-20',
             tokenUrl: this._service.explorerService.buildContractUrl(token.hash),
             token,
           })
@@ -274,9 +255,11 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         return
       }
 
+      const data = this._service.neo3NeoXBridgeService._getDataFromBlockscoutTransaction(item)
+
       const txId = item.hash
 
-      let transaction: TTransactionDefault<TBSNeoXName> = {
+      const transaction: TTransactionDefault = {
         txId,
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
         block: item.block,
@@ -287,21 +270,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
             decimals: this._service.feeToken.decimals,
           }
         ),
-        type: 'default',
         view: 'default',
         events,
-      }
-
-      const hasBridgeNeo3NeoXEvent = events.some(event => event.to === Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH)
-
-      if (hasBridgeNeo3NeoXEvent) {
-        const [bridgeNeo3NeoXData] = BSUtilsHelper.tryCatch(() =>
-          this.#getBridgeNeo3NeoXDataByBlockscoutTransaction(item)
-        )
-
-        if (bridgeNeo3NeoXData) {
-          transaction = { ...transaction, type: 'bridgeNeo3NeoX', data: bridgeNeo3NeoXData }
-        }
+        data,
       }
 
       transactions.splice(index, 0, transaction)
@@ -443,38 +414,5 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     }
 
     return data.items[0].height
-  }
-
-  #getBridgeNeo3NeoXDataByBlockscoutTransaction(
-    transactionResponse: TBlockscoutBDSNeoXTransactionApiResponse
-  ): TTransactionBridgeNeo3NeoXType<TBSNeoXName>['data'] | undefined {
-    const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
-    const input = BridgeInterface.parseTransaction({ data: transactionResponse.raw_input })
-
-    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
-
-    const to = input.args._to
-    const receiverAddress = wallet.getAddressFromScriptHash(to.startsWith('0x') ? to.slice(2) : to)
-
-    let tokenToUse: TBridgeToken<TBSNeoXName> | undefined
-    let amountBn: TBSBigNumber | undefined
-
-    if (input.name === 'withdrawNative') {
-      tokenToUse = this._service.neo3NeoXBridgeService.gasToken
-      amountBn = BSBigNumberHelper.fromDecimals(transactionResponse.value, tokenToUse.decimals).minus(
-        Neo3NeoXBridgeService.BRIDGE_FEE
-      )
-    } else if (input.name === 'withdrawToken') {
-      tokenToUse = this._service.neo3NeoXBridgeService.neoToken
-      amountBn = BSBigNumberHelper.fromDecimals(input.args._amount.toString(), tokenToUse.decimals)
-    }
-
-    if (!tokenToUse || !amountBn) return undefined
-
-    return {
-      tokenToUse,
-      receiverAddress,
-      amount: BSBigNumberHelper.format(amountBn, { decimals: tokenToUse.decimals }),
-    }
   }
 }

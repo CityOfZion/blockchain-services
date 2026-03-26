@@ -36,7 +36,7 @@ export class RpcEDSStellar extends CryptoCompareEDS {
         selling = new stellarSDK.Asset(token.symbol, token.hash)
       }
 
-      const orderbook = await this.#service.horizonServer.orderbook(selling, buying).call()
+      const orderbook = await this.#service._horizonServer.orderbook(selling, buying).call()
 
       const bestBid = orderbook.bids[0]?.price
       if (!bestBid) continue

@@ -1,12 +1,20 @@
 import type {
+  IBlockchainService,
   ITokenService,
+  TBSNetworkId,
   TBSToken,
   TTokenServicePredicateByHashParams,
   TTokenServicePredicateBySymbolParams,
   TTokenServicePredicateParams,
 } from '../../interfaces'
 
-export abstract class TokenService implements ITokenService {
+export abstract class TokenService<N extends string, A extends TBSNetworkId> implements ITokenService {
+  protected _service: IBlockchainService<N, A>
+
+  constructor(service: IBlockchainService<N, A>) {
+    this._service = service
+  }
+
   predicate(compareFrom: TTokenServicePredicateParams, compareTo: TTokenServicePredicateParams) {
     if (this.normalizeHash(compareFrom.hash) === this.normalizeHash(compareTo.hash)) return true
 
@@ -48,6 +56,18 @@ export abstract class TokenService implements ITokenService {
       ...token,
       hash: this.normalizeHash(token.hash),
     }
+  }
+
+  validateTokenHash(hash?: string): hash is string {
+    hash = hash?.trim()
+
+    if (!hash) return false
+
+    return !this.isNativeToken(hash)
+  }
+
+  isNativeToken(hash: string): boolean {
+    return this._service.nativeTokens.some(token => this.predicateByHash(hash, token))
   }
 
   abstract normalizeHash(hash: string): string

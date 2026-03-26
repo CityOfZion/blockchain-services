@@ -111,7 +111,7 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<TBSBit
     let publicKey: string | undefined
 
     if (!senderAccount.isHardware) {
-      const keyPair = this.#service.getKeyPair(senderAccount.key)
+      const keyPair = this.#service._getKeyPair(senderAccount.key)
 
       publicKey = Buffer.from(keyPair.publicKey).toString('hex')
     }
@@ -137,10 +137,10 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<TBSBit
       throw new BSError('PSBT not found', 'PSBT_NOT_FOUND')
     }
 
-    const parsedPsbt = bitcoinjs.Psbt.fromBase64(psbt, { network: this.#service.bitcoinjsNetwork })
+    const parsedPsbt = bitcoinjs.Psbt.fromBase64(psbt, { network: this.#service._bitcoinjsNetwork })
     let txid: string | undefined
 
-    await this.#service.signTransaction({ psbt: parsedPsbt, account: senderAccount, signInputs })
+    await this.#service._signTransaction({ psbt: parsedPsbt, account: senderAccount, signInputs })
 
     if (signInputs && signInputs.length > 0) {
       const parsedSignInputs = signInputs as TSignInput[]
@@ -156,7 +156,7 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<TBSBit
       const transaction = parsedPsbt.extractTransaction()
       const transactionHash = transaction.getId()
 
-      txid = await this.#service.broadcastTransaction(transaction.toHex())
+      txid = await this.#service._broadcastTransaction(transaction.toHex())
 
       if (transactionHash !== txid) {
         throw new BSError('Invalid transaction hash', 'INVALID_TRANSACTION_HASH')
@@ -192,7 +192,7 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<TBSBit
     const signingAddress = address || senderAddress
 
     if (senderAccount.isHardware) {
-      const transport = await this.#service.getLedgerTransport(senderAccount)
+      const transport = await this.#service._getLedgerTransport(senderAccount)
       const response = await this.#service.ledgerService.signMessage({ message, account: senderAccount, transport })
 
       return { address: signingAddress, ...response }
@@ -200,10 +200,10 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<TBSBit
 
     let segwitType: SignatureOptions['segwitType']
 
-    if (this.#service.isP2WPKHAddress(senderAddress)) segwitType = 'p2wpkh'
-    else if (this.#service.isP2SHAddress(senderAddress)) segwitType = 'p2sh(p2wpkh)'
+    if (this.#service._isP2WPKHAddress(senderAddress)) segwitType = 'p2wpkh'
+    else if (this.#service._isP2SHAddress(senderAddress)) segwitType = 'p2sh(p2wpkh)'
 
-    const keyPair = this.#service.getKeyPair(senderAccount.key)
+    const keyPair = this.#service._getKeyPair(senderAccount.key)
     const messageBuffer = Buffer.from(message, BSUtilsHelper.isBase64(message) ? 'base64' : 'utf8')
     const messageHash = bitcoinjsMessage.magicHash(messageBuffer)
     const bufferPrivateKey = Buffer.isBuffer(keyPair.privateKey) ? keyPair.privateKey : Buffer.from(keyPair.privateKey)

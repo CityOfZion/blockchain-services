@@ -3,12 +3,13 @@ import {
   BSError,
   BSUtilsHelper,
   type TBSAccount,
+  type TBSBridgeName,
   type TBalanceResponse,
   type TBridgeToken,
   type TBridgeValidateValue,
   type TBridgeValue,
 } from '@cityofzion/blockchain-service'
-import { Neo3NeoXBridgeOrchestrator, type TBSBridgeName } from '../features/bridge'
+import { Neo3NeoXBridgeOrchestrator } from '../features/bridge'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX, BSNeoXConstants } from '@cityofzion/bs-neox'
 

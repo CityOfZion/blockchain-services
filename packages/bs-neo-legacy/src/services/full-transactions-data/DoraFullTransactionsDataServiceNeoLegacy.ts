@@ -7,12 +7,12 @@ import {
   type TGetFullTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
-  type TTransactionTokenEvent,
+  type TTransactionDefaultTokenEvent,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeoLegacy, TBSNeoLegacyName, TBSNeoLegacyNetworkId } from '../../types'
+import type { IBSNeoLegacy, TBSNeoLegacyNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 
-export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactionsDataService<TBSNeoLegacyName> {
+export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactionsDataService {
   static readonly SUPPORTED_NEP5_STANDARDS: string[] = ['nep5', 'nep-5']
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeoLegacyNetworkId[] = ['mainnet']
   static readonly MAX_PAGE_SIZE = 30
@@ -26,9 +26,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<
-    TGetTransactionsByAddressResponse<TBSNeoLegacyName, TTransactionDefault<TBSNeoLegacyName>>
-  > {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
     const pageSize =
       params.pageSize && params.pageSize > DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
         ? DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
@@ -42,7 +40,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
       pageSize,
     })
 
-    const transactions: TTransactionDefault<TBSNeoLegacyName>[] = []
+    const transactions: TTransactionDefault[] = []
 
     const response = await api.NeoLegacyREST.getFullTransactionsByAddress({
       address: params.address,
@@ -59,7 +57,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      const newItem: TTransactionDefault<TBSNeoLegacyName> = {
+      const newItem: TTransactionDefault = {
         txId,
         txIdUrl,
         block: item.block,
@@ -70,7 +68,6 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
         systemFeeAmount: systemFeeAmount
           ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
           : undefined,
-        type: 'default',
         view: 'default',
         events: [],
       }
@@ -82,12 +79,10 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
           this.#service.blockchainDataService.getTokenInfo(contractHash)
         )
 
-        const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
-        const isNep5 = DoraFullTransactionsDataServiceNeoLegacy.SUPPORTED_NEP5_STANDARDS.includes(standard)
         const fromUrl = from ? this.#service.explorerService.buildAddressUrl(from) : undefined
         const toUrl = to ? this.#service.explorerService.buildAddressUrl(to) : undefined
 
-        const assetEvent: TTransactionTokenEvent = {
+        const assetEvent: TTransactionDefaultTokenEvent = {
           eventType: 'token',
           amount: amount
             ? BSBigNumberHelper.format(amount, { decimals: token?.decimals ?? event.tokenDecimals })
@@ -97,7 +92,6 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
           fromUrl,
           to: to ?? undefined,
           toUrl,
-          tokenType: isNep5 ? 'nep-5' : 'generic',
           tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         }
