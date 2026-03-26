@@ -1,6 +1,15 @@
 # Change Log - @cityofzion/bs-ethereum
 
-This log was last generated on Mon, 23 Mar 2026 16:17:33 GMT and should not be manually modified.
+This log was last generated on Thu, 26 Mar 2026 19:08:54 GMT and should not be manually modified.
+
+## 3.1.4
+Thu, 26 Mar 2026 19:08:54 GMT
+
+### Updates
+
+- Prefix internal methods with underscore and remove tokenType/type from transaction events
+- Make TokenServiceEthereum generic and re-enable skipped tests
+- Improve service name typings
 
 ## 3.1.3
 Mon, 23 Mar 2026 16:17:33 GMT

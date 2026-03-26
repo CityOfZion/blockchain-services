@@ -1,6 +1,16 @@
 # Change Log - @cityofzion/bs-stellar
 
-This log was last generated on Mon, 23 Mar 2026 16:17:33 GMT and should not be manually modified.
+This log was last generated on Thu, 26 Mar 2026 19:08:54 GMT and should not be manually modified.
+
+## 3.1.4
+Thu, 26 Mar 2026 19:08:54 GMT
+
+### Updates
+
+- Extract TrustlineServiceStellar from BSStellar with trustline management methods
+- Add faucet support and prefix internal methods with underscore
+- Enhance HorizonBDSStellar with generic event handling
+- Improve service name typings
 
 ## 3.1.3
 Mon, 23 Mar 2026 16:17:33 GMT

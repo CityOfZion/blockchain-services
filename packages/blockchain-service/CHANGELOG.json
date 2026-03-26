@@ -2,6 +2,27 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "3.1.4",
+      "tag": "@cityofzion/blockchain-service_v3.1.4",
+      "date": "Thu, 26 Mar 2026 19:08:54 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Remove generic parameters from transaction types and data service interfaces"
+          },
+          {
+            "comment": "Replace transaction type discriminator and event tokenType with a flexible data field and getTransactionData pattern"
+          },
+          {
+            "comment": "Introduce IClaimService, IBSWithFaucet, and generic TokenService with validation methods"
+          },
+          {
+            "comment": "Improve service name typings"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.3",
       "tag": "@cityofzion/blockchain-service_v3.1.3",
       "date": "Mon, 23 Mar 2026 16:17:33 GMT",

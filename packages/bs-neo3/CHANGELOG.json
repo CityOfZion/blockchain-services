@@ -2,6 +2,24 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "3.1.4",
+      "tag": "@cityofzion/bs-neo3_v3.1.4",
+      "date": "Thu, 26 Mar 2026 19:08:54 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Replace RpcCDSNeo3 with ClaimServiceNeo3 and rename DoraVoteServiceNeo3 to VoteServiceNeo3"
+          },
+          {
+            "comment": "Centralize bridge, claim, and vote data extraction into their respective services"
+          },
+          {
+            "comment": "Improve service name typings"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.3",
       "tag": "@cityofzion/bs-neo3_v3.1.3",
       "date": "Mon, 23 Mar 2026 16:17:33 GMT",

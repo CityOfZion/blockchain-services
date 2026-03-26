@@ -1,6 +1,16 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 23 Mar 2026 16:17:33 GMT and should not be manually modified.
+This log was last generated on Thu, 26 Mar 2026 19:08:54 GMT and should not be manually modified.
+
+## 3.1.4
+Thu, 26 Mar 2026 19:08:54 GMT
+
+### Updates
+
+- Remove generic parameters from transaction types and data service interfaces
+- Replace transaction type discriminator and event tokenType with a flexible data field and getTransactionData pattern
+- Introduce IClaimService, IBSWithFaucet, and generic TokenService with validation methods
+- Improve service name typings
 
 ## 3.1.3
 Mon, 23 Mar 2026 16:17:33 GMT

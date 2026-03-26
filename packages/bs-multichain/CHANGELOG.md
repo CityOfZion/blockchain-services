@@ -1,6 +1,15 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Mon, 23 Mar 2026 16:17:33 GMT and should not be manually modified.
+This log was last generated on Thu, 26 Mar 2026 19:08:54 GMT and should not be manually modified.
+
+## 3.1.4
+Thu, 26 Mar 2026 19:08:54 GMT
+
+### Updates
+
+- Add Bitcoin as a supported multichain service
+- Align bridge and swap types with core generic removal
+- Improve service name typings
 
 ## 3.1.3
 Mon, 23 Mar 2026 16:17:33 GMT
