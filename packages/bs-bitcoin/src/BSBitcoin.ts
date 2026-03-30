@@ -249,7 +249,7 @@ export class BSBitcoin implements IBSBitcoin {
 
         return { ...utxo, valueAsString: value.toFixed(), value: value.toNumber() }
       })
-      .toSorted((a, b) => a.value - b.value)
+      .sort((a, b) => a.value - b.value)
 
     const { data: feeData } = await this.#tatumApi.get<TTatumFeesResponse>(
       `/v3/blockchain/fee/${BSBitcoinConstants.NATIVE_TOKEN.symbol}`
