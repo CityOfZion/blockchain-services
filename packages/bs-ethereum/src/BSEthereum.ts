@@ -274,6 +274,8 @@ export class BSEthereum<
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
         let gasLimit: ethers.BigNumberish
 
+        transactionParams.nonce = await signer.getTransactionCount('pending')
+
         try {
           gasLimit = await signer.estimateGas(transactionParams)
         } catch {
