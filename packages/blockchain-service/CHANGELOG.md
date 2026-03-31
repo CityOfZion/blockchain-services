@@ -1,6 +1,11 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Thu, 26 Mar 2026 19:08:54 GMT and should not be manually modified.
+This log was last generated on Tue, 31 Mar 2026 18:49:48 GMT and should not be manually modified.
+
+## 3.1.5
+Tue, 31 Mar 2026 18:49:48 GMT
+
+_Version update only_
 
 ## 3.1.4
 Thu, 26 Mar 2026 19:08:54 GMT
