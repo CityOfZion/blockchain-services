@@ -1,5 +1,5 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
   BSFullTransactionsByAddressHelper,
   BSUtilsHelper,
   type IFullTransactionsDataService,
@@ -60,7 +60,7 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
         block: item.block,
         date: item.date,
         networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: BSNeoXConstants.NATIVE_ASSET.decimals })
+          ? new BSBigHumanAmount(networkFeeAmount, BSNeoXConstants.NATIVE_ASSET.decimals).toFormatted()
           : undefined,
         view: 'default',
         events: [],
@@ -106,7 +106,7 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
         newItem.events.splice(eventIndex, 0, {
           eventType: 'token',
           amount: event.amount
-            ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            ? new BSBigHumanAmount(event.amount, token?.decimals ?? event.tokenDecimals).toFormatted()
             : undefined,
           methodName,
           from,
@@ -130,7 +130,7 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
             ...newItem,
             data: {
               neo3NeoxBridge: {
-                amount: BSBigNumberHelper.format(bridgeData.amount, { decimals: tokenToUse.decimals }),
+                amount: new BSBigHumanAmount(bridgeData.amount, tokenToUse.decimals).toFormatted(),
                 tokenToUse,
                 receiverAddress: bridgeData.receiverBridgeAddress,
               },

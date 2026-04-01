@@ -6,9 +6,9 @@ import type {
   IBSWithLedger,
   IBSWithWalletConnect,
   TBSAccount,
-  TBSBigNumber,
   TBSToken,
   IBSWithFaucet,
+  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import type { Horizon, rpc, Transaction } from '@stellar/stellar-sdk'
 import * as stellarSDK from '@stellar/stellar-sdk'
@@ -32,7 +32,7 @@ export interface IBSStellar
   _horizonServer: Horizon.Server
 
   _signTransaction(transaction: Transaction, senderAccount: TBSAccount<TBSStellarName>): Promise<Transaction>
-  _getFeeEstimate(length: number): Promise<TBSBigNumber>
+  _getFeeEstimate(length: number): Promise<BSBigUnitAmount>
   _ensureAccountOnChain(address: string): Promise<stellarSDK.Account>
 }
 
@@ -61,3 +61,10 @@ export type TBSStellarFriendBotResponse = {
   hash: string
   envelope_xdr: string
 }
+
+export type TWalletConnectServiceStellarMethod =
+  | 'stellar_signXDR'
+  | 'stellar_signAndSubmitXDR'
+  | 'stellar_signMessage'
+  | 'stellar_signAuthEntry'
+  | 'stellar_getNetwork'

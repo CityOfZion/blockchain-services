@@ -1,6 +1,5 @@
 import {
   TBalanceResponse,
-  BSBigNumberHelper,
   IBlockchainDataService,
   TBSToken,
   type TContractResponse,
@@ -12,6 +11,7 @@ import {
   BSError,
   type TTransactionDefault,
   type TTransactionDefaultEvent,
+  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import * as solanaKit from '@solana/kit'
@@ -19,6 +19,7 @@ import * as solanaToken from '@solana-program/token'
 import * as solanaSystem from '@solana-program/system'
 import type { IBSSolana, TBSSolanaName, TMetaplexAssetResponse, TRpcBDSSolanaParsedInstruction } from '../../types'
 import axios from 'axios'
+import { BSBigNumber } from '@cityofzion/blockchain-service'
 
 export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 // 1 minutes
@@ -76,7 +77,7 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
       token = {
         symbol: 'UNKNOWN',
         name: 'Unknown Token',
-        decimals: BSBigNumberHelper.fromNumber(info.tokenAmount.decimals).toNumber(),
+        decimals: BSBigNumber.ensureNumber(info.tokenAmount.decimals),
         hash: contractHash,
       }
     }
@@ -116,8 +117,7 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
       }
     }
 
-    const amountBn = BSBigNumberHelper.fromDecimals(tokenAmount, token.decimals)
-    const amount = BSBigNumberHelper.format(amountBn, { decimals: token.decimals })
+    const amount = new BSBigUnitAmount(tokenAmount, token.decimals).toHuman().toFormatted()
 
     return {
       eventType: 'token',
@@ -186,8 +186,7 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
       }
     }
 
-    const amountBn = BSBigNumberHelper.fromDecimals(info.amount, token.decimals)
-    const amount = BSBigNumberHelper.format(amountBn, { decimals: token.decimals })
+    const amount = new BSBigUnitAmount(info.amount, token.decimals).toHuman().toFormatted()
 
     return {
       eventType: 'token',
@@ -210,8 +209,7 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
 
     if (!info || method !== 'transfer' || !info.lamports || !info.source || !info.destination) return
 
-    const amountBn = BSBigNumberHelper.fromDecimals(info.lamports, BSSolanaConstants.NATIVE_TOKEN.decimals)
-    const amount = BSBigNumberHelper.format(amountBn, { decimals: BSSolanaConstants.NATIVE_TOKEN.decimals })
+    const amount = new BSBigUnitAmount(info.lamports, BSSolanaConstants.NATIVE_TOKEN.decimals).toHuman().toFormatted()
 
     const from = info.source
     const to = info.destination
@@ -281,12 +279,11 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
       relatedAddress,
       txId,
       txIdUrl,
-      block: BSBigNumberHelper.fromNumber(block).toNumber(),
-      date: new Date(BSBigNumberHelper.fromNumber(blockTime).multipliedBy(1000).toNumber()).toJSON(),
-      networkFeeAmount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromDecimals(transaction.meta.fee, this.#service.feeToken.decimals),
-        { decimals: this.#service.feeToken.decimals }
-      ),
+      block: BSBigNumber.ensureNumber(block),
+      date: new Date(new BSBigNumber(blockTime).multipliedBy(1000).toNumber()).toJSON(),
+      networkFeeAmount: new BSBigUnitAmount(transaction.meta.fee, this.#service.feeToken.decimals)
+        .toHuman()
+        .toFormatted(),
       view: 'default',
       events,
     }
@@ -411,18 +408,19 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
       )
       .send()
 
-    const nativeBalanceBn = BSBigNumberHelper.fromDecimals(nativeBalance.value, BSSolanaConstants.NATIVE_TOKEN.decimals)
-    const nativeBalanceAmount = BSBigNumberHelper.toNumber(nativeBalanceBn)
+    const nativeBalanceAmount = new BSBigUnitAmount(nativeBalance.value, BSSolanaConstants.NATIVE_TOKEN.decimals)
+      .toHuman()
+      .toFormatted()
 
     const balances: TBalanceResponse[] = [{ amount: nativeBalanceAmount, token: BSSolanaConstants.NATIVE_TOKEN }]
 
     const promises = splBalance.value.map(async item => {
       const token = await this.getTokenInfo(item.account.data.parsed.info.mint)
 
-      const amountBn = BSBigNumberHelper.fromDecimals(item.account.data.parsed.info.tokenAmount.amount, token.decimals)
+      const amountBn = new BSBigUnitAmount(item.account.data.parsed.info.tokenAmount.amount, token.decimals)
       if (amountBn.isNaN() || amountBn.isLessThanOrEqualTo(0)) return
 
-      const amount = BSBigNumberHelper.format(amountBn, { decimals: token.decimals })
+      const amount = amountBn.toHuman().toFormatted()
 
       balances.push({
         amount,
@@ -437,6 +435,6 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
 
   async getBlockHeight(): Promise<number> {
     const blockHeight = await this.#service._solanaKitRpc.getBlockHeight().send()
-    return BSBigNumberHelper.fromNumber(blockHeight).toNumber()
+    return BSBigNumber.ensureNumber(blockHeight)
   }
 }

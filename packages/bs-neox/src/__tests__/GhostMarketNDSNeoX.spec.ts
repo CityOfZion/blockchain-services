@@ -69,8 +69,7 @@ describe('Neo X Blockchain', () => {
 
       for (const { collection } of items) {
         const hasToken = await ghostMarketNDSNeoX.hasToken({ address, collectionHash: collection!.hash })
-
-        expect(hasToken).toBeTruthy()
+        expect(hasToken).toBe(true)
       }
     })
   })

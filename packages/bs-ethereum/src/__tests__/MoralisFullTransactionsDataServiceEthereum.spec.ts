@@ -22,15 +22,15 @@ const expectedResponse = {
       txIdUrl: expect.anything(),
       block: expect.any(Number),
       date: expect.any(String),
-      networkFeeAmount: expect.anything(),
       blockchain: expect.toBeOneOf(['ethereum', 'polygon', 'base', 'arbitrum']),
       isPending: false,
       relatedAddress: expect.any(String),
+      networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
       view: 'default',
       events: expect.arrayContaining([
         expect.objectContaining({
           eventType: expect.any(String),
-          amount: expect.anything(),
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
           methodName: expect.any(String),
           from: expect.anything(),
           fromUrl: expect.anything(),

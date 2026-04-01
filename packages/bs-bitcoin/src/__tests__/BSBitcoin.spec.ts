@@ -1,7 +1,7 @@
 import type { IBSBitcoin } from '../types'
 import { BSBitcoin } from '../BSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
-import { BSBigNumberHelper, BSError, BSKeychainHelper, TTransferIntent } from '@cityofzion/blockchain-service'
+import { BSBigHumanAmount, BSError, BSKeychainHelper, TTransferIntent } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 
 const invalidAddress = 'INVALID_ADDRESS'
@@ -391,7 +391,7 @@ describe('BSBitcoin', () => {
     })
   })
 
-  it.skip('Should be able to calculate fee using Testnet', async () => {
+  it('Should be able to calculate fee using Testnet', async () => {
     service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
     const senderAccount = await service.generateAccountFromKey(testnetKey)
@@ -721,7 +721,7 @@ describe('BSBitcoin', () => {
       ],
     })
 
-    const amount = BSBigNumberHelper.fromNumber(btcTokenBalance.amount).minus(fee).toFixed()
+    const amount = new BSBigHumanAmount(btcTokenBalance.amount).minus(fee).toFixed()
 
     const transactions = await service.transfer({
       senderAccount,
@@ -791,7 +791,7 @@ describe('BSBitcoin', () => {
       ],
     })
 
-    const amount = BSBigNumberHelper.fromNumber(btcTokenBalance.amount).minus(fee).toFixed()
+    const amount = new BSBigHumanAmount(btcTokenBalance.amount).minus(fee).toFixed()
 
     const transactions = await service.transfer({
       senderAccount,

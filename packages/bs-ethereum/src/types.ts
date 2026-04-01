@@ -213,3 +213,21 @@ export type TMoralisNDSEthereumNftsByAddressApiResponse = {
   page?: number
   page_size?: number
 }
+export type TWalletConnectServiceEthereumMethod =
+  | 'personal_sign'
+  | 'eth_sign'
+  | 'eth_signTransaction'
+  | 'eth_signTypedData'
+  | 'eth_signTypedData_v3'
+  | 'eth_signTypedData_v4'
+  | 'eth_sendTransaction'
+  | 'eth_call'
+  | 'eth_requestAccounts'
+  | 'eth_sendRawTransaction'
+  | 'eth_addEthereumChain'
+  | 'eth_switchEthereumChain'
+  | 'wallet_switchEthereumChain'
+  | 'wallet_getPermissions'
+  | 'wallet_requestPermissions'
+  | 'wallet_addEthereumChain'
+  | (string & {})

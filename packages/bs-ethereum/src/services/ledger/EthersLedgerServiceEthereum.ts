@@ -7,6 +7,7 @@ import {
   type TGetLedgerTransport,
   type TUntilIndexRecord,
   type ILedgerService,
+  BSBigNumber,
 } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
@@ -94,7 +95,7 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
       this.#emitter?.emit('getSignatureEnd')
 
       return ethers.utils.serializeTransaction(<ethers.utils.UnsignedTransaction>tx, {
-        v: ethers.BigNumber.from('0x' + signature.v).toNumber(),
+        v: BSBigNumber.ensureNumber('0x' + signature.v),
         r: '0x' + signature.r,
         s: '0x' + signature.s,
       })

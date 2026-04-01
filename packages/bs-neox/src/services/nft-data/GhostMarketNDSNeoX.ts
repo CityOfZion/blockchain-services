@@ -1,5 +1,5 @@
 import { ERC20_ABI } from '@cityofzion/bs-ethereum'
-import { GhostMarketNDS, type TBSBigNumber, type THasTokenParams } from '@cityofzion/blockchain-service'
+import { BSBigUnitAmount, GhostMarketNDS, type THasTokenParams } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId } from '../../types'
 
@@ -22,9 +22,7 @@ export class GhostMarketNDSNeoX extends GhostMarketNDS<TBSNeoXName, TBSNeoXNetwo
 
       if (!response) return false
 
-      const parsedResponse = response as TBSBigNumber
-
-      return parsedResponse.gt(0)
+      return new BSBigUnitAmount(response.toString(), 0).isGreaterThan(0)
     } catch {
       return false
     }

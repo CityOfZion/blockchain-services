@@ -115,6 +115,9 @@ importers:
       wif:
         specifier: ~5.0.0
         version: 5.0.0
+      zod:
+        specifier: ~4.3.6
+        version: 4.3.6
     devDependencies:
       '@ledgerhq/hw-transport-node-hid':
         specifier: ~6.29.17
@@ -195,6 +198,9 @@ importers:
       ethers:
         specifier: 5.8.0
         version: 5.8.0
+      zod:
+        specifier: ~4.3.6
+        version: 4.3.6
     devDependencies:
       '@ledgerhq/hw-transport':
         specifier: ~6.32.0
@@ -228,7 +234,7 @@ importers:
         version: 1.0.8
       '@walletconnect/utils':
         specifier: ~2.21.9
-        version: 2.21.10(typescript@5.9.3)
+        version: 2.21.10(typescript@5.9.3)(zod@4.3.6)
       axios:
         specifier: 1.13.5
         version: 1.13.5
@@ -361,6 +367,9 @@ importers:
       vitest:
         specifier: ~4.0.18
         version: 4.0.18(@types/node@24.11.0)
+      zod:
+        specifier: ~4.3.6
+        version: 4.3.6
 
   ../../packages/bs-neox:
     dependencies:
@@ -384,10 +393,13 @@ importers:
         version: 5.7.2
       neox-tpke:
         specifier: ~1.0.5
-        version: 1.0.5(typescript@5.9.3)
+        version: 1.0.5(typescript@5.9.3)(zod@4.3.6)
       viem:
         specifier: ~2.38.5
-        version: 2.38.6(typescript@5.9.3)
+        version: 2.38.6(typescript@5.9.3)(zod@4.3.6)
+      zod:
+        specifier: ~4.3.6
+        version: 4.3.6
     devDependencies:
       '@ledgerhq/hw-transport':
         specifier: ~6.32.0
@@ -437,6 +449,9 @@ importers:
       date-fns:
         specifier: ~4.1.0
         version: 4.1.0
+      zod:
+        specifier: ~4.3.6
+        version: 4.3.6
     devDependencies:
       '@ledgerhq/hw-transport-node-hid':
         specifier: ~6.30.0
@@ -471,6 +486,9 @@ importers:
       axios:
         specifier: 1.13.5
         version: 1.13.5
+      zod:
+        specifier: ~4.3.6
+        version: 4.3.6
     devDependencies:
       '@ledgerhq/hw-transport':
         specifier: ~6.32.0
@@ -3486,6 +3504,9 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+
 snapshots:
 
   '@adraffy/ens-normalize@1.11.1': {}
@@ -5273,7 +5294,7 @@ snapshots:
       - ioredis
       - uploadthing
 
-  '@walletconnect/utils@2.21.10(typescript@5.9.3)':
+  '@walletconnect/utils@2.21.10(typescript@5.9.3)(zod@4.3.6)':
     dependencies:
       '@msgpack/msgpack': 3.1.2
       '@noble/ciphers': 1.3.0
@@ -5292,7 +5313,7 @@ snapshots:
       blakejs: 1.2.1
       bs58: 6.0.0
       detect-browser: 5.3.0
-      ox: 0.9.3(typescript@5.9.3)
+      ox: 0.9.3(typescript@5.9.3)(zod@4.3.6)
       uint8arrays: 3.1.1
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -5326,13 +5347,15 @@ snapshots:
       '@walletconnect/window-getters': 1.0.1
       tslib: 1.14.1
 
-  abitype@1.1.0(typescript@5.9.3):
+  abitype@1.1.0(typescript@5.9.3)(zod@4.3.6):
     optionalDependencies:
       typescript: 5.9.3
+      zod: 4.3.6
 
-  abitype@1.2.3(typescript@5.9.3):
+  abitype@1.2.3(typescript@5.9.3)(zod@4.3.6):
     optionalDependencies:
       typescript: 5.9.3
+      zod: 4.3.6
 
   abort-controller@3.0.0:
     dependencies:
@@ -6500,13 +6523,13 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  neox-tpke@1.0.5(typescript@5.9.3):
+  neox-tpke@1.0.5(typescript@5.9.3)(zod@4.3.6):
     dependencies:
       '@noble/curves': 1.9.7
       aes-js: 3.1.2
       bigint-crypto-utils: 3.3.0
       hash.js: 1.1.7
-      viem: 2.38.6(typescript@5.9.3)
+      viem: 2.38.6(typescript@5.9.3)(zod@4.3.6)
     transitivePeerDependencies:
       - bufferutil
       - typescript
@@ -6564,7 +6587,7 @@ snapshots:
       type-check: 0.4.0
       word-wrap: 1.2.5
 
-  ox@0.9.3(typescript@5.9.3):
+  ox@0.9.3(typescript@5.9.3)(zod@4.3.6):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -6572,14 +6595,14 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.2.3(typescript@5.9.3)
+      abitype: 1.2.3(typescript@5.9.3)(zod@4.3.6)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3
     transitivePeerDependencies:
       - zod
 
-  ox@0.9.6(typescript@5.9.3):
+  ox@0.9.6(typescript@5.9.3)(zod@4.3.6):
     dependencies:
       '@adraffy/ens-normalize': 1.11.1
       '@noble/ciphers': 1.3.0
@@ -6587,7 +6610,7 @@ snapshots:
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.9.3)
+      abitype: 1.2.3(typescript@5.9.3)(zod@4.3.6)
       eventemitter3: 5.0.1
     optionalDependencies:
       typescript: 5.9.3
@@ -7082,15 +7105,15 @@ snapshots:
     dependencies:
       uint8array-tools: 0.0.8
 
-  viem@2.38.6(typescript@5.9.3):
+  viem@2.38.6(typescript@5.9.3)(zod@4.3.6):
     dependencies:
       '@noble/curves': 1.9.1
       '@noble/hashes': 1.8.0
       '@scure/bip32': 1.7.0
       '@scure/bip39': 1.6.0
-      abitype: 1.1.0(typescript@5.9.3)
+      abitype: 1.1.0(typescript@5.9.3)(zod@4.3.6)
       isows: 1.0.7(ws@8.18.3)
-      ox: 0.9.6(typescript@5.9.3)
+      ox: 0.9.6(typescript@5.9.3)(zod@4.3.6)
       ws: 8.18.3
     optionalDependencies:
       typescript: 5.9.3
@@ -7271,3 +7294,5 @@ snapshots:
       fd-slicer: 1.1.0
 
   yocto-queue@0.1.0: {}
+
+  zod@4.3.6: {}

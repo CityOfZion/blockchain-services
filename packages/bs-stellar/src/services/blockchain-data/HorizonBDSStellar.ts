@@ -1,14 +1,14 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
   type TContractResponse,
   type IBlockchainDataService,
   type TBalanceResponse,
-  type TBSBigNumber,
   type TBSToken,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
   type TTransactionDefaultEvent,
+  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import type { IBSStellar, TBSStellarName } from '../../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
@@ -30,9 +30,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
 
     return {
       eventType: 'token',
-      amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(castOperation.starting_balance), {
-        decimals: token.decimals,
-      }),
+      amount: new BSBigHumanAmount(castOperation.starting_balance, token.decimals).toFormatted(),
       methodName: operation.type,
       from: castOperation.funder,
       fromUrl: this.#service.explorerService.buildAddressUrl(castOperation.funder),
@@ -50,13 +48,14 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
       | stellarSDK.Horizon.ServerApi.PathPaymentStrictSendOperationRecord
 
     let token: TBSToken
-    let amountBn: TBSBigNumber
+    let amount: string
     let to: string
     let from: string
 
     if (castOperation.asset_type === 'native') {
       token = BSStellarConstants.NATIVE_TOKEN
-      amountBn = BSBigNumberHelper.fromNumber(castOperation.amount)
+
+      amount = castOperation.amount
       to = castOperation.to
       from = castOperation.from
     } else if (
@@ -70,7 +69,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
         symbol: castOperation.asset_code,
         decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
       }
-      amountBn = BSBigNumberHelper.fromNumber(castOperation.amount)
+      amount = castOperation.amount
       to = castOperation.to
       from = castOperation.from
     } else {
@@ -80,7 +79,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
 
     return {
       eventType: 'token',
-      amount: BSBigNumberHelper.format(amountBn, { decimals: token.decimals }),
+      amount: new BSBigHumanAmount(amount, token.decimals).toFormatted(),
       methodName: castOperation.type,
       from,
       fromUrl: this.#service.explorerService.buildAddressUrl(from),
@@ -145,10 +144,9 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
       txIdUrl,
       block: transaction.ledger_attr,
       date: new Date(transaction.created_at).toJSON(),
-      networkFeeAmount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromDecimals(transaction.fee_charged, this.#service.feeToken.decimals),
-        { decimals: this.#service.feeToken.decimals }
-      ),
+      networkFeeAmount: new BSBigUnitAmount(transaction.fee_charged, this.#service.feeToken.decimals)
+        .toHuman()
+        .toFormatted(),
       view: 'default',
       events,
     }
@@ -225,9 +223,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
             name: balance.asset_code,
             symbol: balance.asset_code,
           },
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(balance.balance), {
-            decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
-          }),
+          amount: new BSBigHumanAmount(balance.balance, BSStellarConstants.SAC_TOKEN_DECIMALS).toFormatted(),
         })
       }
     })

@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Migrate from BSBigNumberHelper to BSBigNumber",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "WalletConnectService rewritten with Zod validation to support new params validation",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}
