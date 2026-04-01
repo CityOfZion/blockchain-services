@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-stellar
 
-This log was last generated on Tue, 31 Mar 2026 18:49:48 GMT and should not be manually modified.
+This log was last generated on Wed, 01 Apr 2026 15:09:44 GMT and should not be manually modified.
+
+## 3.1.6
+Wed, 01 Apr 2026 15:09:44 GMT
+
+### Updates
+
+- Replace Horizon and Soroban server to Dora Middleware
 
 ## 3.1.5
 Tue, 31 Mar 2026 18:49:48 GMT
