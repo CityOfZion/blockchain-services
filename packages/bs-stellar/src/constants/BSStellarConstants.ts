@@ -1,4 +1,4 @@
-import type { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
+import { BSCommonConstants, type TBSNetwork, type TBSToken } from '@cityofzion/blockchain-service'
 import type { TBSStellarNetworkId } from '../types'
 import * as stellarSDK from '@stellar/stellar-sdk'
 
@@ -15,8 +15,8 @@ export class BSStellarConstants {
   }
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSStellarNetworkId, string[]> = {
-    pubnet: ['https://soroban-rpc.mainnet.stellar.gateway.fm'],
-    testnet: ['https://soroban-rpc.testnet.stellar.gateway.fm'],
+    pubnet: [`${BSCommonConstants.COZ_API_URL}/api/v2/stellar/tatum/meta/mainnet`],
+    testnet: [`${BSCommonConstants.COZ_API_URL}/api/v2/stellar/tatum/meta/testnet`],
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSStellarNetworkId> = {
@@ -39,8 +39,8 @@ export class BSStellarConstants {
   }
 
   static readonly HORIZON_URL_BY_NETWORK_ID: Record<TBSStellarNetworkId, string> = {
-    pubnet: 'https://horizon.stellar.org',
-    testnet: 'https://horizon-testnet.stellar.org',
+    pubnet: `${BSCommonConstants.COZ_API_URL}/api/v2/stellar/tatum/mainnet`,
+    testnet: `${BSCommonConstants.COZ_API_URL}/api/v2/stellar/tatum/testnet`,
   }
 
   static readonly INVALID_TRANSACTION_STATUS: stellarSDK.rpc.Api.SendTransactionStatus[] = ['ERROR', 'DUPLICATE']
