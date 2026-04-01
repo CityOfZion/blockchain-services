@@ -230,11 +230,16 @@ export class TatumBDSBitcoin implements IBlockchainDataService {
   async getBalance(address: string): Promise<TBalanceResponse[]> {
     const balances: TBalanceResponse[] = []
 
-    const { data } = await this.#tatumApi.get<TTatumBalanceResponse>('/v4/data/blockchains/balance', {
+    const {
+      data: { balance },
+    } = await this.#tatumApi.get<TTatumBalanceResponse>('/v4/data/blockchains/balance', {
       params: { address },
     })
 
-    balances.push({ amount: data.balance, token: BSBitcoinConstants.NATIVE_TOKEN })
+    balances.push({
+      amount: BSBigNumberHelper.fromNumber(balance).isNegative() ? '0' : balance,
+      token: BSBitcoinConstants.NATIVE_TOKEN,
+    })
 
     try {
       this.#validateMainnet()
