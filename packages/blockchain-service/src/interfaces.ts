@@ -541,24 +541,30 @@ export interface ITokenService {
   isNativeToken(hash: string): boolean
 }
 
-export type TWalletConnectServiceRequestMethodParams<N extends string> = {
+export type TWalletConnectServiceRequestMethodParams<N extends string, S = any> = {
   account: TBSAccount<N>
-  params: any
+  params: S
+  method: string
 }
 
-export type TWalletConnectServiceRequestMethod<N extends string> = (
-  params: TWalletConnectServiceRequestMethodParams<N>
-) => Promise<any>
+export type TWalletConnectServiceMethodHandler<N extends string, S = any> = {
+  validate: (params: any) => Promise<S>
+  process: (args: TWalletConnectServiceRequestMethodParams<N, S>) => Promise<any>
+}
 
-export interface IWalletConnectService<N extends string> {
+export type TWalletConnectServiceHandlers<N extends string, P extends Record<string, any> = Record<string, any>> = {
+  [K in keyof P]: TWalletConnectServiceMethodHandler<N, P[K]>
+}
+
+export interface IWalletConnectService<N extends string, M extends string = string> {
   readonly namespace: string
   readonly chain: string
-  readonly supportedMethods: string[]
+  readonly supportedMethods: M[]
   readonly supportedEvents: string[]
-  readonly calculableMethods: string[]
-  readonly autoApproveMethods: string[]
+  readonly calculableMethods: M[]
+  readonly autoApproveMethods: M[]
+
+  handlers: TWalletConnectServiceHandlers<N>
 
   calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string>
-
-  [methodName: string]: any | TWalletConnectServiceRequestMethod<N>
 }

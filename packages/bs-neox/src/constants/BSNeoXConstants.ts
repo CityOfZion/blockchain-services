@@ -21,9 +21,12 @@ export class BSNeoXConstants {
       'https://mainnet-2.rpc.banelabs.org',
       'https://mainnet-3.rpc.banelabs.org',
     ],
-    '12227332': [...this.ANTI_MEV_RPC_LIST_BY_NETWORK_ID['12227332'], 'https://testnet.rpc.banelabs.org'],
+    '12227332': [
+      ...this.ANTI_MEV_RPC_LIST_BY_NETWORK_ID['12227332'],
+      'https://neoxt4seed2.ngd.network',
+      'https://neoxt4seed3.ngd.network',
+    ],
   }
-
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeoXNetworkId> = {
     id: '47763',
     name: 'Neo X Mainnet',

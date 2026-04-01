@@ -146,3 +146,17 @@ export type TRpcBDSNeo3Notification = {
   eventname: string
   state: TRpcBDSNeo3NotificationState | TRpcBDSNeo3NotificationState[] | undefined
 }
+
+export type TWalletConnectServiceNeo3Method =
+  | 'invokeFunction'
+  | 'testInvoke'
+  | 'signMessage'
+  | 'verifyMessage'
+  | 'getWalletInfo'
+  | 'traverseIterator'
+  | 'getNetworkVersion'
+  | 'encrypt'
+  | 'decrypt'
+  | 'decryptFromArray'
+  | 'calculateFee'
+  | 'signTransaction'

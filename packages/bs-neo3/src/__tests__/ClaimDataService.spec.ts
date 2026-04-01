@@ -38,8 +38,8 @@ describe('ClaimServiceNeo3', () => {
       txIdUrl: expect.any(String),
       date: expect.any(String),
       invocationCount: expect.any(Number),
-      networkFeeAmount: expect.any(String),
-      systemFeeAmount: expect.any(String),
+      networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+      systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
       view: 'default',
       events: [
         claimEvent,
@@ -89,8 +89,8 @@ describe('ClaimServiceNeo3', () => {
       txIdUrl: expect.any(String),
       date: expect.any(String),
       invocationCount: expect.any(Number),
-      networkFeeAmount: expect.any(String),
-      systemFeeAmount: expect.any(String),
+      networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+      systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
       view: 'default',
       events: [
         claimEvent,

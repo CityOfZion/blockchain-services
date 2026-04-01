@@ -181,13 +181,13 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             date: expect.any(String),
             invocationCount: expect.any(Number),
             notificationCount: expect.any(Number),
-            networkFeeAmount: expect.anything(),
-            systemFeeAmount: expect.anything(),
+            networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+            systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
-                amount: expect.anything(),
+                amount: expect.stringMatching(/^\d+(\.\d+)?$/),
                 methodName: expect.any(String),
               }),
             ]),
@@ -213,13 +213,13 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             date: expect.any(String),
             invocationCount: expect.any(Number),
             notificationCount: expect.any(Number),
-            networkFeeAmount: expect.anything(),
-            systemFeeAmount: expect.anything(),
+            networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+            systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
                 eventType: expect.any(String),
-                amount: expect.anything(),
+                amount: expect.stringMatching(/^\d+(\.\d+)?$/),
                 methodName: expect.any(String),
                 from: expect.anything(),
                 fromUrl: expect.anything(),

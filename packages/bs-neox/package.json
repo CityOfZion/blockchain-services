@@ -25,7 +25,8 @@
     "axios": "~1.13.5",
     "ethers": "~5.7.2",
     "neox-tpke": "~1.0.5",
-    "viem": "~2.38.5"
+    "viem": "~2.38.5",
+    "zod": "~4.3.6"
   },
   "devDependencies": {
     "@ledgerhq/hw-transport": "~6.32.0",

@@ -1,5 +1,6 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
+  BSBigUnitAmount,
   BSError,
   INeo3NeoXBridgeService,
   TBridgeToken,
@@ -80,9 +81,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
 
     return {
       neo3NeoxBridge: {
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amountInDecimals, tokenToUse.decimals), {
-          decimals: tokenToUse.decimals,
-        }),
+        amount: new BSBigUnitAmount(amountInDecimals, tokenToUse.decimals).toHuman().toFormatted(),
         tokenToUse,
         receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
       },
@@ -143,16 +142,11 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
     )
       throw new BSError('Invalid response', 'INVALID_RESPONSE')
 
-    const bridgeFeeBn = BSBigNumberHelper.fromDecimals(
-      depositFeeItem.value,
-      BSNeo3Constants.GAS_TOKEN.decimals
-    ).toString()
-    const minAmountBn = BSBigNumberHelper.fromDecimals(minDepositItem.value, token.decimals).toString()
-    const maxAmountBn = BSBigNumberHelper.fromDecimals(maxDepositItem.value, token.decimals).toString()
-
-    const bridgeFee = BSBigNumberHelper.format(bridgeFeeBn, { decimals: BSNeo3Constants.GAS_TOKEN.decimals })
-    const bridgeMinAmount = BSBigNumberHelper.format(minAmountBn, { decimals: token.decimals })
-    const bridgeMaxAmount = BSBigNumberHelper.format(maxAmountBn, { decimals: token.decimals })
+    const bridgeFee = new BSBigUnitAmount(depositFeeItem.value, BSNeo3Constants.GAS_TOKEN.decimals)
+      .toHuman()
+      .toFormatted()
+    const bridgeMinAmount = new BSBigUnitAmount(minDepositItem.value, token.decimals).toHuman().toFormatted()
+    const bridgeMaxAmount = new BSBigUnitAmount(maxDepositItem.value, token.decimals).toHuman().toFormatted()
 
     return {
       bridgeFee,
@@ -186,14 +180,11 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
         { type: 'Hash160', value: params.receiverAddress },
         {
           type: 'Integer',
-          value: BSBigNumberHelper.toDecimals(BSBigNumberHelper.fromNumber(params.amount), params.token.decimals),
+          value: new BSBigHumanAmount(params.amount, params.token.decimals).toUnit().toString(),
         },
         {
           type: 'Integer',
-          value: BSBigNumberHelper.toDecimals(
-            BSBigNumberHelper.fromNumber(params.bridgeFee),
-            BSNeo3Constants.GAS_TOKEN.decimals
-          ),
+          value: new BSBigHumanAmount(params.bridgeFee, BSNeo3Constants.GAS_TOKEN.decimals).toUnit().toString(),
         },
       ],
     }

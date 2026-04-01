@@ -1,5 +1,5 @@
-import type { IBSWithNeo3NeoXBridge, TBSNetworkId } from '@cityofzion/blockchain-service'
-import { ERC20_ABI, IBSEthereum } from '@cityofzion/bs-ethereum'
+import type { BSBigUnitAmount, IBSWithNeo3NeoXBridge, TBSNetworkId } from '@cityofzion/blockchain-service'
+import { ERC20_ABI, IBSEthereum, type TWalletConnectServiceEthereumMethod } from '@cityofzion/bs-ethereum'
 import { ethers, Signer } from 'ethers'
 import type { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
 
@@ -97,11 +97,16 @@ export type TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse = { txid: stri
 
 export type TSendTransactionParams = {
   signer: Signer
-  gasPrice: ethers.BigNumber
-  params: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
+  gasPriceBn: BSBigUnitAmount
+  transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest>
 }
 
 export type TSendTransactionResponse = {
   transactionHash: string
   fee: string
 }
+
+export type TWalletConnectServiceNeoxMethod =
+  | TWalletConnectServiceEthereumMethod
+  | 'eth_getTransactionCount'
+  | 'eth_getCachedTransaction'

@@ -1,5 +1,5 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
   BSFullTransactionsByAddressHelper,
   BSUtilsHelper,
   type IFullTransactionsDataService,
@@ -60,7 +60,7 @@ export class MoralisFullTransactionsDataServiceEthereum<
         block: item.block,
         date: item.date,
         networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: nativeToken.decimals })
+          ? new BSBigHumanAmount(networkFeeAmount, nativeToken.decimals).toFormatted()
           : undefined,
         view: 'default',
         events: [],
@@ -103,7 +103,7 @@ export class MoralisFullTransactionsDataServiceEthereum<
         newItem.events.splice(eventIndex, 0, {
           eventType: 'token',
           amount: event.amount
-            ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            ? new BSBigHumanAmount(event.amount, token?.decimals ?? event.tokenDecimals).toFormatted()
             : undefined,
           methodName,
           from,

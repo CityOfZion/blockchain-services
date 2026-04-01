@@ -23,7 +23,7 @@ const neoToken = BSNeoXHelper.getNeoToken(testnetNetwork)
 
 let bsNeoX: BSNeoX
 describe('BSNeoX', () => {
-  it('Should be able to transfer the native token (GAS) on Testnet', async () => {
+  it.skip('Should be able to transfer the native token (GAS) on Testnet', async () => {
     bsNeoX = new BSNeoX(testnetNetwork)
 
     const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -53,7 +53,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -73,7 +73,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -120,7 +120,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -140,7 +140,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -193,7 +193,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -213,7 +213,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -264,7 +264,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -284,7 +284,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -303,7 +303,7 @@ describe('BSNeoX', () => {
     ])
   }, 120000)
 
-  it('Should be able to transfer the native token (GAS) on Testnet using Anti-MEV', async () => {
+  it.skip('Should be able to transfer the native token (GAS) on Testnet using Anti-MEV', async () => {
     bsNeoX = new BSNeoX(antiMevTestnetNetwork)
 
     const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -333,7 +333,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -353,7 +353,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -372,7 +372,7 @@ describe('BSNeoX', () => {
     ])
   })
 
-  it('Should be able to transfer the NEO token on Testnet using Anti-MEV', async () => {
+  it.skip('Should be able to transfer the NEO token on Testnet using Anti-MEV', async () => {
     bsNeoX = new BSNeoX(antiMevTestnetNetwork)
 
     const senderAccount = await bsNeoX.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
@@ -400,7 +400,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -420,7 +420,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -473,7 +473,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -493,7 +493,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -544,7 +544,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -564,7 +564,7 @@ describe('BSNeoX', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {

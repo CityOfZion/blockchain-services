@@ -25,14 +25,14 @@ describe('DoraBDSNeo3', () => {
         date: expect.any(String),
         invocationCount: expect.any(Number),
         notificationCount: expect.any(Number),
-        networkFeeAmount: expect.anything(),
-        systemFeeAmount: expect.anything(),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: expect.arrayContaining([
           expect.toBeOneOf([
             expect.objectContaining({
               eventType: expect.any(String),
-              amount: expect.anything(),
+              amount: expect.stringMatching(/^\d+(\.\d+)?$/),
               methodName: 'transfer',
               from: expect.anything(),
               fromUrl: expect.anything(),
@@ -47,7 +47,7 @@ describe('DoraBDSNeo3', () => {
               }),
             }),
             expect.objectContaining({
-              amount: expect.any(String),
+              amount: expect.stringMatching(/^\d+(\.\d+)?$/),
               data: { candidate: expect.any(String), token: BSNeo3Constants.NEO_TOKEN.symbol },
               eventType: 'generic',
               from: expect.any(String),
@@ -73,14 +73,14 @@ describe('DoraBDSNeo3', () => {
           date: expect.any(String),
           invocationCount: expect.any(Number),
           notificationCount: expect.any(Number),
-          networkFeeAmount: expect.anything(),
-          systemFeeAmount: expect.anything(),
+          networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+          systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           view: 'default',
           events: expect.arrayContaining([
             expect.toBeOneOf([
               expect.objectContaining({
                 eventType: expect.any(String),
-                amount: expect.anything(),
+                amount: expect.stringMatching(/^\d+(\.\d+)?$/),
                 methodName: 'transfer',
                 from: expect.anything(),
                 fromUrl: expect.anything(),
@@ -95,7 +95,7 @@ describe('DoraBDSNeo3', () => {
                 }),
               }),
               expect.objectContaining({
-                amount: expect.any(String),
+                amount: expect.stringMatching(/^\d+(\.\d+)?$/),
                 data: { candidate: expect.any(String), token: BSNeo3Constants.NEO_TOKEN.symbol },
                 eventType: 'generic',
                 from: expect.any(String),
@@ -145,7 +145,7 @@ describe('DoraBDSNeo3', () => {
 
     balance.forEach(balance => {
       expect(balance).toEqual({
-        amount: expect.any(String),
+        amount: expect.stringMatching(/^\d+(\.\d+)?$/),
         token: {
           hash: expect.any(String),
           name: expect.any(String),

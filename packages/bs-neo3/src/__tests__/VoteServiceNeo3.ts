@@ -125,8 +125,8 @@ describe('VoteServiceNeo3', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         invocationCount: expect.any(Number),
-        networkFeeAmount: expect.any(String),
-        systemFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         type: 'vote',
         view: 'default',
         events: [
@@ -157,8 +157,8 @@ describe('VoteServiceNeo3', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         invocationCount: expect.any(Number),
-        networkFeeAmount: expect.any(String),
-        systemFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {

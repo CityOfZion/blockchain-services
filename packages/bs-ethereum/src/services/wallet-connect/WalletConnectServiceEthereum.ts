@@ -1,108 +1,219 @@
-import type {
-  IWalletConnectService,
-  TBSNetworkId,
-  TWalletConnectServiceRequestMethodParams,
+import {
+  BSBigUnitAmount,
+  BSError,
+  type IWalletConnectService,
+  type TBSNetworkId,
+  type TWalletConnectServiceHandlers,
+  type TWalletConnectServiceMethodHandler,
+  type TWalletConnectServiceRequestMethodParams,
 } from '@cityofzion/blockchain-service'
-import type { IBSEthereum } from '../../types'
+import type { IBSEthereum, TWalletConnectServiceEthereumMethod } from '../../types'
+import { z } from 'zod'
 import { ethers } from 'ethers'
 import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
+import { parseTransaction } from 'ethers/lib/utils'
+
+const personalSignParamsSchema = z.tuple([z.string(), z.string()])
+
+const typedDataParamSchema = z.object({
+  primaryType: z.string(),
+  types: z.record(z.string(), z.any()),
+  domain: z.object({
+    chainId: z.union([z.number(), z.bigint(), z.string()]).optional(),
+    name: z.string().optional(),
+    salt: z.string().optional(),
+    verifyingContract: z.string().optional(),
+    version: z.string().optional(),
+  }),
+  message: z.record(z.string(), z.any()),
+  account: z.string().optional(),
+})
+
+const jsonStringifiedTypedDataParamSchema = z
+  .string()
+  .transform((val, ctx) => {
+    try {
+      return JSON.parse(val)
+    } catch {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid JSON string' })
+      return z.NEVER
+    }
+  })
+  .pipe(typedDataParamSchema)
+
+const signTypedDataParamsSchema = z.tuple([
+  z.string(),
+  z.union([jsonStringifiedTypedDataParamSchema, typedDataParamSchema]),
+])
+
+const signTransactionParamsSchema = z.tuple([
+  z.object({
+    to: z.string().optional(),
+    value: z.union([z.string(), z.number()]).optional(),
+    data: z.string().optional(),
+    gas: z.union([z.string(), z.number()]).optional(),
+    maxPriorityFeePerGas: z.union([z.string(), z.number()]).optional(),
+    maxFeePerGas: z.union([z.string(), z.number()]).optional(),
+    nonce: z.number().optional(),
+    chainId: z.union([z.number(), z.string()]).optional(),
+    gasLimit: z.union([z.string(), z.number()]).optional(),
+    type: z.union([z.string(), z.number()]).optional(),
+    gasPrice: z.union([z.string(), z.number()]).optional(),
+  }),
+])
+
+const sendRawTransactionParamsSchema = z.tuple([z.string()])
+
+export type TWalletConnectEthereumHandlers = {
+  personal_sign: z.infer<typeof personalSignParamsSchema>
+  eth_sign: z.infer<typeof personalSignParamsSchema>
+  eth_signTypedData: z.infer<typeof signTypedDataParamsSchema>
+  eth_signTypedData_v3: z.infer<typeof signTypedDataParamsSchema>
+  eth_signTypedData_v4: z.infer<typeof signTypedDataParamsSchema>
+  eth_signTransaction: z.infer<typeof signTransactionParamsSchema>
+  eth_sendTransaction: z.infer<typeof signTransactionParamsSchema>
+  eth_sendRawTransaction: z.infer<typeof sendRawTransactionParamsSchema>
+  eth_call: z.infer<typeof signTransactionParamsSchema>
+  eth_requestAccounts: unknown
+  eth_switchEthereumChain: unknown
+  eth_addEthereumChain: unknown
+  wallet_switchEthereumChain: unknown
+  wallet_addEthereumChain: unknown
+  wallet_getPermissions: unknown
+  wallet_requestPermissions: unknown
+}
 
 export class WalletConnectServiceEthereum<
   N extends string,
   A extends TBSNetworkId,
-> implements IWalletConnectService<N> {
+  M extends string = TWalletConnectServiceEthereumMethod,
+  H extends Record<string, any> = TWalletConnectEthereumHandlers,
+> implements IWalletConnectService<N, M> {
   readonly namespace: string = 'eip155'
   readonly chain: string
-  readonly supportedMethods: string[] = [
-    'personal_sign',
-    'eth_sign',
-    'eth_signTransaction',
-    'eth_signTypedData',
-    'eth_signTypedData_v3',
-    'eth_signTypedData_v4',
-    'eth_sendTransaction',
-    'eth_call',
-    'eth_requestAccounts',
-    'eth_sendRawTransaction',
-    'eth_addEthereumChain',
-    'eth_switchEthereumChain',
-    'wallet_switchEthereumChain',
-    'wallet_getPermissions',
-    'wallet_requestPermissions',
-    'wallet_addEthereumChain',
-  ]
+
+  // prettier-ignore
+  supportedMethods: M[] = [
+    'personal_sign', 'eth_sign', 'eth_signTransaction', 'eth_signTypedData',
+    'eth_signTypedData_v3', 'eth_signTypedData_v4', 'eth_sendTransaction', 'eth_call',
+    'eth_requestAccounts', 'eth_sendRawTransaction', 'eth_addEthereumChain', 'eth_switchEthereumChain',
+    'wallet_switchEthereumChain', 'wallet_getPermissions', 'wallet_requestPermissions', 'wallet_addEthereumChain',
+  ] as M[]
   readonly supportedEvents: string[] = ['chainChanged', 'accountsChanged', 'disconnect', 'connect']
-  readonly calculableMethods: string[] = ['eth_sendTransaction', 'eth_call', 'eth_sendRawTransaction']
-  readonly autoApproveMethods: string[] = [
-    'eth_requestAccounts',
-    'eth_addEthereumChain',
-    'eth_switchEthereumChain',
-    'wallet_switchEthereumChain',
-    'wallet_getPermissions',
-    'wallet_requestPermissions',
-    'wallet_addEthereumChain',
-  ]
+  calculableMethods: M[] = ['eth_sendTransaction', 'eth_sendRawTransaction'] as M[]
+
+  // prettier-ignore
+  autoApproveMethods: M[] = [
+    'eth_requestAccounts', 'eth_addEthereumChain', 'eth_switchEthereumChain', 'wallet_switchEthereumChain',
+    'wallet_getPermissions', 'wallet_requestPermissions', 'wallet_addEthereumChain', 'eth_call',
+  ] as M[]
 
   protected readonly _service: IBSEthereum<N, A>
+
+  handlers: TWalletConnectServiceHandlers<N, H>
 
   constructor(service: IBSEthereum<N, A>) {
     this._service = service
     this.chain = `${this.namespace}:${this._service.network.id.toString()}`
+
+    this.handlers = {
+      personal_sign: this._personalSignHandler,
+      eth_sign: this._personalSignHandler,
+      eth_signTypedData: this._signTypedDataHandlers,
+      eth_signTypedData_v3: this._signTypedDataHandlers,
+      eth_signTypedData_v4: this._signTypedDataHandlers,
+      eth_signTransaction: this._signTransactionHandler,
+      eth_sendTransaction: this._sendTransactionHandler,
+      eth_sendRawTransaction: this._sendRawTransactionHandler,
+      eth_call: this._callHandler,
+      eth_requestAccounts: this._requestAccount,
+      eth_switchEthereumChain: this._nullHandlers,
+      eth_addEthereumChain: this._nullHandlers,
+      wallet_switchEthereumChain: this._nullHandlers,
+      wallet_addEthereumChain: this._nullHandlers,
+      wallet_getPermissions: this._emptyHandlers,
+      wallet_requestPermissions: this._emptyHandlers,
+    } as unknown as TWalletConnectServiceHandlers<N, H>
   }
 
-  protected async _resolveParams(args: TWalletConnectServiceRequestMethodParams<N>) {
-    const param = args.params[0]
+  _personalSignHandler: TWalletConnectServiceMethodHandler<N, z.infer<typeof personalSignParamsSchema>> = {
+    validate: async params => await personalSignParamsSchema.parseAsync(params),
+    process: async args => {
+      const wallet = await this._service._generateSigner(args.account)
+      const convertedMessage = this.#convertHexToUtf8(args.params[0])
 
-    if (typeof param !== 'object') {
-      throw new Error('Invalid params')
-    }
+      return await wallet.signMessage(convertedMessage)
+    },
+  }
 
-    const chainId = parseInt(param.chainId ?? this._service.network.id)
-    if (!isNaN(chainId)) param.chainId = chainId
+  _signTypedDataHandlers: TWalletConnectServiceMethodHandler<N, z.infer<typeof signTypedDataParamsSchema>> = {
+    validate: async params => await signTypedDataParamsSchema.parseAsync(params),
+    process: async args => {
+      const wallet = await this._service._generateSigner(args.account)
 
-    if (param.gas) {
-      param.gasLimit = param.gas
+      const { domain, types, message } = args.params[1]
 
-      delete param.gas
-    }
+      // https://github.com/ethers-io/ethers.js/issues/687#issuecomment-714069471
+      delete types?.EIP712Domain
 
-    if (param.type && typeof param.type !== 'number') {
-      const typeAsNumber = parseInt(param.type)
+      return await wallet._signTypedData(domain, types, message)
+    },
+  }
 
-      if (!isNaN(typeAsNumber)) param.type = typeAsNumber
-    }
+  _signTransactionHandler: TWalletConnectServiceMethodHandler<N, z.infer<typeof signTransactionParamsSchema>> = {
+    validate: async params => await signTransactionParamsSchema.parseAsync(params),
+    process: async args => {
+      const { connectedWallet, transaction } = await this._resolveTransactionParams(args)
+      return await connectedWallet.signTransaction(transaction)
+    },
+  }
 
-    const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
-    const gasPrice = await provider.getGasPrice()
+  _sendTransactionHandler: TWalletConnectServiceMethodHandler<N, z.infer<typeof signTransactionParamsSchema>> = {
+    validate: async params => await signTransactionParamsSchema.parseAsync(params),
+    process: async args => {
+      const { transaction, connectedWallet } = await this._resolveTransactionParams(args)
+      const { hash } = await connectedWallet.sendTransaction(transaction)
+      return hash
+    },
+  }
 
-    if (param.type === 2) {
-      param.maxPriorityFeePerGas = param.maxPriorityFeePerGas ?? gasPrice
-      param.maxFeePerGas = param.maxFeePerGas ?? gasPrice
-    } else {
-      param.gasPrice = param.gasPrice ?? gasPrice
-    }
+  _sendRawTransactionHandler: TWalletConnectServiceMethodHandler<N, z.infer<typeof sendRawTransactionParamsSchema>> = {
+    validate: async params => await sendRawTransactionParamsSchema.parseAsync(params),
+    process: async args => {
+      const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+      const { hash } = await provider.sendTransaction(args.params[0])
+      return hash
+    },
+  }
 
-    const wallet = await this._service._generateSigner(args.account)
-    const connectedWallet = wallet.connect(provider)
+  _callHandler: TWalletConnectServiceMethodHandler<N, z.infer<typeof signTransactionParamsSchema>> = {
+    validate: async params => await signTransactionParamsSchema.parseAsync(params),
+    process: async args => {
+      const { transaction, connectedWallet } = await this._resolveTransactionParams(args)
+      return await connectedWallet.call(transaction)
+    },
+  }
 
-    if (!param.gasLimit) {
-      try {
-        param.gasLimit = await connectedWallet.estimateGas({
-          ...param,
-          gasPrice: undefined,
-          maxFeePerGas: undefined,
-          maxPriorityFeePerGas: undefined,
-        })
-      } catch {
-        param.gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
-      }
-    }
+  _requestAccount: TWalletConnectServiceMethodHandler<N> = {
+    validate: async () => {},
+    process: async args => {
+      const wallet = await this._service._generateSigner(args.account)
+      return [await wallet.getAddress()]
+    },
+  }
 
-    if (!param.nonce) {
-      param.nonce = await connectedWallet.getTransactionCount('pending')
-    }
+  _nullHandlers: TWalletConnectServiceMethodHandler<N> = {
+    validate: async () => {},
+    process: async () => {
+      return 'null'
+    },
+  }
 
-    return { wallet, provider, param }
+  _emptyHandlers: TWalletConnectServiceMethodHandler<N> = {
+    validate: async () => {},
+    process: async () => {
+      return []
+    },
   }
 
   #convertHexToUtf8(value: string) {
@@ -113,113 +224,104 @@ export class WalletConnectServiceEthereum<
     return value
   }
 
-  async personal_sign(args: TWalletConnectServiceRequestMethodParams<N>) {
-    const wallet = await this._service._generateSigner(args.account)
+  async _resolveTransactionParams(
+    args: TWalletConnectServiceRequestMethodParams<N, z.infer<typeof signTransactionParamsSchema>>
+  ) {
+    const param = args.params[0]
 
-    const message = args.params.filter((param: any) => !ethers.utils.isAddress(param))[0]
-    const convertedMessage = this.#convertHexToUtf8(message)
-
-    return await wallet.signMessage(convertedMessage)
-  }
-
-  async eth_sign(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    return await this.personal_sign(args)
-  }
-
-  async eth_signTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { param, wallet } = await this._resolveParams(args)
-
-    return await wallet.signTransaction(param)
-  }
-
-  async eth_signTypedData(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const wallet = await this._service._generateSigner(args.account)
-
-    const data = args.params.filter((param: any) => !ethers.utils.isAddress(param))[0]
-    const parsedData = typeof data === 'string' ? JSON.parse(data) : data
-
-    const { domain, types, message } = parsedData
-    // https://github.com/ethers-io/ethers.js/issues/687#issuecomment-714069471
-    delete types.EIP712Domain
-
-    return await wallet._signTypedData(domain, types, message)
-  }
-
-  async eth_signTypedData_v3(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    return await this.eth_signTypedData(args)
-  }
-
-  async eth_signTypedData_v4(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    return await this.eth_signTypedData(args)
-  }
-
-  async eth_sendTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { param, provider, wallet } = await this._resolveParams(args)
-
-    const connectedWallet = wallet.connect(provider)
-
-    const { hash } = await connectedWallet.sendTransaction(param)
-    return hash
-  }
-
-  async eth_call(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { param, provider, wallet } = await this._resolveParams(args)
-
-    const connectedWallet = wallet.connect(provider)
-
-    return await connectedWallet.call(param)
-  }
-
-  async eth_requestAccounts(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string[]> {
-    const wallet = await this._service._generateSigner(args.account)
-    return [await wallet.getAddress()]
-  }
-
-  async eth_sendRawTransaction(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
     const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+    const wallet = await this._service._generateSigner(args.account)
+    const connectedWallet = wallet.connect(provider)
 
-    const { hash } = await provider.sendTransaction(args.params[0])
+    const transaction: ethers.providers.TransactionRequest = {
+      to: param.to,
+      value: param.value,
+      data: param.data,
+    }
 
-    return hash
-  }
+    transaction.chainId = parseInt(param.chainId?.toString() ?? this._service.network.id)
 
-  async wallet_switchEthereumChain(): Promise<string> {
-    return 'null'
-  }
+    transaction.nonce = param.nonce
+    if (!transaction.nonce) {
+      transaction.nonce = await connectedWallet.getTransactionCount('pending')
+    }
 
-  async eth_addEthereumChain(): Promise<string> {
-    return 'null'
-  }
+    if (param.type) {
+      const typeAsNumber = parseInt(param.type.toString())
+      if (!isNaN(typeAsNumber)) {
+        transaction.type = typeAsNumber
+      }
+    }
 
-  async eth_switchEthereumChain(): Promise<string> {
-    return 'null'
-  }
+    if (transaction.type === 2) {
+      transaction.maxFeePerGas = param.maxFeePerGas
+      transaction.maxPriorityFeePerGas = param.maxPriorityFeePerGas
 
-  async wallet_getPermissions(): Promise<any[]> {
-    return []
-  }
+      if (!transaction.maxFeePerGas || !transaction.maxPriorityFeePerGas) {
+        const feeData = await connectedWallet.getFeeData()
+        transaction.maxFeePerGas = transaction.maxFeePerGas ?? feeData.maxFeePerGas ?? undefined
+        transaction.maxPriorityFeePerGas = transaction.maxPriorityFeePerGas ?? feeData.maxPriorityFeePerGas ?? undefined
+      }
+    } else {
+      transaction.gasPrice = param.gasPrice?.toString()
+      if (!transaction.gasPrice) {
+        const gasPrice = await provider.getGasPrice()
+        transaction.gasPrice = gasPrice
+      }
+    }
 
-  async wallet_requestPermissions(): Promise<any[]> {
-    return []
-  }
+    transaction.gasLimit = param.gasLimit ?? param.gas
+    if (!transaction.gasLimit) {
+      try {
+        const estimatedGas = await connectedWallet.estimateGas({
+          ...transaction,
+          gasPrice: undefined,
+          maxFeePerGas: undefined,
+          maxPriorityFeePerGas: undefined,
+        })
 
-  async wallet_addEthereumChain(): Promise<string> {
-    return 'null'
+        transaction.gasLimit = estimatedGas
+      } catch {
+        transaction.gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT_BN.toString()
+      }
+    }
+
+    return { connectedWallet, transaction }
   }
 
   async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string> {
-    const { param, wallet, provider } = await this._resolveParams(args)
+    let transactionToEstimate: ethers.providers.TransactionRequest
+
+    if (args.method === 'eth_sendTransaction') {
+      const params = await this._sendTransactionHandler.validate(args.params).catch(error => {
+        throw new BSError('Params validation failed: ' + error.message, 'INVALID_PARAMS')
+      })
+
+      const { transaction } = await this._resolveTransactionParams({ ...args, params })
+
+      transactionToEstimate = transaction
+    } else if (args.method === 'eth_sendRawTransaction') {
+      const params = await this._sendRawTransactionHandler.validate(args.params).catch(error => {
+        throw new BSError('Params validation failed: ' + error.message, 'INVALID_PARAMS')
+      })
+
+      transactionToEstimate = parseTransaction(params[0]) as ethers.providers.TransactionRequest
+    } else {
+      throw new BSError(`Method ${args.method} is not supported for fee calculation`, 'UNSUPPORTED_METHOD')
+    }
+
+    const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+    const wallet = await this._service._generateSigner(args.account)
     const connectedWallet = wallet.connect(provider)
+
     const gasPrice = await connectedWallet.getGasPrice()
+    const gasPriceBn = new BSBigUnitAmount(gasPrice.toString(), this._service.feeToken.decimals)
 
-    const estimated = await connectedWallet.estimateGas({
-      ...param,
-      gasLimit: undefined,
-      gasPrice: undefined,
-      maxFeePerGas: undefined,
-      maxPriorityFeePerGas: undefined,
-    })
+    const estimatedGas = await connectedWallet.estimateGas(transactionToEstimate!)
+    const estimatedGasBn = new BSBigUnitAmount(estimatedGas.toString(), this._service.feeToken.decimals)
 
-    return ethers.utils.formatEther(gasPrice.mul(estimated))
+    const feeFormatted = gasPriceBn.multipliedBy(estimatedGasBn).toHuman().toFormatted()
+
+    return feeFormatted
   }
 }
