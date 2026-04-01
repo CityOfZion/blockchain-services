@@ -268,13 +268,14 @@ export class BSEthereum<
     const addressUrl = this.explorerService.buildAddressUrl(address)
     const transactions: TTransactionDefault[] = []
     let error: Error | undefined
+    let nonce = await signer.getTransactionCount('pending')
 
     for (const intent of intents) {
       try {
         const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
         let gasLimit: ethers.BigNumberish
 
-        transactionParams.nonce = await signer.getTransactionCount('pending')
+        transactionParams.nonce = nonce++
 
         try {
           gasLimit = await signer.estimateGas(transactionParams)
