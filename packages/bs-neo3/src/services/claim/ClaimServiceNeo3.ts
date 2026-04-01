@@ -1,14 +1,15 @@
 import type { IBSNeo3, TBSNeo3Name } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
-import type {
-  IClaimService,
-  TBSAccount,
-  TClaimServiceTransactionData,
-  TTransactionBase,
-  TTransactionDefault,
-  TTransactionDefaultEvent,
-  TTransactionDefaultTokenEvent,
-  TTransferParams,
+import {
+  BSBigHumanAmount,
+  type IClaimService,
+  type TBSAccount,
+  type TClaimServiceTransactionData,
+  type TTransactionBase,
+  type TTransactionDefault,
+  type TTransactionDefaultEvent,
+  type TTransactionDefaultTokenEvent,
+  type TTransferParams,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 
@@ -71,12 +72,12 @@ export class ClaimServiceNeo3 implements IClaimService<TBSNeo3Name> {
   }
 
   async getUnclaimed(address: string): Promise<string> {
-    const { rpc, u } = BSNeo3NeonJsSingletonHelper.getInstance()
+    const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
 
     const rpcClient = new rpc.RPCClient(this._service.network.url)
     const response = await rpcClient.getUnclaimedGas(address)
 
-    return u.BigInteger.fromNumber(response).toDecimal(this.claimToken.decimals)
+    return new BSBigHumanAmount(response, this.claimToken.decimals).toFormatted()
   }
 
   async calculateFee(senderAccount: TBSAccount<TBSNeo3Name>): Promise<string> {

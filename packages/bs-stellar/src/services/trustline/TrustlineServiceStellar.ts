@@ -7,7 +7,13 @@ import type {
   TTrustlineServiceStellarHasTrustlineParams,
   TTTrustlineServiceStellarGetAllTokensParams,
 } from '../../types'
-import { BSBigNumberHelper, BSError, type TBSToken, type TTransactionDefault } from '@cityofzion/blockchain-service'
+import {
+  BSBigHumanAmount,
+  BSBigUnitAmount,
+  BSError,
+  type TBSToken,
+  type TTransactionDefault,
+} from '@cityofzion/blockchain-service'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
 
 export class TrustlineServiceStellar {
@@ -45,10 +51,10 @@ export class TrustlineServiceStellar {
 
     const fee = await this.#service._getFeeEstimate(1)
 
-    const formattedLimit = limit ? BSBigNumberHelper.format(limit, { decimals: token.decimals }) : undefined
+    const formattedLimit = limit ? new BSBigHumanAmount(limit, token.decimals).toFormatted() : undefined
 
     const builtTransaction = new stellarSDK.TransactionBuilder(sourceAccount, {
-      fee: BSBigNumberHelper.toDecimals(fee, this.#service.feeToken.decimals),
+      fee: fee.toString(),
       networkPassphrase: BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.#service.network.id],
     })
       .addOperation(stellarSDK.Operation.changeTrust({ asset, limit: formattedLimit }))
@@ -73,10 +79,9 @@ export class TrustlineServiceStellar {
       txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),
       view: 'default',
-      networkFeeAmount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromDecimals(signedTransaction.fee, this.#service.feeToken.decimals),
-        { decimals: this.#service.feeToken.decimals }
-      ),
+      networkFeeAmount: new BSBigUnitAmount(signedTransaction.fee, this.#service.feeToken.decimals)
+        .toHuman()
+        .toFormatted(),
       events: [
         {
           eventType: 'generic',

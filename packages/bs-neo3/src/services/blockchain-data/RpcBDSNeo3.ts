@@ -1,5 +1,4 @@
 import {
-  BSBigNumberHelper,
   BSUtilsHelper,
   type TBalanceResponse,
   type TContractMethod,
@@ -14,6 +13,7 @@ import {
   type TTransactionDefaultTokenEvent,
   type TTransactionDefaultNftEvent,
   type TTransactionDefaultEvent,
+  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
@@ -56,9 +56,7 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
 
       return {
         eventType: 'token',
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount, token.decimals), {
-          decimals: token.decimals,
-        }),
+        amount: new BSBigUnitAmount(amount, token.decimals).toHuman().toFormatted(),
         methodName: 'transfer',
         from: convertedFrom,
         fromUrl,
@@ -152,18 +150,8 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
         txIdUrl,
         block: response.validuntilblock,
         date: new Date(Number(response.blocktime) * 1000).toJSON(),
-        systemFeeAmount: BSBigNumberHelper.format(
-          BSBigNumberHelper.fromDecimals(response.sysfee ?? 0, this._service.feeToken.decimals),
-          {
-            decimals: this._service.feeToken.decimals,
-          }
-        ),
-        networkFeeAmount: BSBigNumberHelper.format(
-          BSBigNumberHelper.fromDecimals(response.netfee ?? 0, this._service.feeToken.decimals),
-          {
-            decimals: this._service.feeToken.decimals,
-          }
-        ),
+        systemFeeAmount: new BSBigUnitAmount(response.sysfee, this._service.feeToken.decimals).toHuman().toFormatted(),
+        networkFeeAmount: new BSBigUnitAmount(response.netfee, this._service.feeToken.decimals).toHuman().toFormatted(),
         invocationCount: 0,
         notificationCount: notifications.length,
         view: 'default',
@@ -280,9 +268,7 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
       }
 
       return {
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(balance.amount, token.decimals), {
-          decimals: token.decimals,
-        }),
+        amount: new BSBigUnitAmount(balance.amount, token.decimals).toHuman().toFormatted(),
         token,
       }
     })

@@ -1,5 +1,4 @@
 import {
-  BSBigNumberHelper,
   type TBalanceResponse,
   type IBlockchainDataService,
   type TBSNetworkId,
@@ -8,6 +7,7 @@ import {
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
+  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
@@ -60,22 +60,12 @@ export class RpcBDSEthereum<
       txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       block: receipt.blockNumber,
       date: new Date(timestamp).toJSON(),
-      networkFeeAmount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromDecimals(fee.toString(), this._service.feeToken.decimals),
-        {
-          decimals: this._service.feeToken.decimals,
-        }
-      ),
+      networkFeeAmount: new BSBigUnitAmount(fee.toString(), token.decimals).toHuman().toFormatted(),
       view: 'default',
       events: [
         {
           eventType: 'token',
-          amount: BSBigNumberHelper.format(
-            BSBigNumberHelper.fromDecimals(transaction.value.toString(), token.decimals),
-            {
-              decimals: token.decimals,
-            }
-          ),
+          amount: new BSBigUnitAmount(transaction.value.toString(), token.decimals).toHuman().toFormatted(),
           methodName: 'transfer',
           from: transaction.from,
           fromUrl,
@@ -131,9 +121,7 @@ export class RpcBDSEthereum<
 
     return [
       {
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(balance.toString(), token.decimals), {
-          decimals: token.decimals,
-        }),
+        amount: new BSBigUnitAmount(balance.toString(), token.decimals).toHuman().toFormatted(),
         token,
       },
     ]

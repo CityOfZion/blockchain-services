@@ -1,10 +1,10 @@
-import type { TBSNetwork } from '@cityofzion/blockchain-service'
+import { BSBigUnitAmount, type TBSNetwork } from '@cityofzion/blockchain-service'
 import type { TBSEthereumNetworkId, TBSEthereumName } from '../types'
 
 export class BSEthereumConstants {
   static readonly DEFAULT_DECIMALS = 18
 
-  static readonly DEFAULT_GAS_LIMIT = 0x5208
+  static readonly DEFAULT_GAS_LIMIT_BN = new BSBigUnitAmount(0x5208, this.DEFAULT_DECIMALS)
 
   static readonly DEFAULT_BIP_DERIVATION_PATH = "m/44'/60'/0'/0/?"
 

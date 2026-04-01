@@ -1,5 +1,6 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
+  BSBigUnitAmount,
   BSError,
   BSUtilsHelper,
   type IBlockchainDataService,
@@ -11,6 +12,7 @@ import {
   type TNftResponse,
   type TTransactionUtxoInputOutput,
   type TTransactionUtxo,
+  BSBigNumber,
 } from '@cityofzion/blockchain-service'
 import type {
   IBSBitcoin,
@@ -62,7 +64,8 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
     const lowercaseHex = hex.toLowerCase()
     const nfts: TNftResponse[] = []
     const inputs: TTransactionUtxoInputOutput[] = []
-    let totalAmount = BSBigNumberHelper.fromNumber('0')
+
+    let totalAmountBn = new BSBigHumanAmount(0, BSBitcoinConstants.NATIVE_TOKEN.decimals)
 
     const hasNft =
       !!transaction.witnessHash && // SegWit or Taproot
@@ -78,9 +81,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
       const address = coin?.address || undefined
       const addressUrl = address ? this.#service.explorerService.buildAddressUrl(address) : undefined
 
-      const amount = BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(value, tokenDecimals), {
-        decimals: tokenDecimals,
-      })
+      const amount = new BSBigUnitAmount(value, tokenDecimals).toHuman().toFormatted()
 
       if (hasNft) {
         const tokenHash = `${hash}i${index}`
@@ -96,11 +97,9 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
       const address = output.address || undefined
       const addressUrl = address ? this.#service.explorerService.buildAddressUrl(address) : undefined
 
-      const amount = BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(output.value, tokenDecimals), {
-        decimals: tokenDecimals,
-      })
+      const amount = new BSBigUnitAmount(output.value, tokenDecimals).toHuman().toFormatted()
 
-      totalAmount = totalAmount.plus(amount)
+      totalAmountBn = totalAmountBn.plus(amount)
 
       return { address, addressUrl, amount, token }
     })
@@ -117,12 +116,8 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
       view: 'utxo',
       block: transaction.blockNumber!,
       date: new Date(transaction.time * 1000).toJSON(),
-      networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transaction.fee, feeDecimals), {
-        decimals: feeDecimals,
-      }),
-      totalAmount: BSBigNumberHelper.format(totalAmount, {
-        decimals: BSBitcoinConstants.NATIVE_TOKEN.decimals,
-      }),
+      networkFeeAmount: new BSBigUnitAmount(transaction.fee, feeDecimals).toHuman().toFormatted(),
+      totalAmount: totalAmountBn.toFormatted(),
       nfts,
       inputs,
       outputs,
@@ -241,8 +236,11 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
       params: { address },
     })
 
+    const balanceBn = BSBigNumber.min(balance, 0)
+    const amountBn = new BSBigHumanAmount(balanceBn, BSBitcoinConstants.NATIVE_TOKEN.decimals)
+
     balances.push({
-      amount: BSBigNumberHelper.fromNumber(balance).isNegative() ? '0' : balance,
+      amount: amountBn.toFormatted(),
       token: BSBitcoinConstants.NATIVE_TOKEN,
     })
 
@@ -281,10 +279,8 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
 
       if (!token) continue
 
-      balances.push({
-        amount: BSBigNumberHelper.format(result.availableBalance, { decimals: token.decimals }),
-        token,
-      })
+      const amount = new BSBigHumanAmount(result.availableBalance, token.decimals).toFormatted()
+      balances.push({ amount, token })
     }
 
     return balances

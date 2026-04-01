@@ -1,5 +1,5 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
   BSFullTransactionsByAddressHelper,
   BSUtilsHelper,
   type IFullTransactionsDataService,
@@ -98,7 +98,7 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
         events.splice(eventIndex, 0, {
           eventType: 'token',
           amount: event.amount
-            ? BSBigNumberHelper.format(event.amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            ? new BSBigHumanAmount(event.amount, token?.decimals ?? event.tokenDecimals).toFormatted()
             : undefined,
           methodName,
           from,
@@ -144,10 +144,10 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
         invocationCount: item.invocationCount,
         notificationCount: item.notificationCount,
         networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#service.feeToken.decimals })
+          ? new BSBigHumanAmount(networkFeeAmount, this.#service.feeToken.decimals).toFormatted()
           : undefined,
         systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
+          ? new BSBigHumanAmount(systemFeeAmount, this.#service.feeToken.decimals).toFormatted()
           : undefined,
         view: 'default',
         events,

@@ -8,7 +8,6 @@ import type {
   TBSNetworkId,
   IBSWithEncryption,
   IBSWithWalletConnect,
-  TBSBigNumber,
   TTransferParams,
   TBSAccount,
 } from '@cityofzion/blockchain-service'
@@ -243,12 +242,10 @@ export type TTatumBalanceResponse = {
 }
 
 export type TTatumUtxo = {
-  chain: string
   address: string
   txHash: string
   index: number
   value: number
-  valueAsString: string
 }
 
 export type TTatumUtxosResponse = TTatumUtxo[]
@@ -268,12 +265,6 @@ export type TTatumBroadcastResponse = {
 
 export type TGetTransferDataParams = TTransferParams<TBSBitcoinName> & { shouldValidate?: boolean }
 
-export type TGetTransferDataResponse = {
-  utxos: TTatumUtxo[]
-  fee: TBSBigNumber
-  change: TBSBigNumber
-}
-
 export type TSignInput = {
   index: number
   address: string
@@ -284,33 +275,6 @@ export type TSignTransactionParams = {
   psbt: bitcoinjs.Psbt
   account: TBSAccount<TBSBitcoinName>
   signInputs?: TSignInput[]
-}
-
-export type TWalletConnectServiceBitcoinTransformSendTransferParamsResponse = {
-  recipientAddress: string
-  amount: string
-}
-
-export type TWalletConnectServiceBitcoinGetAccountAddressResponse = {
-  address: string
-  publicKey?: string
-  path?: string
-  intention?: 'payment' | 'ordinal'
-}[]
-
-export type TWalletConnectServiceBitcoinSignPsbtResponse = {
-  psbt: string
-  txid?: string
-}
-
-export type TWalletConnectServiceBitcoinSignMessageResponse = {
-  address: string
-  signature: string
-  messageHash: string
-}
-
-export type TWalletConnectServiceBitcoinSendTransferResponse = {
-  txid: string
 }
 
 export type TLedgerServiceBitcoinSignTransactionParams = {
@@ -335,3 +299,5 @@ export type TLedgerServiceBitcoinGetTransactionHexParams = {
   hash: Uint8Array<ArrayBufferLike>
   nonWitnessUtxo: Parameters<bitcoinjs.Psbt['addInput']>[0]['nonWitnessUtxo']
 }
+
+export type TWalletConnectServiceBitcoinMethod = 'sendTransfer' | 'getAccountAddresses' | 'signPsbt' | 'signMessage'
