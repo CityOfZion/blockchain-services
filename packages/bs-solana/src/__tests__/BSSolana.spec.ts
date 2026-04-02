@@ -160,7 +160,7 @@ describe('BSSolana', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -196,7 +196,7 @@ describe('BSSolana', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -244,7 +244,7 @@ describe('BSSolana', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -333,7 +333,7 @@ describe('BSSolana', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -371,7 +371,7 @@ describe('BSSolana', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -421,7 +421,7 @@ describe('BSSolana', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {

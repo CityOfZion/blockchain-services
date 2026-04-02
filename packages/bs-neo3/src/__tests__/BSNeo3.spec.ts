@@ -111,7 +111,7 @@ describe('BSNeo3', () => {
       ],
     })
 
-    expect(fee).toEqual(expect.any(String))
+    expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
   it('Should be able to calculate transfer fee more than one intent', async () => {
@@ -133,7 +133,7 @@ describe('BSNeo3', () => {
       ],
     })
 
-    expect(fee).toEqual(expect.any(String))
+    expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
   it.skip('Should be able to transfer', async () => {
@@ -153,8 +153,8 @@ describe('BSNeo3', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         invocationCount: expect.any(Number),
-        networkFeeAmount: expect.any(String),
-        systemFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -205,8 +205,8 @@ describe('BSNeo3', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         invocationCount: expect.any(Number),
-        networkFeeAmount: expect.any(String),
-        systemFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           claimEvent,
@@ -259,8 +259,8 @@ describe('BSNeo3', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         invocationCount: expect.any(Number),
-        networkFeeAmount: expect.any(String),
-        systemFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -313,8 +313,8 @@ describe('BSNeo3', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         invocationCount: expect.any(Number),
-        networkFeeAmount: expect.any(String),
-        systemFeeAmount: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {

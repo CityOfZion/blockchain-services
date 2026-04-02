@@ -1,12 +1,7 @@
 import Transport from '@ledgerhq/hw-transport'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import type { IBSBitcoin, TBSBitcoinName, TTatumUtxo, TTatumUtxosResponse } from '../types'
-import {
-  BSBigNumber,
-  BSBigNumberHelper,
-  BSKeychainHelper,
-  type TGetLedgerTransport,
-} from '@cityofzion/blockchain-service'
+import type { IBSBitcoin, TBSBitcoinName, TTatumUtxosResponse } from '../types'
+import { BSBigHumanAmount, BSKeychainHelper, type TGetLedgerTransport } from '@cityofzion/blockchain-service'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 import { BSBitcoin } from '../BSBitcoin'
 import { LedgerServiceBitcoin } from '../services/ledger/LedgerServiceBitcoin'
@@ -171,22 +166,14 @@ describe.skip('LedgerServiceBitcoin', () => {
     const tatumApi = BSBitcoinTatumHelper.getApi(network)
     const psbt = new bitcoinjs.Psbt({ network: bitcoinjs.networks.testnet })
 
-    const { data } = await tatumApi.get<TTatumUtxosResponse>('/v4/data/utxos', {
+    const utxosResponse = await tatumApi.get<TTatumUtxosResponse>('/v4/data/utxos', {
       params: {
         address: account.address,
         totalValue: 1_0000,
       },
     })
 
-    const utxos = data.map<TTatumUtxo>(utxo => {
-      const value = BSBigNumberHelper.fromNumber(utxo.valueAsString)
-        .multipliedBy(BSBitcoinConstants.ONE_BTC_IN_SATOSHIS)
-        .integerValue(BSBigNumber.ROUND_DOWN)
-
-      return { ...utxo, valueAsString: value.toFixed(), value: value.toNumber() }
-    })
-
-    for (const utxo of utxos) {
+    for (const utxo of utxosResponse.data) {
       const { txHash, index, value } = utxo
       const { hex } = await service.blockchainDataService.getTransaction(txHash)
       const transaction = bitcoinjs.Transaction.fromHex(hex)
@@ -198,7 +185,7 @@ describe.skip('LedgerServiceBitcoin', () => {
         nonWitnessUtxo: Buffer.from(hex, 'hex'),
         witnessUtxo: {
           script: output.script,
-          value: BigInt(value),
+          value: new BSBigHumanAmount(value, BSBitcoinConstants.NATIVE_TOKEN.decimals).toUnit().toBigInt(),
         },
       }
 

@@ -1,5 +1,5 @@
 import {
-  BSBigNumberHelper,
+  BSBigUnitAmount,
   BSError,
   BSKeychainHelper,
   BSUtilsHelper,
@@ -8,7 +8,6 @@ import {
   type IExplorerService,
   type ITokenService,
   type TBSAccount,
-  type TBSBigNumber,
   type TBSNetwork,
   type TBSToken,
   type TGetLedgerTransport,
@@ -71,10 +70,9 @@ export class BSStellar implements IBSStellar {
     this.ledgerService = new LedgerServiceStellar(this, getLedgerTransport)
   }
 
-  async _getFeeEstimate(length: number): Promise<TBSBigNumber> {
+  async _getFeeEstimate(length: number): Promise<BSBigUnitAmount> {
     const feeStats = await this._sorobanServer.getFeeStats()
-    const feePerOperation = BSBigNumberHelper.fromDecimals(feeStats.sorobanInclusionFee.min, this.feeToken.decimals)
-
+    const feePerOperation = new BSBigUnitAmount(feeStats.sorobanInclusionFee.min, this.feeToken.decimals)
     return feePerOperation.multipliedBy(length)
   }
 
@@ -118,7 +116,7 @@ export class BSStellar implements IBSStellar {
     const feeBn = await this._getFeeEstimate(intents.length)
 
     const transaction = new stellarSDK.TransactionBuilder(sourceAccount, {
-      fee: BSBigNumberHelper.toDecimals(feeBn, this.feeToken.decimals),
+      fee: feeBn.toString(),
       networkPassphrase: BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.network.id],
     })
 
@@ -258,7 +256,7 @@ export class BSStellar implements IBSStellar {
 
   async calculateTransferFee(params: TTransferParams<TBSStellarName>): Promise<string> {
     const feeBn = await this._getFeeEstimate(params.intents.length)
-    return BSBigNumberHelper.toNumber(feeBn, this.feeToken.decimals)
+    return feeBn.toHuman().toFormatted()
   }
 
   async transfer(params: TTransferParams<TBSStellarName>): Promise<TTransactionDefault[]> {
@@ -279,26 +277,19 @@ export class BSStellar implements IBSStellar {
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),
-        networkFeeAmount: BSBigNumberHelper.format(
-          BSBigNumberHelper.fromDecimals(transaction.fee, this.feeToken.decimals),
-          { decimals: this.feeToken.decimals }
-        ),
+        networkFeeAmount: new BSBigUnitAmount(transaction.fee, this.feeToken.decimals).toHuman().toFormatted(),
         view: 'default',
-        events: params.intents.map(({ amount, receiverAddress, token }, index) => {
-          const tokenHash = token.hash
-
-          return {
-            eventType: 'token',
-            amount,
-            methodName: transaction.operations[index].type,
-            from: address,
-            fromUrl: this.explorerService.buildAddressUrl(address),
-            to: receiverAddress,
-            toUrl: this.explorerService.buildAddressUrl(receiverAddress),
-            tokenUrl: this.explorerService.buildContractUrl(tokenHash),
-            token,
-          }
-        }),
+        events: params.intents.map(({ amount, receiverAddress, token }, index) => ({
+          eventType: 'token',
+          amount,
+          methodName: transaction.operations[index].type,
+          from: address,
+          fromUrl: this.explorerService.buildAddressUrl(address),
+          to: receiverAddress,
+          toUrl: this.explorerService.buildAddressUrl(receiverAddress),
+          tokenUrl: this.explorerService.buildContractUrl(token.hash),
+          token,
+        })),
       },
     ]
   }
@@ -328,10 +319,7 @@ export class BSStellar implements IBSStellar {
       txIdUrl: this.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),
       view: 'default',
-      networkFeeAmount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromDecimals(transaction.fee, this.feeToken.decimals),
-        { decimals: this.feeToken.decimals }
-      ),
+      networkFeeAmount: new BSBigUnitAmount(transaction.fee, this.feeToken.decimals).toHuman().toFormatted(),
       events: [
         {
           eventType: 'token',

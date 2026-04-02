@@ -1,5 +1,4 @@
 import {
-  BSBigNumberHelper,
   BSCommonConstants,
   BSUtilsHelper,
   type TBalanceResponse,
@@ -11,6 +10,7 @@ import {
   type TContractResponse,
   type TTransactionDefault,
   type TTransactionDefaultEvent,
+  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
@@ -75,9 +75,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
       events.splice(0, 0, {
         eventType: 'token',
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(response.value, nativeToken.decimals), {
-          decimals: nativeToken.decimals,
-        }),
+        amount: new BSBigUnitAmount(response.value, nativeToken.decimals).toHuman().toFormatted(),
         methodName: 'transfer',
         from,
         fromUrl,
@@ -108,12 +106,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
           events.splice(index, 0, {
             eventType: 'token',
-            amount: BSBigNumberHelper.format(
-              BSBigNumberHelper.fromDecimals(tokenTransfer.total.value, tokenTransfer.total.decimals),
-              {
-                decimals: tokenTransfer.total.decimals,
-              }
-            ),
+            amount: new BSBigUnitAmount(tokenTransfer.total.value, tokenTransfer.total.decimals)
+              .toHuman()
+              .toFormatted(),
             methodName: 'transfer',
             from,
             fromUrl,
@@ -158,12 +153,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
       txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
       block: response.block,
       date: new Date(response.timestamp).toJSON(),
-      networkFeeAmount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromDecimals(response.fee.value, this._service.feeToken.decimals),
-        {
-          decimals: this._service.feeToken.decimals,
-        }
-      ),
+      networkFeeAmount: new BSBigUnitAmount(response.fee.value, this._service.feeToken.decimals)
+        .toHuman()
+        .toFormatted(),
       view: 'default',
       events,
       data,
@@ -203,9 +195,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
         events.push({
           eventType: 'token',
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(item.value, nativeToken.decimals), {
-            decimals: nativeToken.decimals,
-          }),
+          amount: new BSBigUnitAmount(item.value, nativeToken.decimals).toHuman().toFormatted(),
           methodName: 'transfer',
           from,
           fromUrl,
@@ -235,9 +225,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
           events.push({
             eventType: 'token',
-            amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(value, token.decimals), {
-              decimals: token.decimals,
-            }),
+            amount: new BSBigUnitAmount(value, token.decimals).toHuman().toFormatted(),
             methodName: 'transfer',
             from,
             fromUrl,
@@ -264,12 +252,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
         block: item.block,
         date: new Date(item.timestamp).toJSON(),
-        networkFeeAmount: BSBigNumberHelper.format(
-          BSBigNumberHelper.fromDecimals(item.fee.value, this._service.feeToken.decimals),
-          {
-            decimals: this._service.feeToken.decimals,
-          }
-        ),
+        networkFeeAmount: new BSBigUnitAmount(item.fee.value, this._service.feeToken.decimals).toHuman().toFormatted(),
         view: 'default',
         events,
         data,
@@ -363,12 +346,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
     const balances: TBalanceResponse[] = [
       {
-        amount: BSBigNumberHelper.format(
-          BSBigNumberHelper.fromDecimals(nativeBalance.coin_balance, nativeToken.decimals),
-          {
-            decimals: nativeToken.decimals,
-          }
-        ),
+        amount: new BSBigUnitAmount(nativeBalance.coin_balance, nativeToken.decimals).toHuman().toFormatted(),
         token: nativeToken,
       },
     ]
@@ -394,9 +372,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         })
 
         balances.push({
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(balance.value, token.decimals), {
-            decimals: token.decimals,
-          }),
+          amount: new BSBigUnitAmount(balance.value, token.decimals).toHuman().toFormatted(),
           token,
         })
       } catch {

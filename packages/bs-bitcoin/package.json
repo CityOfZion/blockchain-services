@@ -30,6 +30,7 @@
     "bitcoinjs-message": "2.2.0",
     "c32check": "~2.0.0",
     "ecpair": "~3.0.0",
+    "zod": "~4.3.6",
     "wif": "~5.0.0"
   },
   "devDependencies": {

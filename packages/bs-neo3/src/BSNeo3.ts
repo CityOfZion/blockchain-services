@@ -1,5 +1,4 @@
 import {
-  BSBigNumberHelper,
   BSKeychainHelper,
   BSUtilsHelper,
   type IBlockchainDataService,
@@ -7,7 +6,6 @@ import {
   type IExplorerService,
   type INftDataService,
   type ITokenService,
-  type IWalletConnectService,
   type TBSAccount,
   type TBSNetwork,
   type TBSToken,
@@ -20,6 +18,7 @@ import {
   type TClaimServiceTransactionData,
   type TTransactionDefaultTokenEvent,
   type TTransactionDefaultEvent,
+  BSBigHumanAmount,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
@@ -64,7 +63,7 @@ export class BSNeo3 implements IBSNeo3 {
   neo3NeoXBridgeService!: Neo3NeoXBridgeService
   tokenService!: ITokenService
   claimService!: ClaimServiceNeo3
-  walletConnectService!: IWalletConnectService<TBSNeo3Name>
+  walletConnectService!: WalletConnectServiceNeo3
   fullTransactionsDataService!: IFullTransactionsDataService
 
   constructor(network?: TBSNetwork<TBSNeo3NetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeo3Name>) {
@@ -101,7 +100,7 @@ export class BSNeo3 implements IBSNeo3 {
           { type: 'Hash160', value: intent.receiverAddress },
           {
             type: 'Integer',
-            value: BSBigNumberHelper.toDecimals(BSBigNumberHelper.fromNumber(intent.amount), token.decimals),
+            value: new BSBigHumanAmount(intent.amount, intent.token.decimals).toUnit().toString(),
           },
           { type: 'Any', value: null },
         ],
@@ -288,12 +287,12 @@ export class BSNeo3 implements IBSNeo3 {
 
     const invocations = await this.#buildTransferInvocation(params, neonJsAccount)
 
-    const { total } = await invoker.calculateFee({
+    const { networkFee, systemFee } = await invoker.calculateFee({
       invocations,
       signers: [],
     })
 
-    return total.toString()
+    return new BSBigHumanAmount(networkFee, this.feeToken.decimals).plus(systemFee).toFormatted()
   }
 
   async transfer(params: TTransferParams<TBSNeo3Name>): Promise<TTransactionDefault[]> {
@@ -347,8 +346,8 @@ export class BSNeo3 implements IBSNeo3 {
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),
         invocationCount: invocations.length,
-        networkFeeAmount: BSBigNumberHelper.format(fees.networkFee, { decimals: this.feeToken.decimals }),
-        systemFeeAmount: BSBigNumberHelper.format(fees.systemFee, { decimals: this.feeToken.decimals }),
+        networkFeeAmount: new BSBigHumanAmount(fees.networkFee, this.feeToken.decimals).toFormatted(),
+        systemFeeAmount: new BSBigHumanAmount(fees.systemFee, this.feeToken.decimals).toFormatted(),
         view: 'default',
         events,
         data,

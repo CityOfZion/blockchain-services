@@ -4,7 +4,6 @@ import {
   type IBlockchainService,
   type IBSWithWalletConnect,
   type TBSNetworkId,
-  type TWalletConnectServiceRequestMethod,
 } from '@cityofzion/blockchain-service'
 import { ErrorResponse, formatJsonRpcError, formatJsonRpcResult } from '@walletconnect/jsonrpc-utils'
 import type { PendingRequestTypes, SessionTypes } from '@walletconnect/types'
@@ -27,6 +26,7 @@ import type {
   TWalletKitHelperProposalDetails,
   TWalletKitHelperSessionDetails,
   TWalletKitHelperGetProposalServicesParams,
+  TWalletKitHelperValidateRequestParams,
 } from './types'
 import type { TBSServiceName } from '../../types'
 
@@ -113,7 +113,7 @@ export class WalletKitHelper {
     return formatJsonRpcError(request.id, reason ?? getSdkError('USER_REJECTED'))
   }
 
-  static async processRequest({ sessionDetails, account, request }: TWalletKitHelperProcessRequestParams) {
+  static async validateRequest({ account, sessionDetails, request }: TWalletKitHelperValidateRequestParams) {
     if (account.address !== sessionDetails.address) {
       throw new BSError('Account address does not match session address', 'INVALID_ACCOUNT')
     }
@@ -124,16 +124,25 @@ export class WalletKitHelper {
       throw new BSError('Method not supported by session', 'UNSUPPORTED_METHOD')
     }
 
-    const serviceMethod = sessionDetails.service.walletConnectService[method] as
-      | TWalletConnectServiceRequestMethod<TBSServiceName>
-      | undefined
+    const handler = sessionDetails.service.walletConnectService.handlers[method]
+    if (!handler) throw new BSError('Method not supported', 'UNSUPPORTED_METHOD')
 
-    if (!serviceMethod || typeof serviceMethod !== 'function')
-      throw new BSError('Method not supported', 'UNSUPPORTED_METHOD')
+    const validatedParams = await handler.validate(request.params.request.params)
 
-    const response = await serviceMethod.apply(sessionDetails.service.walletConnectService, [
-      { account, params: request.params.request.params },
-    ])
+    return {
+      handler,
+      validatedParams,
+    }
+  }
+
+  static async processRequest({ account, request, sessionDetails }: TWalletKitHelperProcessRequestParams) {
+    const { handler, validatedParams } = await this.validateRequest({ account, request, sessionDetails })
+
+    const response = await handler.process({
+      account,
+      params: validatedParams,
+      method: request.params.request.method,
+    })
 
     return response
   }

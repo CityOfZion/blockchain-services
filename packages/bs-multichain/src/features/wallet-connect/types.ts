@@ -38,4 +38,10 @@ export type TWalletKitHelperProcessRequestParams = {
   account: TBSAccount<TBSServiceName>
 }
 
+export type TWalletKitHelperValidateRequestParams = {
+  request: PendingRequestTypes.Struct
+  sessionDetails: TWalletKitHelperSessionDetails
+  account: TBSAccount<TBSServiceName>
+}
+
 export type TWalletKitHelperFilterSessionsParams = { addresses?: string[]; chains?: string[] }

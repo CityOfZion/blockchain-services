@@ -1,9 +1,7 @@
 import {
-  BSBigNumberHelper,
   BSError,
   BSKeychainHelper,
   BSUtilsHelper,
-  BSBigNumber,
   type IExchangeDataService,
   type IExplorerService,
   type INftDataService,
@@ -15,6 +13,9 @@ import {
   type TTransferParams,
   type TTransferIntent,
   type TTransactionUtxo,
+  BSBigHumanAmount,
+  BSBigUnitAmount,
+  BSBigNumber,
 } from '@cityofzion/blockchain-service'
 import { TatumBDSBitcoin } from './services/blockchain-data/TatumBDSBitcoin'
 import { CryptoCompareEDSBitcoin } from './services/exchange-data/CryptoCompareEDSBitcoin'
@@ -29,7 +30,6 @@ import type {
   TBSBitcoinName,
   TBSBitcoinNetworkId,
   TGetTransferDataParams,
-  TGetTransferDataResponse,
   THiroNameResponse,
   TSignTransactionParams,
   TTatumBroadcastResponse,
@@ -173,15 +173,15 @@ export class BSBitcoin implements IBSBitcoin {
 
   #getInputSize(address: string) {
     if (this._isP2WPKHAddress(address)) {
-      return BSBigNumberHelper.fromNumber('68')
+      return BSBitcoinConstants.P2WPKH_INPUT_SIZE
     }
 
     if (this._isP2PKHAddress(address)) {
-      return BSBigNumberHelper.fromNumber('148')
+      return BSBitcoinConstants.P2PKH_INPUT_SIZE
     }
 
     if (this._isP2SHAddress(address)) {
-      return BSBigNumberHelper.fromNumber('91')
+      return BSBitcoinConstants.P2SH_INPUT_SIZE
     }
 
     throw new BSError('Invalid address', 'INVALID_ADDRESS')
@@ -189,15 +189,15 @@ export class BSBitcoin implements IBSBitcoin {
 
   #getOutputSize(address: string) {
     if (this._isP2WPKHAddress(address)) {
-      return BSBigNumberHelper.fromNumber('31')
+      return BSBitcoinConstants.P2WPKH_OUTPUT_SIZE
     }
 
     if (this._isP2PKHAddress(address)) {
-      return BSBigNumberHelper.fromNumber('34')
+      return BSBitcoinConstants.P2PKH_OUTPUT_SIZE
     }
 
     if (this._isP2SHAddress(address)) {
-      return BSBigNumberHelper.fromNumber('32')
+      return BSBitcoinConstants.P2SH_OUTPUT_SIZE
     }
 
     throw new BSError('Invalid address', 'INVALID_ADDRESS')
@@ -205,118 +205,93 @@ export class BSBitcoin implements IBSBitcoin {
 
   #getEstimatedSize(address: string, intents: TTransferIntent[], inputsQuantity: number) {
     const inputSize = this.#getInputSize(address)
-    const inputsSize = inputSize.multipliedBy(inputsQuantity)
+    const inputsSizeBn = new BSBigNumber(inputSize).multipliedBy(inputsQuantity)
 
     // Payments and change
-    const outputsSize = intents.reduce(
+    const outputsSizeBn = intents.reduce(
       (accumulator, intent) => accumulator.plus(this.#getOutputSize(intent.receiverAddress)),
-      this.#getOutputSize(address)
+      new BSBigNumber(this.#getOutputSize(address))
     )
 
-    // 10 bytes represents version + locktime + counters
-    const overheadSize = BSBigNumberHelper.fromNumber('10')
-
-    return inputsSize.plus(outputsSize).plus(overheadSize)
+    return inputsSizeBn.plus(outputsSizeBn).plus(BSBitcoinConstants.OVERHEAD_SIZE)
   }
 
-  async #getTransferData({
-    senderAccount,
-    intents,
-    shouldValidate = true,
-  }: TGetTransferDataParams): Promise<TGetTransferDataResponse> {
+  async #getTransferData({ senderAccount, intents, shouldValidate = true }: TGetTransferDataParams) {
     if (intents.some(({ token }) => !this.tokenService.predicate(token, BSBitcoinConstants.NATIVE_TOKEN))) {
       throw new BSError("BRC-20 tokens aren't supported yet", 'BRC20_NOT_SUPPORTED')
     }
 
     const { address } = senderAccount
 
-    const { data: utxosData } = await this.#tatumApi.get<TTatumUtxosResponse>('/v4/data/utxos', {
-      params: {
-        address,
-        totalValue: 1000_0000_0000, // Get the most out of UTXOs
-      },
-    })
+    const [utxoResponse, feeResponse] = await Promise.all([
+      // Get the most out of UTXOs
+      this.#tatumApi.get<TTatumUtxosResponse>('/v4/data/utxos', { params: { address, totalValue: 1000_0000_0000 } }),
+      this.#tatumApi.get<TTatumFeesResponse>(`/v3/blockchain/fee/${BSBitcoinConstants.NATIVE_TOKEN.symbol}`),
+    ])
 
-    if (utxosData.length === 0) {
+    if (utxoResponse.data.length === 0) {
       throw new BSError('No UTXO available', 'NO_UTXO_AVAILABLE')
     }
 
-    const sortedUtxos = utxosData
-      .map<TTatumUtxo>(utxo => {
-        const value = BSBigNumberHelper.fromNumber(utxo.valueAsString)
-          .multipliedBy(BSBitcoinConstants.ONE_BTC_IN_SATOSHIS)
-          .integerValue(BSBigNumber.ROUND_DOWN)
+    const sortedUtxos = utxoResponse.data.sort((a, b) => a.value - b.value)
 
-        return { ...utxo, valueAsString: value.toFixed(), value: value.toNumber() }
-      })
-      .sort((a, b) => a.value - b.value)
+    const selectedUtxos: TTatumUtxo[] = []
+    let utxosAmountBn = new BSBigHumanAmount(0, BSBitcoinConstants.NATIVE_TOKEN.decimals)
+    let feeBn: BSBigHumanAmount | undefined
 
-    const { data: feeData } = await this.#tatumApi.get<TTatumFeesResponse>(
-      `/v3/blockchain/fee/${BSBitcoinConstants.NATIVE_TOKEN.symbol}`
-    )
-
-    const dustLimit = BSBigNumberHelper.fromNumber('546')
-    const feeRate = BSBigNumberHelper.fromNumber(feeData.medium)
-    const utxos: TTatumUtxo[] = []
-    let utxosAmount = BSBigNumberHelper.fromNumber('0')
-    let fee = BSBigNumberHelper.fromNumber('0')
-
-    let amount = intents.reduce(
-      (accumulator, intent) =>
-        accumulator.plus(
-          BSBigNumberHelper.fromNumber(intent.amount)
-            .multipliedBy(BSBitcoinConstants.ONE_BTC_IN_SATOSHIS)
-            .integerValue(BSBigNumber.ROUND_DOWN)
-        ),
-      BSBigNumberHelper.fromNumber('0')
+    let amountBn = intents.reduce(
+      (accumulator, intent) => accumulator.plus(intent.amount),
+      new BSBigHumanAmount(0, BSBitcoinConstants.NATIVE_TOKEN.decimals)
     )
 
     for (const utxo of sortedUtxos) {
-      utxos.push(utxo)
-      utxosAmount = utxosAmount.plus(utxo.value)
+      selectedUtxos.push(utxo)
 
-      const estimatedSize = this.#getEstimatedSize(address, intents, utxos.length)
+      utxosAmountBn = utxosAmountBn.plus(utxo.value)
 
-      fee = feeRate.multipliedBy(estimatedSize).integerValue(BSBigNumber.ROUND_CEIL)
+      const estimatedSizeBn = this.#getEstimatedSize(address, intents, selectedUtxos.length)
 
-      const currentAmount = amount.plus(fee)
+      feeBn = new BSBigUnitAmount(
+        estimatedSizeBn.multipliedBy(feeResponse.data.medium).integerValue(BSBigNumber.ROUND_CEIL),
+        BSBitcoinConstants.NATIVE_TOKEN.decimals
+      ).toHuman()
 
-      if (utxosAmount.isGreaterThanOrEqualTo(shouldValidate ? currentAmount : amount)) {
+      if (utxosAmountBn.isGreaterThanOrEqualTo(shouldValidate ? amountBn.plus(feeBn) : amountBn)) {
         break
       }
     }
 
-    if (utxos.length === 0) {
+    if (selectedUtxos.length === 0 || !feeBn) {
       throw new BSError('No UTXOs to pay the transaction', 'NO_UTXO_PAY_TRANSACTION')
     }
 
-    if (utxosAmount.minus(amount).isNegative()) {
+    if (utxosAmountBn.minus(amountBn).isLessThan(0)) {
       throw new BSError('Insufficient funds', 'INSUFFICIENT_FUNDS')
     }
 
-    amount = amount.plus(fee)
+    amountBn = amountBn.plus(feeBn)
 
-    let change = utxosAmount.minus(amount)
+    let changeBn = utxosAmountBn.minus(amountBn)
 
     if (shouldValidate) {
-      if (change.isNegative()) {
+      if (changeBn.isLessThan(0)) {
         throw new BSError('Insufficient funds', 'INSUFFICIENT_FUNDS')
       }
 
-      if (amount.isLessThan(dustLimit)) {
+      if (amountBn.isLessThan(BSBitcoinConstants.AMOUNT_DUST_LIMIT_BN)) {
         throw new BSError('Amount is lower than the dust', 'DUST_ERROR')
       }
     }
 
     // Reset the change
-    if (change.isLessThan(dustLimit)) {
-      change = BSBigNumberHelper.fromNumber('0')
+    if (changeBn.isLessThan(BSBitcoinConstants.AMOUNT_DUST_LIMIT_BN)) {
+      changeBn = new BSBigHumanAmount(0, BSBitcoinConstants.NATIVE_TOKEN.decimals)
     }
 
     return {
-      utxos,
-      fee,
-      change,
+      selectedUtxos,
+      feeBn,
+      changeBn,
     }
   }
 
@@ -492,11 +467,8 @@ export class BSBitcoin implements IBSBitcoin {
   }
 
   async calculateTransferFee(params: TTransferParams<TBSBitcoinName>): Promise<string> {
-    const { fee } = await this.#getTransferData({ ...params, shouldValidate: false })
-
-    return BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(fee, this.feeToken.decimals), {
-      decimals: this.feeToken.decimals,
-    })
+    const { feeBn } = await this.#getTransferData({ ...params, shouldValidate: false })
+    return feeBn.toFormatted()
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {
@@ -524,7 +496,7 @@ export class BSBitcoin implements IBSBitcoin {
   }
 
   async transfer(params: TTransferParams<TBSBitcoinName>): Promise<TTransactionUtxo[]> {
-    const { utxos, fee, change } = await this.#getTransferData(params)
+    const { selectedUtxos, feeBn, changeBn } = await this.#getTransferData(params)
     const { senderAccount, intents } = params
     const { address, isHardware } = senderAccount
     const psbt = new bitcoinjs.Psbt({ network: this._bitcoinjsNetwork })
@@ -541,19 +513,18 @@ export class BSBitcoin implements IBSBitcoin {
       }).output
     }
 
-    for (const utxo of utxos) {
-      const { txHash, index, value } = utxo
+    for (const selectedUtxo of selectedUtxos) {
+      const { txHash, index, value } = selectedUtxo
       const { hex } = await this.blockchainDataService.getTransaction(txHash)
       const transaction = bitcoinjs.Transaction.fromHex(hex)
       const output = transaction.outs[index]
 
+      const valueBigInt = new BSBigHumanAmount(value, BSBitcoinConstants.NATIVE_TOKEN.decimals).toUnit().toBigInt()
+
       const input: Parameters<bitcoinjs.Psbt['addInput']>[0] = {
         hash: txHash,
         index,
-        witnessUtxo: {
-          script: output.script,
-          value: BigInt(value),
-        },
+        witnessUtxo: { script: output.script, value: valueBigInt },
       }
 
       if (redeemScript) input.redeemScript = redeemScript
@@ -563,31 +534,22 @@ export class BSBitcoin implements IBSBitcoin {
     }
 
     for (const intent of intents) {
-      psbt.addOutput({
-        address: intent.receiverAddress,
-        value: BigInt(
-          BSBigNumberHelper.fromNumber(intent.amount)
-            .multipliedBy(BSBitcoinConstants.ONE_BTC_IN_SATOSHIS)
-            .integerValue(BSBigNumber.ROUND_DOWN)
-            .toNumber()
-        ),
-      })
+      const valueBigInt = new BSBigHumanAmount(intent.amount, BSBitcoinConstants.NATIVE_TOKEN.decimals)
+        .toUnit()
+        .toBigInt()
+
+      psbt.addOutput({ address: intent.receiverAddress, value: valueBigInt })
     }
 
     // Verify if exists change
-    if (change.isGreaterThan('0')) {
-      psbt.addOutput({
-        address,
-        value: BigInt(change.toNumber()),
-      })
+    if (changeBn.isGreaterThan(0)) {
+      psbt.addOutput({ address, value: changeBn.toUnit().toBigInt() })
     }
 
-    // Sign the inputs
     await this._signTransaction({ psbt, account: senderAccount })
 
     const ecpair = BSBitcoinECPairSingletonHelper.getInstance()
 
-    // Validate the signatures
     const areSignaturesValid = psbt.validateSignaturesOfAllInputs(
       (publicKey: Uint8Array, messageHash: Uint8Array, signature: Uint8Array) => {
         return ecpair.fromPublicKey(publicKey).verify(messageHash, signature)
@@ -612,10 +574,10 @@ export class BSBitcoin implements IBSBitcoin {
       }
 
       const addressUrl = this.explorerService.buildAddressUrl(address)
-      let totalAmount = BSBigNumberHelper.fromNumber('0')
+      let totalAmountBn = new BSBigHumanAmount(0, BSBitcoinConstants.NATIVE_TOKEN.decimals)
 
       const outputs = intents.map(({ amount, receiverAddress, token }) => {
-        totalAmount = totalAmount.plus(amount)
+        totalAmountBn = totalAmountBn.plus(amount)
 
         return {
           address: receiverAddress,
@@ -631,15 +593,11 @@ export class BSBitcoin implements IBSBitcoin {
           txIdUrl: this.explorerService.buildTransactionUrl(transactionHash),
           hex: transactionHex,
           date: new Date().toJSON(),
-          networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(fee, this.feeToken.decimals), {
-            decimals: this.feeToken.decimals,
-          }),
-          totalAmount: BSBigNumberHelper.format(totalAmount, {
-            decimals: BSBitcoinConstants.NATIVE_TOKEN.decimals,
-          }),
+          networkFeeAmount: feeBn.toFormatted(),
+          totalAmount: totalAmountBn.toFormatted(),
           view: 'utxo',
           nfts: [],
-          inputs: utxos.map(utxo => ({
+          inputs: selectedUtxos.map(utxo => ({
             address,
             addressUrl,
             amount: utxo.valueAsString,

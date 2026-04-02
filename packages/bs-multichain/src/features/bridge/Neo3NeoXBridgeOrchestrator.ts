@@ -1,6 +1,5 @@
 import {
   BSAccountHelper,
-  BSBigNumberHelper,
   BSError,
   BSUtilsHelper,
   BSBigNumber,
@@ -14,6 +13,7 @@ import {
   type TSwapOrchestratorEvents,
   type INeo3NeoXBridgeService,
   type TBSBridgeName,
+  BSBigHumanAmount,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3 } from '@cityofzion/bs-neo3'
 import { BSNeoX } from '@cityofzion/bs-neox'
@@ -326,8 +326,8 @@ export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridge
       this.#amountToUseMin = { value: constants.bridgeMinAmount }
       this.#bridgeFee = { value: constants.bridgeFee }
 
-      const bridgeMaxAmountBn = BSBigNumberHelper.fromNumber(constants.bridgeMaxAmount)
-      const tokenBalanceAmountBn = BSBigNumberHelper.fromNumber(tokenToUseBalance?.amount ?? 0)
+      const bridgeMaxAmountBn = new BSBigHumanAmount(constants.bridgeMaxAmount)
+      const tokenBalanceAmountBn = new BSBigHumanAmount(tokenToUseBalance?.amount)
 
       const isFeeToken = this.fromService.tokenService.predicateByHash(
         this.fromService.feeToken,
@@ -338,9 +338,12 @@ export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridge
         ? tokenBalanceAmountBn.minus(constants.bridgeFee)
         : tokenBalanceAmountBn
 
-      const max = BSBigNumber.max(0, BSBigNumber.min(bridgeMaxAmountBn, maxTokenBalanceAmountBn))
+      const amountToUseMax = new BSBigHumanAmount(
+        BSBigNumber.max(0, BSBigNumber.min(bridgeMaxAmountBn, maxTokenBalanceAmountBn)),
+        this.#tokenToUse.value.decimals
+      ).toFormatted()
 
-      this.#amountToUseMax = { value: BSBigNumberHelper.format(max, { decimals: this.#tokenToUse.value.decimals }) }
+      this.#amountToUseMax = { value: amountToUseMax }
     } catch (error) {
       const treatedError = this.#treatError(error)
 
@@ -370,7 +373,8 @@ export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridge
     this.#amountToUseTimeout = setTimeout(async () => {
       if (!this.#tokenToUse.value) return
 
-      const formattedAmount = BSBigNumberHelper.format(amount, { decimals: this.#tokenToUse.value.decimals })
+      const amountToUseBn = new BSBigHumanAmount(amount, this.#tokenToUse.value.decimals)
+      const formattedAmount = amountToUseBn.toFormatted()
       this.#amountToReceive = { value: formattedAmount }
       this.#amountToUse = { value: formattedAmount }
 
@@ -388,8 +392,6 @@ export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridge
 
         this.#amountToUse = { loading: true }
         this.#bridgeFee = { loading: true }
-
-        const amountToUseBn = BSBigNumberHelper.fromNumber(formattedAmount)
 
         if (amountToUseBn.isLessThan(this.#amountToUseMin.value)) {
           throw new BSError('Amount is below the minimum', 'AMOUNT_BELOW_MINIMUM')
@@ -410,17 +412,18 @@ export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridge
           .then(fee => fee)
           .catch(() => '0')
 
-        const newBridgeFee = BSBigNumberHelper.fromNumber(this.#bridgeFee.value!).plus(approvalFee)
-        this.#bridgeFee = {
-          value: BSBigNumberHelper.format(newBridgeFee, { decimals: this.fromService.feeToken.decimals }),
-        }
+        const newBridgeFeeBn = new BSBigHumanAmount(this.#bridgeFee.value, this.fromService.feeToken.decimals).plus(
+          approvalFee
+        )
+
+        this.#bridgeFee = { value: newBridgeFeeBn.toFormatted() }
 
         const isFeeToken = this.fromService.tokenService.predicateByHash(
           this.fromService.feeToken,
           this.#tokenToUse.value
         )
 
-        if (newBridgeFee.plus(isFeeToken ? amountToUseBn : 0).isGreaterThan(this.#feeTokenBalance?.amount ?? 0)) {
+        if (newBridgeFeeBn.plus(isFeeToken ? amountToUseBn : 0).isGreaterThan(this.#feeTokenBalance?.amount ?? 0)) {
           throw new BSError(
             'You do not have enough fee token balance to cover the bridge fee',
             'INSUFFICIENT_FEE_TOKEN_BALANCE'

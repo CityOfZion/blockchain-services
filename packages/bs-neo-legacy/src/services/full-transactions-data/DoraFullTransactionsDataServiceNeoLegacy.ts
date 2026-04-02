@@ -1,5 +1,5 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
   BSFullTransactionsByAddressHelper,
   BSUtilsHelper,
   type IFullTransactionsDataService,
@@ -63,10 +63,10 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
         block: item.block,
         date: item.date,
         networkFeeAmount: networkFeeAmount
-          ? BSBigNumberHelper.format(networkFeeAmount, { decimals: this.#service.feeToken.decimals })
+          ? new BSBigHumanAmount(networkFeeAmount, this.#service.feeToken.decimals).toFormatted()
           : undefined,
         systemFeeAmount: systemFeeAmount
-          ? BSBigNumberHelper.format(systemFeeAmount, { decimals: this.#service.feeToken.decimals })
+          ? new BSBigHumanAmount(systemFeeAmount, this.#service.feeToken.decimals).toFormatted()
           : undefined,
         view: 'default',
         events: [],
@@ -85,7 +85,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
         const assetEvent: TTransactionDefaultTokenEvent = {
           eventType: 'token',
           amount: amount
-            ? BSBigNumberHelper.format(amount, { decimals: token?.decimals ?? event.tokenDecimals })
+            ? new BSBigHumanAmount(amount, token?.decimals ?? event.tokenDecimals).toFormatted()
             : undefined,
           methodName: event.methodName,
           from: from ?? undefined,

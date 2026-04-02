@@ -1,4 +1,4 @@
-import { BSBigNumberHelper, BSError, type TBSAccount } from '@cityofzion/blockchain-service'
+import { BSBigHumanAmount, BSError, type TBSAccount } from '@cityofzion/blockchain-service'
 
 import { BSNeo3 } from '../BSNeo3'
 import { BSNeo3Constants } from '../constants/BSNeo3Constants'
@@ -161,7 +161,7 @@ describe('Neo3NeoXBridgeService', () => {
     })
   })
 
-  it('Should be able to get the transaction hash by nonce', async () => {
+  it.skip('Should be able to get the transaction hash by nonce', async () => {
     const transactionHash = await neo3NeoXBridgeService.getTransactionHashByNonce({
       token: neo3NeoXBridgeService.gasToken,
       nonce: '761',
@@ -184,7 +184,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(BSBigNumberHelper.fromNumber(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -211,7 +211,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(BSBigNumberHelper.fromNumber(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,

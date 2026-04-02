@@ -119,7 +119,7 @@ describe('BSEthereum', () => {
       ],
     })
 
-    expect(fee).toEqual(expect.any(String))
+    expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
   it.skip('Should be able to transfer a native token using Testnet', async () => {
@@ -327,7 +327,7 @@ describe('BSEthereum', () => {
       ],
     })
 
-    expect(fee).toEqual(expect.any(String))
+    expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
   it.skip('Should be able to transfer more than one intent using Testnet', async () => {

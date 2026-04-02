@@ -1,8 +1,8 @@
 import {
+  BSBigUnitAmount,
   GhostMarketNDS,
   type TBSNetworkId,
   type THasTokenParams,
-  type TBSBigNumber,
 } from '@cityofzion/blockchain-service'
 
 import type { IBSEthereum, TBSEthereumNetworkId } from '../../types'
@@ -36,9 +36,9 @@ export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> ex
 
       if (!response) return false
 
-      const parsedResponse = response as TBSBigNumber
+      const parsedResponse = new BSBigUnitAmount(response.toString(), 0)
 
-      return parsedResponse.gt(0)
+      return parsedResponse.isGreaterThan(0)
     } catch {
       return false
     }

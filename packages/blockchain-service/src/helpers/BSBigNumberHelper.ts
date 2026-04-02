@@ -1,69 +1,105 @@
 import BigNumber from 'bignumber.js'
-import { TBSBigNumberHelperFormatOptions } from '../types'
+import { BSError } from '../error'
 
-export type TBSBigNumber = BigNumber
-
-export const BSBigNumber = BigNumber
-
-export class BSBigNumberHelper {
-  static #ensureDecimals(value: string | number | undefined): number {
-    if (!value) return 0
-
-    value = +value || 0
-
-    return 0 > value ? 0 : value
+export class BSBigNumber extends BigNumber {
+  constructor(value: BigNumber.Value, base?: number) {
+    super(value, base)
   }
 
-  static toDecimals(value: TBSBigNumber, decimals: number | string): string {
-    const decimalsNumber = this.#ensureDecimals(decimals)
+  static ensureNumber(value: number | string | bigint | undefined) {
+    const bn = new BigNumber(value || 0)
+    if (bn.isNaN()) {
+      return 0
+    }
 
-    return new BSBigNumber(value).shiftedBy(decimalsNumber).toString()
+    return bn.toNumber()
   }
 
-  static toNumber(value: TBSBigNumber, decimals?: number | string): string {
-    const decimalsNumber = this.#ensureDecimals(decimals)
-
-    return typeof decimals === 'number' || typeof decimals === 'string'
-      ? value.toFixed(decimalsNumber)
-      : value.toFixed()
+  toBigInt() {
+    return BigInt(this.toString())
   }
 
-  static fromNumber(value: string | number | bigint | undefined): TBSBigNumber {
-    return new BSBigNumber(value || 0)
+  protected _wrap(value: BigNumber): this {
+    return new (this.constructor as any)(value) as this
   }
 
-  static fromDecimals(
-    value: string | number | bigint | TBSBigNumber | undefined,
-    decimals: number | string
-  ): TBSBigNumber {
-    const decimalsNumber = this.#ensureDecimals(decimals)
-
-    return new BSBigNumber(value || 0).shiftedBy(-decimalsNumber)
+  plus(n: BigNumber.Value, base?: number): this {
+    return this._wrap(super.plus(n, base))
   }
 
-  static format(value: string | number | bigint | TBSBigNumber | undefined, options?: TBSBigNumberHelperFormatOptions) {
-    if (!value) return '0'
+  minus(n: BigNumber.Value, base?: number): this {
+    return this._wrap(super.minus(n, base))
+  }
 
+  multipliedBy(n: BigNumber.Value, base?: number): this {
+    return this._wrap(super.multipliedBy(n, base))
+  }
+
+  dividedBy(n: BigNumber.Value, base?: number): this {
+    return this._wrap(super.dividedBy(n, base))
+  }
+
+  integerValue(roundingMode?: BigNumber.RoundingMode): this {
+    return this._wrap(super.integerValue(roundingMode))
+  }
+}
+
+export class BSBigHumanAmount extends BSBigNumber {
+  decimals?: number
+
+  constructor(value: BigNumber.Value | undefined | null, decimals?: number | string) {
     if (typeof value === 'string') {
       value = value.replace(/,|\.\.|\.,/g, '.').replace(/^([^.]*\.)(.*)$/, function (_a, b, c) {
         return b + c.replace(/\./g, '')
       })
     }
 
-    try {
-      const bigValue = new BSBigNumber(value)
-      if (bigValue.isNaN()) {
-        return '0'
-      }
-
-      const decimals = this.#ensureDecimals(options?.decimals)
-      const formattedValue = bigValue.decimalPlaces(decimals, BSBigNumber.ROUND_DOWN)
-
-      return formattedValue.toFixed()
-    } catch (error) {
-      console.error(error)
-
-      return '0'
+    if (!value || new BigNumber(value).isNaN()) {
+      value = 0
     }
+
+    super(value)
+
+    this.decimals = decimals !== undefined ? BSBigNumber.ensureNumber(decimals) : undefined
+  }
+
+  protected _wrap(value: BigNumber): this {
+    return new (this.constructor as any)(value, this.decimals) as this
+  }
+
+  toFormatted() {
+    return this.decimalPlaces(this.decimals ?? 0, BigNumber.ROUND_DOWN).toFixed()
+  }
+
+  toUnit() {
+    if (typeof this.decimals !== 'number') {
+      throw new BSError('Decimals property is required to convert to Unit', 'DECIMALS_REQUIRED')
+    }
+
+    const shifted = this.shiftedBy(this.decimals)
+    return new BSBigUnitAmount(shifted, this.decimals)
+  }
+}
+
+export class BSBigUnitAmount extends BSBigNumber {
+  decimals?: number
+
+  constructor(value: BigNumber.Value | undefined | null, decimals: number | string) {
+    if (!value || new BigNumber(value).isNaN()) {
+      value = 0
+    }
+
+    super(value)
+
+    this.decimals = BSBigNumber.ensureNumber(decimals)
+  }
+
+  protected _wrap(value: BigNumber): this {
+    return new (this.constructor as any)(value, this.decimals) as this
+  }
+
+  toHuman() {
+    const shifted = this.shiftedBy(-this.decimals!)
+    return new BSBigHumanAmount(shifted, this.decimals)
   }
 }
