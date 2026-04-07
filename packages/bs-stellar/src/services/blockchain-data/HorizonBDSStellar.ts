@@ -156,7 +156,7 @@ export class HorizonBDSStellar implements IBlockchainDataService {
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
   ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
-    const query = this.#service._horizonServer.transactions().forAccount(params.address).limit(15)
+    const query = this.#service._horizonServer.transactions().forAccount(params.address).limit(15).order('desc')
 
     if (params.nextPageParams) {
       query.cursor(params.nextPageParams)
@@ -169,9 +169,9 @@ export class HorizonBDSStellar implements IBlockchainDataService {
 
     const transactions: TTransactionDefault[] = []
 
-    const promises = response.records.map(async record => {
+    const promises = response.records.map(async (record, index) => {
       const parsedTransaction = await this.#parseTransaction(record)
-      transactions.push(parsedTransaction)
+      transactions.splice(index, 0, parsedTransaction)
     })
 
     await Promise.allSettled(promises)

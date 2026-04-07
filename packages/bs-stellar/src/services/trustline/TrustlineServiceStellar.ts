@@ -44,7 +44,7 @@ export class TrustlineServiceStellar {
 
     const fee = await this.#service._getFeeEstimate(1)
 
-    const formattedLimit = BSBigNumberHelper.format(limit, { decimals: token.decimals })
+    const formattedLimit = limit ? BSBigNumberHelper.format(limit, { decimals: token.decimals }) : undefined
 
     const builtTransaction = new stellarSDK.TransactionBuilder(sourceAccount, {
       fee: BSBigNumberHelper.toDecimals(fee, this.#service.feeToken.decimals),
