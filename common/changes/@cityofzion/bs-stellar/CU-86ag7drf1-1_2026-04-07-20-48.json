@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Fix changeTrust method when limit is undefined",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Fix getTransactionsByAddress method to return transactions from newest to oldest",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-stellar"
+}
