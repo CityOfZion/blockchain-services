@@ -25,6 +25,8 @@ describe('BlockscoutBDSNeoX', () => {
         block: 3561140,
         date: expect.any(String),
         networkFeeAmount: '0.00084',
+        blockchain: 'neox',
+        isPending: false,
         view: 'default',
         events: [
           {
@@ -55,6 +57,8 @@ describe('BlockscoutBDSNeoX', () => {
         block: 3415495,
         date: expect.any(String),
         networkFeeAmount: '0.00218104',
+        blockchain: 'neox',
+        isPending: false,
         view: 'default',
         events: [
           {
@@ -127,6 +131,8 @@ describe('BlockscoutBDSNeoX', () => {
           block: expect.any(Number),
           date: expect.any(String),
           networkFeeAmount: expect.anything(),
+          blockchain: 'neox',
+          isPending: false,
           view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({

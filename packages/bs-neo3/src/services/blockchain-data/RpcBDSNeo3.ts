@@ -15,11 +15,11 @@ import {
   type TTransactionDefaultNftEvent,
   type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeo3, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
+import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
-export class RpcBDSNeo3 implements IBlockchainDataService {
+export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
   readonly _service: IBSNeo3
@@ -126,7 +126,7 @@ export class RpcBDSNeo3 implements IBlockchainDataService {
     return events
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeo3Name>> {
     try {
       const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
       const rpcClient = new rpc.RPCClient(this._service.network.url)
@@ -145,7 +145,9 @@ export class RpcBDSNeo3 implements IBlockchainDataService {
         ...this._service.voteService._getTransactionDataFromEvents(events),
       }
 
-      const transaction: TTransactionDefault = {
+      const transaction: TTransactionDefault<TBSNeo3Name> = {
+        blockchain: this._service.name,
+        isPending: false,
         txId,
         txIdUrl,
         block: response.validuntilblock,
@@ -177,7 +179,7 @@ export class RpcBDSNeo3 implements IBlockchainDataService {
 
   async getTransactionsByAddress(
     _params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  ): Promise<TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>> {
     throw new Error('Method not supported.')
   }
 

@@ -19,6 +19,7 @@ import type {
   TOrdinalsContentResponse,
   TTatumBalanceResponse,
   TTatumTransactionResponse,
+  TBSBitcoinName,
 } from '../../types'
 import { BSBitcoinConstants } from '../../constants/BSBitcoinConstants'
 import { BSBitcoinTatumHelper } from '../../helpers/BSBitcoinTatumHelper'
@@ -26,7 +27,7 @@ import { BSBitcoinOrdinalsHelper } from '../../helpers/BSBitcoinOrdinalsHelper'
 import { BSBitcoinXverseHelper } from '../../helpers/BSBitcoinXverseHelper'
 import { AxiosInstance } from 'axios'
 
-export class TatumBDSBitcoin implements IBlockchainDataService {
+export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
   readonly #service: IBSBitcoin
   readonly #cachedTokens = new Map<string, TBSToken>()
   readonly #tatumApi: AxiosInstance
@@ -54,7 +55,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService {
     hex,
     hash,
     ...transaction
-  }: TTatumTransactionResponse): Promise<TTransactionUtxo> {
+  }: TTatumTransactionResponse): Promise<TTransactionUtxo<TBSBitcoinName>> {
     const token = BSBitcoinConstants.NATIVE_TOKEN
     const tokenDecimals = token.decimals
     const feeDecimals = this.#service.feeToken.decimals
@@ -107,6 +108,8 @@ export class TatumBDSBitcoin implements IBlockchainDataService {
     await Promise.allSettled(inputPromises)
 
     return {
+      blockchain: this.#service.name,
+      isPending: false,
       txId: hash,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(hash),
       hex,
@@ -147,7 +150,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService {
     return token
   }
 
-  async getTransaction(transactionId: string): Promise<TTransactionUtxo> {
+  async getTransaction(transactionId: string): Promise<TTransactionUtxo<TBSBitcoinName>> {
     const { data } = await this.#tatumApi.get<TTatumTransactionResponse>('/v4/data/blockchains/transaction', {
       params: { hash: transactionId },
     })
@@ -162,10 +165,12 @@ export class TatumBDSBitcoin implements IBlockchainDataService {
   async getTransactionsByAddress({
     address,
     nextPageParams,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionUtxo>> {
+  }: TGetTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSBitcoinName, TTransactionUtxo<TBSBitcoinName>>
+  > {
     if (!this.#isNumberValid(nextPageParams)) nextPageParams = 1
 
-    const transactions: TTransactionUtxo[] = []
+    const transactions: TTransactionUtxo<TBSBitcoinName>[] = []
     const pageSize = 50
     const offset = (nextPageParams - 1) * pageSize
 

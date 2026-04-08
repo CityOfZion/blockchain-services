@@ -43,7 +43,7 @@ export interface IBSEthereum<N extends string = TBSEthereumName, A extends TBSNe
     IBSWithExplorer,
     IBSWithEncryption<N>,
     IBSWithWalletConnect<N>,
-    IBSWithFullTransactions {
+    IBSWithFullTransactions<N> {
   _generateSigner(account: TBSAccount<N>): Promise<ethers.Signer & TypedDataSigner>
 }
 

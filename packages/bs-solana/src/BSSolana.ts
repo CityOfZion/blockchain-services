@@ -53,7 +53,7 @@ export class BSSolana implements IBSSolana {
 
   ledgerService: Web3LedgerServiceSolana
   exchangeDataService!: IExchangeDataService
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<TBSSolanaName>
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
@@ -290,7 +290,7 @@ export class BSSolana implements IBSSolana {
     }
   }
 
-  async transfer(params: TTransferParams<TBSSolanaName>): Promise<TTransactionDefault[]> {
+  async transfer(params: TTransferParams<TBSSolanaName>): Promise<TTransactionDefault<TBSSolanaName>[]> {
     const { transactionMessage } = await this.#buildTransferParams(params)
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
     const fee = await this.#getFeeByMessageBytes(compiledTransaction.messageBytes)
@@ -303,6 +303,8 @@ export class BSSolana implements IBSSolana {
 
     return [
       {
+        blockchain: this.name,
+        isPending: true,
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),

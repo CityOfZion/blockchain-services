@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Add blockchain and isPending properties to Transaction type",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

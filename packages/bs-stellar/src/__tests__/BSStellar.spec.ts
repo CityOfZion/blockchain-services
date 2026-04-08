@@ -118,6 +118,8 @@ describe('BSStellar', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'stellar',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -172,6 +174,8 @@ describe('BSStellar', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'stellar',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -246,6 +250,8 @@ describe('BSStellar', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'stellar',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -302,6 +308,8 @@ describe('BSStellar', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'stellar',
+        isPending: true,
         view: 'default',
         events: [
           {

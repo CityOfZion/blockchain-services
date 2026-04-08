@@ -42,13 +42,13 @@ export class BSNeoLegacy implements IBSNeoLegacy {
   readonly defaultNetwork: TBSNetwork<TBSNeoLegacyNetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeoLegacyNetworkId>[]
 
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<TBSNeoLegacyName>
   exchangeDataService!: IExchangeDataService
   ledgerService: NeonJsLedgerServiceNeoLegacy
   explorerService!: IExplorerService
   tokenService!: ITokenService
   claimService!: ClaimServiceNeoLegacy
-  fullTransactionsDataService!: IFullTransactionsDataService
+  fullTransactionsDataService!: IFullTransactionsDataService<TBSNeoLegacyName>
 
   constructor(network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeoLegacyName>) {
     this.ledgerService = new NeonJsLedgerServiceNeoLegacy(this, getLedgerTransport)
@@ -267,7 +267,10 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     return wallet.encrypt(key, password)
   }
 
-  async transfer({ senderAccount, intents }: TTransferParams<TBSNeoLegacyName>): Promise<TTransactionDefault[]> {
+  async transfer({
+    senderAccount,
+    intents,
+  }: TTransferParams<TBSNeoLegacyName>): Promise<TTransactionDefault<TBSNeoLegacyName>[]> {
     const { neonJsAccount, signingCallback } = await this._generateSigningCallback(senderAccount)
     const { api, sc, u, wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     const apiProvider = new api.neoCli.instance(this.network.url)
@@ -311,6 +314,8 @@ export class BSNeoLegacy implements IBSNeoLegacy {
 
     return [
       {
+        blockchain: this.name,
+        isPending: true,
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),

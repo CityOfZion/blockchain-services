@@ -9,11 +9,11 @@ import {
   type TTransactionDefault,
   type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeo3, TBSNeo3NetworkId } from '../../types'
+import type { IBSNeo3, TBSNeo3Name, TBSNeo3NetworkId } from '../../types'
 import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 import type { api } from '@cityofzion/dora-ts'
 
-export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDataService {
+export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDataService<TBSNeo3Name> {
   static readonly SUPPORTED_NEP11_STANDARDS: string[] = ['nep11', 'nep-11']
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeo3NetworkId[] = ['mainnet', 'testnet']
 
@@ -36,7 +36,9 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  }: TGetFullTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>
+  > {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: DoraFullTransactionsDataServiceNeo3.SUPPORTED_NETWORKS_IDS,
@@ -53,7 +55,7 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
     })
 
     const items = response.data ?? []
-    const transactions: TTransactionDefault[] = []
+    const transactions: TTransactionDefault<TBSNeo3Name>[] = []
 
     const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
       const txId = item.transactionID
@@ -131,7 +133,9 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
         }
       }
 
-      const newItem: TTransactionDefault = {
+      const newItem: TTransactionDefault<TBSNeo3Name> = {
+        blockchain: this.#service.name,
+        isPending: false,
         txId,
         txIdUrl,
         block: item.block,

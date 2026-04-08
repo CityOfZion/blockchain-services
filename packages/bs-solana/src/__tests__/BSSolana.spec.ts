@@ -161,6 +161,8 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'solana',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -197,6 +199,8 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'solana',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -245,6 +249,8 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'solana',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -334,6 +340,8 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'solana',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -372,6 +380,8 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'solana',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -422,6 +432,8 @@ describe('BSSolana', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'solana',
+        isPending: true,
         view: 'default',
         events: [
           {

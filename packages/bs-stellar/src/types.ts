@@ -25,7 +25,7 @@ export interface IBSStellar
     IBSWithExplorer,
     IBSWithLedger<TBSStellarName>,
     IBSWithWalletConnect<TBSStellarName>,
-    IBSWithFaucet {
+    IBSWithFaucet<TBSStellarName> {
   trustlineService: TrustlineServiceStellar
 
   _sorobanServer: rpc.Server

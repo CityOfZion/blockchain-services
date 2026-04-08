@@ -24,6 +24,8 @@ describe('HorizonBDSStellar', () => {
         block: expect.any(Number),
         date: expect.any(String),
         networkFeeAmount: expect.anything(),
+        blockchain: 'stellar',
+        isPending: false,
         view: 'default',
       })
     )

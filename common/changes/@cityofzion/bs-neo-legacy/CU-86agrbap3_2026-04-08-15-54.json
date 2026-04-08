@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Add blockchain and isPending properties to Transaction type",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}

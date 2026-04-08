@@ -1,6 +1,7 @@
 import * as stellarSDK from '@stellar/stellar-sdk'
 import type {
   IBSStellar,
+  TBSStellarName,
   TTrustlineServiceStellarChangeTrustlineParams,
   TTrustlineServiceStellarGetTrustlinesResponse,
   TTrustlineServiceStellarHasTrustlineParams,
@@ -37,7 +38,7 @@ export class TrustlineServiceStellar {
     senderAccount,
     token,
     limit,
-  }: TTrustlineServiceStellarChangeTrustlineParams): Promise<TTransactionDefault> {
+  }: TTrustlineServiceStellarChangeTrustlineParams): Promise<TTransactionDefault<TBSStellarName>> {
     const asset = new stellarSDK.Asset(token.symbol, token.hash)
 
     const sourceAccount = await this.#service._ensureAccountOnChain(senderAccount.address)
@@ -65,6 +66,8 @@ export class TrustlineServiceStellar {
     const txId = response.hash
 
     return {
+      blockchain: this.#service.name,
+      isPending: true,
       txId,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),

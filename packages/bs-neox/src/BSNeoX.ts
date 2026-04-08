@@ -187,11 +187,14 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     this.fullTransactionsDataService = new BlockscoutFullTransactionsDataService(this)
   }
 
-  async transfer({ senderAccount, intents }: TTransferParams<TBSNeoXName>): Promise<TTransactionDefault[]> {
+  async transfer({
+    senderAccount,
+    intents,
+  }: TTransferParams<TBSNeoXName>): Promise<TTransactionDefault<TBSNeoXName>[]> {
     const signer = await this._generateSigner(senderAccount)
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
-    const transactions: TTransactionDefault[] = []
+    const transactions: TTransactionDefault<TBSNeoXName>[] = []
     let error: Error | undefined
 
     for (const intent of intents) {
@@ -204,6 +207,8 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
           const tokenHash = token.hash
 
           transactions.push({
+            blockchain: this.name,
+            isPending: true,
             txId: transactionHash,
             txIdUrl: this.explorerService.buildTransactionUrl(transactionHash),
             date: new Date().toJSON(),

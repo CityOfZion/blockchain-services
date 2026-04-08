@@ -55,7 +55,7 @@ export class BSNeo3 implements IBSNeo3 {
   readonly defaultNetwork: TBSNetwork<TBSNeo3NetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeo3NetworkId>[]
 
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<TBSNeo3Name>
   nftDataService!: INftDataService
   ledgerService!: NeonDappKitLedgerServiceNeo3
   exchangeDataService!: IExchangeDataService
@@ -65,7 +65,7 @@ export class BSNeo3 implements IBSNeo3 {
   tokenService!: ITokenService
   claimService!: ClaimServiceNeo3
   walletConnectService!: IWalletConnectService<TBSNeo3Name>
-  fullTransactionsDataService!: IFullTransactionsDataService
+  fullTransactionsDataService!: IFullTransactionsDataService<TBSNeo3Name>
 
   constructor(network?: TBSNetwork<TBSNeo3NetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeo3Name>) {
     this.ledgerService = new NeonDappKitLedgerServiceNeo3(this, getLedgerTransport)
@@ -296,7 +296,7 @@ export class BSNeo3 implements IBSNeo3 {
     return total.toString()
   }
 
-  async transfer(params: TTransferParams<TBSNeo3Name>): Promise<TTransactionDefault[]> {
+  async transfer(params: TTransferParams<TBSNeo3Name>): Promise<TTransactionDefault<TBSNeo3Name>[]> {
     const { senderAccount } = params
     const { neonJsAccount, signingCallback } = await this._generateSigningCallback(senderAccount)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
@@ -343,6 +343,8 @@ export class BSNeo3 implements IBSNeo3 {
 
     return [
       {
+        isPending: true,
+        blockchain: this.name,
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),

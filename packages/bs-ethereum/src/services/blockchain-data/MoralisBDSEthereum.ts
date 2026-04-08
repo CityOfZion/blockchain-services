@@ -143,7 +143,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     return token
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransaction(hash)
     }
@@ -227,6 +227,8 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     }
 
     return {
+      blockchain: this._service.name,
+      isPending: false,
       txId: hash,
       txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       block: Number(data.block_number),
@@ -241,7 +243,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     if (!MoralisBDSEthereum.isSupported(this._service.network)) {
       return super.getTransactionsByAddress(params)
     }
@@ -253,7 +255,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       },
     })
 
-    const transactions: TTransactionDefault[] = []
+    const transactions: TTransactionDefault<N>[] = []
     const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
 
     const promises = data.result.map(async (item, index) => {
@@ -331,6 +333,8 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       await Promise.allSettled(nftPromises)
 
       transactions.splice(index, 0, {
+        blockchain: this._service.name,
+        isPending: false,
         txId: item.hash,
         txIdUrl: this._service.explorerService.buildTransactionUrl(item.hash),
         block: Number(item.block_number),
