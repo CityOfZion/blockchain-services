@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-multichain
 
-This log was last generated on Wed, 08 Apr 2026 13:56:56 GMT and should not be manually modified.
+This log was last generated on Wed, 08 Apr 2026 19:25:42 GMT and should not be manually modified.
+
+## 3.1.8
+Wed, 08 Apr 2026 19:25:42 GMT
+
+### Updates
+
+- Add blockchain and isPending properties to Transaction type
 
 ## 3.1.7
 Wed, 08 Apr 2026 13:56:56 GMT
