@@ -10,7 +10,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
-import type { IBSNeo3, TRpcBDSNeo3Notification } from '../../types'
+import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification } from '../../types'
 import { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 
 export class DoraBDSNeo3 extends RpcBDSNeo3 {
@@ -32,7 +32,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
     return this.#apiInstance
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeo3Name>> {
     if (this._service.network.type === 'custom') {
       return await super.getTransaction(hash)
     }
@@ -59,7 +59,9 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       ...this._service.voteService._getTransactionDataFromEvents(events),
     }
 
-    const transaction: TTransactionDefault = {
+    const transaction: TTransactionDefault<TBSNeo3Name> = {
+      blockchain: this._service.name,
+      isPending: false,
       txId,
       txIdUrl,
       block: response.block,
@@ -85,14 +87,16 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  }: TGetTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>
+  > {
     if (this._service.network.type === 'custom') {
       return await super.getTransactionsByAddress({ address, nextPageParams })
     }
 
     const data = await this.#api.addressTXFull(address, nextPageParams, this._service.network.id)
 
-    const transactions: TTransactionDefault[] = []
+    const transactions: TTransactionDefault<TBSNeo3Name>[] = []
 
     const promises = data.items.map(async (item, index) => {
       const notifications = item.notifications?.map<TRpcBDSNeo3Notification>(({ contract, state, event_name }) => ({
@@ -112,7 +116,9 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         ...this._service.voteService._getTransactionDataFromEvents(events),
       }
 
-      const transaction: TTransactionDefault = {
+      const transaction: TTransactionDefault<TBSNeo3Name> = {
+        blockchain: this._service.name,
+        isPending: false,
         txId,
         txIdUrl,
         block: item.block,

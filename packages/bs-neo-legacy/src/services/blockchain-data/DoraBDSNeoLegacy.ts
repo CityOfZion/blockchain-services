@@ -11,10 +11,10 @@ import {
   type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
-import type { IBSNeoLegacy } from '../../types'
+import type { IBSNeoLegacy, TBSNeoLegacyName } from '../../types'
 import { BSNeoLegacyNeonJsSingletonHelper } from '../../helpers/BSNeoLegacyNeonJsSingletonHelper'
 
-export class DoraBDSNeoLegacy implements IBlockchainDataService {
+export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 2 // 2 minutes
   readonly #tokenCache: Map<string, TBSToken> = new Map()
   readonly #service: IBSNeoLegacy
@@ -23,7 +23,7 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService {
     this.#service = service
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeoLegacyName>> {
     const data = await api.NeoLegacyREST.transaction(hash, this.#service.network.id)
 
     if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
@@ -54,6 +54,8 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService {
     await Promise.allSettled(promises)
 
     return {
+      blockchain: this.#service.name,
+      isPending: false,
       txId: data.txid,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(data.txid),
       block: data.block,
@@ -72,9 +74,11 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService {
   async getTransactionsByAddress({
     address,
     nextPageParams = 1,
-  }: TGetTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  }: TGetTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeoLegacyName, TTransactionDefault<TBSNeoLegacyName>>
+  > {
     const data = await api.NeoLegacyREST.getAddressAbstracts(address, nextPageParams, this.#service.network.id)
-    const transactions = new Map<string, TTransactionDefault>()
+    const transactions = new Map<string, TTransactionDefault<TBSNeoLegacyName>>()
 
     const promises = data.entries.map(async entry => {
       if (entry.address_from !== address && entry.address_to !== address) return
@@ -105,6 +109,8 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService {
       }
 
       transactions.set(entry.txid, {
+        blockchain: this.#service.name,
+        isPending: false,
         txId: entry.txid,
         txIdUrl: this.#service.explorerService.buildTransactionUrl(entry.txid),
         block: entry.block_height,

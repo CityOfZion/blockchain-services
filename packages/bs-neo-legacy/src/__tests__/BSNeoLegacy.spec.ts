@@ -99,6 +99,8 @@ describe('BSNeoLegacy', () => {
         txId: expect.any(String),
         txIdUrl: undefined,
         date: expect.any(String),
+        blockchain: 'neoLegacy',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -134,6 +136,8 @@ describe('BSNeoLegacy', () => {
         txId: expect.any(String),
         txIdUrl: undefined,
         date: expect.any(String),
+        blockchain: 'neoLegacy',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -190,6 +194,8 @@ describe('BSNeoLegacy', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
+        blockchain: 'neoLegacy',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -250,6 +256,8 @@ describe('BSNeoLegacy', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
+        blockchain: 'neoLegacy',
+        isPending: true,
         view: 'default',
         events: [
           {

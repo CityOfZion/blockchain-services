@@ -16,7 +16,7 @@ import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 export class MoralisFullTransactionsDataServiceEthereum<
   N extends string,
   A extends TBSNetworkId,
-> implements IFullTransactionsDataService {
+> implements IFullTransactionsDataService<N> {
   static readonly SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = ['1', '42161', '8453', '137']
   static readonly ERC721_STANDARDS = ['erc721', 'erc-721']
   static readonly ERC1155_STANDARDS = ['erc1155', 'erc-1155']
@@ -30,14 +30,14 @@ export class MoralisFullTransactionsDataServiceEthereum<
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     BSFullTransactionsByAddressHelper.validateFullTransactionsByAddressParams({
       service: this.#service,
       supportedNetworksIds: MoralisFullTransactionsDataServiceEthereum.SUPPORTED_NETWORKS_IDS,
       ...params,
     })
 
-    const transactions: TTransactionDefault[] = []
+    const transactions: TTransactionDefault<N>[] = []
 
     const response = await api.EthereumREST.getFullTransactionsByAddress({
       address: params.address,
@@ -54,7 +54,9 @@ export class MoralisFullTransactionsDataServiceEthereum<
     const itemPromises = items.map(async ({ networkFeeAmount, ...item }, index) => {
       const txId = item.transactionID
 
-      const newItem: TTransactionDefault = {
+      const newItem: TTransactionDefault<N> = {
+        blockchain: this.#service.name,
+        isPending: false,
         txId,
         txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
         block: item.block,

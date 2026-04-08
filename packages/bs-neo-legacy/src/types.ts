@@ -22,7 +22,7 @@ export interface IBSNeoLegacy
     IBSWithExplorer,
     IBSWithLedger<TBSNeoLegacyName>,
     IBSWithEncryption<TBSNeoLegacyName>,
-    IBSWithFullTransactions {
+    IBSWithFullTransactions<TBSNeoLegacyName> {
   _generateSigningCallback(
     account: TBSAccount<TBSNeoLegacyName>
   ): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }>

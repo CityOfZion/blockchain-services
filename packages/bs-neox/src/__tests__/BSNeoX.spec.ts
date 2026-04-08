@@ -54,6 +54,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -74,6 +76,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -121,6 +125,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -141,6 +147,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -194,6 +202,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -214,6 +224,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -265,6 +277,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -285,6 +299,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -334,6 +350,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -354,6 +372,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -401,6 +421,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -421,6 +443,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -474,6 +498,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -494,6 +520,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -545,6 +573,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -565,6 +595,8 @@ describe('BSNeoX', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'neox',
+        isPending: true,
         view: 'default',
         events: [
           {

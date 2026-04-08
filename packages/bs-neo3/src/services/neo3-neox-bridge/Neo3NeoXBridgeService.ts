@@ -300,7 +300,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
     return tokens.find(token => token.multichainId === multichainId)
   }
 
-  getTransactionData(transaction: TTransaction): TNeo3NeoXBridgeTransactionData<TBSNeo3Name> | undefined {
+  getTransactionData(transaction: TTransaction<TBSNeo3Name>): TNeo3NeoXBridgeTransactionData<TBSNeo3Name> | undefined {
     return transaction.data?.neo3NeoxBridge ? transaction.data : undefined
   }
 }

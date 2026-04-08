@@ -55,14 +55,14 @@ export class BSEthereum<
   readonly defaultNetwork!: TBSNetwork<A>
   readonly availableNetworks!: TBSNetwork<A>[]
 
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<N>
   exchangeDataService!: IExchangeDataService
   ledgerService: EthersLedgerServiceEthereum<N>
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
   walletConnectService!: IWalletConnectService<N>
-  fullTransactionsDataService!: IFullTransactionsDataService
+  fullTransactionsDataService!: IFullTransactionsDataService<N>
 
   constructor(name: N, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
@@ -262,11 +262,11 @@ export class BSEthereum<
     return wallet.encrypt(password)
   }
 
-  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault[]> {
+  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
     const signer = await this._generateSigner(senderAccount)
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
-    const transactions: TTransactionDefault[] = []
+    const transactions: TTransactionDefault<N>[] = []
     let error: Error | undefined
     let nonce = await signer.getTransactionCount('pending')
 
@@ -299,6 +299,8 @@ export class BSEthereum<
           const tokenHash = token.hash
 
           transactions.push({
+            blockchain: this.name,
+            isPending: true,
             txId,
             txIdUrl: this.explorerService.buildTransactionUrl(txId),
             date: new Date().toJSON(),

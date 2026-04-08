@@ -25,6 +25,8 @@ describe('RpcBDSEthereum', () => {
         block: expect.any(Number),
         date: expect.any(String),
         networkFeeAmount: expect.anything(),
+        blockchain: 'ethereum',
+        isPending: false,
         view: 'default',
       })
     )

@@ -26,6 +26,8 @@ describe('RpcBDSSolana', () => {
         block: expect.any(Number),
         date: expect.any(String),
         networkFeeAmount: expect.any(String),
+        blockchain: 'solana',
+        isPending: false,
         view: 'default',
       })
     )

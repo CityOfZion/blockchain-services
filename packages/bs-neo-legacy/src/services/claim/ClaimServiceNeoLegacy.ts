@@ -18,7 +18,7 @@ export class ClaimServiceNeoLegacy implements IClaimService<TBSNeoLegacyName> {
     this.claimToken = BSNeoLegacyConstants.GAS_ASSET
   }
 
-  getTransactionData(transaction: TTransaction): TClaimServiceTransactionData | undefined {
+  getTransactionData(transaction: TTransaction<TBSNeoLegacyName>): TClaimServiceTransactionData | undefined {
     return transaction.data?.type === 'claim' ? transaction.data : undefined
   }
 
@@ -32,7 +32,7 @@ export class ClaimServiceNeoLegacy implements IClaimService<TBSNeoLegacyName> {
     throw new BSError('Method not supported', 'METHOD_NOT_SUPPORTED')
   }
 
-  async claim(_account: TBSAccount<TBSNeoLegacyName>): Promise<TTransactionDefault> {
+  async claim(_account: TBSAccount<TBSNeoLegacyName>): Promise<TTransactionDefault<TBSNeoLegacyName>> {
     throw new BSError('Method not supported', 'METHOD_NOT_SUPPORTED')
   }
 }

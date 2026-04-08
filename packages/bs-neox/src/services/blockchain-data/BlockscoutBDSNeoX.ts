@@ -56,7 +56,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     return this.#apiInstance
   }
 
-  async getTransaction(txid: string): Promise<TTransactionDefault> {
+  async getTransaction(txid: string): Promise<TTransactionDefault<TBSNeoXName>> {
     const { data: response } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
     if (!response || 'message' in response) {
@@ -153,7 +153,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
     const txId = response.hash
 
-    const transaction: TTransactionDefault = {
+    const transaction: TTransactionDefault<TBSNeoXName> = {
+      blockchain: this._service.name,
+      isPending: false,
       txId,
       txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
       block: response.block,
@@ -174,7 +176,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
   async getTransactionsByAddress(
     params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  ): Promise<TGetTransactionsByAddressResponse<TBSNeoXName, TTransactionDefault<TBSNeoXName>>> {
     const { data } = await this.#api.get<TBlockscoutBDSNeoXTransactionByAddressApiResponse>(
       `/addresses/${params.address}/transactions`,
       {
@@ -189,7 +191,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
-    const transactions: TTransactionDefault[] = []
+    const transactions: TTransactionDefault<TBSNeoXName>[] = []
 
     const promises = data.items.map(async (item, index) => {
       const events: TTransactionDefaultEvent[] = []
@@ -259,7 +261,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
       const txId = item.hash
 
-      const transaction: TTransactionDefault = {
+      const transaction: TTransactionDefault<TBSNeoXName> = {
+        blockchain: this._service.name,
+        isPending: false,
         txId,
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
         block: item.block,

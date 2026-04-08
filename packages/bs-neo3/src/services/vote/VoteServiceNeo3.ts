@@ -10,6 +10,7 @@ import axios, { AxiosInstance } from 'axios'
 import type {
   IBSNeo3,
   IVoteService,
+  TBSNeo3Name,
   TDoraVoteServiceNeo3GetCommitteeApiResponse,
   TDoraVoteServiceNeo3GetVoteCIMParams,
   TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse,
@@ -85,7 +86,7 @@ export class VoteServiceNeo3 implements IVoteService {
     return { isVote: true }
   }
 
-  getTransactionData(transaction: TTransaction): TVoteServiceNeo3TransactionData | undefined {
+  getTransactionData(transaction: TTransaction<TBSNeo3Name>): TVoteServiceNeo3TransactionData | undefined {
     return transaction.data?.isVote === true ? transaction.data : undefined
   }
 
@@ -130,7 +131,7 @@ export class VoteServiceNeo3 implements IVoteService {
     }
   }
 
-  async vote({ account, candidatePubKey }: TVoteServiceVoteParams): Promise<TTransactionDefault> {
+  async vote({ account, candidatePubKey }: TVoteServiceVoteParams): Promise<TTransactionDefault<TBSNeo3Name>> {
     if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
     if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
 
@@ -157,6 +158,8 @@ export class VoteServiceNeo3 implements IVoteService {
     const data = { isVote: true } as TVoteServiceNeo3TransactionData
 
     return {
+      isPending: true,
+      blockchain: this._service.name,
       txId,
       txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),

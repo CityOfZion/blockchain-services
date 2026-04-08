@@ -9,10 +9,10 @@ import {
   type TTransactionDefault,
   type TTransactionDefaultTokenEvent,
 } from '@cityofzion/blockchain-service'
-import type { IBSNeoLegacy, TBSNeoLegacyNetworkId } from '../../types'
+import type { IBSNeoLegacy, TBSNeoLegacyName, TBSNeoLegacyNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
 
-export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactionsDataService {
+export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactionsDataService<TBSNeoLegacyName> {
   static readonly SUPPORTED_NEP5_STANDARDS: string[] = ['nep5', 'nep-5']
   static readonly SUPPORTED_NETWORKS_IDS: TBSNeoLegacyNetworkId[] = ['mainnet']
   static readonly MAX_PAGE_SIZE = 30
@@ -26,7 +26,9 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
   async getFullTransactionsByAddress({
     nextPageParams,
     ...params
-  }: TGetFullTransactionsByAddressParams): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  }: TGetFullTransactionsByAddressParams): Promise<
+    TGetTransactionsByAddressResponse<TBSNeoLegacyName, TTransactionDefault<TBSNeoLegacyName>>
+  > {
     const pageSize =
       params.pageSize && params.pageSize > DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
         ? DoraFullTransactionsDataServiceNeoLegacy.MAX_PAGE_SIZE
@@ -40,7 +42,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
       pageSize,
     })
 
-    const transactions: TTransactionDefault[] = []
+    const transactions: TTransactionDefault<TBSNeoLegacyName>[] = []
 
     const response = await api.NeoLegacyREST.getFullTransactionsByAddress({
       address: params.address,
@@ -57,7 +59,9 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
-      const newItem: TTransactionDefault = {
+      const newItem: TTransactionDefault<TBSNeoLegacyName> = {
+        blockchain: this.#service.name,
+        isPending: false,
         txId,
         txIdUrl,
         block: item.block,

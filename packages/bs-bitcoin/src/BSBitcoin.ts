@@ -523,7 +523,7 @@ export class BSBitcoin implements IBSBitcoin {
     return address
   }
 
-  async transfer(params: TTransferParams<TBSBitcoinName>): Promise<TTransactionUtxo[]> {
+  async transfer(params: TTransferParams<TBSBitcoinName>): Promise<TTransactionUtxo<TBSBitcoinName>[]> {
     const { utxos, fee, change } = await this.#getTransferData(params)
     const { senderAccount, intents } = params
     const { address, isHardware } = senderAccount
@@ -627,6 +627,8 @@ export class BSBitcoin implements IBSBitcoin {
 
       return [
         {
+          isPending: true,
+          blockchain: this.name,
           txId: transactionHash,
           txIdUrl: this.explorerService.buildTransactionUrl(transactionHash),
           hex: transactionHex,

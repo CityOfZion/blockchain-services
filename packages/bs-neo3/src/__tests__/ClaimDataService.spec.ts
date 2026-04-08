@@ -40,6 +40,8 @@ describe('ClaimServiceNeo3', () => {
       invocationCount: expect.any(Number),
       networkFeeAmount: expect.any(String),
       systemFeeAmount: expect.any(String),
+      blockchain: 'neo3',
+      isPending: true,
       view: 'default',
       events: [
         claimEvent,
@@ -91,6 +93,8 @@ describe('ClaimServiceNeo3', () => {
       invocationCount: expect.any(Number),
       networkFeeAmount: expect.any(String),
       systemFeeAmount: expect.any(String),
+      blockchain: 'neo3',
+      isPending: true,
       view: 'default',
       events: [
         claimEvent,

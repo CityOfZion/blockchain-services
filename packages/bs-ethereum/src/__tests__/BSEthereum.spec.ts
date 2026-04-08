@@ -138,6 +138,8 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'ethereum',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -172,6 +174,8 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'ethereum',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -210,6 +214,8 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'ethereum',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -248,6 +254,8 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'ethereum',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -357,6 +365,8 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'ethereum',
+        isPending: true,
         view: 'default',
         events: [
           {
@@ -377,6 +387,8 @@ describe('BSEthereum', () => {
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        blockchain: 'ethereum',
+        isPending: true,
         view: 'default',
         events: [
           {

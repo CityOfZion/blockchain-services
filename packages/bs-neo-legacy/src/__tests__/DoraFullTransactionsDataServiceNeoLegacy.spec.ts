@@ -146,6 +146,8 @@ describe('DoraFullTransactionsDataServiceNeoLegacy', () => {
             date: expect.any(String),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
+            blockchain: 'neoLegacy',
+            isPending: false,
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({

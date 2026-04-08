@@ -22,6 +22,8 @@ describe('DoraBDSNeoLegacy', () => {
         date: expect.any(String),
         networkFeeAmount: expect.anything(),
         systemFeeAmount: expect.anything(),
+        blockchain: 'neoLegacy',
+        isPending: false,
         view: 'default',
         events: expect.arrayContaining([
           expect.objectContaining({
@@ -56,6 +58,8 @@ describe('DoraBDSNeoLegacy', () => {
           txIdUrl: expect.any(String),
           block: expect.any(Number),
           date: expect.any(String),
+          blockchain: 'neoLegacy',
+          isPending: false,
           view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({

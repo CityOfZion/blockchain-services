@@ -18,7 +18,7 @@ export class RpcBDSEthereum<
   N extends string,
   A extends TBSNetworkId,
   S extends IBSEthereum<N, A> = IBSEthereum<N, A>,
-> implements IBlockchainDataService {
+> implements IBlockchainDataService<N> {
   readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5 // 5 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
   readonly _service: S
@@ -36,7 +36,7 @@ export class RpcBDSEthereum<
     return this.#providerInstance
   }
 
-  async getTransaction(hash: string): Promise<TTransactionDefault> {
+  async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
     const transaction = await this.#provider.getTransaction(hash)
     if (!transaction || !transaction.to) throw new Error('Transaction not found')
 
@@ -54,6 +54,8 @@ export class RpcBDSEthereum<
     const timestamp = transaction.timestamp ?? 0
 
     return {
+      blockchain: this._service.name,
+      isPending: false,
       txId: hash,
       txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       block: receipt.blockNumber,
@@ -88,7 +90,7 @@ export class RpcBDSEthereum<
 
   async getTransactionsByAddress(
     _params: TGetTransactionsByAddressParams
-  ): Promise<TGetTransactionsByAddressResponse<TTransactionDefault>> {
+  ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
     throw new Error('Method not supported.')
   }
 

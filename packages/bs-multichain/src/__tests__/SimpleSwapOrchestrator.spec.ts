@@ -124,7 +124,7 @@ describe('SimpleSwapOrchestrator', () => {
         expect.objectContaining({
           id: expect.any(String),
           symbol: expect.any(String),
-          blockchain: expect.any(String),
+          blockchain: 'neo3',
           name: expect.any(String),
           hash: expect.any(String),
           imageUrl: expect.any(String),

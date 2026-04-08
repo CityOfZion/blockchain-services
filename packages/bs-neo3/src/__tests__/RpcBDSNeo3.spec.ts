@@ -26,6 +26,8 @@ describe('RpcBDSNeo3', () => {
         notificationCount: expect.any(Number),
         networkFeeAmount: expect.anything(),
         systemFeeAmount: expect.anything(),
+        blockchain: 'neo3',
+        isPending: false,
         view: 'default',
         events: expect.arrayContaining([
           expect.toBeOneOf([

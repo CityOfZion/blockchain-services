@@ -74,13 +74,13 @@ export function hasWalletConnect<N extends string, A extends TBSNetworkId>(
 
 export function hasFullTransactions<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
-): service is IBlockchainService<N, A> & IBSWithFullTransactions {
+): service is IBlockchainService<N, A> & IBSWithFullTransactions<N> {
   return 'fullTransactionsDataService' in service
 }
 
 export function hasFaucet<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
-): service is IBlockchainService<N, A> & IBSWithFaucet {
+): service is IBlockchainService<N, A> & IBSWithFaucet<N> {
   return 'faucet' in service
 }
 

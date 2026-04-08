@@ -183,6 +183,8 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
+            blockchain: 'neo3',
+            isPending: false,
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
@@ -215,6 +217,8 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             notificationCount: expect.any(Number),
             networkFeeAmount: expect.anything(),
             systemFeeAmount: expect.anything(),
+            blockchain: 'neo3',
+            isPending: false,
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({

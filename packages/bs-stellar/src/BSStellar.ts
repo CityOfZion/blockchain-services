@@ -49,7 +49,7 @@ export class BSStellar implements IBSStellar {
   readonly nativeTokens: TBSToken[]
 
   exchangeDataService!: IExchangeDataService
-  blockchainDataService!: IBlockchainDataService
+  blockchainDataService!: IBlockchainDataService<TBSStellarName>
   tokenService!: ITokenService
   explorerService!: IExplorerService
   ledgerService!: LedgerServiceStellar
@@ -261,7 +261,7 @@ export class BSStellar implements IBSStellar {
     return BSBigNumberHelper.toNumber(feeBn, this.feeToken.decimals)
   }
 
-  async transfer(params: TTransferParams<TBSStellarName>): Promise<TTransactionDefault[]> {
+  async transfer(params: TTransferParams<TBSStellarName>): Promise<TTransactionDefault<TBSStellarName>[]> {
     const transaction = await this.#buildTransferTransaction(params)
     const { senderAccount } = params
     const signedTransaction = await this._signTransaction(transaction, senderAccount)
@@ -276,6 +276,8 @@ export class BSStellar implements IBSStellar {
 
     return [
       {
+        blockchain: this.name,
+        isPending: true,
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),
@@ -303,7 +305,7 @@ export class BSStellar implements IBSStellar {
     ]
   }
 
-  async faucet(address: string): Promise<TTransaction> {
+  async faucet(address: string): Promise<TTransaction<TBSStellarName>> {
     const response = await axios.get<TBSStellarFriendBotResponse>('https://friendbot.stellar.org', {
       params: { addr: address },
     })
@@ -324,6 +326,8 @@ export class BSStellar implements IBSStellar {
     const txId = response.data.hash
 
     return {
+      blockchain: this.name,
+      isPending: true,
       txId: txId,
       txIdUrl: this.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),

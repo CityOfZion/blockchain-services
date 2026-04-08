@@ -85,7 +85,7 @@ export class ClaimServiceNeo3 implements IClaimService<TBSNeo3Name> {
     return this._service.calculateTransferFee(claimParams)
   }
 
-  async claim(senderAccount: TBSAccount<TBSNeo3Name>): Promise<TTransactionDefault> {
+  async claim(senderAccount: TBSAccount<TBSNeo3Name>): Promise<TTransactionDefault<TBSNeo3Name>> {
     const claimParams = this.#buildClaimParams(senderAccount)
 
     const claimEvent = await this._buildTransactionEvent(senderAccount.address)
@@ -97,10 +97,10 @@ export class ClaimServiceNeo3 implements IClaimService<TBSNeo3Name> {
     const data: TClaimServiceTransactionData = { isClaim: true }
     transaction.data = data
 
-    return transaction as TTransactionDefault
+    return transaction
   }
 
-  getTransactionData(transaction: TTransaction): TClaimServiceTransactionData | undefined {
+  getTransactionData(transaction: TTransaction<TBSNeo3Name>): TClaimServiceTransactionData | undefined {
     return transaction.data?.isClaim === true ? transaction.data : undefined
   }
 }
