@@ -642,7 +642,12 @@ export class BSBitcoin implements IBSBitcoin {
           inputs: utxos.map(utxo => ({
             address,
             addressUrl,
-            amount: utxo.valueAsString,
+            amount: BSBigNumberHelper.format(
+              BSBigNumberHelper.fromDecimals(utxo.valueAsString, BSBitcoinConstants.NATIVE_TOKEN.decimals),
+              {
+                decimals: BSBitcoinConstants.NATIVE_TOKEN.decimals,
+              }
+            ),
             token: BSBitcoinConstants.NATIVE_TOKEN,
           })),
           outputs,
