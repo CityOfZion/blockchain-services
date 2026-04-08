@@ -131,3 +131,85 @@ export type TMoralisEDSEthereumERC20PriceApiResponse = {
   tokenAddress: string
   blockTimestamp: string
 }
+
+type TMoralisNDSEthereumNftBaseApiResponse = {
+  token_address: string
+  token_id: string
+  contract_type: string
+  name: string
+  symbol: string
+  possible_spam: boolean
+  token_uri?: string
+  metadata?: string
+  normalized_metadata?: {
+    name?: string
+    description?: string
+    image?: string
+    external_link?: string
+    external_url?: string
+    animation_url?: string
+    attributes?: {
+      trait_type: string
+      value: string
+      display_type?: string
+      max_value?: number
+      trait_count?: number
+      order?: number
+    }[]
+  }
+  media?: {
+    mimetype?: string
+    category?: string
+    status?: string
+    original_media_url?: string
+    updatedAt?: string
+    parent_hash?: string
+    media_collection?: {
+      low: { width: number; height: number; url: string }
+      medium: { width: number; height: number; url: string }
+      high: { width: number; height: number; url: string }
+    }
+  }
+  amount?: string
+  rarity_rank?: number
+  rarity_percentage?: number
+  rarity_label?: string
+  verified_collection?: boolean
+  floor_price?: string
+  floor_price_usd?: string
+  floor_price_currency?: string
+}
+
+export type TMoralisNDSEthereumNftMetadataApiResponse = TMoralisNDSEthereumNftBaseApiResponse & {
+  owner_of?: string
+  token_hash?: string
+  block_number?: string
+  block_number_minted?: string
+  minter_address?: string
+  last_token_uri_sync?: string
+  last_metadata_sync?: string
+  list_price?: {
+    listed?: boolean
+    price?: string
+    price_currency?: string
+    price_usd?: string
+    marketplace?: string
+  }
+}
+
+export type TMoralisNDSEthereumNftApiResponse = TMoralisNDSEthereumNftBaseApiResponse & {
+  owner_of: string
+  block_number: string
+  block_number_minted: string
+  token_hash: string
+  last_token_uri_sync: string
+  last_metadata_sync: string
+}
+
+export type TMoralisNDSEthereumNftsByAddressApiResponse = {
+  result: TMoralisNDSEthereumNftApiResponse[]
+  cursor?: string
+  status?: string
+  page?: number
+  page_size?: number
+}

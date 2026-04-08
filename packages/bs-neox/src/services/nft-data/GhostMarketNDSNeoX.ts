@@ -1,13 +1,33 @@
-import { GhostMarketNDSEthereum } from '@cityofzion/bs-ethereum'
+import { ERC20_ABI } from '@cityofzion/bs-ethereum'
+import { GhostMarketNDS, type TBSBigNumber, type THasTokenParams } from '@cityofzion/blockchain-service'
+import { ethers } from 'ethers'
 import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId } from '../../types'
 
-export class GhostMarketNDSNeoX extends GhostMarketNDSEthereum<TBSNeoXName, TBSNeoXNetworkId> {
+export class GhostMarketNDSNeoX extends GhostMarketNDS<TBSNeoXName, TBSNeoXNetworkId, IBSNeoX> {
   static readonly CHAIN_BY_NETWORK_ID: Partial<Record<TBSNeoXNetworkId, string>> = {
     '47763': 'neox',
   }
 
   constructor(service: IBSNeoX) {
     super(service)
+  }
+
+  async hasToken({ address, collectionHash }: THasTokenParams): Promise<boolean> {
+    try {
+      if (!collectionHash) return false
+
+      const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+      const contract = new ethers.Contract(collectionHash, ERC20_ABI, provider)
+      const response = await contract.balanceOf(address)
+
+      if (!response) return false
+
+      const parsedResponse = response as TBSBigNumber
+
+      return parsedResponse.gt(0)
+    } catch {
+      return false
+    }
   }
 
   getChain(): string {
