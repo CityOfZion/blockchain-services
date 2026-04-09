@@ -163,6 +163,7 @@ describe('BSSolana', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'solana',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {
@@ -201,6 +202,7 @@ describe('BSSolana', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'solana',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {
@@ -251,6 +253,7 @@ describe('BSSolana', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'solana',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {
@@ -342,6 +345,7 @@ describe('BSSolana', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'solana',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {
@@ -382,6 +386,7 @@ describe('BSSolana', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'solana',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {
@@ -434,6 +439,7 @@ describe('BSSolana', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'solana',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {

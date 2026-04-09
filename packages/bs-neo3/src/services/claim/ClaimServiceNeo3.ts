@@ -4,7 +4,7 @@ import type {
   IClaimService,
   TBSAccount,
   TClaimServiceTransactionData,
-  TTransaction,
+  TTransactionBase,
   TTransactionDefault,
   TTransactionDefaultEvent,
   TTransactionDefaultTokenEvent,
@@ -100,7 +100,7 @@ export class ClaimServiceNeo3 implements IClaimService<TBSNeo3Name> {
     return transaction
   }
 
-  getTransactionData(transaction: TTransaction<TBSNeo3Name>): TClaimServiceTransactionData | undefined {
+  getTransactionData(transaction: TTransactionBase): TClaimServiceTransactionData | undefined {
     return transaction.data?.isClaim === true ? transaction.data : undefined
   }
 }

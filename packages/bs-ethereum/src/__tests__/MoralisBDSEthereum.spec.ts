@@ -51,6 +51,9 @@ describe('MoralisBDSEthereum', () => {
     response.transactions.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
+          blockchain: 'ethereum',
+          isPending: false,
+          relatedAddress: address,
           txId: expect.any(String),
           txIdUrl: expect.anything(),
           block: expect.any(Number),

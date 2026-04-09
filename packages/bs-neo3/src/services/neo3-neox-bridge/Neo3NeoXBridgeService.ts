@@ -8,7 +8,7 @@ import {
   TNeo3NeoXBridgeServiceGetNonceParams,
   TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams,
   type TNeo3NeoXBridgeTransactionData,
-  type TTransaction,
+  type TTransactionBase,
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import axios from 'axios'
@@ -300,7 +300,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
     return tokens.find(token => token.multichainId === multichainId)
   }
 
-  getTransactionData(transaction: TTransaction<TBSNeo3Name>): TNeo3NeoXBridgeTransactionData<TBSNeo3Name> | undefined {
+  getTransactionData(transaction: TTransactionBase): TNeo3NeoXBridgeTransactionData<TBSNeo3Name> | undefined {
     return transaction.data?.neo3NeoxBridge ? transaction.data : undefined
   }
 }

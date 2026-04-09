@@ -57,6 +57,7 @@ export class MoralisFullTransactionsDataServiceEthereum<
       const newItem: TTransactionDefault<N> = {
         blockchain: this.#service.name,
         isPending: false,
+        relatedAddress: params.address,
         txId,
         txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
         block: item.block,

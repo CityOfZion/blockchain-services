@@ -62,6 +62,7 @@ export class DoraFullTransactionsDataServiceNeoLegacy implements IFullTransactio
       const newItem: TTransactionDefault<TBSNeoLegacyName> = {
         blockchain: this.#service.name,
         isPending: false,
+        relatedAddress: params.address,
         txId,
         txIdUrl,
         block: item.block,

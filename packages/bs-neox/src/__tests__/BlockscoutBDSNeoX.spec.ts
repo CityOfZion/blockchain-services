@@ -133,6 +133,7 @@ describe('BlockscoutBDSNeoX', () => {
           networkFeeAmount: expect.anything(),
           blockchain: 'neox',
           isPending: false,
+          relatedAddress: address,
           view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({

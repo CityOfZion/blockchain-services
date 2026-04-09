@@ -12,7 +12,7 @@ import {
   TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams,
   type TBSBigNumber,
   type TNeo3NeoXBridgeTransactionData,
-  type TTransaction,
+  type TTransactionBase,
 } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import { ethers } from 'ethers'
@@ -294,7 +294,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
     return tokens.find(token => token.multichainId === multichainId)
   }
 
-  getTransactionData(transaction: TTransaction<TBSNeoXName>): TNeo3NeoXBridgeTransactionData<TBSNeoXName> | undefined {
+  getTransactionData(transaction: TTransactionBase): TNeo3NeoXBridgeTransactionData<TBSNeoXName> | undefined {
     return transaction.data?.neo3NeoxBridge ? transaction.data : undefined
   }
 }

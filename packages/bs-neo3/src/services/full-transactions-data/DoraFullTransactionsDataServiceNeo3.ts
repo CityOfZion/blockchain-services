@@ -136,6 +136,7 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
       const newItem: TTransactionDefault<TBSNeo3Name> = {
         blockchain: this.#service.name,
         isPending: false,
+        relatedAddress: params.address,
         txId,
         txIdUrl,
         block: item.block,

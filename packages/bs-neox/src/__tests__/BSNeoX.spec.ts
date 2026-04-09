@@ -56,6 +56,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -78,6 +79,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -127,6 +129,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -149,6 +152,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -204,6 +208,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -226,6 +231,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -279,6 +285,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -301,6 +308,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -352,6 +360,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -374,6 +383,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -423,6 +433,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -445,6 +456,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -500,6 +512,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -522,6 +535,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -575,6 +589,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -597,6 +612,7 @@ describe('BSNeoX', () => {
         networkFeeAmount: expect.any(String),
         blockchain: 'neox',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {

@@ -64,6 +64,9 @@ describe('RpcBDSSolana', () => {
     response.transactions.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
+          isPending: false,
+          blockchain: 'solana',
+          relatedAddress: address,
           txId: expect.any(String),
           txIdUrl: expect.any(String),
           block: expect.any(Number),

@@ -71,6 +71,9 @@ describe('HorizonBDSStellar', () => {
     response.transactions.forEach(transaction => {
       expect(transaction).toEqual(
         expect.objectContaining({
+          blockchain: 'stellar',
+          isPending: false,
+          relatedAddress: address,
           txId: expect.any(String),
           txIdUrl: expect.any(String),
           block: expect.any(Number),

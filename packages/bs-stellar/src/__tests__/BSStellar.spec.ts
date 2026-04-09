@@ -120,6 +120,7 @@ describe('BSStellar', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'stellar',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {
@@ -176,6 +177,7 @@ describe('BSStellar', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'stellar',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {
@@ -252,6 +254,7 @@ describe('BSStellar', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'stellar',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {
@@ -310,6 +313,7 @@ describe('BSStellar', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'stellar',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'default',
         events: [
           {

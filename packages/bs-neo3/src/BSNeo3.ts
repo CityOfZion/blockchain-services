@@ -344,6 +344,7 @@ export class BSNeo3 implements IBSNeo3 {
     return [
       {
         isPending: true,
+        relatedAddress: address,
         blockchain: this.name,
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),

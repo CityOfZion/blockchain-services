@@ -2,7 +2,7 @@ import {
   BSBigNumberHelper,
   BSCommonConstants,
   TTransactionDefault,
-  type TTransaction,
+  type TTransactionBase,
   type TTransactionDefaultEvent,
   type TTransactionDefaultGenericEvent,
 } from '@cityofzion/blockchain-service'
@@ -86,7 +86,7 @@ export class VoteServiceNeo3 implements IVoteService {
     return { isVote: true }
   }
 
-  getTransactionData(transaction: TTransaction<TBSNeo3Name>): TVoteServiceNeo3TransactionData | undefined {
+  getTransactionData(transaction: TTransactionBase): TVoteServiceNeo3TransactionData | undefined {
     return transaction.data?.isVote === true ? transaction.data : undefined
   }
 
@@ -159,6 +159,7 @@ export class VoteServiceNeo3 implements IVoteService {
 
     return {
       isPending: true,
+      relatedAddress: account.address,
       blockchain: this._service.name,
       txId,
       txIdUrl: this._service.explorerService.buildTransactionUrl(txId),

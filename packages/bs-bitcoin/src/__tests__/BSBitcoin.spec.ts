@@ -604,6 +604,7 @@ describe('BSBitcoin', () => {
         totalAmount: expect.any(String),
         blockchain: 'bitcoin',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'utxo',
         nfts: [],
         inputs: expect.arrayContaining([
@@ -669,6 +670,7 @@ describe('BSBitcoin', () => {
         totalAmount: expect.any(String),
         blockchain: 'bitcoin',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'utxo',
         nfts: [],
         inputs: expect.arrayContaining([
@@ -742,6 +744,7 @@ describe('BSBitcoin', () => {
         totalAmount: expect.any(String),
         blockchain: 'bitcoin',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'utxo',
         nfts: [],
         inputs: expect.arrayContaining([
@@ -813,6 +816,7 @@ describe('BSBitcoin', () => {
         totalAmount: expect.any(String),
         blockchain: 'bitcoin',
         isPending: true,
+        relatedAddress: senderAccount.address,
         view: 'utxo',
         nfts: [],
         inputs: expect.arrayContaining([

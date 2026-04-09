@@ -53,6 +53,7 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
 
       let newItem: TTransactionDefault<TBSNeoXName> = {
         blockchain: this.#service.name,
+        relatedAddress: params.address,
         isPending: false,
         txId,
         txIdUrl,

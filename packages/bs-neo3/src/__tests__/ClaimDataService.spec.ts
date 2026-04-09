@@ -42,6 +42,7 @@ describe('ClaimServiceNeo3', () => {
       systemFeeAmount: expect.any(String),
       blockchain: 'neo3',
       isPending: true,
+      relatedAddress: account.address,
       view: 'default',
       events: [
         claimEvent,

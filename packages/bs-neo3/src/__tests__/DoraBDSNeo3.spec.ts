@@ -79,6 +79,7 @@ describe('DoraBDSNeo3', () => {
           systemFeeAmount: expect.anything(),
           blockchain: 'neo3',
           isPending: false,
+          relatedAddress: address,
           view: 'default',
           events: expect.arrayContaining([
             expect.toBeOneOf([

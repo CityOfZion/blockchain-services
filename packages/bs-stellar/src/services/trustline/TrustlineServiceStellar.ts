@@ -68,6 +68,7 @@ export class TrustlineServiceStellar {
     return {
       blockchain: this.#service.name,
       isPending: true,
+      relatedAddress: senderAccount.address,
       txId,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),

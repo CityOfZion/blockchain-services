@@ -119,6 +119,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       const transaction: TTransactionDefault<TBSNeo3Name> = {
         blockchain: this._service.name,
         isPending: false,
+        relatedAddress: address,
         txId,
         txIdUrl,
         block: item.block,

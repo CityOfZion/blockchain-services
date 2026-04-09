@@ -335,6 +335,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       transactions.splice(index, 0, {
         blockchain: this._service.name,
         isPending: false,
+        relatedAddress: params.address,
         txId: item.hash,
         txIdUrl: this._service.explorerService.buildTransactionUrl(item.hash),
         block: Number(item.block_number),

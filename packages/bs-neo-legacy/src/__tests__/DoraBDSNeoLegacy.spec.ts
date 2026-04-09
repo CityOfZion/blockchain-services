@@ -59,6 +59,7 @@ describe('DoraBDSNeoLegacy', () => {
           block: expect.any(Number),
           date: expect.any(String),
           blockchain: 'neoLegacy',
+          relatedAddress: address,
           isPending: false,
           view: 'default',
           events: expect.arrayContaining([
