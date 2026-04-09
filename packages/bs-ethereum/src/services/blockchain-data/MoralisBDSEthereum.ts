@@ -27,18 +27,10 @@ import type {
   TMoralisWalletHistoryApiResponse,
 } from '../../types'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
+import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
 
 export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extends RpcBDSEthereum<N, A> {
   static readonly BASE_URL = `${BSCommonConstants.COZ_API_URL}/api/v2/meta`
-
-  // prettier-ignore
-  static readonly MORALIS_SUPPORTED_NETWORKS_IDS: TBSEthereumNetworkId[] = [
-    '1', '11155111', '17000', '137', '80002', '56', '97', '42161', '421614',
-    '8453', '84532', '10', '11155420', '59144', '59141', '43114', '250',
-    '4002', '25', '11297108109', '2020', '100', '10200', '88888', '88882',
-    '369', '1284', '1285', '1287', '81457', '168587773', '324', '300',
-    '5000', '5003', '1101', '2442', '7000', '7001'
-  ]
 
   static getClient(network: TBSNetwork<TBSEthereumNetworkId>) {
     return axios.create({
@@ -50,7 +42,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
   }
 
   static isSupported(network: TBSNetwork<TBSEthereumNetworkId>) {
-    return MoralisBDSEthereum.MORALIS_SUPPORTED_NETWORKS_IDS.includes(network.id)
+    return BSEthereumConstants.MORALIS_SUPPORTED_NETWORKS_IDS.includes(network.id)
   }
 
   #apiInstance?: AxiosInstance

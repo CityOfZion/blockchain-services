@@ -27,7 +27,7 @@ import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServi
 import { BSEthereumHelper } from './helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from './services/blockchain-data/MoralisBDSEthereum'
 import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
-import { GhostMarketNDSEthereum } from './services/nft-data/GhostMarketNDSEthereum'
+import { MoralisNDSEthereum } from './services/nft-data/MoralisNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
 import type { IBSEthereum, TBSEthereumName, TBSEthereumNetworkId } from './types'
@@ -152,7 +152,7 @@ export class BSEthereum<
     this.network = network
     this.networkUrls = networkUrls
 
-    this.nftDataService = new GhostMarketNDSEthereum(this)
+    this.nftDataService = new MoralisNDSEthereum(this)
     this.explorerService = new BlockscoutESEthereum(this)
     this.exchangeDataService = new MoralisEDSEthereum(this)
     this.blockchainDataService = new MoralisBDSEthereum(this)

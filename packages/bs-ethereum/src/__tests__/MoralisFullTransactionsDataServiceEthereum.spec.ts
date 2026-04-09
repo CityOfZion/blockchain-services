@@ -50,17 +50,17 @@ let moralisFullTransactionsDataServiceEthereum: MoralisFullTransactionsDataServi
   TBSNetworkId
 >
 
-vi.mock('../services/nft-data/GhostMarketNDSEthereum', () => {
-  const GhostMarketNDSEthereum = vi.fn()
+vi.mock('../services/nft-data/MoralisNDSEthereum', () => {
+  const MoralisNDSEthereum = vi.fn()
 
-  GhostMarketNDSEthereum.prototype.getNft = vi.fn().mockResolvedValue({
+  MoralisNDSEthereum.prototype.getNft = vi.fn().mockResolvedValue({
     name: 'nftName',
     image: 'nftImage',
     explorerUri: 'nftUrl',
     collection: { name: 'nftCollectionName', hash: 'nftCollectionHash', url: 'nftCollectionUrl' },
   })
 
-  return { GhostMarketNDSEthereum }
+  return { MoralisNDSEthereum }
 })
 
 describe('MoralisFullTransactionsDataServiceEthereum', () => {
