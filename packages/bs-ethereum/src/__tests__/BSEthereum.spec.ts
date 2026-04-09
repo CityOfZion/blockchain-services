@@ -140,6 +140,7 @@ describe('BSEthereum', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'ethereum',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -176,6 +177,7 @@ describe('BSEthereum', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'ethereum',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -216,6 +218,7 @@ describe('BSEthereum', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'ethereum',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -256,6 +259,7 @@ describe('BSEthereum', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'ethereum',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -367,6 +371,7 @@ describe('BSEthereum', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'ethereum',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -389,6 +394,7 @@ describe('BSEthereum', () => {
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'ethereum',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {

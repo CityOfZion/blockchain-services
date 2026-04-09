@@ -209,6 +209,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
           transactions.push({
             blockchain: this.name,
             isPending: true,
+            relatedAddress: address,
             txId: transactionHash,
             txIdUrl: this.explorerService.buildTransactionUrl(transactionHash),
             date: new Date().toJSON(),

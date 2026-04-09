@@ -111,6 +111,7 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
       transactions.set(entry.txid, {
         blockchain: this.#service.name,
         isPending: false,
+        relatedAddress: address,
         txId: entry.txid,
         txIdUrl: this.#service.explorerService.buildTransactionUrl(entry.txid),
         block: entry.block_height,

@@ -26,6 +26,7 @@ const expectedTransactions = expect.arrayContaining([
     nfts: expect.any(Array),
     inputs: expectedInputsOutputs,
     outputs: expectedInputsOutputs,
+    relatedAddress: expect.any(String),
   },
 ])
 
@@ -162,9 +163,8 @@ describe('TatumBDSBitcoin', () => {
   })
 
   it('Should be able to get the transactions with NFTs by address', async () => {
-    const response = await blockchainDataService.getTransactionsByAddress({
-      address: 'bc1pdaekjdgwg60n9zscqe8e92nqauxsx22wvtz9yv285ex005ck8u5q7crpxv',
-    })
+    const address = 'bc1pdaekjdgwg60n9zscqe8e92nqauxsx22wvtz9yv285ex005ck8u5q7crpxv'
+    const response = await blockchainDataService.getTransactionsByAddress({ address })
 
     expect(response.transactions).toEqual(expectedTransactions)
   })

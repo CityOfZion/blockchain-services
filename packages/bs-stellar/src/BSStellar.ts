@@ -328,6 +328,7 @@ export class BSStellar implements IBSStellar {
     return {
       blockchain: this.name,
       isPending: true,
+      relatedAddress: address,
       txId: txId,
       txIdUrl: this.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),

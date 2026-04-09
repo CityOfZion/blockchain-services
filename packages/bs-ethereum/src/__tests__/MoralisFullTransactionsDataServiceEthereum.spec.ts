@@ -25,6 +25,7 @@ const expectedResponse = {
       networkFeeAmount: expect.anything(),
       blockchain: expect.toBeOneOf(['ethereum', 'polygon', 'base', 'arbitrum']),
       isPending: false,
+      relatedAddress: expect.any(String),
       view: 'default',
       events: expect.arrayContaining([
         expect.objectContaining({

@@ -162,7 +162,7 @@ export type TTransactionUtxoInputOutput = {
   token: TBSToken
 }
 
-type TTransactionBase<N extends string> = {
+export type TTransactionBase = {
   txId: string
   txIdUrl?: string
   block?: number
@@ -172,8 +172,12 @@ type TTransactionBase<N extends string> = {
   networkFeeAmount?: string
   systemFeeAmount?: string
   data?: any
+}
+
+export type TTransactionFullBase<N extends string> = TTransactionBase & {
   isPending: boolean
   blockchain: N
+  relatedAddress?: string
 }
 
 export type TTransactionDefaultEvent =
@@ -181,12 +185,12 @@ export type TTransactionDefaultEvent =
   | TTransactionDefaultTokenEvent
   | TTransactionDefaultGenericEvent
 
-export type TTransactionDefault<N extends string> = TTransactionBase<N> & {
+export type TTransactionDefault<N extends string> = TTransactionFullBase<N> & {
   view: 'default'
   events: TTransactionDefaultEvent[]
 }
 
-export type TTransactionUtxo<N extends string> = TTransactionBase<N> & {
+export type TTransactionUtxo<N extends string> = TTransactionFullBase<N> & {
   view: 'utxo'
   hex: string
   totalAmount: string
@@ -260,7 +264,7 @@ export interface IClaimService<N extends string> {
   getUnclaimed(address: string): Promise<string>
   calculateFee(account: TBSAccount<N>): Promise<string>
   claim(account: TBSAccount<N>): Promise<TTransactionDefault<N>>
-  getTransactionData(transaction: TTransaction<N>): TClaimServiceTransactionData | undefined
+  getTransactionData(transaction: TTransactionBase): TClaimServiceTransactionData | undefined
 }
 
 export type TTokenPricesResponse = {
@@ -517,7 +521,7 @@ export interface INeo3NeoXBridgeService<N extends TBSBridgeName> {
   getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<N>): Promise<string>
   getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N>): Promise<string>
   getTokenByMultichainId(multichainId: string): TBridgeToken<N> | undefined
-  getTransactionData(transaction: TTransaction<N>): TNeo3NeoXBridgeTransactionData<N> | undefined
+  getTransactionData(transaction: TTransactionBase): TNeo3NeoXBridgeTransactionData<N> | undefined
 }
 
 export type TTokenServicePredicateParams = {

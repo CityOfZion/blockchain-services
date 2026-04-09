@@ -253,7 +253,8 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
   async #parseTransaction(
     transaction?: solanaKit.TransactionForFullJsonParsed<'legacy'> | null,
     blockTime?: bigint | number | null,
-    block?: bigint | number | null
+    block?: bigint | number | null,
+    relatedAddress?: string
   ): Promise<TTransactionDefault<TBSSolanaName> | undefined> {
     if (!transaction || !blockTime || !transaction.meta || !block) return
 
@@ -277,6 +278,7 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
     return {
       blockchain: this.#service.name,
       isPending: false,
+      relatedAddress,
       txId,
       txIdUrl,
       block: BSBigNumberHelper.fromNumber(block).toNumber(),
@@ -335,7 +337,8 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
       const parsedTransaction = await this.#parseTransaction(
         response.result,
         response.result?.blockTime,
-        response.result?.slot
+        response.result?.slot,
+        params.address
       )
       if (!parsedTransaction) return
 

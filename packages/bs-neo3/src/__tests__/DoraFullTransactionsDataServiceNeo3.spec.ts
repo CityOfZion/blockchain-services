@@ -163,12 +163,13 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
     it('Should be able to get transactions when is using a Testnet network', async () => {
       service = new BSNeo3(BSNeo3Constants.TESTNET_NETWORK)
       doraFullTransactionsDataServiceNeo3 = new DoraFullTransactionsDataServiceNeo3(service)
+      const newAddress = 'NPpopZhoNx5AompcETfMGMtULCPyH6j93H'
 
       const response = await doraFullTransactionsDataServiceNeo3.getFullTransactionsByAddress({
         ...params,
         dateFrom: new Date('2025-02-24T20:00:00').toJSON(),
         dateTo: new Date('2025-02-25T12:00:00').toJSON(),
-        address: 'NPpopZhoNx5AompcETfMGMtULCPyH6j93H',
+        address: newAddress,
       })
 
       expect(response).toEqual({
@@ -185,6 +186,7 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             systemFeeAmount: expect.anything(),
             blockchain: 'neo3',
             isPending: false,
+            relatedAddress: newAddress,
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
@@ -219,6 +221,7 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             systemFeeAmount: expect.anything(),
             blockchain: 'neo3',
             isPending: false,
+            relatedAddress: address,
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({

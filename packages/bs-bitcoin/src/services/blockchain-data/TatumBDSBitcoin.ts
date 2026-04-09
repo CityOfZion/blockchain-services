@@ -51,11 +51,11 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
     return typeof value === 'number' && value >= 0
   }
 
-  async #transformTatumTransactionToTransaction({
-    hex,
-    hash,
-    ...transaction
-  }: TTatumTransactionResponse): Promise<TTransactionUtxo<TBSBitcoinName>> {
+  async #transformTatumTransactionToTransaction(
+    tatum: TTatumTransactionResponse,
+    relatedAddress?: string
+  ): Promise<TTransactionUtxo<TBSBitcoinName>> {
+    const { hex, hash, ...transaction } = tatum
     const token = BSBitcoinConstants.NATIVE_TOKEN
     const tokenDecimals = token.decimals
     const feeDecimals = this.#service.feeToken.decimals
@@ -110,6 +110,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
     return {
       blockchain: this.#service.name,
       isPending: false,
+      relatedAddress,
       txId: hash,
       txIdUrl: this.#service.explorerService.buildTransactionUrl(hash),
       hex,
@@ -184,8 +185,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
     const transactionPromises = data
       .filter(transaction => this.#isNumberValid(transaction.blockNumber))
       .map(async (transaction, index) => {
-        const newTransaction = await this.#transformTatumTransactionToTransaction(transaction)
-
+        const newTransaction = await this.#transformTatumTransactionToTransaction(transaction, address)
         transactions.splice(index, 0, newTransaction)
       })
 

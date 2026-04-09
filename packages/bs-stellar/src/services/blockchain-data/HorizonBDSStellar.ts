@@ -107,7 +107,8 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
   }
 
   async #parseTransaction(
-    transaction: stellarSDK.Horizon.ServerApi.TransactionRecord
+    transaction: stellarSDK.Horizon.ServerApi.TransactionRecord,
+    relatedAddress?: string
   ): Promise<TTransactionDefault<TBSStellarName>> {
     const events: TTransactionDefaultEvent[] = []
     const operations = await this.#service._horizonServer.operations().forTransaction(transaction.hash).call()
@@ -139,6 +140,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
     return {
       blockchain: this.#service.name,
       isPending: false,
+      relatedAddress,
       txId,
       txIdUrl,
       block: transaction.ledger_attr,
@@ -174,7 +176,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
     const transactions: TTransactionDefault<TBSStellarName>[] = []
 
     const promises = response.records.map(async (record, index) => {
-      const parsedTransaction = await this.#parseTransaction(record)
+      const parsedTransaction = await this.#parseTransaction(record, params.address)
       transactions.splice(index, 0, parsedTransaction)
     })
 

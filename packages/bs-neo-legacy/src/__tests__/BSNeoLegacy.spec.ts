@@ -101,6 +101,7 @@ describe('BSNeoLegacy', () => {
         date: expect.any(String),
         blockchain: 'neoLegacy',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -138,6 +139,7 @@ describe('BSNeoLegacy', () => {
         date: expect.any(String),
         blockchain: 'neoLegacy',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -196,6 +198,7 @@ describe('BSNeoLegacy', () => {
         date: expect.any(String),
         blockchain: 'neoLegacy',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -258,6 +261,7 @@ describe('BSNeoLegacy', () => {
         date: expect.any(String),
         blockchain: 'neoLegacy',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {

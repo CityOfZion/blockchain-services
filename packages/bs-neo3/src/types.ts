@@ -14,7 +14,7 @@ import type {
   IBSWithFullTransactions,
   TTransactionDefault,
   TTransferParams,
-  TTransaction,
+  TTransactionBase,
 } from '@cityofzion/blockchain-service'
 import { wallet, api } from './helpers/BSNeo3NeonJsSingletonHelper'
 import type { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
@@ -111,7 +111,7 @@ export interface IVoteService {
   getVoteDetailsByAddress(address: string): Promise<TVoteServiceDetailsByAddressResponse>
   vote(params: TVoteServiceVoteParams): Promise<TTransactionDefault<TBSNeo3Name>>
   calculateVoteFee(params: TVoteServiceVoteParams): Promise<string>
-  getTransactionData(transaction: TTransaction<TBSNeo3Name>): TVoteServiceNeo3TransactionData | undefined
+  getTransactionData(transaction: TTransactionBase): TVoteServiceNeo3TransactionData | undefined
 }
 
 export type TRpcVoteServiceNeo3GetVoteCIMParams = {

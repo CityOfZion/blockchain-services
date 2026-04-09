@@ -628,6 +628,7 @@ export class BSBitcoin implements IBSBitcoin {
       return [
         {
           isPending: true,
+          relatedAddress: address,
           blockchain: this.name,
           txId: transactionHash,
           txIdUrl: this.explorerService.buildTransactionUrl(transactionHash),

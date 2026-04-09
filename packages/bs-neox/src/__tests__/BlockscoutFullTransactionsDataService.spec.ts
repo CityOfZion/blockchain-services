@@ -156,6 +156,7 @@ describe('BlockscoutFullTransactionsDataService', () => {
             networkFeeAmount: expect.anything(),
             blockchain: 'neox',
             isPending: false,
+            relatedAddress: address,
             view: 'default',
             events: expect.arrayContaining([
               expect.objectContaining({
@@ -190,6 +191,7 @@ describe('BlockscoutFullTransactionsDataService', () => {
             date: expect.any(String),
             networkFeeAmount: expect.anything(),
             blockchain: 'neox',
+            relatedAddress: address,
             isPending: false,
             view: 'default',
             events: expect.arrayContaining([

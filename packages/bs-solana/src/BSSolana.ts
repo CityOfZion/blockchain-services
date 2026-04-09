@@ -305,6 +305,7 @@ export class BSSolana implements IBSSolana {
       {
         blockchain: this.name,
         isPending: true,
+        relatedAddress: address,
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),

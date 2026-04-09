@@ -264,6 +264,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
       const transaction: TTransactionDefault<TBSNeoXName> = {
         blockchain: this._service.name,
         isPending: false,
+        relatedAddress: params.address,
         txId,
         txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
         block: item.block,

@@ -157,6 +157,7 @@ describe('BSNeo3', () => {
         systemFeeAmount: expect.any(String),
         blockchain: 'neo3',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -211,6 +212,7 @@ describe('BSNeo3', () => {
         systemFeeAmount: expect.any(String),
         blockchain: 'neo3',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           claimEvent,
@@ -267,6 +269,7 @@ describe('BSNeo3', () => {
         systemFeeAmount: expect.any(String),
         blockchain: 'neo3',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
@@ -323,6 +326,7 @@ describe('BSNeo3', () => {
         systemFeeAmount: expect.any(String),
         blockchain: 'neo3',
         isPending: true,
+        relatedAddress: address,
         view: 'default',
         events: [
           {
