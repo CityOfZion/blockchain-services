@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "3.1.9",
+      "tag": "@cityofzion/bs-neo-legacy_v3.1.9",
+      "date": "Thu, 09 Apr 2026 18:51:16 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add relatedAddress property to Transaction type"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.8",
       "tag": "@cityofzion/bs-neo-legacy_v3.1.8",
       "date": "Wed, 08 Apr 2026 19:25:42 GMT",

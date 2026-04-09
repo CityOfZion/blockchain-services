@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-stellar
 
-This log was last generated on Wed, 08 Apr 2026 19:25:42 GMT and should not be manually modified.
+This log was last generated on Thu, 09 Apr 2026 18:51:16 GMT and should not be manually modified.
+
+## 3.1.9
+Thu, 09 Apr 2026 18:51:16 GMT
+
+### Updates
+
+- Add relatedAddress property to Transaction type
 
 ## 3.1.8
 Wed, 08 Apr 2026 19:25:42 GMT
