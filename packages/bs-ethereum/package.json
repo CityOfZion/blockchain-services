@@ -27,7 +27,8 @@
     "@ethersproject/properties": "5.8.0",
     "@ledgerhq/hw-app-eth": "~7.3.0",
     "axios": "~1.13.5",
-    "ethers": "5.8.0"
+    "ethers": "5.8.0",
+    "zod": "~4.3.6"
   },
   "devDependencies": {
     "@ledgerhq/hw-transport": "~6.32.0",

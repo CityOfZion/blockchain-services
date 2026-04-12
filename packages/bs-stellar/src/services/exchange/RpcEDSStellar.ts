@@ -1,9 +1,9 @@
 import {
-  BSBigNumberHelper,
   CryptoCompareEDS,
   type TGetTokenPricesParams,
   type TTokenPricesResponse,
   BSError,
+  BSBigNumber,
 } from '@cityofzion/blockchain-service'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
@@ -43,7 +43,7 @@ export class RpcEDSStellar extends CryptoCompareEDS {
 
       tokenPrices.push({
         token,
-        usdPrice: BSBigNumberHelper.fromNumber(bestBid).toNumber(),
+        usdPrice: BSBigNumber.ensureNumber(bestBid),
       })
     }
 

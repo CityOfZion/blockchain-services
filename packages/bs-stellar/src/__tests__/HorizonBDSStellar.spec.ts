@@ -23,9 +23,9 @@ describe('HorizonBDSStellar', () => {
         txIdUrl: expect.any(String),
         block: expect.any(Number),
         date: expect.any(String),
-        networkFeeAmount: expect.anything(),
         blockchain: 'stellar',
         isPending: false,
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
       })
     )
@@ -35,7 +35,7 @@ describe('HorizonBDSStellar', () => {
         expect.toBeOneOf([
           expect.objectContaining({
             eventType: 'token',
-            amount: expect.any(String),
+            amount: expect.stringMatching(/^\d+(\.\d+)?$/),
             methodName: expect.any(String),
             from: expect.any(String),
             fromUrl: expect.any(String),
@@ -78,7 +78,7 @@ describe('HorizonBDSStellar', () => {
           txIdUrl: expect.any(String),
           block: expect.any(Number),
           date: expect.any(String),
-          networkFeeAmount: expect.anything(),
+          networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           view: 'default',
         })
       )
@@ -88,7 +88,7 @@ describe('HorizonBDSStellar', () => {
           expect.toBeOneOf([
             expect.objectContaining({
               eventType: 'token',
-              amount: expect.any(String),
+              amount: expect.stringMatching(/^\d+(\.\d+)?$/),
               methodName: expect.any(String),
               from: expect.any(String),
               fromUrl: expect.any(String),
@@ -140,7 +140,7 @@ describe('HorizonBDSStellar', () => {
     balance.forEach(balance => {
       expect(balance).toEqual(
         expect.objectContaining({
-          amount: expect.any(String),
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
           token: {
             hash: expect.any(String),
             name: expect.any(String),

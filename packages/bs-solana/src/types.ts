@@ -117,3 +117,11 @@ export type TRpcBDSSolanaParsedInstruction = Extract<
   TransactionForFullJsonParsed<'legacy'>['transaction']['message']['instructions'][number],
   { parsed: any }
 >
+
+export type TWalletConnectServiceSolanaMethod =
+  | 'solana_getAccounts'
+  | 'solana_requestAccounts'
+  | 'solana_signMessage'
+  | 'solana_signTransaction'
+  | 'solana_signAllTransactions'
+  | 'solana_signAndSendTransaction'

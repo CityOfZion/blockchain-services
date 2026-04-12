@@ -20,15 +20,15 @@ describe('DoraBDSNeoLegacy', () => {
         txIdUrl: expect.any(String),
         block: expect.any(Number),
         date: expect.any(String),
-        networkFeeAmount: expect.anything(),
-        systemFeeAmount: expect.anything(),
         blockchain: 'neoLegacy',
         isPending: false,
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: expect.arrayContaining([
           expect.objectContaining({
             eventType: expect.any(String),
-            amount: expect.anything(),
+            amount: expect.stringMatching(/^\d+(\.\d+)?$/),
             methodName: expect.any(String),
             from: expect.anything(),
             fromUrl: expect.anything(),
@@ -107,7 +107,7 @@ describe('DoraBDSNeoLegacy', () => {
 
     balance.forEach(balance => {
       expect(balance).toEqual({
-        amount: expect.any(String),
+        amount: expect.stringMatching(/^\d+(\.\d+)?$/),
         token: {
           hash: expect.any(String),
           name: expect.any(String),

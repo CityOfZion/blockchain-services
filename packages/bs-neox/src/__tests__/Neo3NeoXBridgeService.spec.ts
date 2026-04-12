@@ -1,4 +1,4 @@
-import { BSBigNumberHelper, BSError, type TBSAccount, type TBSNetwork } from '@cityofzion/blockchain-service'
+import { BSBigHumanAmount, BSError, type TBSAccount, type TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSNeoX } from '../BSNeoX'
 import { Neo3NeoXBridgeService } from '../services/neo3-neox-bridge/Neo3NeoXBridgeService'
 import { ethers } from 'ethers'
@@ -199,7 +199,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(BSBigNumberHelper.fromNumber(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -230,7 +230,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(BSBigNumberHelper.fromNumber(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -258,7 +258,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have NEO balance to bridge')
     }
 
-    expect(BSBigNumberHelper.fromNumber(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -289,7 +289,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have NEO balance to bridge')
     }
 
-    expect(BSBigNumberHelper.fromNumber(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,

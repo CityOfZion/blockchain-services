@@ -1,5 +1,5 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
   BSCommonConstants,
   TTransactionDefault,
   type TTransactionBase,
@@ -165,8 +165,8 @@ export class VoteServiceNeo3 implements IVoteService {
       txIdUrl: this._service.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),
       invocationCount,
-      networkFeeAmount: BSBigNumberHelper.format(fees.networkFee, { decimals: feeDecimals }),
-      systemFeeAmount: BSBigNumberHelper.format(fees.systemFee, { decimals: feeDecimals }),
+      networkFeeAmount: new BSBigHumanAmount(fees.networkFee, feeDecimals).toFormatted(),
+      systemFeeAmount: new BSBigHumanAmount(fees.systemFee, feeDecimals).toFormatted(),
       view: 'default',
       events: [claimEvent, voteEvent],
       data,
@@ -189,6 +189,6 @@ export class VoteServiceNeo3 implements IVoteService {
 
     const { total } = await invoker.calculateFee(cim)
 
-    return BSBigNumberHelper.format(total, { decimals: this._service.feeToken.decimals })
+    return new BSBigHumanAmount(total, this._service.feeToken.decimals).toFormatted()
   }
 }

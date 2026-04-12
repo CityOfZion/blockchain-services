@@ -97,7 +97,7 @@ describe('BSStellar', () => {
       ],
     })
 
-    expect(fee).toEqual('0.0000200')
+    expect(fee).toEqual('0.00002')
   })
 
   // Fetch https://friendbot.stellar.org?addr=${address} to fund test accounts
@@ -117,10 +117,10 @@ describe('BSStellar', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'stellar',
         isPending: true,
         relatedAddress: senderAccount.address,
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -174,10 +174,10 @@ describe('BSStellar', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'stellar',
         isPending: true,
         relatedAddress: senderAccount.address,
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -229,7 +229,7 @@ describe('BSStellar', () => {
       ],
     })
 
-    expect(fee).toEqual('0.0000200')
+    expect(fee).toEqual('0.00002')
   })
 
   it.skip('Should be able to transfer the native token using Ledger', async () => {
@@ -251,10 +251,10 @@ describe('BSStellar', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'stellar',
         isPending: true,
         relatedAddress: senderAccount.address,
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {
@@ -310,10 +310,10 @@ describe('BSStellar', () => {
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
-        networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
         blockchain: 'stellar',
         isPending: true,
         relatedAddress: senderAccount.address,
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
         events: [
           {

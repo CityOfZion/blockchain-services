@@ -1,5 +1,5 @@
 import {
-  BSBigNumberHelper,
+  BSBigHumanAmount,
   BSError,
   BSUtilsHelper,
   type TBSAccount,
@@ -303,7 +303,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     const balance = balances[0]
 
-    const newAmount = BSBigNumberHelper.fromNumber(balance.amount).minus(bridgeFee.value!).toString()
+    const newAmount = new BSBigHumanAmount(balance.amount, token.decimals).minus(bridgeFee.value!).toString()
     expect(tokenToUseBalance.value).toEqual(balance)
     expect(amountToUseMax.value).toEqual(newAmount)
     expect(amountToUseMin.value).toEqual(expect.any(String))

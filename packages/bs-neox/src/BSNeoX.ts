@@ -1,6 +1,8 @@
 import { BSEthereum, BSEthereumConstants, TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from './constants/BSNeoXConstants'
 import {
+  BSBigNumber,
+  BSBigUnitAmount,
   BSError,
   BSUtilsHelper,
   type TBSNetwork,
@@ -27,6 +29,7 @@ import { BSNeoXHelper } from './helpers/BSNeoXHelper'
 
 export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements IBSNeoX {
   neo3NeoXBridgeService!: Neo3NeoXBridgeService
+  walletConnectService!: WalletConnectServiceNeoX
 
   readonly defaultNetwork: TBSNetwork<TBSNeoXNetworkId>
   readonly availableNetworks: TBSNetwork<TBSNeoXNetworkId>[]
@@ -43,14 +46,18 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     this.setNetwork(network || this.defaultNetwork)
   }
 
-  async _sendTransaction({ signer, gasPrice, params }: TSendTransactionParams): Promise<TSendTransactionResponse> {
+  async _sendTransaction({
+    signer,
+    gasPriceBn,
+    transactionParams,
+  }: TSendTransactionParams): Promise<TSendTransactionResponse> {
     const chainId = parseInt(this.network.id)
 
     if (isNaN(chainId)) {
       throw new Error('Invalid chainId')
     }
 
-    params.chainId = chainId
+    transactionParams.chainId = chainId
 
     const nonce = await signer.getTransactionCount('pending')
 
@@ -58,25 +65,22 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
       throw new Error('Invalid nonce')
     }
 
-    params.nonce = nonce
-
-    const gasParams = { maxPriorityFeePerGas: gasPrice, maxFeePerGas: gasPrice }
-    let gasLimit: ethers.BigNumberish
+    transactionParams.nonce = nonce
 
     try {
-      gasLimit = await signer.estimateGas(params)
+      const estimatedGas = await signer.estimateGas(transactionParams)
+      transactionParams.gasLimit = new BSBigUnitAmount(
+        estimatedGas.toString(),
+        BSEthereumConstants.DEFAULT_DECIMALS
+      ).toString()
     } catch {
-      gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
+      transactionParams.gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT_BN.toString()
     }
-
-    const fee = ethers.utils.formatEther(gasPrice.mul(gasLimit))
+    transactionParams.maxPriorityFeePerGas = gasPriceBn.toString()
+    transactionParams.maxFeePerGas = gasPriceBn.toString()
 
     const [firstTransactionResponse, firstTransactionError] = await BSUtilsHelper.tryCatch(() =>
-      signer.sendTransaction({
-        ...params,
-        ...gasParams,
-        gasLimit,
-      })
+      signer.sendTransaction(transactionParams)
     )
 
     const isAntiMevNetwork = BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[this.network.id].some(
@@ -86,6 +90,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     if (!isAntiMevNetwork) {
       if (firstTransactionError) throw firstTransactionError
 
+      const fee = gasPriceBn.multipliedBy(transactionParams.gasLimit).toHuman().toFormatted()
       return { transactionHash: firstTransactionResponse!.hash, fee }
     }
 
@@ -107,7 +112,8 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     const cachedTransaction = cachedTransactionResponse.data.result as THexString
 
     const consensusContract = new ethers.Contract(BSNeoXConstants.CONSENSUS_SCRIPT_HASH, CONSENSUS_ABI, signer)
-    const consensusSize = BigInt(await consensusContract.consensusSize())
+    const consensusSize = await consensusContract.consensusSize()
+    const consensusSizeBigInt = new BSBigNumber(consensusSize.toString()).toBigInt()
 
     const keyManagementContract = new ethers.Contract(
       BSNeoXConstants.KEY_MANAGEMENT_SCRIPT_HASH,
@@ -115,12 +121,13 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
       signer
     )
 
-    const roundNumber = BigInt(await keyManagementContract.roundNumber())
-    const aggregatedCommitment = await keyManagementContract.aggregatedCommitments(roundNumber)
+    const roundedNumber = await keyManagementContract.roundNumber()
+    const roundNumberBigInt = new BSBigNumber(roundedNumber.toString()).toBigInt()
+    const aggregatedCommitment = await keyManagementContract.aggregatedCommitments(roundNumberBigInt)
 
     const publicKey = PublicKey.fromAggregatedCommitment(
       toBytes(aggregatedCommitment),
-      getScaler(consensusSize, getConsensusThreshold(consensusSize))
+      getScaler(consensusSizeBigInt, getConsensusThreshold(consensusSizeBigInt))
     )
 
     const { encryptedKey, encryptedMsg } = publicKey.encrypt(toBytes(cachedTransaction))
@@ -129,14 +136,14 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
 
     const envelopedData = concat([
       new Uint8Array([0xff, 0xff, 0xff, 0xff]),
-      pad(toBytes(roundNumber), { size: 4 }),
+      pad(toBytes(roundNumberBigInt), { size: 4 }),
       pad(toBytes(parsedTransaction.gas!), { size: 4 }),
       toBytes(keccak256(cachedTransaction)),
       encryptedKey,
       encryptedMsg,
     ])
 
-    const newParams = {
+    const newParams: ethers.providers.TransactionRequest = {
       chainId,
       nonce,
       to: BSNeoXConstants.GOVERNANCE_REWARD_SCRIPT_HASH,
@@ -144,22 +151,24 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     }
 
     try {
-      gasLimit = await signer.estimateGas(newParams)
+      const estimatedGas = await signer.estimateGas(newParams)
+      newParams.gasLimit = new BSBigUnitAmount(estimatedGas.toString(), BSEthereumConstants.DEFAULT_DECIMALS).toString()
     } catch {
-      gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT
+      newParams.gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT_BN.toString()
     }
 
+    newParams.maxPriorityFeePerGas = gasPriceBn.toString()
+    newParams.maxFeePerGas = gasPriceBn.toString()
+
     const [secondTransactionResponse, secondTransactionError] = await BSUtilsHelper.tryCatch(() =>
-      signer.sendTransaction({
-        ...newParams,
-        ...gasParams,
-        gasLimit,
-      })
+      signer.sendTransaction(newParams)
     )
 
     const transactionHash: string | undefined = secondTransactionResponse?.hash || secondTransactionError?.returnedHash
 
     if (!transactionHash) throw secondTransactionError || new Error('Transaction error')
+
+    const fee = gasPriceBn.multipliedBy(newParams.gasLimit).toHuman().toFormatted()
 
     return { transactionHash, fee }
   }
@@ -199,8 +208,8 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
 
     for (const intent of intents) {
       try {
-        const { transactionParams, gasPrice } = await this._buildTransferParams(intent)
-        const { transactionHash, fee } = await this._sendTransaction({ signer, gasPrice, params: transactionParams })
+        const { transactionParams, gasPriceBn } = await this._buildTransferParams(intent)
+        const { transactionHash, fee } = await this._sendTransaction({ signer, gasPriceBn, transactionParams })
 
         if (transactionHash) {
           const { receiverAddress, token } = intent

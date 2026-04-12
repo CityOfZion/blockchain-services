@@ -63,10 +63,6 @@ export type TCryptoCompareEDSHistoryResponse = {
 
 export type THexString = `0x${string}`
 
-export type TBSBigNumberHelperFormatOptions = {
-  decimals?: number | string
-}
-
 export type TBSUtilsHelperRetryOptions = {
   retries?: number
   delay?: number

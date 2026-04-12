@@ -130,15 +130,15 @@ describe('BlockscoutBDSNeoX', () => {
           txIdUrl: expect.any(String),
           block: expect.any(Number),
           date: expect.any(String),
-          networkFeeAmount: expect.anything(),
           blockchain: 'neox',
           isPending: false,
           relatedAddress: address,
+          networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           view: 'default',
           events: expect.arrayContaining([
             expect.objectContaining({
               eventType: expect.any(String),
-              amount: expect.anything(),
+              amount: expect.stringMatching(/^\d+(\.\d+)?$/),
               methodName: expect.any(String),
               from: expect.anything(),
               fromUrl: expect.anything(),
@@ -225,7 +225,7 @@ describe('BlockscoutBDSNeoX', () => {
     expect(balance).toEqual(
       expect.arrayContaining([
         {
-          amount: expect.any(String),
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
           token: BSNeoXConstants.NATIVE_ASSET,
         },
       ])
@@ -249,7 +249,7 @@ describe('BlockscoutBDSNeoX', () => {
     expect(balance).toEqual(
       expect.arrayContaining([
         {
-          amount: expect.any(String),
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
           token: BSNeoXConstants.NATIVE_ASSET,
         },
       ])
