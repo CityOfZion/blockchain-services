@@ -1,0 +1,15 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Update Axios dependency",
+      "type": "none"
+    },
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Organize interfaces",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}
