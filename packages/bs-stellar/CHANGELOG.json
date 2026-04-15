@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-stellar",
   "entries": [
     {
+      "version": "3.1.10",
+      "tag": "@cityofzion/bs-stellar_v3.1.10",
+      "date": "Wed, 15 Apr 2026 19:43:40 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update Axios dependency"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.9",
       "tag": "@cityofzion/bs-stellar_v3.1.9",
       "date": "Thu, 09 Apr 2026 18:51:16 GMT",

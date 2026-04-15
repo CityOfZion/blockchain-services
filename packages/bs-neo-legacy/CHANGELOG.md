@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neo-legacy
 
-This log was last generated on Thu, 09 Apr 2026 18:51:16 GMT and should not be manually modified.
+This log was last generated on Wed, 15 Apr 2026 19:43:40 GMT and should not be manually modified.
+
+## 3.1.10
+Wed, 15 Apr 2026 19:43:40 GMT
+
+### Updates
+
+- Update Axios dependency
+- Remove neon-js library to avoid conflicts with BSNeo3 neon-js library
 
 ## 3.1.9
 Thu, 09 Apr 2026 18:51:16 GMT

@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "3.1.10",
+      "tag": "@cityofzion/bs-neo-legacy_v3.1.10",
+      "date": "Wed, 15 Apr 2026 19:43:40 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update Axios dependency"
+          },
+          {
+            "comment": "Remove neon-js library to avoid conflicts with BSNeo3 neon-js library"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.9",
       "tag": "@cityofzion/bs-neo-legacy_v3.1.9",
       "date": "Thu, 09 Apr 2026 18:51:16 GMT",
