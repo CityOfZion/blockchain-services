@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Update Axios dependency",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

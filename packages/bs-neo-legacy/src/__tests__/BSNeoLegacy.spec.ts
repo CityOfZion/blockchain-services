@@ -56,7 +56,7 @@ describe('BSNeoLegacy', () => {
     expect(account).toEqual(expect.objectContaining(accountFromWif))
   })
 
-  it.skip('Should be able to decrypt a encrypted key', async () => {
+  it('Should be able to decrypt a encrypted key', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = await service.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'

@@ -2,6 +2,8 @@ import Transport from '@ledgerhq/hw-transport'
 import TypedEmitter from 'typed-emitter'
 import type { BSError } from './error'
 
+// Core
+
 export type TUntilIndexRecord<N extends string> = Partial<Record<N, Record<string, number>>>
 
 export type TBSAccount<N extends string> = {
@@ -31,16 +33,7 @@ export type TBSNetwork<T extends string = string> = {
   type: TBSNetworkType
 }
 
-export type TTransferIntent = {
-  receiverAddress: string
-  amount: string
-  token: TBSToken
-}
-
-export type TTransferParams<N extends string> = {
-  senderAccount: TBSAccount<N>
-  intents: TTransferIntent[]
-}
+// Blockchain Service
 
 export type TPingNetworkResponse = {
   latency: number
@@ -77,58 +70,45 @@ export interface IBlockchainService<N extends string, A extends string = string>
   transfer(params: TTransferParams<N>): Promise<TTransaction<N>[]>
 }
 
-export interface IBSWithEncryption<N extends string> {
-  decrypt(keyOrJson: string, password: string): Promise<TBSAccount<N>>
-  encrypt(key: string, password: string): Promise<string>
-  validateEncrypted(keyOrJson: string): boolean
+// Transfer
+
+export type TTransferIntent = {
+  receiverAddress: string
+  amount: string
+  token: TBSToken
+}
+
+export type TTransferParams<N extends string> = {
+  senderAccount: TBSAccount<N>
+  intents: TTransferIntent[]
 }
 
 export interface IBSWithFee<N extends string> {
   calculateTransferFee(params: TTransferParams<N>): Promise<string>
 }
 
-export interface IBSWithClaim<N extends string> {
-  claimService: IClaimService<N>
+// Encryption
+
+export interface IBSWithEncryption<N extends string> {
+  decrypt(keyOrJson: string, password: string): Promise<TBSAccount<N>>
+  encrypt(key: string, password: string): Promise<string>
+  validateEncrypted(keyOrJson: string): boolean
 }
+
+// Name Service
+
 export interface IBSWithNameService {
   resolveNameServiceDomain(domainName: string): Promise<string>
   validateNameServiceDomainFormat(domainName: string): boolean
 }
 
-export interface IBSWithExplorer {
-  explorerService: IExplorerService
-}
-
-export interface IBSWithNft {
-  nftDataService: INftDataService
-}
-
-export interface IBSWithLedger<N extends string> {
-  ledgerService: ILedgerService<N>
-  generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>>
-}
-
-export interface IBSWithWalletConnect<N extends string> {
-  walletConnectService: IWalletConnectService<N>
-}
-
-export interface IBSWithFullTransactions<N extends string> {
-  fullTransactionsDataService: IFullTransactionsDataService<N>
-}
+// Faucet
 
 export interface IBSWithFaucet<N extends string> {
   faucet(address: string): Promise<TTransaction<N>>
 }
 
-export type TContractParameter = {
-  name: string
-  type: string
-}
-
-export type TGetTransactionsByAddressParams = {
-  address: string
-  nextPageParams?: any
-}
+// Transaction
 
 export type TTransactionBaseEvent = {
   methodName?: string
@@ -155,6 +135,11 @@ export type TTransactionDefaultGenericEvent = TTransactionBaseEvent & {
   data?: Record<string, string | number | boolean | undefined | null>
 }
 
+export type TTransactionDefaultEvent =
+  | TTransactionDefaultNftEvent
+  | TTransactionDefaultTokenEvent
+  | TTransactionDefaultGenericEvent
+
 export type TTransactionUtxoInputOutput = {
   address?: string
   addressUrl?: string
@@ -180,11 +165,6 @@ export type TTransactionFullBase<N extends string> = TTransactionBase & {
   relatedAddress?: string
 }
 
-export type TTransactionDefaultEvent =
-  | TTransactionDefaultNftEvent
-  | TTransactionDefaultTokenEvent
-  | TTransactionDefaultGenericEvent
-
 export type TTransactionDefault<N extends string> = TTransactionFullBase<N> & {
   view: 'default'
   events: TTransactionDefaultEvent[]
@@ -201,9 +181,21 @@ export type TTransactionUtxo<N extends string> = TTransactionFullBase<N> & {
 
 export type TTransaction<N extends string> = TTransactionDefault<N> | TTransactionUtxo<N>
 
+export type TGetTransactionsByAddressParams = {
+  address: string
+  nextPageParams?: any
+}
+
 export type TGetTransactionsByAddressResponse<N extends string, T extends TTransaction<N> = TTransaction<N>> = {
   nextPageParams?: any
   transactions: T[]
+}
+
+// Blockchain Data Service
+
+export type TContractParameter = {
+  name: string
+  type: string
 }
 
 export type TContractMethod = {
@@ -233,6 +225,8 @@ export interface IBlockchainDataService<N extends string> {
   getBlockHeight(): Promise<number>
 }
 
+// Full Transactions
+
 export type TGetFullTransactionsByAddressParams = {
   address: string
   dateFrom: string
@@ -254,6 +248,12 @@ export interface IFullTransactionsDataService<N extends string> {
   exportFullTransactionsByAddress(params: TExportFullTransactionsByAddressParams): Promise<string>
 }
 
+export interface IBSWithFullTransactions<N extends string> {
+  fullTransactionsDataService: IFullTransactionsDataService<N>
+}
+
+// Claim
+
 export type TClaimServiceTransactionData = {
   isClaim: boolean
 }
@@ -267,10 +267,17 @@ export interface IClaimService<N extends string> {
   getTransactionData(transaction: TTransactionBase): TClaimServiceTransactionData | undefined
 }
 
+export interface IBSWithClaim<N extends string> {
+  claimService: IClaimService<N>
+}
+
+// Exchange
+
 export type TTokenPricesResponse = {
   usdPrice: number
   token: TBSToken
 }
+
 export type TTokenPricesHistoryResponse = {
   usdPrice: number
   timestamp: number
@@ -292,6 +299,8 @@ export interface IExchangeDataService {
   getTokenPriceHistory(params: TGetTokenPriceHistoryParams): Promise<TTokenPricesHistoryResponse[]>
   getCurrencyRatio(currency: string): Promise<number>
 }
+
+// NFT
 
 export type TNftResponse = {
   hash: string
@@ -338,6 +347,12 @@ export interface INftDataService {
   hasToken(params: THasTokenParams): Promise<boolean>
 }
 
+export interface IBSWithNft {
+  nftDataService: INftDataService
+}
+
+// Explorer
+
 export type TBuildNftUrlParams = {
   collectionHash?: string
   tokenHash: string
@@ -354,6 +369,12 @@ export interface IExplorerService {
   getContractTemplateUrl(): string | undefined
 }
 
+export interface IBSWithExplorer {
+  explorerService: IExplorerService
+}
+
+// Ledger
+
 export type TLedgerServiceEmitter = TypedEmitter<{
   getSignatureStart(): void | Promise<void>
   getSignatureEnd(): void | Promise<void>
@@ -367,6 +388,13 @@ export interface ILedgerService<N extends string> {
   getAccount(transport: Transport, index: number): Promise<TBSAccount<N>>
   getAccounts(transport: Transport, getUntilIndex?: TUntilIndexRecord<N>): Promise<TBSAccount<N>[]>
 }
+
+export interface IBSWithLedger<N extends string> {
+  ledgerService: ILedgerService<N>
+  generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>>
+}
+
+// Swap
 
 export type TSwapToken<N extends string> = {
   id: string
@@ -416,6 +444,7 @@ export type TSwapServiceStatusResponse = {
   txTo?: string
   log?: string
 }
+
 export interface ISwapService {
   getStatus(id: string): Promise<TSwapServiceStatusResponse>
 }
@@ -432,6 +461,8 @@ export interface ISwapOrchestrator<N extends string> {
   swap(): Promise<TSwapResponse<N>>
   calculateFee(): Promise<string>
 }
+
+// Bridge
 
 export type TBSBridgeName = 'neo3' | 'neox'
 
@@ -468,10 +499,6 @@ export interface IBridgeOrchestrator<N extends TBSBridgeName> {
   setBalances(balances: TBalanceResponse[] | null): Promise<void>
   switchTokens(): Promise<void>
   bridge(): Promise<string>
-}
-
-export interface IBSWithNeo3NeoXBridge<N extends TBSBridgeName> {
-  neo3NeoXBridgeService: INeo3NeoXBridgeService<N>
 }
 
 export type TNeo3NeoXBridgeServiceConstants = {
@@ -524,6 +551,12 @@ export interface INeo3NeoXBridgeService<N extends TBSBridgeName> {
   getTransactionData(transaction: TTransactionBase): TNeo3NeoXBridgeTransactionData<N> | undefined
 }
 
+export interface IBSWithNeo3NeoXBridge<N extends TBSBridgeName> {
+  neo3NeoXBridgeService: INeo3NeoXBridgeService<N>
+}
+
+// Token Service
+
 export type TTokenServicePredicateParams = {
   hash: string
   symbol?: string
@@ -549,6 +582,8 @@ export interface ITokenService {
   isNativeToken(hash: string): boolean
 }
 
+// WalletConnect
+
 export type TWalletConnectServiceRequestMethodParams<N extends string> = {
   account: TBSAccount<N>
   params: any
@@ -569,4 +604,8 @@ export interface IWalletConnectService<N extends string> {
   calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<N>): Promise<string>
 
   [methodName: string]: any | TWalletConnectServiceRequestMethod<N>
+}
+
+export interface IBSWithWalletConnect<N extends string> {
+  walletConnectService: IWalletConnectService<N>
 }

@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Update Axios dependency",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}
