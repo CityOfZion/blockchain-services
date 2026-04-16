@@ -1,4 +1,4 @@
-import type { TBSNetwork, TBSToken } from '@cityofzion/blockchain-service'
+import { BSBigUnitAmount, type TBSNetwork, type TBSToken } from '@cityofzion/blockchain-service'
 import type { TBSBitcoinNetworkId } from '../types'
 
 export class BSBitcoinConstants {
@@ -36,4 +36,17 @@ export class BSBitcoinConstants {
     url: this.API_URLS_BY_NETWORK_ID.testnet,
     type: 'testnet',
   }
+
+  // 10 bytes represents version + locktime + counters
+  static readonly OVERHEAD_SIZE = 10
+
+  static readonly P2WPKH_INPUT_SIZE = 68
+  static readonly P2PKH_INPUT_SIZE = 148
+  static readonly P2SH_INPUT_SIZE = 91
+
+  static readonly P2WPKH_OUTPUT_SIZE = 31
+  static readonly P2PKH_OUTPUT_SIZE = 34
+  static readonly P2SH_OUTPUT_SIZE = 32
+
+  static readonly AMOUNT_DUST_LIMIT_BN = new BSBigUnitAmount('546', this.NATIVE_TOKEN.decimals).toHuman()
 }

@@ -1,5 +1,4 @@
 import {
-  BSBigNumberHelper,
   type TBalanceResponse,
   type IBlockchainDataService,
   type TBSToken,
@@ -9,6 +8,7 @@ import {
   type TTransactionDefaultTokenEvent,
   type TTransactionDefault,
   type TTransactionDefaultEvent,
+  BSBigHumanAmount,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import type { IBSNeoLegacy, TBSNeoLegacyName } from '../../types'
@@ -40,7 +40,7 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
 
       events.splice(index, 0, {
         eventType: 'token',
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(transfer.value), { decimals: token.decimals }),
+        amount: new BSBigHumanAmount(transfer.value, token.decimals).toFormatted(),
         methodName: 'transfer',
         from,
         fromUrl,
@@ -60,12 +60,8 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
       txIdUrl: this.#service.explorerService.buildTransactionUrl(data.txid),
       block: data.block,
       date: new Date(Number(data.time) * 1000).toJSON(),
-      networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.net_fee), {
-        decimals: this.#service.feeToken.decimals,
-      }),
-      systemFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.sys_fee), {
-        decimals: this.#service.feeToken.decimals,
-      }),
+      networkFeeAmount: new BSBigHumanAmount(data.net_fee, this.#service.feeToken.decimals).toFormatted(),
+      systemFeeAmount: new BSBigHumanAmount(data.sys_fee, this.#service.feeToken.decimals).toFormatted(),
       view: 'default',
       events,
     }
@@ -91,7 +87,7 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
 
       const event: TTransactionDefaultTokenEvent = {
         eventType: 'token',
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(entry.amount), { decimals: token.decimals }),
+        amount: new BSBigHumanAmount(entry.amount, token.decimals).toFormatted(),
         methodName: 'transfer',
         from,
         fromUrl,
@@ -186,7 +182,7 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
       }
 
       return {
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(balance.balance), { decimals: token.decimals }),
+        amount: new BSBigHumanAmount(balance.balance, token.decimals).toFormatted(),
         token,
       }
     })

@@ -1,5 +1,4 @@
 import {
-  BSBigNumberHelper,
   BSCommonConstants,
   BSUtilsHelper,
   type TBalanceResponse,
@@ -12,6 +11,8 @@ import {
   type TGetTransactionsByAddressParams,
   type TTransactionDefault,
   type TTransactionDefaultEvent,
+  BSBigUnitAmount,
+  BSBigHumanAmount,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
@@ -72,9 +73,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
     const balances: TBalanceResponse[] = [
       {
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(nativeBalance, nativeToken.decimals), {
-          decimals: nativeToken.decimals,
-        }),
+        amount: new BSBigUnitAmount(nativeBalance, nativeToken.decimals).toHuman().toFormatted(),
         token: nativeToken,
       },
     ]
@@ -87,9 +86,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       if (balance.possible_spam || !balance.decimals || !balance.token_address || !balance.symbol) return
 
       balances.push({
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(balance.balance, balance.decimals), {
-          decimals: balance.decimals,
-        }),
+        amount: new BSBigUnitAmount(balance.balance, balance.decimals).toHuman().toFormatted(),
         token: this._service.tokenService.normalizeToken({
           decimals: balance.decimals,
           hash: balance.token_address,
@@ -150,9 +147,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
       events.push({
         eventType: 'token',
-        amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(data.value, nativeToken.decimals), {
-          decimals: nativeToken.decimals,
-        }),
+        amount: new BSBigUnitAmount(data.value, nativeToken.decimals).toHuman().toFormatted(),
         methodName: 'transfer',
         from: data.from_address,
         fromUrl,
@@ -183,9 +178,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
           events.push({
             eventType: 'token',
-            amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(amount, token.decimals), {
-              decimals: token.decimals,
-            }),
+            amount: new BSBigUnitAmount(amount, token.decimals).toHuman().toFormatted(),
             methodName: 'transfer',
             from,
             fromUrl,
@@ -225,9 +218,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       txIdUrl: this._service.explorerService.buildTransactionUrl(hash),
       block: Number(data.block_number),
       date: new Date(data.block_timestamp).toJSON(),
-      networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(data.transaction_fee), {
-        decimals: this._service.feeToken.decimals,
-      }),
+      networkFeeAmount: new BSBigHumanAmount(data.transaction_fee, this._service.feeToken.decimals).toFormatted(),
       view: 'default',
       events,
     }
@@ -259,9 +250,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         events.push({
           eventType: 'token',
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, nativeAsset.decimals), {
-            decimals: nativeAsset.decimals,
-          }),
+          amount: new BSBigUnitAmount(transfer.value, nativeAsset.decimals).toHuman().toFormatted(),
           methodName: 'transfer',
           from: transfer.from_address,
           fromUrl,
@@ -288,9 +277,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         events.push({
           eventType: 'token',
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromDecimals(transfer.value, tokenDecimals), {
-            decimals: tokenDecimals,
-          }),
+          amount: new BSBigUnitAmount(transfer.value, tokenDecimals).toHuman().toFormatted(),
           methodName: 'transfer',
           from: transfer.from_address,
           fromUrl,
@@ -332,9 +319,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         txIdUrl: this._service.explorerService.buildTransactionUrl(item.hash),
         block: Number(item.block_number),
         date: new Date(item.block_timestamp).toJSON(),
-        networkFeeAmount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(item.transaction_fee), {
-          decimals: this._service.feeToken.decimals,
-        }),
+        networkFeeAmount: new BSBigHumanAmount(item.transaction_fee, this._service.feeToken.decimals).toFormatted(),
         view: 'default',
         events,
       })

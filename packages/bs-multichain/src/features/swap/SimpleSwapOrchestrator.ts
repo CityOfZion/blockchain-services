@@ -1,5 +1,4 @@
 import {
-  BSBigNumberHelper,
   isCalculableFee,
   type TBSAccount,
   type IBlockchainService,
@@ -12,6 +11,7 @@ import {
   type TSwapValidateValue,
   BSError,
   type TBSNetworkId,
+  BSBigHumanAmount,
 } from '@cityofzion/blockchain-service'
 import EventEmitter from 'events'
 import TypedEmitter from 'typed-emitter'
@@ -246,19 +246,14 @@ export class SimpleSwapOrchestrator implements ISwapOrchestrator<TBSServiceName>
             const rangeResponse = await this.#api.getRange(this.#tokenToUse.value, this.#tokenToReceive.value)
 
             // Add 1% because the SimpleSwap sends us a smaller minimum than the required
-            const minWithOnePercent = BSBigNumberHelper.format((Number(rangeResponse.min) * 1.01).toString(), {
-              decimals,
-            })
+            const minWithOnePercentBn = new BSBigHumanAmount(rangeResponse.min, decimals).multipliedBy(1.01)
 
             // Add the smallest number to round up correctly because the SimpleSwap doesn't have the decimals, and we need to apply the decimals here
             const smallestNumberToRoundUp = decimals ? `0.${'2'.padStart(decimals, '0')}` : '1'
 
-            range = {
-              min: BSBigNumberHelper.format(Number(minWithOnePercent) + Number(smallestNumberToRoundUp), {
-                decimals,
-              }),
-              max: rangeResponse.max ? BSBigNumberHelper.format(rangeResponse.max, { decimals }) : rangeResponse.max,
-            }
+            const min = minWithOnePercentBn.plus(smallestNumberToRoundUp).toFormatted()
+            const max = rangeResponse.max ? new BSBigHumanAmount(rangeResponse.max, decimals).toFormatted() : null
+            range = { min, max }
           }
 
           this.#amountToUseMinMax = { value: range }
@@ -266,7 +261,7 @@ export class SimpleSwapOrchestrator implements ISwapOrchestrator<TBSServiceName>
           if (shouldRecalculateAmountToUse && range) {
             this.#amountToUse = {
               value: range.min
-                ? BSBigNumberHelper.format(range.min, { decimals: this.#tokenToUse.value.decimals })
+                ? new BSBigHumanAmount(range.min, this.#tokenToUse.value.decimals).toFormatted()
                 : range.min,
             }
           }
@@ -362,9 +357,7 @@ export class SimpleSwapOrchestrator implements ISwapOrchestrator<TBSServiceName>
     this.#amountToUseTimeout = setTimeout(() => {
       this.#amountToUse = {
         value: this.#amountToUse.value
-          ? BSBigNumberHelper.format(this.#amountToUse.value, {
-              decimals: this.#tokenToUse.value?.decimals,
-            })
+          ? new BSBigHumanAmount(this.#amountToUse.value, this.#tokenToUse.value?.decimals).toFormatted()
           : this.#amountToUse.value,
       }
       this.#recalculateValues(['amountToReceive'])

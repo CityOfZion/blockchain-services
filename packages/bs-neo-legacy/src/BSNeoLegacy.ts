@@ -13,6 +13,7 @@ import {
   type IBlockchainDataService,
   type IFullTransactionsDataService,
   type TTransactionDefault,
+  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
 import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
@@ -289,12 +290,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
       nep5ScriptBuilder.emitAppCall(normalizeTokenHash, 'transfer', [
         u.reverseHex(wallet.getScriptHashFromAddress(neonJsAccount.address)),
         u.reverseHex(wallet.getScriptHashFromAddress(intent.receiverAddress)),
-        sc.ContractParam.integer(
-          new u.Fixed8(intent.amount)
-            .div(Math.pow(10, 8 - intent.token.decimals))
-            .toRawNumber()
-            .toString()
-        ),
+        sc.ContractParam.integer(new BSBigUnitAmount(intent.amount, intent.token.decimals).toString()),
       ])
     }
 

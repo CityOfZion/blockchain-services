@@ -1,12 +1,13 @@
 import {
   BSCommonConstants,
-  BSBigNumberHelper,
   type TBalanceResponse,
   type TBSToken,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
   type TContractResponse,
   type TTransactionDefault,
+  BSBigUnitAmount,
+  BSBigHumanAmount,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
@@ -66,14 +67,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       txIdUrl,
       block: response.block,
       date: new Date(Number(response.time) * 1000).toJSON(),
-      systemFeeAmount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromDecimals(response.sysfee ?? 0, this._service.feeToken.decimals),
-        { decimals: this._service.feeToken.decimals }
-      ),
-      networkFeeAmount: BSBigNumberHelper.format(
-        BSBigNumberHelper.fromDecimals(response.netfee ?? 0, this._service.feeToken.decimals),
-        { decimals: this._service.feeToken.decimals }
-      ),
+      systemFeeAmount: new BSBigUnitAmount(response.sysfee, this._service.feeToken.decimals).toHuman().toFormatted(),
+      networkFeeAmount: new BSBigUnitAmount(response.netfee, this._service.feeToken.decimals).toHuman().toFormatted(),
       invocationCount: 0,
       notificationCount: 0,
       view: 'default',
@@ -124,14 +119,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         txIdUrl,
         block: item.block,
         date: new Date(Number(item.time) * 1000).toJSON(),
-        systemFeeAmount: BSBigNumberHelper.format(
-          BSBigNumberHelper.fromDecimals(item.sysfee ?? 0, this._service.feeToken.decimals),
-          { decimals: this._service.feeToken.decimals }
-        ),
-        networkFeeAmount: BSBigNumberHelper.format(
-          BSBigNumberHelper.fromDecimals(item.netfee ?? 0, this._service.feeToken.decimals),
-          { decimals: this._service.feeToken.decimals }
-        ),
+        systemFeeAmount: new BSBigUnitAmount(item.sysfee, this._service.feeToken.decimals).toHuman().toFormatted(),
+        networkFeeAmount: new BSBigUnitAmount(item.netfee, this._service.feeToken.decimals).toHuman().toFormatted(),
         invocationCount: 0,
         notificationCount: notifications?.length ?? 0,
         view: 'default',
@@ -212,9 +201,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       try {
         const token = await this.getTokenInfo(balance.asset)
         return {
-          amount: BSBigNumberHelper.format(BSBigNumberHelper.fromNumber(balance.balance), {
-            decimals: token.decimals,
-          }),
+          amount: new BSBigHumanAmount(balance.balance, token.decimals).toFormatted(),
           token,
         }
       } catch {

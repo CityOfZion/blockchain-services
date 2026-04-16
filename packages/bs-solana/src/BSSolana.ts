@@ -1,5 +1,4 @@
 import {
-  BSBigNumberHelper,
   BSUtilsHelper,
   BSKeychainHelper,
   BSError,
@@ -14,8 +13,9 @@ import {
   type TBSToken,
   type TPingNetworkResponse,
   type TTransferParams,
-  type IWalletConnectService,
   type TTransactionDefault,
+  BSBigHumanAmount,
+  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 
 import { BSSolanaConstants } from './constants/BSSolanaConstants'
@@ -57,7 +57,7 @@ export class BSSolana implements IBSSolana {
   nftDataService!: INftDataService
   explorerService!: IExplorerService
   tokenService!: ITokenService
-  walletConnectService!: IWalletConnectService<TBSSolanaName>
+  walletConnectService!: WalletConnectServiceSolana
 
   _solanaKitRpc!: solanaKit.Rpc<solanaKit.SolanaRpcApi>
 
@@ -102,8 +102,7 @@ export class BSSolana implements IBSSolana {
     const instructions: solanaKit.Instruction[] = []
 
     for (const intent of params.intents) {
-      const amountBn = BSBigNumberHelper.fromNumber(intent.amount)
-      const amount = Number(BSBigNumberHelper.toDecimals(amountBn, intent.token.decimals))
+      const amount = new BSBigHumanAmount(intent.amount, intent.token.decimals).toUnit().toBigInt()
       const receiverAddress = solanaKit.address(intent.receiverAddress)
 
       const isNative = this.tokenService.predicate(intent.token, BSSolanaConstants.NATIVE_TOKEN)
@@ -184,9 +183,7 @@ export class BSSolana implements IBSSolana {
       throw new BSError('Failed to calculate fee', 'NO_CALCULATE_FEE')
     }
 
-    const feeBn = BSBigNumberHelper.fromDecimals(feeResponse.value.toString(), this.feeToken.decimals)
-
-    return BSBigNumberHelper.format(feeBn, { decimals: this.feeToken.decimals })
+    return new BSBigUnitAmount(feeResponse.value.toString(), this.feeToken.decimals).toHuman().toFormatted()
   }
 
   setNetwork(network: TBSNetwork<TBSSolanaNetworkId>): void {
