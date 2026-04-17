@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-ethereum",
   "entries": [
     {
+      "version": "3.1.11",
+      "tag": "@cityofzion/bs-ethereum_v3.1.11",
+      "date": "Fri, 17 Apr 2026 00:42:16 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Migrate from BSBigNumberHelper to BSBigNumber"
+          },
+          {
+            "comment": "WalletConnectService rewritten with Zod validation to support new params validation"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.10",
       "tag": "@cityofzion/bs-ethereum_v3.1.10",
       "date": "Wed, 15 Apr 2026 19:43:40 GMT",
