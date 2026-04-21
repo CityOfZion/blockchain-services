@@ -16,6 +16,13 @@ describe('ClaimServiceNeo3', () => {
     claimService = new ClaimServiceNeo3(bsNeo3)
   })
 
+  it('Should be able to get unclaimed', async () => {
+    const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+    const unclaimed = await claimService.getUnclaimed(account.address)
+
+    expect(unclaimed).toMatch(/^0\.0\d*[1-9]$/)
+  })
+
   it.skip('Should be able to calculate the claim fee', async () => {
     const account = await bsNeo3.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const fee = await claimService.calculateFee(account)

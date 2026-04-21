@@ -1,7 +1,7 @@
 import type { IBSNeo3, TBSNeo3Name } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
 import {
-  BSBigHumanAmount,
+  BSBigUnitAmount,
   type IClaimService,
   type TBSAccount,
   type TClaimServiceTransactionData,
@@ -73,11 +73,10 @@ export class ClaimServiceNeo3 implements IClaimService<TBSNeo3Name> {
 
   async getUnclaimed(address: string): Promise<string> {
     const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
-
     const rpcClient = new rpc.RPCClient(this._service.network.url)
     const response = await rpcClient.getUnclaimedGas(address)
 
-    return new BSBigHumanAmount(response, this.claimToken.decimals).toFormatted()
+    return new BSBigUnitAmount(response, this.claimToken.decimals).toHuman().toFormatted()
   }
 
   async calculateFee(senderAccount: TBSAccount<TBSNeo3Name>): Promise<string> {
@@ -95,8 +94,7 @@ export class ClaimServiceNeo3 implements IClaimService<TBSNeo3Name> {
 
     transaction.events.push(claimEvent)
 
-    const data: TClaimServiceTransactionData = { isClaim: true }
-    transaction.data = data
+    transaction.data = { isClaim: true }
 
     return transaction
   }
