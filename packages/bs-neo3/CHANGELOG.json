@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "3.1.12",
+      "tag": "@cityofzion/bs-neo3_v3.1.12",
+      "date": "Tue, 21 Apr 2026 16:34:29 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Return formatted unclaimed GAS"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.11",
       "tag": "@cityofzion/bs-neo3_v3.1.11",
       "date": "Fri, 17 Apr 2026 00:42:16 GMT",
