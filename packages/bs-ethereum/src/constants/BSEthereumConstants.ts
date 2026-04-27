@@ -165,7 +165,6 @@ export class BSEthereumConstants {
         url: this.RPC_LIST_BY_NETWORK_ID['250'][0],
         type: 'mainnet',
       },
-
       {
         id: '42220',
         name: 'Celo Mainnet',
@@ -182,6 +181,12 @@ export class BSEthereumConstants {
         id: '59144',
         name: 'Linea Mainnet',
         url: this.RPC_LIST_BY_NETWORK_ID['59144'][0],
+        type: 'mainnet',
+      },
+      {
+        id: '1101',
+        name: 'Polygon zkEVM Mainnet',
+        url: this.RPC_LIST_BY_NETWORK_ID['1101'][0],
         type: 'mainnet',
       },
     ],
@@ -207,12 +212,6 @@ export class BSEthereumConstants {
         name: 'Polygon Mainnet',
         url: this.RPC_LIST_BY_NETWORK_ID['137'][0],
         type: 'mainnet',
-      },
-      {
-        id: '1101',
-        name: 'Polygon zkEVM Testnet',
-        url: this.RPC_LIST_BY_NETWORK_ID['1101'][0],
-        type: 'testnet',
       },
       {
         id: '80002',
