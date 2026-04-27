@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-bitcoin",
   "entries": [
     {
+      "version": "3.1.13",
+      "tag": "@cityofzion/bs-bitcoin_v3.1.13",
+      "date": "Mon, 27 Apr 2026 20:18:15 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add CLAUDE.md"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.12",
       "tag": "@cityofzion/bs-bitcoin_v3.1.12",
       "date": "Tue, 21 Apr 2026 16:34:29 GMT",

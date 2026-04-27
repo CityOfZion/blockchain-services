@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-neo3
 
-This log was last generated on Tue, 21 Apr 2026 16:34:29 GMT and should not be manually modified.
+This log was last generated on Mon, 27 Apr 2026 20:18:15 GMT and should not be manually modified.
+
+## 3.1.13
+Mon, 27 Apr 2026 20:18:15 GMT
+
+### Updates
+
+- Add CLAUDE.md
 
 ## 3.1.12
 Tue, 21 Apr 2026 16:34:29 GMT
