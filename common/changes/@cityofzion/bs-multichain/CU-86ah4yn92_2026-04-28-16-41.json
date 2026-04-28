@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Remove extraId as required in Swap",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}
