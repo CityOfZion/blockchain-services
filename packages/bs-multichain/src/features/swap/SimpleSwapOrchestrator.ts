@@ -191,6 +191,7 @@ export class SimpleSwapOrchestrator implements ISwapOrchestrator<TBSServiceName>
 
       if (this.#extraIdToReceive.value && this.#tokenToReceive.value) {
         const extraIdToReceive = this.#extraIdToReceive.value.trim()
+
         this.#extraIdToReceive = {
           valid:
             !extraIdToReceive || !this.#tokenToReceive.value.validationExtra
@@ -414,10 +415,9 @@ export class SimpleSwapOrchestrator implements ISwapOrchestrator<TBSServiceName>
       !this.#tokenToUse.value.hash ||
       this.#tokenToUse.value.decimals === undefined ||
       isNaN(this.#tokenToUse.value.decimals) ||
-      (this.#tokenToReceive.value.hasExtraId &&
-        (!this.#extraIdToReceive.valid || !this.#extraIdToReceive.value?.trim()))
+      (this.#tokenToReceive.value.hasExtraId && this.#extraIdToReceive.valid === false)
     ) {
-      throw new BSError('Not all required fields are set', 'MISSING_REQUIRED_FIELDS')
+      throw new BSError('Invalid fields', 'INVALID_FIELDS')
     }
 
     const response: TSwapResponse<TBSServiceName> = {

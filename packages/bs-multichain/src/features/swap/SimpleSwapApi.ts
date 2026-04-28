@@ -253,7 +253,7 @@ export class SimpleSwapApi {
         amount,
         userRefundAddress: refundAddress,
         addressTo: address,
-        extraIdTo: extraIdToReceive?.trim() ?? null,
+        extraIdTo: extraIdToReceive?.trim() || null,
       })
 
       return {
