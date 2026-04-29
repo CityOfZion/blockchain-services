@@ -275,15 +275,20 @@ export class SimpleSwapOrchestrator implements ISwapOrchestrator<TBSServiceName>
 
         if (shouldRecalculateAmountToReceive && this.#tokenToReceive.value && this.#amountToUse.value) {
           try {
-            const estimate = await this.#api.getEstimate(
+            const estimatedValue = await this.#api.getEstimate(
               this.#tokenToUse.value,
               this.#tokenToReceive.value,
               this.#amountToUse.value
             )
 
-            this.#amountToReceive = {
-              value: estimate,
-            }
+            const decimals = this.#tokenToReceive.value.decimals
+
+            const value =
+              typeof decimals === 'number' && !isNaN(decimals)
+                ? new BSBigHumanAmount(estimatedValue, decimals).toFormatted()
+                : estimatedValue
+
+            this.#amountToReceive = { value }
           } catch (error: any) {
             this.eventEmitter.emit('error', error.message)
             this.#amountToReceive = { value: null }
