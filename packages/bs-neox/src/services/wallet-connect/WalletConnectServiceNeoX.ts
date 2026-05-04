@@ -1,5 +1,5 @@
-import { BSError, BSUtilsHelper, type TWalletConnectServiceMethodHandler } from '@cityofzion/blockchain-service'
-import { ethers } from 'ethers'
+import { BSError, type TWalletConnectServiceMethodHandler } from '@cityofzion/blockchain-service'
+import { JsonRpcProvider } from 'ethers'
 import { type TWalletConnectEthereumHandlers, WalletConnectServiceEthereum } from '@cityofzion/bs-ethereum'
 import { toHex } from 'viem'
 import axios from 'axios'
@@ -36,10 +36,10 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<
   #getTransactionCountHandler: TWalletConnectServiceMethodHandler<TBSNeoXName> = {
     validate: async () => {},
     process: async args => {
-      const wallet = await this._service._generateSigner(args.account)
-      const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+      const wallet = await this._service._getSigner(args.account)
+      const provider = new JsonRpcProvider(this._service.network.url)
       const connectedWallet = wallet.connect(provider)
-      return await connectedWallet.getTransactionCount('pending')
+      return await connectedWallet.getNonce('pending')
     },
   }
 
@@ -50,8 +50,8 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<
     validate: async params => await getCachedTransactionParamsSchema.parseAsync(params),
     process: async args => {
       const url = this._service.network.url
-      const wallet = await this._service._generateSigner(args.account)
-      const provider = new ethers.providers.JsonRpcProvider(url)
+      const wallet = await this._service._getSigner(args.account)
+      const provider = new JsonRpcProvider(url)
       const connectedWallet = wallet.connect(provider)
       const nonce = args.params[0]
       const signature = await connectedWallet.signMessage(nonce.toString())
@@ -73,11 +73,13 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<
     validate: async params => await this._sendTransactionHandler.validate(params),
     process: async args => {
       const { transaction, connectedWallet } = await this._resolveTransactionParams(args)
-      const [response, error] = await BSUtilsHelper.tryCatch(() => connectedWallet.sendTransaction(transaction))
-      const transactionHash: string = response?.hash || error?.returnedHash
+      const provider = new JsonRpcProvider(this._service.network.url)
+      const populatedTransaction = await connectedWallet.populateTransaction(transaction)
+      const signedTransaction = await connectedWallet.signTransaction(populatedTransaction)
+      const transactionHash: string = await provider.send('eth_sendRawTransaction', [signedTransaction])
 
       if (!transactionHash) {
-        throw error || new BSError('Transaction error', 'TRANSACTION_ERROR')
+        throw new BSError('Transaction error', 'TRANSACTION_ERROR')
       }
 
       return transactionHash

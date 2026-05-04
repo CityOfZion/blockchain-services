@@ -20,7 +20,7 @@ import {
   BSBigHumanAmount,
   BSBigNumber,
 } from '@cityofzion/blockchain-service'
-import { ethers } from 'ethers'
+import { ethers, computeAddress, isAddress, type TransactionRequest, JsonRpcProvider, type Signer } from 'ethers'
 import * as ethersJsonWallets from '@ethersproject/json-wallets'
 import * as ethersBytes from '@ethersproject/bytes'
 import { BSEthereumConstants } from './constants/BSEthereumConstants'
@@ -32,7 +32,6 @@ import { MoralisNDSEthereum } from './services/nft-data/MoralisNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
 import type { IBSEthereum, TBSEthereumName, TBSEthereumNetworkId } from './types'
-import { TypedDataSigner } from '@ethersproject/abstract-signer'
 import { WalletConnectServiceEthereum } from './services/wallet-connect/WalletConnectServiceEthereum'
 import axios from 'axios'
 import { MoralisFullTransactionsDataServiceEthereum } from './services/full-transactions-data/MoralisFullTransactionsDataServiceEthereum'
@@ -82,8 +81,8 @@ export class BSEthereum<
     this.setNetwork(network ?? this.defaultNetwork)
   }
 
-  async _generateSigner(account: TBSAccount<N>): Promise<ethers.Signer & TypedDataSigner> {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+  async _getSigner(account: TBSAccount<N>): Promise<Signer> {
+    const provider = new JsonRpcProvider(this.network.url)
 
     if (account.isHardware) {
       if (!this.ledgerService.getLedgerTransport)
@@ -94,6 +93,7 @@ export class BSEthereum<
       }
 
       const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
+
       return this.ledgerService.getSigner(ledgerTransport, account.bipPath, provider)
     }
 
@@ -101,15 +101,14 @@ export class BSEthereum<
   }
 
   async _buildTransferParams(intent: TTransferIntent) {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
-
+    const provider = new JsonRpcProvider(this.network.url)
     const amount = new BSBigHumanAmount(intent.amount, intent.token.decimals).toUnit().toString()
+    const { gasPrice } = await provider.getFeeData()
+    const gasPriceBn = new BSBigUnitAmount(gasPrice?.toString() || '0', BSEthereumConstants.DEFAULT_DECIMALS)
 
-    const gasPrice = await provider.getGasPrice()
-    const gasPriceBn = new BSBigUnitAmount(gasPrice.toString(), BSEthereumConstants.DEFAULT_DECIMALS)
-
-    let transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = {
+    let transactionParams: TransactionRequest = {
       type: 2,
+      chainId: parseInt(this.network.id),
     }
 
     const isNative = this.tokenService.predicateByHash(this.feeToken, intent.token.hash)
@@ -121,7 +120,7 @@ export class BSEthereum<
       const contract = new ethers.Contract(intent.token.hash, [
         'function transfer(address to, uint amount) returns (bool)',
       ])
-      const populatedTransaction = await contract.populateTransaction.transfer(intent.receiverAddress, amount)
+      const populatedTransaction = await contract.transfer.populateTransaction(intent.receiverAddress, amount)
       transactionParams = {
         ...populatedTransaction,
         ...transactionParams,
@@ -134,7 +133,7 @@ export class BSEthereum<
     }
   }
 
-  #setTokens(network: TBSNetwork<A>) {
+  _setTokens(network: TBSNetwork<A>) {
     const nativeAsset = BSEthereumHelper.getNativeAsset(network)
     this.tokens = [nativeAsset]
     this.nativeTokens = [nativeAsset]
@@ -149,7 +148,7 @@ export class BSEthereum<
       throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
     }
 
-    this.#setTokens(network)
+    this._setTokens(network)
 
     this.network = network
     this.networkUrls = networkUrls
@@ -190,7 +189,7 @@ export class BSEthereum<
   }
 
   validateAddress(address: string): boolean {
-    return ethers.utils.isAddress(address)
+    return isAddress(address)
   }
 
   validateEncrypted(json: string): boolean {
@@ -215,9 +214,8 @@ export class BSEthereum<
 
   async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
-    const hd = ethers.utils.HDNode.fromMnemonic(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic).derivePath(
-      bipPath
-    )
+    const ethersMnemonic = ethers.Mnemonic.fromPhrase(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
+    const hd = ethers.HDNodeWallet.fromMnemonic(ethersMnemonic, bipPath)
 
     return {
       address: hd.address,
@@ -240,7 +238,8 @@ export class BSEthereum<
   }
 
   async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>> {
-    const address = ethers.utils.computeAddress(publicKey)
+    const address = computeAddress(publicKey)
+
     return {
       address,
       key: publicKey,
@@ -265,13 +264,13 @@ export class BSEthereum<
   }
 
   async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
-    const signer = await this._generateSigner(senderAccount)
+    const signer = await this._getSigner(senderAccount)
 
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
     const transactions: TTransactionDefault<N>[] = []
     let error: Error | undefined
-    let nonce = await signer.getTransactionCount('pending')
+    let nonce = await signer.getNonce('pending')
 
     for (const intent of intents) {
       try {
@@ -339,7 +338,7 @@ export class BSEthereum<
   }
 
   async calculateTransferFee(params: TTransferParams<N>): Promise<string> {
-    const signer = await this._generateSigner(params.senderAccount)
+    const signer = await this._getSigner(params.senderAccount)
     let feeBn = new BSBigUnitAmount(0, BSEthereumConstants.DEFAULT_DECIMALS)
 
     for (const intent of params.intents) {
@@ -354,7 +353,7 @@ export class BSEthereum<
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {
-    const provider = new ethers.providers.JsonRpcProvider(this.network.url)
+    const provider = new JsonRpcProvider(this.network.url)
     const address = await provider.resolveName(domainName)
     if (!address) throw new Error('No address found for domain name')
     return address

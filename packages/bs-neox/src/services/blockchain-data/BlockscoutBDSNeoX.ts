@@ -13,7 +13,7 @@ import {
   type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
-import { ethers } from 'ethers'
+import { Interface } from 'ethers'
 import { BSEthereumConstants, ERC20_ABI, RpcBDSEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import type {
@@ -209,7 +209,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
       if (rawInput) {
         try {
-          const ERC20Interface = new ethers.utils.Interface(ERC20_ABI)
+          const ERC20Interface = new Interface(ERC20_ABI)
           const result = ERC20Interface.decodeFunctionData('transfer', rawInput)
 
           if (!result) throw new Error('Invalid ERC20 transfer')

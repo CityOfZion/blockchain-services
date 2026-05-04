@@ -184,7 +184,7 @@ describe('BSNeo3', () => {
     const neoToken = BSNeo3Constants.NEO_TOKEN
     const neoAmount = '1'
 
-    const claimEvent = await bsNeo3.claimService._buildTransactionEvent(senderAccount.address)
+    const claimEvent = await bsNeo3.claimService._buildTransactionEvent(address)
 
     const transactions = await bsNeo3.transfer({
       senderAccount,
@@ -214,6 +214,7 @@ describe('BSNeo3', () => {
         networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
+        data: { isClaim: true },
         events: [
           claimEvent,
           {
@@ -239,7 +240,6 @@ describe('BSNeo3', () => {
             token: neoToken,
           },
         ],
-        data: { isClaim: true },
       },
     ])
   })
@@ -298,6 +298,8 @@ describe('BSNeo3', () => {
     const neoToken = BSNeo3Constants.NEO_TOKEN
     const neoAmount = '1'
 
+    const claimEvent = await bsNeo3.claimService._buildTransactionEvent(address)
+
     const transactions = await service.transfer({
       senderAccount,
       intents: [
@@ -328,7 +330,9 @@ describe('BSNeo3', () => {
         networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
         view: 'default',
+        data: { isClaim: true },
         events: [
+          claimEvent,
           {
             eventType: 'token',
             amount: gasAmount,

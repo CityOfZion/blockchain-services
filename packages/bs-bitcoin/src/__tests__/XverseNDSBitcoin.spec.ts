@@ -124,7 +124,7 @@ describe('XverseNDSBitcoin', () => {
 
   it('Should be able to verify if has token by address and collection', async () => {
     const hasToken = await nftDataService.hasToken({
-      address: 'bc1p7c9z8a200rzge8usums3y5ktfpxrd2wmx9238fd8truzlsw06hrqs60dtc',
+      address: 'bc1py0a9thpsf2dydqj0x95hn9rnlpzwc479s6sqlfqwutr62lvy4zkscy4sqj',
       collectionHash: 'btcbrobear',
     })
 

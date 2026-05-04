@@ -15,7 +15,7 @@ import {
   type TTransactionBase,
 } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
-import { ethers } from 'ethers'
+import { ethers, Interface, JsonRpcProvider, type TransactionRequest } from 'ethers'
 import { BRIDGE_ABI } from '../../assets/abis/bridge'
 import { BSEthereumConstants, ERC20_ABI } from '@cityofzion/bs-ethereum'
 import axios from 'axios'
@@ -49,7 +49,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
   }
 
   async #buildApproveTransactionParam(params: TNeo3NeoXBridgeServiceGetApprovalParam<TBSNeoXName>) {
-    const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
+    const provider = new JsonRpcProvider(this.#service.network.url)
     const erc20Contract = new ethers.Contract(params.token.hash, ERC20_ABI, provider)
 
     const allowance = await erc20Contract.allowance(params.account.address, Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH)
@@ -63,7 +63,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
       return null
     }
 
-    return await erc20Contract.populateTransaction.approve(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, amount)
+    return await erc20Contract.approve.populateTransaction(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, amount)
   }
 
   _getDataFromBlockscoutTransaction(
@@ -73,11 +73,12 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
       return undefined
     }
 
-    const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
+    const BridgeInterface = new Interface(BRIDGE_ABI)
     const input = BridgeInterface.parseTransaction({ data: response.raw_input })
 
-    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+    if (!input) return undefined
 
+    const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
     const to = input.args._to
     const receiverAddress = wallet.getAddressFromScriptHash(to.startsWith('0x') ? to.slice(2) : to)
 
@@ -102,7 +103,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
 
   async getBridgeConstants(token: TBridgeToken<TBSNeoXName>): Promise<TNeo3NeoXBridgeServiceConstants> {
     try {
-      const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
+      const provider = new JsonRpcProvider(this.#service.network.url)
       const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI, provider)
 
       const isNativeToken = this.#service.tokenService.predicateByHash(token, BSNeoXConstants.NATIVE_ASSET)
@@ -150,18 +151,18 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
         throw new Error('Invalid chainId')
       }
 
-      const signer = await this.#service._generateSigner(params.account)
-      const nonce = await signer.getTransactionCount('pending')
+      const signer = await this.#service._getSigner(params.account)
+      const nonce = await signer.getNonce('pending')
 
       if (isNaN(nonce)) {
         throw new Error('Invalid nonce')
       }
 
       const approvedEstimated = await signer.estimateGas({ ...populatedApproveTransaction, chainId, nonce, type: 2 })
-      const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
-      const gasPrice = await provider.getGasPrice()
+      const provider = new JsonRpcProvider(this.#service.network.url)
+      const { gasPrice } = await provider.getFeeData()
 
-      return new BSBigUnitAmount(gasPrice.toString(), BSEthereumConstants.DEFAULT_DECIMALS)
+      return new BSBigUnitAmount(gasPrice?.toString() || '0', BSEthereumConstants.DEFAULT_DECIMALS)
         .multipliedBy(approvedEstimated.toString())
         .toHuman()
         .toFormatted()
@@ -179,22 +180,22 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
       throw new BSError('Bridging to Neo3 is only supported on mainnet', 'UNSUPPORTED_NETWORK')
     }
 
-    const signer = await this.#service._generateSigner(params.account)
+    const signer = await this.#service._getSigner(params.account)
     const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI)
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
     const to: THexString = `0x${wallet.getScriptHashFromAddress(params.receiverAddress)}`
     const bridgeFee = new BSBigHumanAmount(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals).toUnit().toString()
     const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
+    const provider = new JsonRpcProvider(this.#service.network.url)
+    const { gasPrice } = await provider.getFeeData()
+    const gasPriceBn = new BSBigUnitAmount(gasPrice?.toString() || '0', BSEthereumConstants.DEFAULT_DECIMALS)
 
-    const gasPrice = await signer.getGasPrice()
-    const gasPriceBn = new BSBigUnitAmount(gasPrice.toString(), BSEthereumConstants.DEFAULT_DECIMALS)
-
-    const transactionParams: ethers.utils.Deferrable<ethers.providers.TransactionRequest> = { type: 2 }
+    const transactionParams: TransactionRequest = { type: 2 }
 
     if (isNativeToken) {
-      const populatedTransactionParams = await bridgeContract.populateTransaction.withdrawNative(to, bridgeFee)
-
+      const populatedTransactionParams = await bridgeContract.withdrawNative.populateTransaction(to, bridgeFee)
       const value = new BSBigHumanAmount(params.amount, params.token.decimals).toUnit().plus(bridgeFee).toString()
+
       Object.assign(transactionParams, populatedTransactionParams, { value })
     } else {
       const approveTransactionParam = await this.#buildApproveTransactionParam(params)
@@ -206,7 +207,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
           transactionParams: approveTransactionParam,
         })
 
-        const provider = new ethers.providers.JsonRpcProvider(this.#service.network.url)
+        const provider = new JsonRpcProvider(this.#service.network.url)
 
         await provider.waitForTransaction(transactionHash)
       }
@@ -214,7 +215,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
       const fixedAmount = new BSBigHumanAmount(params.amount, 0).toFormatted()
       const amount = new BSBigHumanAmount(fixedAmount, params.token.decimals).toUnit().toString()
 
-      const populatedTransactionParams = await bridgeContract.populateTransaction.withdrawToken(
+      const populatedTransactionParams = await bridgeContract.withdrawToken.populateTransaction(
         params.token.hash,
         to,
         amount
@@ -240,7 +241,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
       throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', transactionLogsResponseError)
 
     const [nonce, nonceError] = await BSUtilsHelper.tryCatch(() => {
-      const BridgeInterface = new ethers.utils.Interface(BRIDGE_ABI)
+      const BridgeInterface = new Interface(BRIDGE_ABI)
 
       const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
 
@@ -250,7 +251,12 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
         data: log.data,
         topics: log.topics.filter(Boolean),
       })
-      return parsedLog.args.nonce ? parsedLog.args.nonce.toString() : undefined
+
+      if (!parsedLog) return undefined
+
+      const nonce = parsedLog.args.nonce
+
+      return nonce !== undefined && nonce !== null ? nonce.toString() : undefined
     })
 
     if (!nonce) {

@@ -11,39 +11,48 @@ import {
 } from '@cityofzion/blockchain-service'
 import Transport from '@ledgerhq/hw-transport'
 import LedgerEthereumApp, { ledgerService as LedgerEthereumAppService } from '@ledgerhq/hw-app-eth'
-import { ethers, Signer } from 'ethers'
-import { TypedDataSigner } from '@ethersproject/abstract-signer'
+import {
+  ethers,
+  hexlify,
+  toUtf8Bytes,
+  AbstractSigner,
+  type Provider,
+  Signature,
+  Transaction,
+  TypedDataEncoder,
+  SignatureLike,
+  TransactionLike,
+} from 'ethers'
 import { defineReadOnly } from '@ethersproject/properties'
 import EventEmitter from 'events'
 import { BSEthereum } from '../../BSEthereum'
 
-export class EthersLedgerSigner extends Signer implements TypedDataSigner {
-  static shouldRetry = (error: any): boolean => {
-    return error?.id === 'TransportLocked'
-  }
+const ensure0x = (value: string): string => {
+  return value.startsWith('0x') ? value : `0x${value}`
+}
 
+export class EthersLedgerSigner extends AbstractSigner {
   #transport: Transport
   #emitter?: TLedgerServiceEmitter
   #bipPath: string
   #ledgerApp: LedgerEthereumApp
 
-  constructor(
-    transport: Transport,
-    bipPath: string,
-    provider?: ethers.providers.Provider,
-    emitter?: TLedgerServiceEmitter
-  ) {
-    super()
+  constructor(transport: Transport, bipPath: string, provider?: Provider, emitter?: TLedgerServiceEmitter) {
+    super(provider)
 
     this.#bipPath = bipPath
     this.#transport = transport
     this.#emitter = emitter
     this.#ledgerApp = new LedgerEthereumApp(transport)
 
-    defineReadOnly(this, 'provider', provider)
+    if (provider) defineReadOnly(this, 'provider', provider)
   }
 
-  connect(provider: ethers.providers.Provider): EthersLedgerSigner {
+  static shouldRetry(error: any): boolean {
+    return error?.id === 'TransportLocked'
+  }
+
+  connect(provider: Provider): EthersLedgerSigner {
     return new EthersLedgerSigner(this.#transport, this.#bipPath, provider, this.#emitter)
   }
 
@@ -55,36 +64,34 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
     return address
   }
 
-  async signMessage(message: string | ethers.utils.Bytes): Promise<string> {
+  async signMessage(message: string | Uint8Array): Promise<string> {
     try {
       if (typeof message === 'string') {
-        message = ethers.utils.toUtf8Bytes(message)
+        message = toUtf8Bytes(message)
       }
 
       this.#emitter?.emit('getSignatureStart')
 
-      const obj = await this.#ledgerApp.signPersonalMessage(this.#bipPath, ethers.utils.hexlify(message).substring(2))
+      const signature = await this.#ledgerApp.signPersonalMessage(this.#bipPath, hexlify(message).substring(2))
 
       this.#emitter?.emit('getSignatureEnd')
 
-      // Normalize the signature for Ethers
-      obj.r = '0x' + obj.r
-      obj.s = '0x' + obj.s
+      signature.r = ensure0x(signature.r)
+      signature.s = ensure0x(signature.s)
 
-      return ethers.utils.joinSignature(obj)
+      return Signature.from(signature).serialized
     } catch (error) {
       this.#emitter?.emit('getSignatureEnd')
       throw error
     }
   }
 
-  async signTransaction(transaction: ethers.utils.Deferrable<ethers.providers.TransactionRequest>): Promise<string> {
+  async signTransaction(transaction: Transaction | TransactionLike): Promise<string> {
     try {
-      const tx = await ethers.utils.resolveProperties(transaction)
+      const { from: _from, ...transactionRecord } =
+        transaction instanceof Transaction ? transaction.toJSON() : transaction
 
-      const serializedUnsignedTransaction = ethers.utils
-        .serializeTransaction(<ethers.utils.UnsignedTransaction>tx)
-        .substring(2)
+      const serializedUnsignedTransaction = Transaction.from(transactionRecord).unsignedSerialized.substring(2)
 
       const resolution = await LedgerEthereumAppService.resolveTransaction(serializedUnsignedTransaction, {}, {})
 
@@ -94,60 +101,62 @@ export class EthersLedgerSigner extends Signer implements TypedDataSigner {
 
       this.#emitter?.emit('getSignatureEnd')
 
-      return ethers.utils.serializeTransaction(<ethers.utils.UnsignedTransaction>tx, {
-        v: BSBigNumber.ensureNumber('0x' + signature.v),
-        r: '0x' + signature.r,
-        s: '0x' + signature.s,
-      })
+      return Transaction.from({
+        ...transactionRecord,
+        signature: {
+          v: BSBigNumber.ensureNumber(ensure0x(signature.v)),
+          r: ensure0x(signature.r),
+          s: ensure0x(signature.s),
+        },
+      }).serialized
     } catch (error) {
       this.#emitter?.emit('getSignatureEnd')
+
       throw error
     }
   }
 
-  async _signTypedData(
+  async signTypedData(
     domain: ethers.TypedDataDomain,
     types: Record<string, ethers.TypedDataField[]>,
     value: Record<string, any>
   ): Promise<string> {
     try {
-      const populated = await ethers.utils._TypedDataEncoder.resolveNames(
-        domain,
-        types,
-        value,
-        async (name: string) => {
-          if (!this.provider) throw new Error('Cannot resolve ENS names without a provider')
-          const resolved = await this.provider.resolveName(name)
-          if (!resolved) throw new Error('No address found for domain name')
-          return resolved
-        }
-      )
+      const populated = await TypedDataEncoder.resolveNames(domain, types, value, async (name: string) => {
+        if (!this.provider) throw new Error('Cannot resolve ENS names without a provider')
 
-      const payload = ethers.utils._TypedDataEncoder.getPayload(populated.domain, types, populated.value)
+        const resolved = await this.provider.resolveName(name)
+
+        if (!resolved) throw new Error('No address found for domain name')
+
+        return resolved
+      })
+
+      const payload = TypedDataEncoder.getPayload(populated.domain, types, populated.value)
 
       this.#emitter?.emit('getSignatureStart')
 
-      let obj: { v: number; s: string; r: string }
+      let signature: SignatureLike
 
       try {
-        obj = await this.#ledgerApp.signEIP712Message(this.#bipPath, payload)
+        signature = await this.#ledgerApp.signEIP712Message(this.#bipPath, payload)
       } catch {
-        const domainSeparatorHex = ethers.utils._TypedDataEncoder.hashDomain(payload.domain)
-        const hashStructMessageHex = ethers.utils._TypedDataEncoder.hashStruct(
-          payload.primaryType,
-          types,
-          payload.message
+        const domainSeparatorHex = TypedDataEncoder.hashDomain(payload.domain)
+        const hashStructMessageHex = TypedDataEncoder.hashStruct(payload.primaryType, types, payload.message)
+
+        signature = await this.#ledgerApp.signEIP712HashedMessage(
+          this.#bipPath,
+          domainSeparatorHex,
+          hashStructMessageHex
         )
-        obj = await this.#ledgerApp.signEIP712HashedMessage(this.#bipPath, domainSeparatorHex, hashStructMessageHex)
       }
 
       this.#emitter?.emit('getSignatureEnd')
 
-      // Normalize the signature for Ethers
-      obj.r = '0x' + obj.r
-      obj.s = '0x' + obj.s
+      signature.r = ensure0x(signature.r)
+      signature.s = ensure0x(signature.s)
 
-      return ethers.utils.joinSignature(obj)
+      return Signature.from(signature).serialized
     } catch (error) {
       this.#emitter?.emit('getSignatureEnd')
       throw error
@@ -189,7 +198,7 @@ export class EthersLedgerServiceEthereum<N extends string> implements ILedgerSer
       shouldRetry: EthersLedgerSigner.shouldRetry,
     })
 
-    const publicKeyWithPrefix = '0x' + publicKey
+    const publicKeyWithPrefix = ensure0x(publicKey)
 
     return {
       address,
@@ -201,7 +210,7 @@ export class EthersLedgerServiceEthereum<N extends string> implements ILedgerSer
     }
   }
 
-  getSigner(transport: Transport, path: string, provider?: ethers.providers.Provider): EthersLedgerSigner {
+  getSigner(transport: Transport, path: string, provider?: Provider): EthersLedgerSigner {
     return new EthersLedgerSigner(transport, path, provider, this.emitter)
   }
 }

@@ -38,6 +38,7 @@ describe('WalletConnectServiceEthereum', () => {
     expect(walletConnectService.supportedMethods).toContain('eth_signTypedData_v3')
     expect(walletConnectService.supportedMethods).toContain('eth_signTypedData_v4')
     expect(walletConnectService.supportedMethods).toContain('eth_sendTransaction')
+    expect(walletConnectService.supportedMethods).toContain('eth_getNonce')
     expect(walletConnectService.supportedMethods).toContain('eth_call')
     expect(walletConnectService.supportedMethods).toContain('eth_requestAccounts')
     expect(walletConnectService.supportedMethods).toContain('eth_sendRawTransaction')
@@ -105,7 +106,7 @@ describe('WalletConnectServiceEthereum', () => {
 
   it('Should be able to sign a message with personal_sign using mnemonic account', async () => {
     const wallet = ethers.Wallet.createRandom()
-    const mnemonicPhrase = wallet.mnemonic.phrase
+    const mnemonicPhrase = wallet.mnemonic!.phrase
     const accountFromMnemonic = await service.generateAccountFromMnemonic(mnemonicPhrase, 0)
     const message = 'Hello, World!'
 

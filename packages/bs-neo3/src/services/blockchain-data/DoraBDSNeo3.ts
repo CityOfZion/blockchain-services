@@ -1,13 +1,13 @@
 import {
+  BSBigHumanAmount,
+  BSBigUnitAmount,
   BSCommonConstants,
   type TBalanceResponse,
   type TBSToken,
+  type TContractResponse,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TContractResponse,
   type TTransactionDefault,
-  BSBigUnitAmount,
-  BSBigHumanAmount,
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
@@ -60,7 +60,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       ...this._service.voteService._getTransactionDataFromEvents(events),
     }
 
-    const transaction: TTransactionDefault<TBSNeo3Name> = {
+    return {
       blockchain: this._service.name,
       isPending: false,
       txId,
@@ -70,13 +70,11 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       systemFeeAmount: new BSBigUnitAmount(response.sysfee, this._service.feeToken.decimals).toHuman().toFormatted(),
       networkFeeAmount: new BSBigUnitAmount(response.netfee, this._service.feeToken.decimals).toHuman().toFormatted(),
       invocationCount: 0,
-      notificationCount: 0,
+      notificationCount: notifications.length,
       view: 'default',
       events,
       data,
     }
-
-    return transaction
   }
 
   async getTransactionsByAddress({
@@ -122,7 +120,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         systemFeeAmount: new BSBigUnitAmount(item.sysfee, this._service.feeToken.decimals).toHuman().toFormatted(),
         networkFeeAmount: new BSBigUnitAmount(item.netfee, this._service.feeToken.decimals).toHuman().toFormatted(),
         invocationCount: 0,
-        notificationCount: notifications?.length ?? 0,
+        notificationCount: notifications.length,
         view: 'default',
         events,
         data,

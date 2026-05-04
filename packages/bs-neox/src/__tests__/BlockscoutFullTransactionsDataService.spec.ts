@@ -1,6 +1,6 @@
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { BSNeoX } from '../BSNeoX'
-import type { TGetFullTransactionsByAddressParams, TTransactionDefaultNftEvent } from '@cityofzion/blockchain-service'
+import type { TGetFullTransactionsByAddressParams } from '@cityofzion/blockchain-service'
 import { BlockscoutFullTransactionsDataService } from '../services/full-transactions-data/BlockscoutFullTransactionsDataService'
 
 const address = '0x889D02c0df966Ea5BE11dd8E3Eb0d5E4BD0500dD'
@@ -227,35 +227,6 @@ describe('BlockscoutFullTransactionsDataService', () => {
       expect(response.nextPageParams).toBeTruthy()
       expect(response.transactions.length).toBeTruthy()
       expect(nextResponse.transactions.length).toBeTruthy()
-    })
-
-    // The NFTs on Neo X should be implemented in future in Dora (remove mock to test)
-    it.skip('Should be able to get transactions with NFTs when it was called using Neo X Mainnet network', async () => {
-      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress({
-        ...params,
-        address: '0xE3aBC0b2A74FD2eF662b1c25C9769398f53b4304',
-        dateFrom: new Date('2024-01-01T12:00:00').toJSON(),
-        dateTo: new Date('2024-12-31T12:00:00').toJSON(),
-      })
-
-      const nftEvents = response.transactions
-        .flatMap(({ events }) => events)
-        .filter(({ eventType }) => eventType === 'nft') as TTransactionDefaultNftEvent[]
-
-      expect(nftEvents).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            eventType: 'nft',
-            amount: '1',
-            methodName: expect.any(String),
-            from: expect.anything(),
-            fromUrl: expect.anything(),
-            to: expect.anything(),
-            toUrl: expect.anything(),
-            nft: expect.anything(),
-          }),
-        ])
-      )
     })
 
     it('Should be able to get transactions with default pageSize param', async () => {

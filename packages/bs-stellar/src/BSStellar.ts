@@ -122,9 +122,11 @@ export class BSStellar implements IBSStellar {
     })
 
     for (const intent of intents) {
-      let accountExists = false
+      let accountExists: boolean
+
       try {
         await this._ensureAccountOnChain(intent.receiverAddress)
+
         accountExists = true
       } catch {
         accountExists = false
@@ -189,8 +191,6 @@ export class BSStellar implements IBSStellar {
           startingBalance: intent.amount,
         })
       )
-
-      continue
     }
 
     return transaction.setTimeout(30).build()
@@ -314,13 +314,13 @@ export class BSStellar implements IBSStellar {
 
     return [
       {
-        relatedAddress: address,
-        blockchain: this.name,
-        isPending: true,
         txId,
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
+        blockchain: this.name,
+        isPending: true,
         date: new Date().toJSON(),
         networkFeeAmount: new BSBigUnitAmount(transaction.fee, this.feeToken.decimals).toHuman().toFormatted(),
+        relatedAddress: address,
         view: 'default',
         events: params.intents.map(({ amount, receiverAddress, token }, index) => ({
           eventType: 'token',

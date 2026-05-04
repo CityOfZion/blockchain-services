@@ -13,16 +13,16 @@ let transport: Transport
 let bsSolana: BSSolana
 const network = BSSolanaConstants.TESTNET_NETWORK
 
-describe.skip('NeonDappKitLedgerServiceNeo3', () => {
+describe.skip('Web3LedgerServiceSolana', () => {
   beforeAll(async () => {
     bsSolana = new BSSolana(network)
-
     transport = await TransportNodeHid.create()
     ledgerService = new Web3LedgerServiceSolana(bsSolana, async () => transport)
   })
 
   it('Should be able to get all accounts', async () => {
     const accounts = await ledgerService.getAccounts(transport)
+
     expect(accounts.length).toBeGreaterThan(1)
 
     accounts.forEach((account, index) => {
