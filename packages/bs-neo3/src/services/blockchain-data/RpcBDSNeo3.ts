@@ -1,19 +1,19 @@
 import {
+  BSBigUnitAmount,
   BSUtilsHelper,
+  type IBlockchainDataService,
   type TBalanceResponse,
+  type TBSToken,
   type TContractMethod,
   type TContractParameter,
-  type IBlockchainDataService,
-  type TBSToken,
+  type TContractResponse,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TContractResponse,
   type TTransactionDefault,
-  type TTransactionDefaultGenericEvent,
-  type TTransactionDefaultTokenEvent,
-  type TTransactionDefaultNftEvent,
   type TTransactionDefaultEvent,
-  BSBigUnitAmount,
+  type TTransactionDefaultGenericEvent,
+  type TTransactionDefaultNftEvent,
+  type TTransactionDefaultTokenEvent,
 } from '@cityofzion/blockchain-service'
 import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification, TRpcBDSNeo3NotificationState } from '../../types'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
@@ -143,7 +143,7 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
         ...this._service.voteService._getTransactionDataFromEvents(events),
       }
 
-      const transaction: TTransactionDefault<TBSNeo3Name> = {
+      return {
         blockchain: this._service.name,
         isPending: false,
         txId,
@@ -158,8 +158,6 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
         events,
         data,
       }
-
-      return transaction
     } catch {
       throw new Error(`Transaction not found: ${hash}`)
     }

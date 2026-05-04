@@ -25,18 +25,19 @@
     "@ethersproject/bytes": "5.8.0",
     "@ethersproject/json-wallets": "5.8.0",
     "@ethersproject/properties": "5.8.0",
-    "@ledgerhq/hw-app-eth": "~7.3.0",
-    "axios": "~1.15.0",
-    "ethers": "5.8.0",
-    "zod": "~4.3.6"
+    "@ledgerhq/hw-app-eth": "~7.8.1",
+    "axios": "1.16.0",
+    "ethers": "6.16.0",
+    "zod": "~4.4.3"
   },
   "devDependencies": {
-    "@ledgerhq/hw-transport": "~6.32.0",
-    "@ledgerhq/hw-transport-node-hid": "~6.30.0",
+    "@ledgerhq/hw-transport": "6.35.1",
+    "@ledgerhq/hw-transport-node-hid": "~6.33.1",
+    "@types/node": "~25.6.0",
     "date-fns": "~4.1.0",
-    "dotenv": "~17.3.1",
-    "eslint": "~9.37.0",
-    "typescript": "~5.9.2",
-    "vitest": "~4.0.18"
+    "dotenv": "~17.4.2",
+    "eslint": "~10.3.0",
+    "typescript": "~6.0.3",
+    "vitest": "~4.1.5"
   }
 }

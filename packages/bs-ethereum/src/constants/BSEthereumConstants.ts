@@ -82,9 +82,10 @@ export class BSEthereumConstants {
       'https://polygon-zkevm.blockpi.network/v1/rpc/public',
     ],
     '80002': [
-      'https://polygon-amoy.drpc.org',
       'https://polygon-amoy-bor-rpc.publicnode.com',
       'https://rpc.ankr.com/polygon_amoy',
+      'https://rpc-amoy.polygon.technology',
+      'https://polygon-amoy.drpc.org',
     ],
     '8453': [
       'https://base.llamarpc.com',

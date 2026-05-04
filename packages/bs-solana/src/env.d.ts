@@ -1,7 +1,7 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
-      MORALIS_API_KEY: string
+      TEST_MNEMONIC: string
     }
   }
 }

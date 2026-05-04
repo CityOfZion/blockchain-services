@@ -10,7 +10,7 @@ let service: BSSolana
 let walletConnectServiceSolana: WalletConnectServiceSolana
 let account: TBSAccount<TBSSolanaName>
 
-const mnemonic = process.env.TEST_MNEMONIC as string
+const mnemonic = process.env.TEST_MNEMONIC
 
 describe('WalletConnectServiceSolana', () => {
   beforeEach(async () => {

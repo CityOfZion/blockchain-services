@@ -6,6 +6,13 @@ import { TokenServiceEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import type { TBSNeoXName, TBSNeoXNetworkId } from '../types'
 
+vi.mock('ethers', async importOriginal => {
+  const actual = await importOriginal<typeof import('ethers')>()
+
+  // Create a new object to avoid export error
+  return { ...actual, ethers: { ...actual.ethers } }
+})
+
 let neo3NeoXBridgeService: Neo3NeoXBridgeService
 let bsNeoXService: BSNeoX
 let account: TBSAccount<TBSNeoXName>
@@ -77,7 +84,8 @@ describe('Neo3NeoXBridgeService', () => {
   })
 
   it('Should not be able to get the approval fee for NEO bridge when it is already approved', async () => {
-    const allowanceMock = vi.fn().mockResolvedValue(ethers.BigNumber.from('1000000000000000000'))
+    const allowanceMock = vi.fn().mockResolvedValue(BigInt('1000000000000000000'))
+
     vi.spyOn(ethers, 'Contract').mockImplementation(
       () =>
         ({
@@ -90,6 +98,7 @@ describe('Neo3NeoXBridgeService', () => {
     ).rejects.toSatisfy((error: unknown) => {
       expect(error).toBeInstanceOf(BSError)
       expect((error as BSError).code).toBe('ALLOWANCE_FEE_ERROR')
+
       return true
     })
   })
@@ -199,7 +208,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -230,7 +239,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -258,7 +267,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have NEO balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -289,7 +298,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have NEO balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,

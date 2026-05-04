@@ -1,19 +1,19 @@
 import {
+  BSBigUnitAmount,
   BSCommonConstants,
   BSUtilsHelper,
   type TBalanceResponse,
-  type TContractMethod,
   type TBSNetwork,
   type TBSToken,
+  type TContractMethod,
+  type TContractResponse,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TContractResponse,
   type TTransactionDefault,
   type TTransactionDefaultEvent,
-  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
-import { ethers } from 'ethers'
+import { Interface } from 'ethers'
 import { BSEthereumConstants, ERC20_ABI, RpcBDSEthereum } from '@cityofzion/bs-ethereum'
 import { BSNeoXConstants } from '../../constants/BSNeoXConstants'
 import type {
@@ -148,7 +148,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
     const txId = response.hash
 
-    const transaction: TTransactionDefault<TBSNeoXName> = {
+    return {
       blockchain: this._service.name,
       isPending: false,
       txId,
@@ -162,8 +162,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
       events,
       data,
     }
-
-    return transaction
   }
 
   async getTransactionsByAddress(
@@ -212,7 +210,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
       if (rawInput) {
         try {
-          const ERC20Interface = new ethers.utils.Interface(ERC20_ABI)
+          const ERC20Interface = new Interface(ERC20_ABI)
           const result = ERC20Interface.decodeFunctionData('transfer', rawInput)
 
           if (!result) throw new Error('Invalid ERC20 transfer')
