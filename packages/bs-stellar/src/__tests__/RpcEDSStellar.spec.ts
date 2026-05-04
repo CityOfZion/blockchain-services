@@ -1,14 +1,21 @@
-import type { TBSToken } from '@cityofzion/blockchain-service'
+import { BSUtilsHelper, TBSToken } from '@cityofzion/blockchain-service'
 import { BSStellarConstants } from '../constants/BSStellarConstants'
 import { RpcEDSStellar } from '../services/exchange/RpcEDSStellar'
 import { BSStellar } from '../BSStellar'
 
 let rpcEDSSolana: RpcEDSStellar
 
-describe('RpcEDSStellar', () => {
+// Avoid API key error
+describe.skip('RpcEDSStellar', () => {
   beforeAll(() => {
     const service = new BSStellar(BSStellarConstants.MAINNET_NETWORK)
+
     rpcEDSSolana = new RpcEDSStellar(service)
+  })
+
+  beforeEach(async () => {
+    // Wait to avoid rate limit
+    await BSUtilsHelper.wait(4000)
   })
 
   it('Should return the XLM price in USD', async () => {

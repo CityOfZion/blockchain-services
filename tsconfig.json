@@ -8,6 +8,6 @@
     "moduleResolution": "nodenext",
     "strict": true,
     "lib": ["ESNext", "DOM"],
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals", "node"]
   }
 }

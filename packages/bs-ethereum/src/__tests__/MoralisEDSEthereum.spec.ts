@@ -1,4 +1,4 @@
-import type { TBSNetworkId } from '@cityofzion/blockchain-service'
+import { BSUtilsHelper, TBSNetworkId } from '@cityofzion/blockchain-service'
 import { MoralisEDSEthereum } from '../services/exchange-data/MoralisEDSEthereum'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { BSEthereum } from '../BSEthereum'
@@ -6,10 +6,16 @@ import { BSEthereum } from '../BSEthereum'
 let service: BSEthereum<'ethereum', TBSNetworkId>
 let moralisEDSEthereum: MoralisEDSEthereum<'ethereum', TBSNetworkId>
 
-describe('MoralisEDSEthereum', () => {
+// Avoid API key error
+describe.skip('MoralisEDSEthereum', () => {
   beforeAll(() => {
     service = new BSEthereum('ethereum')
     moralisEDSEthereum = new MoralisEDSEthereum(service)
+  })
+
+  beforeEach(async () => {
+    // Wait to avoid rate limit
+    await BSUtilsHelper.wait(4000)
   })
 
   it('Should return the ETH and USDT prices in USD', async () => {

@@ -3,14 +3,31 @@ import { BSError } from '../error'
 
 export class BSBigNumber extends BigNumber {
   constructor(value: BigNumber.Value, base?: number) {
-    super(value, base)
+    if (BSBigNumber._isValueString(value) && BSBigNumber._isBaseNumber(base)) {
+      super(value, base)
+    } else {
+      super(value)
+    }
+  }
+
+  static _isValueString(value: BigNumber.Value): value is string {
+    return typeof value === 'string'
+  }
+
+  static _isBaseNumber(base?: number): base is number {
+    return typeof base === 'number'
   }
 
   static ensureNumber(value: number | string | bigint | undefined) {
-    const bn = new BigNumber(value || 0)
-    if (bn.isNaN()) {
+    let bn: BigNumber
+
+    try {
+      bn = new BigNumber(value || 0)
+    } catch {
       return 0
     }
+
+    if (bn.isNaN()) return 0
 
     return bn.toNumber()
   }
@@ -23,20 +40,34 @@ export class BSBigNumber extends BigNumber {
     return new (this.constructor as any)(value) as this
   }
 
-  plus(n: BigNumber.Value, base?: number): this {
-    return this._wrap(super.plus(n, base))
+  plus(value: BigNumber.Value, base?: number): this {
+    return this._wrap(
+      BSBigNumber._isValueString(value) && BSBigNumber._isBaseNumber(base) ? super.plus(value, base) : super.plus(value)
+    )
   }
 
-  minus(n: BigNumber.Value, base?: number): this {
-    return this._wrap(super.minus(n, base))
+  minus(value: BigNumber.Value, base?: number): this {
+    return this._wrap(
+      BSBigNumber._isValueString(value) && BSBigNumber._isBaseNumber(base)
+        ? super.minus(value, base)
+        : super.minus(value)
+    )
   }
 
-  multipliedBy(n: BigNumber.Value, base?: number): this {
-    return this._wrap(super.multipliedBy(n, base))
+  multipliedBy(value: BigNumber.Value, base?: number): this {
+    return this._wrap(
+      BSBigNumber._isValueString(value) && BSBigNumber._isBaseNumber(base)
+        ? super.multipliedBy(value, base)
+        : super.multipliedBy(value)
+    )
   }
 
-  dividedBy(n: BigNumber.Value, base?: number): this {
-    return this._wrap(super.dividedBy(n, base))
+  dividedBy(value: BigNumber.Value, base?: number): this {
+    return this._wrap(
+      BSBigNumber._isValueString(value) && BSBigNumber._isBaseNumber(base)
+        ? super.dividedBy(value, base)
+        : super.dividedBy(value)
+    )
   }
 
   integerValue(roundingMode?: BigNumber.RoundingMode): this {
@@ -54,7 +85,11 @@ export class BSBigHumanAmount extends BSBigNumber {
       })
     }
 
-    if (!value || new BigNumber(value).isNaN()) {
+    try {
+      if (!value || new BigNumber(value).isNaN()) {
+        value = 0
+      }
+    } catch {
       value = 0
     }
 
@@ -77,6 +112,7 @@ export class BSBigHumanAmount extends BSBigNumber {
     }
 
     const shifted = this.shiftedBy(this.decimals)
+
     return new BSBigUnitAmount(shifted, this.decimals)
   }
 }
@@ -85,7 +121,11 @@ export class BSBigUnitAmount extends BSBigNumber {
   decimals?: number
 
   constructor(value: BigNumber.Value | undefined | null, decimals: number | string) {
-    if (!value || new BigNumber(value).isNaN()) {
+    try {
+      if (!value || new BigNumber(value).isNaN()) {
+        value = 0
+      }
+    } catch {
       value = 0
     }
 
@@ -100,6 +140,7 @@ export class BSBigUnitAmount extends BSBigNumber {
 
   toHuman() {
     const shifted = this.shiftedBy(-this.decimals!)
+
     return new BSBigHumanAmount(shifted, this.decimals)
   }
 }

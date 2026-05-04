@@ -105,7 +105,7 @@ describe('WalletConnectServiceEthereum', () => {
 
   it('Should be able to sign a message with personal_sign using mnemonic account', async () => {
     const wallet = ethers.Wallet.createRandom()
-    const mnemonicPhrase = wallet.mnemonic.phrase
+    const mnemonicPhrase = wallet.mnemonic!.phrase
     const accountFromMnemonic = await service.generateAccountFromMnemonic(mnemonicPhrase, 0)
     const message = 'Hello, World!'
 

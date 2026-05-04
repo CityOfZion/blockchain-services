@@ -122,15 +122,30 @@ describe('VoteServiceNeo3', () => {
       blockchain: 'neo3',
       isPending: true,
       relatedAddress: account.address,
-      type: 'vote',
       view: 'default',
+      data: {
+        isVote: true,
+      },
       events: [
         {
           eventType: 'token',
-          amount: '0',
-          methodName: 'vote',
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+          methodName: 'transfer',
+          to: expect.any(String),
+          toUrl: expect.any(String),
           tokenUrl: expect.any(String),
-          token: BSNeo3Constants.NEO_TOKEN,
+          token: BSNeo3Constants.GAS_TOKEN,
+        },
+        {
+          eventType: 'generic',
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+          methodName: 'vote',
+          from: expect.any(String),
+          fromUrl: expect.any(String),
+          data: {
+            candidate: cozCandidatePubKey,
+            token: BSNeo3Constants.NEO_TOKEN.symbol,
+          },
         },
       ],
     })
@@ -158,14 +173,29 @@ describe('VoteServiceNeo3', () => {
       isPending: true,
       relatedAddress: account.address,
       view: 'default',
+      data: {
+        isVote: true,
+      },
       events: [
         {
+          eventType: 'token',
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+          methodName: 'transfer',
+          to: expect.any(String),
+          toUrl: expect.any(String),
+          tokenUrl: expect.any(String),
+          token: BSNeo3Constants.GAS_TOKEN,
+        },
+        {
           eventType: 'generic',
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
           methodName: 'vote',
-          from: account.address,
-          fromUrl: bsNeo3.explorerService.buildAddressUrl(account.address),
-          amount: '1',
-          data: { candidate: cozCandidatePubKey, token: BSNeo3Constants.NEO_TOKEN.symbol },
+          from: expect.any(String),
+          fromUrl: expect.any(String),
+          data: {
+            candidate: cozCandidatePubKey,
+            token: BSNeo3Constants.NEO_TOKEN.symbol,
+          },
         },
       ],
     })

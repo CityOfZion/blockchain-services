@@ -16,6 +16,7 @@ import { LedgerServiceBitcoin } from './services/ledger/LedgerServiceBitcoin'
 import type { ECPairInterface } from 'ecpair'
 import type Transport from '@ledgerhq/hw-transport'
 import * as bitcoinjs from 'bitcoinjs-lib'
+import { AxiosRequestConfig } from 'axios'
 
 export type TBSBitcoinNetworkId = TBSNetworkId<'mainnet' | 'testnet'>
 
@@ -39,6 +40,7 @@ export interface IBSBitcoin
   _isP2SHAddress(address: string): boolean
   _isP2PKHAddress(address: string): boolean
   _getKeyPair(key: string): ECPairInterface
+  _getBlockHeight(config?: AxiosRequestConfig): Promise<number>
   _getLedgerTransport(account: TBSAccount<TBSBitcoinName>): Promise<Transport>
   _signTransaction(params: TSignTransactionParams): Promise<void>
   _broadcastTransaction(transactionHex: string): Promise<string>

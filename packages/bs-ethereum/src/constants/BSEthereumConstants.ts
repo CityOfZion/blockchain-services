@@ -63,11 +63,11 @@ export class BSEthereumConstants {
       'https://endpoints.omniatech.io/v1/bsc/mainnet/public',
     ],
     '137': [
-      'https://polygon.meowrpc.com',
+      'https://poly.api.pocket.network',
       'https://polygon-rpc.com',
       'https://polygon.llamarpc.com',
       'https://polygon.drpc.org',
-      'https://endpoints.omniatech.io/v1/matic/mainnet/public',
+      'https://1rpc.io/matic',
     ],
     '250': [
       'https://rpcapi.fantom.network',
@@ -82,9 +82,10 @@ export class BSEthereumConstants {
       'https://polygon-zkevm.blockpi.network/v1/rpc/public',
     ],
     '80002': [
-      'https://polygon-amoy.drpc.org',
       'https://polygon-amoy-bor-rpc.publicnode.com',
       'https://rpc.ankr.com/polygon_amoy',
+      'https://rpc-amoy.polygon.technology',
+      'https://polygon-amoy.drpc.org',
     ],
     '8453': [
       'https://base.llamarpc.com',

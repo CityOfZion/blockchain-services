@@ -287,8 +287,6 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
   }
 
   async getBlockHeight(): Promise<number> {
-    const { data } = await this.#tatumApi.get<number>('/v4/data/blockchains/block/current')
-
-    return data
+    return await this.#service._getBlockHeight()
   }
 }

@@ -1,13 +1,21 @@
 import { BSSolana } from '../BSSolana'
 import { BSSolanaConstants } from '../constants/BSSolanaConstants'
 import { MoralisEDSSolana } from '../services/exchange/MoralisEDSSolana'
+import { BSUtilsHelper } from '@cityofzion/blockchain-service'
 
 let moralisEDSSolana: MoralisEDSSolana
 
-describe('MoralisEDSSolana', () => {
+// Avoid API key error
+describe.skip('MoralisEDSSolana', () => {
   beforeAll(() => {
     const service = new BSSolana()
+
     moralisEDSSolana = new MoralisEDSSolana(service)
+  })
+
+  beforeEach(async () => {
+    // Wait to avoid rate limit
+    await BSUtilsHelper.wait(4000)
   })
 
   it('Should return the ETH price in USD', async () => {

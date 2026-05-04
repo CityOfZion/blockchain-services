@@ -18,7 +18,7 @@ import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
 import { GhostMarketNDSNeoX } from './services/nft-data/GhostMarketNDSNeoX'
 import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
 import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId, TSendTransactionParams, TSendTransactionResponse } from './types'
-import { ethers } from 'ethers'
+import { ethers, JsonRpcProvider, TransactionRequest } from 'ethers'
 import axios from 'axios'
 import { CONSENSUS_ABI } from './assets/abis/consensus'
 import { KEY_MANAGEMENT_ABI } from './assets/abis/key-management'
@@ -59,7 +59,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
 
     transactionParams.chainId = chainId
 
-    const nonce = await signer.getTransactionCount('pending')
+    const nonce = await signer.getNonce('pending')
 
     if (isNaN(nonce)) {
       throw new Error('Invalid nonce')
@@ -143,7 +143,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
       encryptedMsg,
     ])
 
-    const newParams: ethers.providers.TransactionRequest = {
+    const newParams: TransactionRequest = {
       chainId,
       nonce,
       to: BSNeoXConstants.GOVERNANCE_REWARD_SCRIPT_HASH,
@@ -152,6 +152,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
 
     try {
       const estimatedGas = await signer.estimateGas(newParams)
+
       newParams.gasLimit = new BSBigUnitAmount(estimatedGas.toString(), BSEthereumConstants.DEFAULT_DECIMALS).toString()
     } catch {
       newParams.gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT_BN.toString()
@@ -160,13 +161,13 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     newParams.maxPriorityFeePerGas = gasPriceBn.toString()
     newParams.maxFeePerGas = gasPriceBn.toString()
 
-    const [secondTransactionResponse, secondTransactionError] = await BSUtilsHelper.tryCatch(() =>
-      signer.sendTransaction(newParams)
-    )
+    const provider = new JsonRpcProvider(this.network.url)
+    const signedTransaction = await signer.signTransaction(newParams)
+    const transactionHash: string = await provider.send('eth_sendRawTransaction', [signedTransaction])
 
-    const transactionHash: string | undefined = secondTransactionResponse?.hash || secondTransactionError?.returnedHash
-
-    if (!transactionHash) throw secondTransactionError || new Error('Transaction error')
+    if (!transactionHash) {
+      throw new BSError('Transaction error', 'TRANSACTION_ERROR')
+    }
 
     const fee = gasPriceBn.multipliedBy(newParams.gasLimit).toHuman().toFormatted()
 
@@ -200,7 +201,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     senderAccount,
     intents,
   }: TTransferParams<TBSNeoXName>): Promise<TTransactionDefault<TBSNeoXName>[]> {
-    const signer = await this._generateSigner(senderAccount)
+    const signer = await this._getSigner(senderAccount)
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
     const transactions: TTransactionDefault<TBSNeoXName>[] = []

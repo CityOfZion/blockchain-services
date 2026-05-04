@@ -9,7 +9,7 @@ import {
   type TTransactionDefault,
   BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
-import { ethers } from 'ethers'
+import { ethers, JsonRpcProvider } from 'ethers'
 import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import type { IBSEthereum } from '../../types'
@@ -23,7 +23,7 @@ export class RpcBDSEthereum<
   readonly _tokenCache: Map<string, TBSToken> = new Map()
   readonly _service: S
 
-  #providerInstance?: ethers.providers.JsonRpcProvider
+  #providerInstance?: JsonRpcProvider
 
   constructor(service: S) {
     this._service = service
@@ -31,8 +31,9 @@ export class RpcBDSEthereum<
 
   get #provider() {
     if (!this.#providerInstance) {
-      this.#providerInstance = new ethers.providers.JsonRpcProvider(this._service.network.url)
+      this.#providerInstance = new JsonRpcProvider(this._service.network.url)
     }
+
     return this.#providerInstance
   }
 
@@ -43,15 +44,16 @@ export class RpcBDSEthereum<
     const receipt = await this.#provider.getTransactionReceipt(hash)
     if (!receipt) throw new Error('Receipt not found')
 
-    const effectiveGasPrice = receipt.effectiveGasPrice ?? transaction.gasPrice
-    const fee = effectiveGasPrice.mul(receipt.gasUsed)
+    const effectiveGasPrice = receipt.gasPrice ?? transaction.gasPrice
+    const fee = (effectiveGasPrice || BigInt(0)) * receipt.gasUsed
 
     const token = BSEthereumHelper.getNativeAsset(this._service.network)
 
     const fromUrl = this._service.explorerService.buildAddressUrl(transaction.from)
     const toUrl = this._service.explorerService.buildAddressUrl(transaction.to)
 
-    const timestamp = transaction.timestamp ?? 0
+    const block = await this.#provider.getBlock(receipt.blockNumber)
+    const timestamp = block?.timestamp || 0
 
     return {
       blockchain: this._service.name,

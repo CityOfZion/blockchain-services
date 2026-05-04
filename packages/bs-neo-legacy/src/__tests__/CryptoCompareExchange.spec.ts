@@ -2,14 +2,21 @@ import { CryptoCompareEDSNeoLegacy } from '../services/exchange-data/CryptoCompa
 import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import type { IBSNeoLegacy } from '../types'
+import { BSUtilsHelper } from '@cityofzion/blockchain-service'
 
 let cryptoCompareEDSNeoLegacy: CryptoCompareEDSNeoLegacy
 let service: IBSNeoLegacy
 
-describe('CryptoCompareEDSNeoLegacy', () => {
+// Avoid API key error
+describe.skip('CryptoCompareEDSNeoLegacy', () => {
   beforeAll(() => {
     service = new BSNeoLegacy(BSNeoLegacyConstants.MAINNET_NETWORK)
     cryptoCompareEDSNeoLegacy = new CryptoCompareEDSNeoLegacy(service)
+  })
+
+  beforeEach(async () => {
+    // Wait to avoid rate limit
+    await BSUtilsHelper.wait(4000)
   })
 
   it('Should return a list with prices of tokens using USD', async () => {

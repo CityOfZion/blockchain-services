@@ -85,15 +85,16 @@ describe('TrustlineServiceStellar', () => {
       hash: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
     }
 
-    const reponse = await trustlineServiceStellar.changeTrustline({ senderAccount, token })
+    const response = await trustlineServiceStellar.changeTrustline({ senderAccount, token })
 
-    expect(reponse).toEqual(
+    expect(response).toEqual(
       expect.objectContaining({
         txId: expect.any(String),
         txIdUrl: expect.any(String),
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.\d*[1-9]$/),
         blockchain: 'stellar',
+        relatedAddress: senderAccount.address,
         isPending: true,
         view: 'default',
         events: [
@@ -103,7 +104,45 @@ describe('TrustlineServiceStellar', () => {
             fromUrl: expect.any(String),
             methodName: stellarSDK.Horizon.HorizonApi.OperationResponseType.changeTrust,
             data: {
-              limit: expect.any(String),
+              token: token.symbol,
+            },
+          },
+        ],
+      })
+    )
+  })
+
+  it.skip('Should be able to change the trustline with limit', async () => {
+    const senderAccount = await service.generateAccountFromMnemonic(mnemonic, 0)
+    const limit = '1000'
+
+    const token = {
+      symbol: 'BTC',
+      name: 'BTC',
+      decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
+      hash: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
+    }
+
+    const response = await trustlineServiceStellar.changeTrustline({ senderAccount, token, limit })
+
+    expect(response).toEqual(
+      expect.objectContaining({
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        networkFeeAmount: expect.stringMatching(/^0\.\d*[1-9]$/),
+        blockchain: 'stellar',
+        relatedAddress: senderAccount.address,
+        isPending: true,
+        view: 'default',
+        events: [
+          {
+            eventType: 'generic',
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            methodName: stellarSDK.Horizon.HorizonApi.OperationResponseType.changeTrust,
+            data: {
+              limit,
               token: token.symbol,
             },
           },
