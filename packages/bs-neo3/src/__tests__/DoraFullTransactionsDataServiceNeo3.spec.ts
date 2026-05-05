@@ -329,6 +329,7 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             neo3NeoxBridge: {
               amount: '1',
               tokenToUse: service.neo3NeoXBridgeService.gasToken,
+              multichainIdToReceive: service.neo3NeoXBridgeService.gasToken.multichainId,
               receiverAddress: '0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9',
             },
           }),
@@ -356,7 +357,36 @@ describe('DoraFullTransactionsDataServiceNeo3', () => {
             neo3NeoxBridge: {
               amount: '1',
               tokenToUse: service.neo3NeoXBridgeService.neoToken,
+              multichainIdToReceive: service.neo3NeoXBridgeService.neoToken.multichainId,
               receiverAddress: '0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da',
+            },
+          },
+        })
+      )
+    })
+
+    it('Should be able to get transactions that are marked as bridge (NDMEME)', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2026-01-14T00:00:00').toJSON(),
+        dateTo: new Date('2026-01-15T00:00:00').toJSON(),
+        address: 'NTEm8twLpdv1Hpmvy43FwtTNtzsSdc54UR',
+      }
+
+      const response = await doraFullTransactionsDataServiceNeo3.getFullTransactionsByAddress(newParams)
+
+      const transaction = response.transactions.find(
+        ({ txId }) => txId === '0xa78145db038a1b5702c8f76a3dbe52228573e7cb57d9a03e1a719270fc2bd22c'
+      )
+
+      expect(transaction).toEqual(
+        expect.objectContaining({
+          data: {
+            neo3NeoxBridge: {
+              amount: '49999.37665',
+              tokenToUse: service.neo3NeoXBridgeService.ndmemeToken,
+              multichainIdToReceive: service.neo3NeoXBridgeService.ndmemeToken.multichainId,
+              receiverAddress: '0xb97c4a0b56a60555ecc546ab438e1f0a0524b04a',
             },
           },
         })

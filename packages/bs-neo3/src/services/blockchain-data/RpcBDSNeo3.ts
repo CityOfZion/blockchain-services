@@ -138,7 +138,6 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
       const txIdUrl = this._service.explorerService.buildTransactionUrl(txId)
 
       const data = {
-        ...this._service.neo3NeoXBridgeService._getDataFromNotifications(notifications),
         ...this._service.claimService._getTransactionDataFromEvents(events),
         ...this._service.voteService._getTransactionDataFromEvents(events),
       }

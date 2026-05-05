@@ -6,6 +6,7 @@ import {
   type TExportFullTransactionsByAddressParams,
   type TGetFullTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
+  type TNeo3NeoXBridgeTransactionData,
   type TTransactionDefault,
   type TTransactionDefaultEvent,
 } from '@cityofzion/blockchain-service'
@@ -57,7 +58,7 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
     const items = response.data ?? []
     const transactions: TTransactionDefault<TBSNeo3Name>[] = []
 
-    const itemPromises = items.map(async ({ networkFeeAmount, systemFeeAmount, ...item }, index) => {
+    const itemPromises = items.map(async ({ networkFeeAmount, ...item }, index) => {
       const txId = item.transactionID
       const txIdUrl = this.#service.explorerService.buildTransactionUrl(txId)
 
@@ -112,23 +113,36 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
 
       await Promise.allSettled(eventPromises)
 
+      const itemData = 'data' in item ? (item.data as any) : undefined
+
       let data = {
         ...this.#service.claimService._getTransactionDataFromEvents(events),
         ...this.#service.voteService._getTransactionDataFromEvents(events),
       }
 
-      if (item.events.some(event => event.contractName === 'NeoXBridge')) {
-        const [log] = await BSUtilsHelper.tryCatch(() => this.#api.log(txId, this.#service.network.id))
-        if (log) {
+      const bridgeData = itemData?.bridgeData as Record<string, any> | undefined
+
+      if (bridgeData) {
+        const bridgeService = this.#service.neo3NeoXBridgeService
+        const tokenService = this.#service.tokenService
+
+        const tokenToUse = !bridgeData.neo3TokenHash
+          ? bridgeService.gasToken
+          : bridgeService.tokens.find(token => tokenService.predicateByHash(bridgeData.neo3TokenHash, token))
+
+        if (tokenToUse) {
+          const newBridgeData: TNeo3NeoXBridgeTransactionData<TBSNeo3Name> = {
+            neo3NeoxBridge: {
+              amount: new BSBigHumanAmount(bridgeData.amount, tokenToUse.decimals).toFormatted(),
+              tokenToUse,
+              multichainIdToReceive: tokenToUse.multichainId,
+              receiverAddress: bridgeData.receiverAddress,
+            },
+          }
+
           data = {
             ...data,
-            ...this.#service.neo3NeoXBridgeService._getDataFromNotifications(
-              log.notifications.map((notification: any) => ({
-                contract: notification.contract,
-                eventname: notification.event_name,
-                state: notification.state,
-              }))
-            ),
+            ...newBridgeData,
           }
         }
       }
@@ -141,13 +155,13 @@ export class DoraFullTransactionsDataServiceNeo3 implements IFullTransactionsDat
         txIdUrl,
         block: item.block,
         date: item.date,
-        invocationCount: item.invocationCount,
-        notificationCount: item.notificationCount,
+        invocationCount: itemData?.invocationCount,
+        notificationCount: itemData?.notificationCount,
         networkFeeAmount: networkFeeAmount
           ? new BSBigHumanAmount(networkFeeAmount, this.#service.feeToken.decimals).toFormatted()
           : undefined,
-        systemFeeAmount: systemFeeAmount
-          ? new BSBigHumanAmount(systemFeeAmount, this.#service.feeToken.decimals).toFormatted()
+        systemFeeAmount: itemData?.systemFeeAmount
+          ? new BSBigHumanAmount(itemData.systemFeeAmount, this.#service.feeToken.decimals).toFormatted()
           : undefined,
         view: 'default',
         events,
