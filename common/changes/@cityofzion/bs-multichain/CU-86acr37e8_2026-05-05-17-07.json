@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Consume bridge data object in activity history",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}

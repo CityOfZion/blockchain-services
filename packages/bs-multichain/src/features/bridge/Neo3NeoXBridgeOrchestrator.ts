@@ -184,7 +184,7 @@ export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridge
 
   async init(): Promise<void> {
     this.#availableTokensToUse = {
-      value: [this.fromService.neo3NeoXBridgeService.gasToken, this.fromService.neo3NeoXBridgeService.neoToken],
+      value: this.fromService.neo3NeoXBridgeService.tokens,
     }
 
     this.#accountToUse = { value: null, loading: false }
@@ -230,13 +230,7 @@ export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridge
         )
           throw new BSError('You are trying to use a token that is not available', 'TOKEN_NOT_AVAILABLE')
 
-        const isGasToken = this.fromService.tokenService.predicateByHash(
-          token,
-          this.fromService.neo3NeoXBridgeService.gasToken
-        )
-        tokenToReceive = isGasToken
-          ? this.toService.neo3NeoXBridgeService.gasToken
-          : this.toService.neo3NeoXBridgeService.neoToken
+        tokenToReceive = this.toService.neo3NeoXBridgeService.getTokenByMultichainId(token.multichainId)
       }
 
       this.#tokenToReceive = { value: tokenToReceive ?? null, error: null }

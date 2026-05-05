@@ -466,9 +466,11 @@ export interface ISwapOrchestrator<N extends string> {
 
 export type TBSBridgeName = 'neo3' | 'neox'
 
+export type TBridgeTokenMultichainId = 'neo' | 'gas' | 'ndmeme'
+
 export type TBridgeToken<N extends TBSBridgeName> = TBSToken & {
   blockchain: N
-  multichainId: string
+  multichainId: TBridgeTokenMultichainId
 }
 
 export type TBridgeValue<T> = { value: T | null; loading: boolean; error: BSError | null }
@@ -542,6 +544,8 @@ export type TNeo3NeoXBridgeTransactionData<N extends TBSBridgeName> = {
 export interface INeo3NeoXBridgeService<N extends TBSBridgeName> {
   readonly gasToken: TBridgeToken<N>
   readonly neoToken: TBridgeToken<N>
+  readonly ndmemeToken: TBridgeToken<N>
+  readonly tokens: TBridgeToken<N>[]
   getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam<N>): Promise<string>
   getBridgeConstants(token: TBridgeToken<N>): Promise<TNeo3NeoXBridgeServiceConstants>
   bridge(params: TNeo3NeoXBridgeServiceBridgeParam<N>): Promise<string>

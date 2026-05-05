@@ -9,6 +9,13 @@ export class BSNeoXConstants {
     hash: '-',
   }
 
+  static readonly NDMEME_TOKEN: TBSToken = {
+    symbol: 'NDMEME',
+    name: 'NDMEME',
+    hash: '0xe816dee05cf6d0f2a57eb4c489241d8326b5d106',
+    decimals: 18,
+  }
+
   static readonly ANTI_MEV_RPC_LIST_BY_NETWORK_ID: Record<TBSNeoXNetworkId, string[]> = {
     '47763': ['https://mainnet-5.rpc.banelabs.org'],
     '12227332': ['https://neoxt4seed5.ngd.network'],
