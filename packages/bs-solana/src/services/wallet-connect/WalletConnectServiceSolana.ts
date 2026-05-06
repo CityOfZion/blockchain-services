@@ -110,7 +110,13 @@ export class WalletConnectServiceSolana implements IWalletConnectService<
     process: async args => {
       const parsedTransaction = this.#parseTransaction(args.params.transaction)
       const signedTransaction = await this.#service._signTransaction(parsedTransaction, args.account)
-      return { transaction: signedTransaction }
+
+      const signedTransactionBytes = solanaKit.getBase64Encoder().encode(signedTransaction)
+      const decodedSignedTransaction = solanaKit.getTransactionCodec().decode(signedTransactionBytes)
+      const [signatureBytes] = Object.values(decodedSignedTransaction.signatures)
+      const signature = solanaKit.getBase58Codec().decode(new Uint8Array(signatureBytes!))
+
+      return { signature }
     },
   }
 
