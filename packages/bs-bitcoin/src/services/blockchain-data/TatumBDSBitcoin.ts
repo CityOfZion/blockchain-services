@@ -186,7 +186,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
 
     await Promise.allSettled(transactionPromises)
 
-    return { transactions, nextPageParams: data.length === pageSize ? ++nextPageParams : undefined }
+    return { transactions, nextPageParams: data.length === pageSize ? nextPageParams + 1 : undefined }
   }
 
   async getContract(_contractHash: string): Promise<TContractResponse> {
@@ -253,7 +253,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
     const results: TXverseBalancesResponse['items'] = []
     const limit = 60
     let offset = 0
-    let canGetMore = false
+    let canGetMore: boolean
 
     do {
       const [data] = await BSUtilsHelper.tryCatch(async () => {

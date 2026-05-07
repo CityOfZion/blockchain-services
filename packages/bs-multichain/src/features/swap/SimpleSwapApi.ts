@@ -163,7 +163,7 @@ export class SimpleSwapApi {
       return tokens
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data.message) {
-        throw new Error(error.response.data.message)
+        throw new Error(error.response.data.message, { cause: error })
       }
 
       throw error
@@ -185,7 +185,7 @@ export class SimpleSwapApi {
       return tokens
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data.message) {
-        throw new Error(error.response.data.message)
+        throw new Error(error.response.data.message, { cause: error })
       }
 
       throw error
@@ -205,7 +205,7 @@ export class SimpleSwapApi {
       return response.data.result
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data.message) {
-        throw new Error(error.response.data.message)
+        throw new Error(error.response.data.message, { cause: error })
       }
 
       throw error
@@ -227,7 +227,7 @@ export class SimpleSwapApi {
       return response.data.result.estimatedAmount
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data.message) {
-        throw new Error(error.response.data.message)
+        throw new Error(error.response.data.message, { cause: error })
       }
 
       throw error
@@ -263,7 +263,7 @@ export class SimpleSwapApi {
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data.message) {
-        throw new Error(error.response.data.message)
+        throw new Error(error.response.data.message, { cause: error })
       }
 
       throw error
@@ -284,7 +284,7 @@ export class SimpleSwapApi {
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data.message) {
-        throw new Error(error.response.data.message)
+        throw new Error(error.response.data.message, { cause: error })
       }
 
       throw error

@@ -135,7 +135,13 @@ describe('BlockscoutBDSNeoX', () => {
           relatedAddress: address,
           networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           view: 'default',
-          events: expect.arrayContaining([
+          events: expect.any(Array),
+        })
+      )
+
+      if (transaction.events.length > 0) {
+        expect(transaction.events).toEqual(
+          expect.arrayContaining([
             expect.objectContaining({
               eventType: expect.any(String),
               amount: expect.stringMatching(/^\d+(\.\d+)?$/),
@@ -152,20 +158,20 @@ describe('BlockscoutBDSNeoX', () => {
                 hash: expect.any(String),
               }),
             }),
-          ]),
-        })
-      )
+          ])
+        )
+      }
     })
   })
 
   it.skip('Should return transactions by address that are marked as bridge (GAS)', async () => {
     const response = await blockscoutBDSNeoX.getTransactionsByAddress({
-      address: '0xe3abc0b2a74fd2ef662b1c25c9769398f53b4304',
+      address: '0xE3aBC0b2A74FD2eF662b1c25C9769398f53b4304',
     })
 
     const transaction = response.transactions.find(
-      ({ txId }) => txId === '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-    )
+      ({ txId }) => txId === '0x0f0e822766f3419c2df334f1da2ef1014ef96e2d570c0bd73cb70841c4315c02'
+    )!
 
     expect(transaction).toEqual(
       expect.objectContaining({

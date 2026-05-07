@@ -32,7 +32,6 @@ import { BSNeoXHelper } from '../../helpers/BSNeoXHelper'
 
 export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName> {
   static readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
-  static readonly BRIDGE_FEE = 0.1
   static readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
 
   readonly gasToken: TBridgeToken<TBSNeoXName>
@@ -88,8 +87,8 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
     if (input.name === 'withdrawNative') {
       tokenToUse = this.gasToken
       amount = new BSBigUnitAmount(response.value, tokenToUse.decimals)
+        .minus(input.args._maxFee.toString())
         .toHuman()
-        .minus(Neo3NeoXBridgeService.BRIDGE_FEE)
         .toFormatted()
     } else if (input.name === 'withdrawToken') {
       tokenToUse = this.neoToken

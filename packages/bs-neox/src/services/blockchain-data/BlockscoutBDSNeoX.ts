@@ -1,16 +1,16 @@
 import {
+  BSBigUnitAmount,
   BSCommonConstants,
   BSUtilsHelper,
   type TBalanceResponse,
-  type TContractMethod,
   type TBSNetwork,
   type TBSToken,
+  type TContractMethod,
+  type TContractResponse,
   type TGetTransactionsByAddressParams,
   type TGetTransactionsByAddressResponse,
-  type TContractResponse,
   type TTransactionDefault,
   type TTransactionDefaultEvent,
-  BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
 import { ethers } from 'ethers'
@@ -145,10 +145,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     }
 
     const data = this._service.neo3NeoXBridgeService._getDataFromBlockscoutTransaction(response)
-
     const txId = response.hash
 
-    const transaction: TTransactionDefault<TBSNeoXName> = {
+    return {
       blockchain: this._service.name,
       isPending: false,
       txId,
@@ -162,8 +161,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
       events,
       data,
     }
-
-    return transaction
   }
 
   async getTransactionsByAddress(
@@ -241,12 +238,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         }
       }
 
-      if (events.length === 0) {
-        return
-      }
-
       const data = this._service.neo3NeoXBridgeService._getDataFromBlockscoutTransaction(item)
-
       const txId = item.hash
 
       const transaction: TTransactionDefault<TBSNeoXName> = {
