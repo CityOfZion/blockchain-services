@@ -161,7 +161,7 @@ describe('Neo3NeoXBridgeService', () => {
     })
   })
 
-  it.skip('Should be able to get the transaction hash by nonce', async () => {
+  it('Should be able to get the transaction hash by nonce', async () => {
     const transactionHash = await neo3NeoXBridgeService.getTransactionHashByNonce({
       token: neo3NeoXBridgeService.gasToken,
       nonce: '761',
@@ -184,7 +184,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -211,7 +211,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,

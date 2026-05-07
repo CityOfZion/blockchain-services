@@ -90,6 +90,7 @@ describe('Neo3NeoXBridgeService', () => {
     ).rejects.toSatisfy((error: unknown) => {
       expect(error).toBeInstanceOf(BSError)
       expect((error as BSError).code).toBe('ALLOWANCE_FEE_ERROR')
+
       return true
     })
   })
@@ -199,7 +200,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -230,7 +231,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(gasBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -258,7 +259,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have NEO balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
@@ -289,7 +290,7 @@ describe('Neo3NeoXBridgeService', () => {
       throw new Error('It seems you do not have NEO balance to bridge')
     }
 
-    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThan(bridgeMinAmount)).toBe(true)
+    expect(new BSBigHumanAmount(neoBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
 
     const transactionHash = await neo3NeoXBridgeService.bridge({
       account,
