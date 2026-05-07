@@ -1,8 +1,9 @@
-import { BSKeychainHelper, BSUtilsHelper, type TBSToken } from '@cityofzion/blockchain-service'
+import { BSError, BSKeychainHelper, BSUtilsHelper, type TBSToken } from '@cityofzion/blockchain-service'
 import { BSStellar } from '../BSStellar'
 import { BSStellarConstants } from '../constants/BSStellarConstants'
 import * as stellarSDK from '@stellar/stellar-sdk'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import { randomInt } from 'crypto'
 
 const mnemonic = process.env.TEST_MNEMONIC
 
@@ -16,6 +17,7 @@ const sacToken: TBSToken = {
 let bsStellar: BSStellar
 let keypair: stellarSDK.Keypair
 let keypair2: stellarSDK.Keypair
+let nonExistentKeypair: stellarSDK.Keypair
 
 describe('BSStellar', () => {
   beforeAll(async () => {
@@ -28,6 +30,10 @@ describe('BSStellar', () => {
     const bipPath2 = BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, 1)
     const key2 = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath2)
     keypair2 = stellarSDK.Keypair.fromRawEd25519Seed(key2)
+
+    const nonExistentBipPath = BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, randomInt(10, 1000))
+    const nonExistentKey = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, nonExistentBipPath)
+    nonExistentKeypair = stellarSDK.Keypair.fromRawEd25519Seed(nonExistentKey)
 
     // Avoid hitting rate limits in tests
     await BSUtilsHelper.wait(500)
@@ -337,6 +343,66 @@ describe('BSStellar', () => {
             toUrl: expect.any(String),
             tokenUrl: expect.any(String),
             token: sacToken,
+          },
+        ],
+      },
+    ])
+  })
+
+  // It may fail because the account could already exist, so increase the non-existent key index to avoid this
+  it('Should not be able to transfer if the receiver account does not exist and the amount is less than 1 XLM', async () => {
+    const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
+    const receiverAccount = await bsStellar.generateAccountFromKey(nonExistentKeypair.secret())
+
+    const amount = '0.0000001'
+    const receiverAddress = receiverAccount.address
+    const token = BSStellarConstants.NATIVE_TOKEN
+
+    await expect(
+      bsStellar.transfer({ senderAccount, intents: [{ amount, receiverAddress, token }] })
+    ).rejects.toSatisfy((error: Error) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('INSUFFICIENT_FUNDS_TO_CREATE_ACCOUNT')
+
+      return true
+    })
+  })
+
+  // It may fail because the account could already exist, so increase the non-existent key index to avoid this
+  it.skip('Should be able to transfer even if the receiver account does not exist', async () => {
+    const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
+    const receiverAccount = await bsStellar.generateAccountFromKey(nonExistentKeypair.secret())
+
+    const amount = '1'
+    const receiverAddress = receiverAccount.address
+    const token = BSStellarConstants.NATIVE_TOKEN
+
+    const transactions = await bsStellar.transfer({
+      senderAccount,
+      intents: [{ amount, receiverAddress, token }],
+    })
+
+    expect(transactions).toEqual([
+      {
+        txId: expect.any(String),
+        txIdUrl: expect.any(String),
+        date: expect.any(String),
+        blockchain: 'stellar',
+        isPending: true,
+        relatedAddress: senderAccount.address,
+        networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
+        view: 'default',
+        events: [
+          {
+            eventType: 'token',
+            amount,
+            methodName: 'createAccount',
+            from: senderAccount.address,
+            fromUrl: expect.any(String),
+            to: receiverAddress,
+            toUrl: expect.any(String),
+            tokenUrl: undefined,
+            token,
           },
         ],
       },

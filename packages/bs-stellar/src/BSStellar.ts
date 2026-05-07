@@ -1,4 +1,5 @@
 import {
+  BSBigHumanAmount,
   BSBigUnitAmount,
   BSError,
   BSKeychainHelper,
@@ -121,15 +122,23 @@ export class BSStellar implements IBSStellar {
     })
 
     for (const intent of intents) {
-      await this._ensureAccountOnChain(intent.receiverAddress)
+      let accountExists = false
+      try {
+        await this._ensureAccountOnChain(intent.receiverAddress)
+        accountExists = true
+      } catch {
+        accountExists = false
+      }
 
       const isNative = this.tokenService.predicateByHash(intent.token.hash, BSStellarConstants.NATIVE_TOKEN.hash)
 
-      let asset: stellarSDK.Asset
-      if (isNative) {
-        asset = stellarSDK.Asset.native()
-      } else {
-        asset = new stellarSDK.Asset(intent.token.symbol, intent.token.hash)
+      if (!isNative) {
+        if (!accountExists) {
+          throw new BSError(
+            `Receiver account ${intent.receiverAddress} does not exist on the Stellar network. Please fund it with at least ${this.amountToCreateAccount} XLM before sending tokens.`,
+            'RECEIVER_ACCOUNT_NOT_FOUND'
+          )
+        }
 
         const hasTrustline = await this.trustlineService.hasTrustline({
           address: senderAccount.address,
@@ -142,15 +151,46 @@ export class BSStellar implements IBSStellar {
             'TRUSTLINE_NOT_FOUND'
           )
         }
+
+        transaction.addOperation(
+          stellarSDK.Operation.payment({
+            destination: intent.receiverAddress,
+            asset: new stellarSDK.Asset(intent.token.symbol, intent.token.hash),
+            amount: intent.amount,
+          })
+        )
+
+        continue
+      }
+
+      if (accountExists) {
+        transaction.addOperation(
+          stellarSDK.Operation.payment({
+            destination: intent.receiverAddress,
+            asset: stellarSDK.Asset.native(),
+            amount: intent.amount,
+          })
+        )
+
+        continue
+      }
+
+      if (new BSBigHumanAmount(intent.amount).isLessThan(this.amountToCreateAccount)) {
+        throw new BSError(
+          `Receiver account does not exist on the Stellar network. Send at least ${this.amountToCreateAccount} XLM to create an account.`,
+          'INSUFFICIENT_FUNDS_TO_CREATE_ACCOUNT'
+        )
       }
 
       transaction.addOperation(
-        stellarSDK.Operation.payment({
+        stellarSDK.Operation.createAccount({
           destination: intent.receiverAddress,
-          asset,
-          amount: intent.amount,
+          source: senderAccount.address,
+          startingBalance: intent.amount,
         })
       )
+
+      continue
     }
 
     return transaction.setTimeout(30).build()
@@ -274,6 +314,7 @@ export class BSStellar implements IBSStellar {
 
     return [
       {
+        relatedAddress: address,
         blockchain: this.name,
         isPending: true,
         txId,
