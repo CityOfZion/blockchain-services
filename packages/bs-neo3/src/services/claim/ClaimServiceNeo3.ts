@@ -87,14 +87,7 @@ export class ClaimServiceNeo3 implements IClaimService<TBSNeo3Name> {
 
   async claim(senderAccount: TBSAccount<TBSNeo3Name>): Promise<TTransactionDefault<TBSNeo3Name>> {
     const claimParams = this.#buildClaimParams(senderAccount)
-
-    const claimEvent = await this._buildTransactionEvent(senderAccount.address)
-
     const [transaction] = await this._service.transfer(claimParams)
-
-    transaction.events.push(claimEvent)
-
-    transaction.data = { isClaim: true }
 
     return transaction
   }

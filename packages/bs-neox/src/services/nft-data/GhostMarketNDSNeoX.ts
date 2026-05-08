@@ -1,6 +1,6 @@
 import { ERC20_ABI } from '@cityofzion/bs-ethereum'
 import { BSBigUnitAmount, GhostMarketNDS, type THasTokenParams } from '@cityofzion/blockchain-service'
-import { ethers } from 'ethers'
+import { ethers, JsonRpcProvider } from 'ethers'
 import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId } from '../../types'
 
 export class GhostMarketNDSNeoX extends GhostMarketNDS<TBSNeoXName, TBSNeoXNetworkId, IBSNeoX> {
@@ -16,7 +16,7 @@ export class GhostMarketNDSNeoX extends GhostMarketNDS<TBSNeoXName, TBSNeoXNetwo
     try {
       if (!collectionHash) return false
 
-      const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+      const provider = new JsonRpcProvider(this._service.network.url)
       const contract = new ethers.Contract(collectionHash, ERC20_ABI, provider)
       const response = await contract.balanceOf(address)
 

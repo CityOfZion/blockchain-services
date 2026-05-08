@@ -162,49 +162,45 @@ describe('DoraBDSNeo3', () => {
   })
 
   it.skip('Should be able to get transactions that are marked as bridge (GAS)', async () => {
-    service = new BSNeo3(BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3()
     doraBDSNeo3 = new DoraBDSNeo3(service)
 
     const address = 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address })
 
     const transaction = response.transactions.find(
-      ({ txId }) => txId === '0x69016c9f2a980b7e71da89e9f18cf46f5e89fe03aaf35d72f7ca5f6bf24b3b55'
-    )
+      ({ txId }) => txId === '0x9c6a51e6b735dcfcb814b0d1b15877f00da3de732ceef865345104b9cd2a495e'
+    )!
 
-    expect(transaction).toEqual(
+    expect(transaction.data).toEqual(
       expect.objectContaining({
-        data: expect.objectContaining({
-          neo3NeoxBridge: {
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.gasToken,
-            receiverAddress: '0xa911a7fa0901cfc3f1da55a05593823e32e2f1a9',
-          },
-        }),
+        neo3NeoxBridge: {
+          amount: '1',
+          tokenToUse: service.neo3NeoXBridgeService.gasToken,
+          receiverAddress: '0xe3abc0b2a74fd2ef662b1c25c9769398f53b4304',
+        },
       })
     )
   })
 
   it.skip('Should be able to get transactions that are marked as bridge (NEO)', async () => {
-    service = new BSNeo3(BSNeo3Constants.MAINNET_NETWORK)
+    service = new BSNeo3()
     doraBDSNeo3 = new DoraBDSNeo3(service)
 
-    const address = 'NcTRyXXr2viSowk913dMTvws6sDNbmt8tj'
+    const address = 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address })
 
     const transaction = response.transactions.find(
-      ({ txId }) => txId === '0x979b90734ca49ea989e3515de2028196e42762f96f3fa56db24d1c47521075dd'
-    )
+      ({ txId }) => txId === '0xdb492b2302182e1870f228c7be72099318357540986ff163971690247631cdc6'
+    )!
 
-    expect(transaction).toEqual(
+    expect(transaction.data).toEqual(
       expect.objectContaining({
-        data: expect.objectContaining({
-          neo3NeoxBridge: {
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.neoToken,
-            receiverAddress: '0xe94bea1d8bb8bcc13cd6974e6941f4d1896d56da',
-          },
-        }),
+        neo3NeoxBridge: {
+          amount: '1',
+          tokenToUse: service.neo3NeoXBridgeService.neoToken,
+          receiverAddress: '0xe3abc0b2a74fd2ef662b1c25c9769398f53b4304',
+        },
       })
     )
   })

@@ -41,7 +41,7 @@ import { BSBitcoinHiroHelper } from './helpers/BSBitcoinHiroHelper'
 import { BSBitcoinTatumHelper } from './helpers/BSBitcoinTatumHelper'
 import { BSBitcoinBIP32SingletonHelper } from './helpers/BSBitcoinBIP32SingletonHelper'
 import { BSBitcoinECPairSingletonHelper } from './helpers/BSBitcoinECPairSingletonHelper'
-import { AxiosInstance } from 'axios'
+import { AxiosInstance, AxiosRequestConfig } from 'axios'
 import * as bitcoinjs from 'bitcoinjs-lib'
 import type { ECPairInterface } from 'ecpair'
 import * as bip39 from 'bip39'
@@ -112,6 +112,12 @@ export class BSBitcoin implements IBSBitcoin {
     const ecpair = BSBitcoinECPairSingletonHelper.getInstance()
 
     return ecpair.fromWIF(key, this._bitcoinjsNetwork)
+  }
+
+  async _getBlockHeight(config?: AxiosRequestConfig): Promise<number> {
+    const { data } = await this.#tatumApi.get<number>('/v4/data/blockchains/block/current', config)
+
+    return data
   }
 
   async _getLedgerTransport(account: TBSAccount<TBSBitcoinName>) {
@@ -324,14 +330,20 @@ export class BSBitcoin implements IBSBitcoin {
   }
 
   async pingNetwork(): Promise<TPingNetworkResponse> {
+    const abortController = new AbortController()
     const timeout = 5000
 
     const timeoutId = setTimeout(() => {
-      throw new BSError('API URL timeout reached', 'TIMEOUT_REACHED')
+      abortController.abort()
     }, timeout)
 
     const timeStart = Date.now()
-    const height = await this.blockchainDataService.getBlockHeight()
+
+    const height = await this._getBlockHeight({
+      timeout,
+      signal: abortController.signal,
+    })
+
     const latency = Date.now() - timeStart
 
     clearTimeout(timeoutId)

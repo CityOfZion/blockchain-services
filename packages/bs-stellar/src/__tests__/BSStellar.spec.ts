@@ -106,7 +106,7 @@ describe('BSStellar', () => {
     expect(fee).toEqual('0.00002')
   })
 
-  // Fetch https://friendbot.stellar.org?addr=${address} to fund test accounts
+  // Fetch https://friendbot.stellar.org?addr=address to fund test accounts
   it.skip('Should be able to transfer the native token', async () => {
     const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
     const amount = '0.0000001'
@@ -213,7 +213,7 @@ describe('BSStellar', () => {
     ])
   })
 
-  it.skip('Should be able to calculate transfer fee using ledger', async () => {
+  it.skip('Should be able to calculate transfer fee using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSStellar(BSStellarConstants.TESTNET_NETWORK, async () => transport)
     const senderAccount = await service.ledgerService.getAccount(transport, 0)

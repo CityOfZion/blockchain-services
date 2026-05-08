@@ -1,10 +1,10 @@
 import {
+  BSBigUnitAmount,
+  BSError,
   type IWalletConnectService,
   type TWalletConnectServiceHandlers,
   type TWalletConnectServiceMethodHandler,
   type TWalletConnectServiceRequestMethodParams,
-  BSBigUnitAmount,
-  BSError,
 } from '@cityofzion/blockchain-service'
 import type { IBSSolana, TBSSolanaName, TBSSolanaNetworkId, TWalletConnectServiceSolanaMethod } from '../../types'
 import * as solanaKit from '@solana/kit'
@@ -110,7 +110,6 @@ export class WalletConnectServiceSolana implements IWalletConnectService<
     process: async args => {
       const parsedTransaction = this.#parseTransaction(args.params.transaction)
       const signedTransaction = await this.#service._signTransaction(parsedTransaction, args.account)
-
       const signedTransactionBytes = solanaKit.getBase64Encoder().encode(signedTransaction)
       const decodedSignedTransaction = solanaKit.getTransactionCodec().decode(signedTransactionBytes)
       const [signatureBytes] = Object.values(decodedSignedTransaction.signatures)
@@ -166,9 +165,8 @@ export class WalletConnectServiceSolana implements IWalletConnectService<
 
   #parseTransaction(encodedTransaction: string) {
     const transactionBytes = solanaKit.getBase64Encoder().encode(encodedTransaction)
-    const transaction = solanaKit.getTransactionCodec().decode(transactionBytes)
 
-    return transaction
+    return solanaKit.getTransactionCodec().decode(transactionBytes)
   }
 
   async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<TBSSolanaName>): Promise<string> {

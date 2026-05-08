@@ -512,30 +512,26 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
   it.skip('Should be able to bridge', async () => {
     await neo3NeoXBridgeOrchestrator.init()
-
     await neo3NeoXBridgeOrchestrator.switchTokens()
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
     )
-
-    const balances = await neo3NeoXBridgeOrchestrator.fromService.blockchainDataService.getBalance(account.address)
-
-    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
-
-    await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
-
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    await neo3NeoXBridgeOrchestrator.setBalances(balances)
+    const balances = await neo3NeoXBridgeOrchestrator.fromService.blockchainDataService.getBalance(account.address)
+    const token = neo3NeoXBridgeOrchestrator.fromService.neo3NeoXBridgeService.gasToken
 
-    const toAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
+    await neo3NeoXBridgeOrchestrator.setBalances(balances)
+    await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
+
+    const receiverAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
       process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
     )
-
-    await neo3NeoXBridgeOrchestrator.setAddressToReceive(toAccount.address)
+    await neo3NeoXBridgeOrchestrator.setAddressToReceive(receiverAccount.address)
 
     const amount = amountToUseMin.value!
+
     await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
 
     await BSUtilsHelper.wait(3000)
@@ -557,11 +553,15 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
-    const balances: TBalanceResponse[] = [{ amount: '5', token }]
-    await neo3NeoXBridgeOrchestrator.setBalances(balances)
+    const receiverAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
+      process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
+    )
+    await neo3NeoXBridgeOrchestrator.setAddressToReceive(receiverAccount.address)
 
-    const amount = amountToUseMax.value!
-    await neo3NeoXBridgeOrchestrator.setAmountToUse(amount)
+    const balances = await neo3NeoXBridgeOrchestrator.fromService.blockchainDataService.getBalance(account.address)
+
+    await neo3NeoXBridgeOrchestrator.setBalances(balances)
+    await neo3NeoXBridgeOrchestrator.setAmountToUse(amountToUseMin.value!)
 
     await BSUtilsHelper.wait(3000)
 
@@ -569,7 +569,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
 
     expect(transactionHash).toEqual(expect.any(String))
 
-    const response = await Neo3NeoXBridgeOrchestrator.wait({
+    const promise = Neo3NeoXBridgeOrchestrator.wait({
       neo3Service,
       neoXService,
       tokenToUse: tokenToUse.value!,
@@ -577,6 +577,6 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
       transactionHash,
     })
 
-    expect(response).toEqual(true)
-  })
+    await expect(promise).resolves.not.toThrow()
+  }, 120_000)
 })

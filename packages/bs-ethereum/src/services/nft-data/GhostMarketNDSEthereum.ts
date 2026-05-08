@@ -6,7 +6,7 @@ import {
 } from '@cityofzion/blockchain-service'
 
 import type { IBSEthereum, TBSEthereumNetworkId } from '../../types'
-import { ethers } from 'ethers'
+import { ethers, JsonRpcProvider } from 'ethers'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 
 export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> extends GhostMarketNDS<
@@ -30,7 +30,7 @@ export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> ex
     try {
       if (!collectionHash) return false
 
-      const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+      const provider = new JsonRpcProvider(this._service.network.url)
       const contract = new ethers.Contract(collectionHash, ERC20_ABI, provider)
       const response = await contract.balanceOf(address)
 

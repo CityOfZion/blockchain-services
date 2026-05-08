@@ -20,8 +20,8 @@ const antiMevTestnetNetwork: TBSNetwork<TBSNeoXNetworkId> = {
 }
 
 const neoToken = BSNeoXHelper.getNeoToken(testnetNetwork)
-
 let bsNeoX: BSNeoX
+
 describe('BSNeoX', () => {
   it.skip('Should be able to transfer the native token (GAS) on Testnet', async () => {
     bsNeoX = new BSNeoX(testnetNetwork)

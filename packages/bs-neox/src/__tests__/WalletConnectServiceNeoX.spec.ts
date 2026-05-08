@@ -1,22 +1,22 @@
-import { type TBSAccount } from '@cityofzion/blockchain-service'
+import { type TBSAccount, type TBSNetwork } from '@cityofzion/blockchain-service'
 import { ethers } from 'ethers'
 import { BSNeoX } from '../BSNeoX'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { WalletConnectServiceNeoX } from '../services/wallet-connect/WalletConnectServiceNeoX'
-import type { TBSNeoXName } from '../types'
+import type { TBSNeoXName, TBSNeoXNetworkId } from '../types'
 
+const network = BSNeoXConstants.TESTNET_NETWORK
 let service: BSNeoX
 let walletConnectService: WalletConnectServiceNeoX
 let account: TBSAccount<TBSNeoXName>
 
 describe('WalletConnectServiceNeoX', () => {
   beforeEach(async () => {
-    const network = BSNeoXConstants.TESTNET_NETWORK
-
     service = new BSNeoX(network)
     walletConnectService = new WalletConnectServiceNeoX(service)
 
     const wallet = ethers.Wallet.createRandom()
+
     account = {
       key: wallet.privateKey,
       type: 'privateKey',
@@ -52,14 +52,17 @@ describe('WalletConnectServiceNeoX', () => {
     expect(result).toEqual(validParams)
   })
 
-  it.skip('Should be able to process eth_getCachedTransaction', async () => {
+  it('Should be able to process eth_getCachedTransaction', async () => {
     // Requires a transaction previously cached on the Anti-MEV RPC via eth_sendTransaction
     const accountWithFunds = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
+
     const nonce = await walletConnectService.handlers.eth_getTransactionCount.process({
       account: accountWithFunds,
       method: 'eth_getTransactionCount',
       params: undefined,
     })
+
+    expect(nonce).toBeGreaterThanOrEqual(0)
 
     const result = await walletConnectService.handlers.eth_getCachedTransaction.process({
       account: accountWithFunds,
@@ -82,6 +85,16 @@ describe('WalletConnectServiceNeoX', () => {
   })
 
   it.skip('Should be able to process eth_sendTransaction', async () => {
+    const antiMevTestnetUrls = BSNeoXConstants.ANTI_MEV_RPC_LIST_BY_NETWORK_ID[network.id]
+
+    const testnetNetwork: TBSNetwork<TBSNeoXNetworkId> = {
+      ...network,
+      url: BSNeoXConstants.RPC_LIST_BY_NETWORK_ID[network.id].find(url => !antiMevTestnetUrls.includes(url))!,
+    }
+
+    service = new BSNeoX(testnetNetwork)
+    walletConnectService = new WalletConnectServiceNeoX(service)
+
     // Requires a funded account on NeoX Testnet
     const accountWithFunds = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
 
@@ -91,8 +104,6 @@ describe('WalletConnectServiceNeoX', () => {
       params: [{ to: accountWithFunds.address, value: '0x0', gas: '0x5208' }],
     })
 
-    expect(txHash).toBeDefined()
-    expect(typeof txHash).toBe('string')
     expect(txHash).toMatch(/^0x/)
   })
 })
