@@ -2,6 +2,12 @@
   "name": "@cityofzion/blockchain-service",
   "entries": [
     {
+      "version": "3.1.15",
+      "tag": "@cityofzion/blockchain-service_v3.1.15",
+      "date": "Fri, 08 May 2026 20:39:57 GMT",
+      "comments": {}
+    },
+    {
       "version": "3.1.14",
       "tag": "@cityofzion/blockchain-service_v3.1.14",
       "date": "Tue, 28 Apr 2026 18:29:40 GMT",

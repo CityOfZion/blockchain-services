@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "3.1.15",
+      "tag": "@cityofzion/bs-neo3_v3.1.15",
+      "date": "Fri, 08 May 2026 20:39:57 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix tests"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.14",
       "tag": "@cityofzion/bs-neo3_v3.1.14",
       "date": "Tue, 28 Apr 2026 18:29:40 GMT",
