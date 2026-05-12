@@ -116,30 +116,35 @@ export class BlockscoutFullTransactionsDataService implements IFullTransactionsD
           tokenUrl: token ? this.#service.explorerService.buildContractUrl(token.hash) : undefined,
           token,
         })
+      })
 
-        const eventData = 'data' in item ? (item.data as any) : undefined
-        const bridgeData = eventData?.bridgeData
+      await Promise.allSettled(eventPromises)
 
-        if (bridgeData) {
-          const tokenToUse =
-            bridgeData.method === 'withdrawNative'
-              ? this.#service.neo3NeoXBridgeService.gasToken
-              : this.#service.neo3NeoXBridgeService.neoToken
+      const itemData = 'data' in item ? (item.data as any) : undefined
+      const bridgeData = itemData?.bridgeData as Record<string, any> | undefined
 
+      if (bridgeData) {
+        const bridgeService = this.#service.neo3NeoXBridgeService
+        const tokenService = this.#service.tokenService
+
+        const tokenToUse = !bridgeData.neoXTokenHash
+          ? bridgeService.gasToken
+          : bridgeService.tokens.find(token => tokenService.predicateByHash(bridgeData.neoXTokenHash, token))
+
+        if (tokenToUse) {
           newItem = {
             ...newItem,
             data: {
               neo3NeoxBridge: {
                 amount: new BSBigHumanAmount(bridgeData.amount, tokenToUse.decimals).toFormatted(),
                 tokenToUse,
-                receiverAddress: bridgeData.receiverBridgeAddress,
+                multichainIdToReceive: tokenToUse.multichainId,
+                receiverAddress: bridgeData.receiverAddress,
               },
             },
           }
         }
-      })
-
-      await Promise.allSettled(eventPromises)
+      }
 
       transactions.splice(index, 0, newItem)
     })

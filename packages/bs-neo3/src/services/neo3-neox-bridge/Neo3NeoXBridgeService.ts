@@ -11,24 +11,17 @@ import {
   type TNeo3NeoXBridgeTransactionData,
   type TTransactionBase,
 } from '@cityofzion/blockchain-service'
-import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
-import axios from 'axios'
-import type {
-  IBSNeo3,
-  TBSNeo3Name,
-  TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse,
-  TRpcBDSNeo3Notification,
-  TRpcBDSNeo3NotificationState,
-} from '../../types'
-import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
+import type { StateResponse, TypedResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
 import { LogResponse, type Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
+import axios from 'axios'
+import { BSNeo3Constants } from '../../constants/BSNeo3Constants'
 import {
   BSNeo3NeonDappKitSingletonHelper,
   ContractInvocation,
   Signer,
 } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
-import type { StateResponse, TypedResponse } from '@cityofzion/dora-ts/dist/interfaces/api/common'
-import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
+import type { IBSNeo3, TBSNeo3Name, TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse } from '../../types'
+import { DoraBDSNeo3 } from '../blockchain-data/DoraBDSNeo3'
 
 export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name> {
   static readonly BRIDGE_SCRIPT_HASH: string = '0xbb19cfc864b73159277e1fd39694b3fd5fc613d2'
@@ -37,55 +30,20 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
 
   readonly gasToken: TBridgeToken<TBSNeo3Name>
   readonly neoToken: TBridgeToken<TBSNeo3Name>
+  readonly ndmemeToken: TBridgeToken<TBSNeo3Name>
+  readonly tokens: TBridgeToken<TBSNeo3Name>[]
 
   constructor(service: IBSNeo3) {
     this.#service = service
 
     this.gasToken = { ...BSNeo3Constants.GAS_TOKEN, blockchain: service.name, multichainId: 'gas' }
     this.neoToken = { ...BSNeo3Constants.NEO_TOKEN, blockchain: service.name, multichainId: 'neo' }
-  }
-
-  _getDataFromNotifications(
-    notifications: TRpcBDSNeo3Notification[]
-  ): TNeo3NeoXBridgeTransactionData<TBSNeo3Name> | undefined {
-    const gasNotification = notifications.find(({ eventname }) => eventname === 'NativeDeposit')
-    const isNativeToken = !!gasNotification
-
-    const neoNotification = !isNativeToken
-      ? notifications.find(({ eventname }) => eventname === 'TokenDeposit')
-      : undefined
-
-    const notification = isNativeToken ? gasNotification : neoNotification
-    const notificationStateValue = (notification?.state as TRpcBDSNeo3NotificationState)
-      ?.value as TRpcBDSNeo3NotificationState[]
-
-    if (!notificationStateValue) return undefined
-
-    let tokenToUse: TBridgeToken<TBSNeo3Name> | undefined
-    let amountInDecimals: string | undefined
-    let byteStringReceiverAddress: string | undefined
-
-    if (isNativeToken) {
-      tokenToUse = this.gasToken
-      amountInDecimals = notificationStateValue[2]?.value as string
-      byteStringReceiverAddress = notificationStateValue[1]?.value as string
-    } else {
-      tokenToUse = this.neoToken
-      amountInDecimals = notificationStateValue[4]?.value as string
-      byteStringReceiverAddress = notificationStateValue[3]?.value as string
+    this.ndmemeToken = {
+      ...BSNeo3Constants.NDMEME_TOKEN,
+      blockchain: service.name,
+      multichainId: 'ndmeme',
     }
-
-    if (!tokenToUse || !amountInDecimals || !byteStringReceiverAddress) return undefined
-
-    const { u } = BSNeo3NeonJsSingletonHelper.getInstance()
-
-    return {
-      neo3NeoxBridge: {
-        amount: new BSBigUnitAmount(amountInDecimals, tokenToUse.decimals).toHuman().toFormatted(),
-        tokenToUse,
-        receiverAddress: `0x${u.HexString.fromBase64(byteStringReceiverAddress).toLittleEndian()}`,
-      },
-    }
+    this.tokens = [this.gasToken, this.neoToken, this.ndmemeToken]
   }
 
   async getApprovalFee(): Promise<string> {
@@ -180,11 +138,11 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
         { type: 'Hash160', value: params.receiverAddress },
         {
           type: 'Integer',
-          value: new BSBigHumanAmount(params.amount, params.token.decimals).toUnit().toString(),
+          value: new BSBigHumanAmount(params.amount, params.token.decimals).toUnit().toFixed(),
         },
         {
           type: 'Integer',
-          value: new BSBigHumanAmount(params.bridgeFee, BSNeo3Constants.GAS_TOKEN.decimals).toUnit().toString(),
+          value: new BSBigHumanAmount(params.bridgeFee, BSNeo3Constants.GAS_TOKEN.decimals).toUnit().toFixed(),
         },
       ],
     }
@@ -198,8 +156,8 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
 
     if (!isNativeToken) {
       contractInvocation.operation = 'depositToken'
-      contractInvocation.args!.unshift({ type: 'Hash160', value: BSNeo3Constants.NEO_TOKEN.hash })
-      signer.allowedContracts!.push(BSNeo3Constants.NEO_TOKEN.hash)
+      contractInvocation.args!.unshift({ type: 'Hash160', value: params.token.hash })
+      signer.allowedContracts!.push(params.token.hash)
     }
 
     return await invoker.invokeFunction({
@@ -287,8 +245,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
   }
 
   getTokenByMultichainId(multichainId: string): TBridgeToken<TBSNeo3Name> | undefined {
-    const tokens = [this.gasToken, this.neoToken]
-    return tokens.find(token => token.multichainId === multichainId)
+    return this.tokens.find(token => token.multichainId === multichainId)
   }
 
   getTransactionData(transaction: TTransactionBase): TNeo3NeoXBridgeTransactionData<TBSNeo3Name> | undefined {
