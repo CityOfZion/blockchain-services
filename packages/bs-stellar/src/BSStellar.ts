@@ -122,7 +122,7 @@ export class BSStellar implements IBSStellar {
     })
 
     for (const intent of intents) {
-      let accountExists = false
+      let accountExists: boolean
       try {
         await this._ensureAccountOnChain(intent.receiverAddress)
         accountExists = true
