@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-stellar
 
-This log was last generated on Fri, 08 May 2026 20:39:57 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Jun 2026 21:07:39 GMT and should not be manually modified.
+
+## 3.1.16
+Mon, 01 Jun 2026 21:07:39 GMT
+
+### Updates
+
+- Fix ExchangeService not returning USDC price
+- Fix typing
 
 ## 3.1.15
 Fri, 08 May 2026 20:39:57 GMT
