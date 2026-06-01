@@ -23,6 +23,26 @@ describe('RpcEDSStellar', () => {
     })
   })
 
+  it('Should return the USDC price in USD', async () => {
+    const usdcToken: TBSToken = {
+      symbol: 'USDC',
+      name: 'USD Coin',
+      decimals: 6,
+      hash: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+    }
+
+    const tokenPriceList = await rpcEDSSolana.getTokenPrices({
+      tokens: [usdcToken],
+    })
+
+    expect(tokenPriceList).toHaveLength(1)
+    expect(tokenPriceList[0]).toEqual({
+      usdPrice: expect.any(Number),
+      token: usdcToken,
+    })
+    expect(tokenPriceList[0].usdPrice).toBe(1)
+  })
+
   it('Should return the AQUA price in USD', async () => {
     const aquaToken: TBSToken = {
       symbol: 'AQUA',
