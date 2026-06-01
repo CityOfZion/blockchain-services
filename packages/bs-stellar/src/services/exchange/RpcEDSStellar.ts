@@ -21,12 +21,25 @@ export class RpcEDSStellar extends CryptoCompareEDS {
     if (this.#service.network.type !== 'mainnet')
       throw new BSError('Exchange is only available on Mainnet', 'ONLY_AVAILABLE_ON_MAINNET')
 
-    const buying = new stellarSDK.Asset('USDC', 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN')
+    const usdcIssuer = 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN'
+
+    const buying = new stellarSDK.Asset('USDC', usdcIssuer)
 
     const tokenPrices: TTokenPricesResponse[] = []
 
     for (const token of params.tokens) {
       let selling: stellarSDK.Asset
+
+      const isUSDC = this.#service.tokenService.predicateByHash(token, usdcIssuer)
+
+      if (isUSDC) {
+        tokenPrices.push({
+          token,
+          usdPrice: BSBigNumber.ensureNumber(1),
+        })
+
+        continue
+      }
 
       const isNativeToken = this.#service.tokenService.predicateByHash(token, BSStellarConstants.NATIVE_TOKEN)
 
