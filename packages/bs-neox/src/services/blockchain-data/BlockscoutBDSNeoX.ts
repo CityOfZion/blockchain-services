@@ -144,7 +144,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
       await Promise.allSettled(promises)
     }
 
-    const data = this._service.neo3NeoXBridgeService._getDataFromBlockscoutTransaction(response)
     const txId = response.hash
 
     return {
@@ -159,7 +158,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         .toFormatted(),
       view: 'default',
       events,
-      data,
     }
   }
 
@@ -238,7 +236,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         }
       }
 
-      const data = this._service.neo3NeoXBridgeService._getDataFromBlockscoutTransaction(item)
       const txId = item.hash
 
       const transaction: TTransactionDefault<TBSNeoXName> = {
@@ -252,7 +249,6 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         networkFeeAmount: new BSBigUnitAmount(item.fee.value, this._service.feeToken.decimals).toHuman().toFormatted(),
         view: 'default',
         events,
-        data,
       }
 
       transactions.splice(index, 0, transaction)

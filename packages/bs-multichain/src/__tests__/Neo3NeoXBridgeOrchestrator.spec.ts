@@ -2,6 +2,7 @@ import {
   BSBigHumanAmount,
   BSError,
   BSUtilsHelper,
+  TBridgeTokenMultichainId,
   type TBSAccount,
   type TBSBridgeName,
   type TBalanceResponse,
@@ -113,7 +114,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
         name: 'INVALID',
         hash: 'INVALID',
         decimals: 0,
-        multichainId: 'INVALID',
+        multichainId: 'INVALID' as TBridgeTokenMultichainId,
         blockchain: 'neo3',
       })
     ).rejects.toThrow(new BSError('You are trying to use a token that is not available', 'TOKEN_NOT_AVAILABLE'))

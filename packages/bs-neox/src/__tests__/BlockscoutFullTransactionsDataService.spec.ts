@@ -325,6 +325,33 @@ describe('BlockscoutFullTransactionsDataService', () => {
         })
       )
     })
+
+    it('Should be able to get transactions that are marked as bridge (NDMEME)', async () => {
+      const newParams = {
+        ...params,
+        dateFrom: new Date('2026-02-04T00:00:00').toJSON(),
+        dateTo: new Date('2026-02-05T00:00:00').toJSON(),
+        address: '0x8e4137ed1d3b2efbac0bdfc419738e637d4536c5',
+      }
+
+      const response = await blockscoutFullTransactionsDataService.getFullTransactionsByAddress(newParams)
+
+      const transaction = response.transactions.find(
+        ({ txId }) => txId === '0xd6f654c89586f291436d3c3f488e53fa95fd5aad7f6b06d5b4d8324e77dc61a2'
+      )
+
+      expect(transaction).toEqual(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            neo3NeoxBridge: {
+              amount: '393509.736',
+              tokenToUse: service.neo3NeoXBridgeService.ndmemeToken,
+              receiverAddress: 'Nfx7rCJ1BsuasvaG7xm73oDkFrNHrpgNgx',
+            },
+          }),
+        })
+      )
+    })
   })
 
   describe('exportFullTransactionsByAddress', () => {

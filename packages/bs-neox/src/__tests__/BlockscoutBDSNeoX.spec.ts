@@ -82,42 +82,6 @@ describe('BlockscoutBDSNeoX', () => {
     )
   })
 
-  it('Should return a bridge transaction details (GAS)', async () => {
-    const transaction = await blockscoutBDSNeoX.getTransaction(
-      '0x56dc44ef1dee628b6f9264b2fe71364f1ba1cfe397c76400c3563a6e50d3eac1'
-    )
-
-    expect(transaction).toEqual(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          neo3NeoxBridge: {
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.gasToken,
-            receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
-          },
-        }),
-      })
-    )
-  })
-
-  it('Should return a bridge transaction details (NEO)', async () => {
-    const transaction = await blockscoutBDSNeoX.getTransaction(
-      '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-    )
-
-    expect(transaction).toEqual(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          neo3NeoxBridge: {
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.neoToken,
-            receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
-          },
-        }),
-      })
-    )
-  })
-
   it('Should return transactions by address', async () => {
     const address = '0x1241f44BFA102ab7386C784959BAe3D0fB923734'
 
@@ -162,50 +126,6 @@ describe('BlockscoutBDSNeoX', () => {
         )
       }
     })
-  })
-
-  it.skip('Should return transactions by address that are marked as bridge (GAS)', async () => {
-    const response = await blockscoutBDSNeoX.getTransactionsByAddress({
-      address: '0xE3aBC0b2A74FD2eF662b1c25C9769398f53b4304',
-    })
-
-    const transaction = response.transactions.find(
-      ({ txId }) => txId === '0x0f0e822766f3419c2df334f1da2ef1014ef96e2d570c0bd73cb70841c4315c02'
-    )!
-
-    expect(transaction).toEqual(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          neo3NeoxBridge: {
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.gasToken,
-            receiverAddress: 'NXLMomSgyNeZRkeoxyPVJWjSfPb7xeiUJD',
-          },
-        }),
-      })
-    )
-  })
-
-  it.skip('Should return transactions by address that are marked as bridge (NEO)', async () => {
-    const response = await blockscoutBDSNeoX.getTransactionsByAddress({
-      address: '0x5c2b22ecc2660187bee0a4b737e4d93283270dea',
-    })
-
-    const transaction = response.transactions.find(
-      ({ txId }) => txId === '0xbdaca7bb4773fc2595aa1135a76cedd9782aa0d043b283ffa328ea9cdaf32e4b'
-    )
-
-    expect(transaction).toEqual(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          neo3NeoxBridge: {
-            amount: '1',
-            tokenToUse: service.neo3NeoXBridgeService.gasToken,
-            receiverAddress: 'NLxVU1mCenEsCXgzDJcY7YF145ErGjx1W8',
-          },
-        }),
-      })
-    )
   })
 
   it('Should return token info', async () => {

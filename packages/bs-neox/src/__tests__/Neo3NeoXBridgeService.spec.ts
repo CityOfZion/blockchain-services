@@ -66,6 +66,20 @@ describe('Neo3NeoXBridgeService', () => {
     expect(Number(constants.bridgeMaxAmount)).toBeGreaterThan(0)
   })
 
+  it('Should be able to get the NDMEME bridge constants', async () => {
+    const constants = await neo3NeoXBridgeService.getBridgeConstants(neo3NeoXBridgeService.ndmemeToken)
+
+    expect(constants).toEqual({
+      bridgeFee: expect.any(String),
+      bridgeMinAmount: expect.any(String),
+      bridgeMaxAmount: expect.any(String),
+    })
+
+    expect(Number(constants.bridgeFee)).toBeGreaterThan(0)
+    expect(Number(constants.bridgeMinAmount)).toBeGreaterThan(0)
+    expect(Number(constants.bridgeMaxAmount)).toBeGreaterThan(0)
+  })
+
   it('Should not be able to get the approval fee for GAS bridge', async () => {
     await expect(
       neo3NeoXBridgeService.getApprovalFee({ account, amount: '1', token: neo3NeoXBridgeService.gasToken })
@@ -100,6 +114,36 @@ describe('Neo3NeoXBridgeService', () => {
       account,
       amount: '1',
       token: neo3NeoXBridgeService.neoToken,
+    })
+
+    expect(approvalFee).toBeDefined()
+    expect(Number(approvalFee)).toBeGreaterThan(0)
+  })
+
+  it('Should not be able to get the approval fee for NDMEME bridge when it is already approved', async () => {
+    const allowanceMock = vi.fn().mockResolvedValue(ethers.BigNumber.from('1000000000000000000'))
+    vi.spyOn(ethers, 'Contract').mockImplementation(
+      () =>
+        ({
+          allowance: allowanceMock,
+        }) as any
+    )
+
+    await expect(
+      neo3NeoXBridgeService.getApprovalFee({ account, amount: '1', token: neo3NeoXBridgeService.ndmemeToken })
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(BSError)
+      expect((error as BSError).code).toBe('ALLOWANCE_FEE_ERROR')
+
+      return true
+    })
+  })
+
+  it('Should be able to get the approval fee for NDMEME bridge', async () => {
+    const approvalFee = await neo3NeoXBridgeService.getApprovalFee({
+      account,
+      amount: '1',
+      token: neo3NeoXBridgeService.ndmemeToken,
     })
 
     expect(approvalFee).toBeDefined()
@@ -148,6 +192,15 @@ describe('Neo3NeoXBridgeService', () => {
     })
 
     expect(nonce).toBe('1420')
+  })
+
+  it('Should be able to get the nonce of a NDMEME bridge', async () => {
+    const nonce = await neo3NeoXBridgeService.getNonce({
+      token: neo3NeoXBridgeService.ndmemeToken,
+      transactionHash: '0xd6f654c89586f291436d3c3f488e53fa95fd5aad7f6b06d5b4d8324e77dc61a2',
+    })
+
+    expect(nonce).toBe('19')
   })
 
   it('Should not be able to get the transaction hash by invalid nonce', async () => {
@@ -266,6 +319,34 @@ describe('Neo3NeoXBridgeService', () => {
       receiverAddress,
       amount: bridgeMinAmount,
       token: neo3NeoXBridgeService.neoToken,
+      bridgeFee,
+    })
+
+    expect(transactionHash).toBeTruthy()
+  })
+
+  it.skip('Should be able to bridge NDMEME', async () => {
+    const { bridgeFee, bridgeMinAmount } = await neo3NeoXBridgeService.getBridgeConstants(
+      neo3NeoXBridgeService.ndmemeToken
+    )
+
+    const balances = await bsNeoXService.blockchainDataService.getBalance(account.address)
+
+    const ndmemeBalance = balances.find(balance =>
+      tokenService.predicateByHash(neo3NeoXBridgeService.ndmemeToken, balance.token)
+    )
+
+    if (!ndmemeBalance) {
+      throw new Error('It seems you do not have NDMEME balance to bridge')
+    }
+
+    expect(new BSBigHumanAmount(ndmemeBalance.amount).isGreaterThanOrEqualTo(bridgeMinAmount)).toBe(true)
+
+    const transactionHash = await neo3NeoXBridgeService.bridge({
+      account,
+      receiverAddress,
+      amount: bridgeMinAmount,
+      token: neo3NeoXBridgeService.ndmemeToken,
       bridgeFee,
     })
 

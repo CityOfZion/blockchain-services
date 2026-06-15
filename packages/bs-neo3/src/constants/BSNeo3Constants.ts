@@ -213,6 +213,13 @@ export class BSNeo3Constants {
     decimals: 0,
   }
 
+  static readonly NDMEME_TOKEN: TBSToken = {
+    symbol: 'NDMEME',
+    name: 'NDMEME',
+    hash: '0x57d1761945697a2257be76b756dcc9c19b512ff1',
+    decimals: 8,
+  }
+
   static readonly NATIVE_ASSETS: TBSToken[] = [BSNeo3Constants.GAS_TOKEN, BSNeo3Constants.NEO_TOKEN]
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSNeo3NetworkId, string[]> = {

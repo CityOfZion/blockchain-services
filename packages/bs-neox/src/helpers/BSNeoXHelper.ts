@@ -1,4 +1,5 @@
 import { BSError, TBSNetwork } from '@cityofzion/blockchain-service'
+import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import type { TBSNeoXNetworkId } from '../types'
 
 export class BSNeoXHelper {
@@ -14,5 +15,13 @@ export class BSNeoXHelper {
     }
 
     return { name: 'NEO', symbol: 'NEO', decimals: 18, hash }
+  }
+
+  static getNdmemeToken(network: TBSNetwork<TBSNeoXNetworkId>) {
+    if (network.type !== 'mainnet') {
+      return { ...BSNeoXConstants.NDMEME_TOKEN, hash: '-' }
+    }
+
+    return BSNeoXConstants.NDMEME_TOKEN
   }
 }

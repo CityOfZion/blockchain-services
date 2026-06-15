@@ -7,4 +7,12 @@ export class BSNeo3Helper {
     const extraTokens = BSNeo3Constants.EXTRA_TOKENS_BY_NETWORK_ID[network.id] ?? []
     return [...extraTokens, ...BSNeo3Constants.NATIVE_ASSETS]
   }
+
+  static getNdmemeToken(network: TBSNetwork<TBSNeo3NetworkId>) {
+    if (network.type !== 'mainnet') {
+      return { ...BSNeo3Constants.NDMEME_TOKEN, hash: '-' }
+    }
+
+    return BSNeo3Constants.NDMEME_TOKEN
+  }
 }
