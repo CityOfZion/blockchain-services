@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/blockchain-service
 
-This log was last generated on Mon, 01 Jun 2026 21:07:39 GMT and should not be manually modified.
+This log was last generated on Wed, 17 Jun 2026 19:15:32 GMT and should not be manually modified.
+
+## 3.1.17
+Wed, 17 Jun 2026 19:15:32 GMT
+
+### Updates
+
+- Consume bridge data object in activity history
 
 ## 3.1.16
 Mon, 01 Jun 2026 21:07:39 GMT

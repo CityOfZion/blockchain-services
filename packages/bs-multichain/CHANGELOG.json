@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "3.1.17",
+      "tag": "@cityofzion/bs-multichain_v3.1.17",
+      "date": "Wed, 17 Jun 2026 19:15:32 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Consume bridge data object in activity history"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.16",
       "tag": "@cityofzion/bs-multichain_v3.1.16",
       "date": "Mon, 01 Jun 2026 21:07:39 GMT",
