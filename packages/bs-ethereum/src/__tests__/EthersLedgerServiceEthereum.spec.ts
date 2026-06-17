@@ -1,5 +1,5 @@
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
-import { ethers } from 'ethers'
+import { Transaction, TransactionLike, verifyTypedData } from 'ethers'
 import { EthersLedgerServiceEthereum } from '../services/ledger/EthersLedgerServiceEthereum'
 import Transport from '@ledgerhq/hw-transport'
 import { BSEthereum } from '../BSEthereum'
@@ -39,19 +39,23 @@ describe.skip('EthersLedgerServiceEthereum', () => {
     const account = await ledgerService.getAccount(transport, 0)
     const signer = ledgerService.getSigner(transport, account.bipPath!)
 
-    const transaction = {
-      from: '0xD833aBAa9fF467A1Ea1b999316F0b33117df08Fc',
+    const transactionRecord: TransactionLike = {
       to: '0xD833aBAa9fF467A1Ea1b999316F0b33117df08Fc',
       data: '0x',
-      nonce: '0x09',
+      nonce: 9,
       gasPrice: '0x05c21c',
       gasLimit: '0x5208',
       value: '0x00',
+      chainId: parseInt(bsEthereum.network.id),
     }
 
-    const signedTransaction = await signer.signTransaction(transaction)
+    const transaction = Transaction.from(transactionRecord)
 
-    expect(signedTransaction).toBeDefined()
+    const firstSignedTransaction = await signer.signTransaction(transaction)
+    const secondSignedTransaction = await signer.signTransaction(transactionRecord)
+
+    expect(firstSignedTransaction).toBeDefined()
+    expect(secondSignedTransaction).toBeDefined()
   })
 
   it('Should be able to sign a typed data', async () => {
@@ -106,15 +110,8 @@ describe.skip('EthersLedgerServiceEthereum', () => {
       },
     }
 
-    const signature = await signer._signTypedData(typedData.domain, typedData.types, typedData.message)
-
-    const signatureAddress = ethers.utils.verifyTypedData(
-      typedData.domain,
-      typedData.types,
-      typedData.message,
-      signature
-    )
-
+    const signature = await signer.signTypedData(typedData.domain, typedData.types, typedData.message)
+    const signatureAddress = verifyTypedData(typedData.domain, typedData.types, typedData.message, signature)
     const address = await signer.getAddress()
 
     expect(signatureAddress).toEqual(address)

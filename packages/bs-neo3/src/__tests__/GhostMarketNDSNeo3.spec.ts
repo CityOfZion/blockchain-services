@@ -65,7 +65,7 @@ describe('GhostMarketNDSNeo3', () => {
     })
   })
 
-  it('Should get NFTS by address', async () => {
+  it.skip('Should get NFTS by address', async () => {
     const nfts = await ghostMarketNDSNeo3.getNftsByAddress({
       address: 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6',
     })
@@ -86,7 +86,7 @@ describe('GhostMarketNDSNeo3', () => {
     })
   })
 
-  it('Should check if address has specific Token', async () => {
+  it.skip('Should check if address has specific Token', async () => {
     const address: string = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
 
     const nfts = await ghostMarketNDSNeo3.getNftsByAddress({

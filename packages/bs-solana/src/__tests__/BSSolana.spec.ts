@@ -4,7 +4,7 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSKeychainHelper, BSUtilsHelper } from '@cityofzion/blockchain-service'
 import * as solanaKit from '@solana/kit'
 
-const mnemonic = process.env.TEST_MNEMONIC as string
+const mnemonic = process.env.TEST_MNEMONIC
 let accountKeypair: { base58Key: string; base58Address: string }
 let bsSolana: BSSolana
 
@@ -99,7 +99,7 @@ describe('BSSolana', () => {
     expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
-  // Use https://spl-token-faucet.com/ to get some tokens to test this
+  // Use https://spl-token-faucet.com to get some tokens to test this
   it('Should be able to calculate transfer fee of a SPL token', async () => {
     const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
 
@@ -119,7 +119,7 @@ describe('BSSolana', () => {
     expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
-  // Use https://spl-token-faucet.com/ to get some tokens to test this
+  // Use https://spl-token-faucet.com to get some tokens to test this
   it('Should be able to calculate transfer fee for more than one intent', async () => {
     const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
     const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
@@ -182,7 +182,7 @@ describe('BSSolana', () => {
     ])
   })
 
-  // Use https://spl-token-faucet.com/ to get some tokens to test this
+  // Use https://spl-token-faucet.com to get some tokens to test this
   it.skip('Should be able to transfer a SPL token', async () => {
     const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
     const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
@@ -221,7 +221,7 @@ describe('BSSolana', () => {
     ])
   })
 
-  // Use https://spl-token-faucet.com/ to get some tokens to test this
+  // Use https://spl-token-faucet.com to get some tokens to test this
   it.skip('Should be able to transfer more than one intent', async () => {
     const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
     const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 2)
@@ -297,7 +297,7 @@ describe('BSSolana', () => {
     expect(address).toEqual('Fw1ETanDZafof7xEULsnq9UY6o71Tpds89tNwPkWLb1v')
   })
 
-  // Use https://spl-token-faucet.com/ to get some tokens to test this
+  // Use https://spl-token-faucet.com to get some tokens to test this
   it.skip('Should be able to calculate transfer fee for more than one intent using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK, async () => transport)
@@ -364,7 +364,7 @@ describe('BSSolana', () => {
     ])
   })
 
-  // Use https://spl-token-faucet.com/ to get some tokens to test this
+  // Use https://spl-token-faucet.com to get some tokens to test this
   it.skip('Should be able to transfer a SPL token using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK, async () => transport)
@@ -405,7 +405,7 @@ describe('BSSolana', () => {
     ])
   })
 
-  // Use https://spl-token-faucet.com/ to get some tokens to test this
+  // Use https://spl-token-faucet.com to get some tokens to test this
   it.skip('Should be able to transfer more than one intent using Ledger', async () => {
     const transport = await TransportNodeHid.create()
     const service = new BSSolana(BSSolanaConstants.TESTNET_NETWORK, async () => transport)

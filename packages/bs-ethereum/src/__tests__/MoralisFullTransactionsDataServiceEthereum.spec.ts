@@ -364,7 +364,7 @@ describe('MoralisFullTransactionsDataServiceEthereum', () => {
     it('Should be able to export transactions when is using a Ethereum Mainnet network', async () => {
       const response = await moralisFullTransactionsDataServiceEthereum.exportFullTransactionsByAddress({
         address: params.address,
-        dateFrom: new Date('2024-05-25T12:00:00').toJSON(),
+        dateFrom: new Date('2024-12-25T12:00:00').toJSON(),
         dateTo: new Date('2025-04-25T12:00:00').toJSON(),
       })
 

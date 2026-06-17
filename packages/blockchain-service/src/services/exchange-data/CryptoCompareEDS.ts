@@ -15,6 +15,7 @@ export class CryptoCompareEDS implements IExchangeDataService {
     if (!this.#apiInstance) {
       this.#apiInstance = axios.create({ baseURL: 'https://min-api.cryptocompare.com' })
     }
+
     return this.#apiInstance
   }
 

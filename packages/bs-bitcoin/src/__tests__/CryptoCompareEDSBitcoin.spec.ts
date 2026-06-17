@@ -19,11 +19,17 @@ const satsToken: TBSToken = {
 
 let exchangeDataService: CryptoCompareEDSBitcoin
 
-describe('CryptoCompareEDSBitcoin', () => {
+// Avoid API key error
+describe.skip('CryptoCompareEDSBitcoin', () => {
   beforeEach(() => {
     const service = new BSBitcoin()
 
     exchangeDataService = new CryptoCompareEDSBitcoin(service)
+  })
+
+  beforeEach(async () => {
+    // Wait to avoid rate limit
+    await BSUtilsHelper.wait(4000)
   })
 
   it('Should be able to get the token prices', async () => {
@@ -57,7 +63,7 @@ describe('CryptoCompareEDSBitcoin', () => {
     })
 
     // Wait to avoid rate limit
-    await BSUtilsHelper.wait(1000)
+    await BSUtilsHelper.wait(4000)
 
     const ordiTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({
       token: ordiToken,
@@ -66,7 +72,7 @@ describe('CryptoCompareEDSBitcoin', () => {
     })
 
     // Wait to avoid rate limit
-    await BSUtilsHelper.wait(1000)
+    await BSUtilsHelper.wait(4000)
 
     const satsTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({
       token: satsToken,

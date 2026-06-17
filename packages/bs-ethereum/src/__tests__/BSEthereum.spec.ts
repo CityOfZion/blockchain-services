@@ -6,7 +6,7 @@ import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 
 let bsEthereum: BSEthereum<'ethereum'>
-let wallet: ethers.Wallet
+let wallet: ethers.HDNodeWallet
 let account: TBSAccount<'ethereum'>
 let nativeToken: TBSToken
 
@@ -68,7 +68,7 @@ describe('BSEthereum', () => {
   })
 
   it('Should be able to generate an account from mnemonic', async () => {
-    const account = await bsEthereum.generateAccountFromMnemonic(wallet.mnemonic.phrase, 0)
+    const account = await bsEthereum.generateAccountFromMnemonic(wallet.mnemonic!.phrase, 0)
 
     expect(bsEthereum.validateAddress(account.address)).toBeTruthy()
     expect(bsEthereum.validateKey(account.key)).toBeTruthy()
@@ -278,14 +278,18 @@ describe('BSEthereum', () => {
     ])
   })
 
-  it.skip('Should be able to resolve a name service domain', async () => {
+  it('Should be able to resolve a name service domain', async () => {
+    bsEthereum = new BSEthereum('ethereum')
+
     const address = await bsEthereum.resolveNameServiceDomain('alice.eth')
-    expect(address).toEqual('0xa974890156A3649A23a6C0f2ebd77D6F7A7333d4')
+
+    expect(address).toEqual('0xcd2E72aEBe2A203b84f46DEEC948E6465dB51c75')
   })
 
   it.skip('Should be able to transfer a native token using an EVM using Testnet', async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.polygon.find(network => network.id === '80002')! // Amoy network
-    const service = new BSEthereum('polygon', network)
+    const blockchain = 'polygon'
+    const service = new BSEthereum(blockchain, network)
     const senderAccount = await service.generateAccountFromKey(process.env.TEST_PRIVATE_KEY)
     const { address } = senderAccount
     const amount = '0.000001'
@@ -302,6 +306,9 @@ describe('BSEthereum', () => {
         txIdUrl: undefined,
         date: expect.any(String),
         networkFeeAmount: expect.stringMatching(/^0\.0\d*[1-9]$/),
+        relatedAddress: address,
+        blockchain,
+        isPending: true,
         view: 'default',
         events: [
           {

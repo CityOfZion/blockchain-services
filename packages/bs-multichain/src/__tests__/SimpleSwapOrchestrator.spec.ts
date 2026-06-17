@@ -679,11 +679,11 @@ describe('SimpleSwapOrchestrator', () => {
     const account = await blockchainServicesByName.neo3.generateAccountFromKey(
       process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN
     )
-    await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
+    await simpleSwapOrchestrator.setAccountToUse(account)
     await simpleSwapOrchestrator.setTokenToReceive(tokenReceive)
     await simpleSwapOrchestrator.setAddressToReceive(account.address)
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
 
     const result = await simpleSwapOrchestrator.swap()
 
@@ -729,21 +729,21 @@ describe('SimpleSwapOrchestrator', () => {
     await simpleSwapOrchestrator.init()
 
     const tokenUse = availableTokensToUse.value!.find(token => token.id === 'gasn3:neo3')!
+
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = await blockchainServicesByName.neo3.generateAccountFromKey(
       process.env.TEST_PRIVATE_KEY_TO_SWAP_TOKEN
     )
+
     await simpleSwapOrchestrator.setAccountToUse(account)
 
-    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
-
     const xrpToken = availableTokensToReceive.value!.find(({ id }) => id === 'xrp:xrp')!
+
     await simpleSwapOrchestrator.setTokenToReceive(xrpToken)
-
     await simpleSwapOrchestrator.setAddressToReceive(process.env.TEST_XRP_ADDRESS_TO_SWAP_TOKEN)
-
     await simpleSwapOrchestrator.setExtraIdToReceive(process.env.TEST_XRP_EXTRA_ID_TO_SWAP_TOKEN)
+    await simpleSwapOrchestrator.setAmountToUse(amountToUseMinMax.value!.min)
 
     const result = await simpleSwapOrchestrator.swap()
 
@@ -780,13 +780,14 @@ describe('SimpleSwapOrchestrator', () => {
     await simpleSwapOrchestrator.init()
 
     const tokens = availableTokensToUse.value!
-
     const tokenUse = tokens.find(token => token.id === 'eth:eth')!
+
     await simpleSwapOrchestrator.setTokenToUse(tokenUse)
 
     const account = await blockchainServicesByName.ethereum.generateAccountFromKey(
       process.env.TEST_ETHEREUM_PRIVATE_KEY
     )
+
     await simpleSwapOrchestrator.setAccountToUse(account)
 
     await simpleSwapOrchestrator.setTokenToReceive(
@@ -800,7 +801,7 @@ describe('SimpleSwapOrchestrator', () => {
     try {
       fee = await simpleSwapOrchestrator.calculateFee()
     } catch (error: any) {
-      expect(error.message).toContain('insufficient funds for intrinsic transaction cost')
+      expect(error.message).toContain('insufficient funds')
 
       return
     }

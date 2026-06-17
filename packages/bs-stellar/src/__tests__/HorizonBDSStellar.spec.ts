@@ -124,10 +124,11 @@ describe('HorizonBDSStellar', () => {
 
   it('Should be able to get token info', async () => {
     const tokenInfo = await horizonBDSStellar.getTokenInfo('GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5')
+
     expect(tokenInfo).toEqual({
       hash: 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5',
-      name: 'BTC',
-      symbol: 'BTC',
+      name: 'BLND',
+      symbol: 'BLND',
       decimals: 7,
     })
   })

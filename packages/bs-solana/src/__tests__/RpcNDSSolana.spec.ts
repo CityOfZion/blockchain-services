@@ -36,12 +36,14 @@ describe('RpcNDSSolana.spec', () => {
     )
   })
 
-  it.skip('Get NFTS by address', async () => {
+  // TODO: needs paid plan to work
+  it.skip('Get NFTs by address', async () => {
     const nfts = await rpcNDSSolana.getNftsByAddress({
       address: '47iUSSiZnp2grSXJNpN19qYQYLZ8Kdfxpf318w48Ydxo',
     })
 
     expect(nfts.items.length).toBeGreaterThan(0)
+
     nfts.items.forEach(nft => {
       expect(nft).toEqual(
         expect.objectContaining({
@@ -54,14 +56,12 @@ describe('RpcNDSSolana.spec', () => {
   })
 
   // TODO: needs paid plan to work
-  it.skip('Check if address has specific Token', async () => {
-    const address: string = '2RtGg6fsFiiF1EQzHqbd66AhW7R5bWeQGpTbv2UMkCdW'
-
-    const hasToken: boolean = await rpcNDSSolana.hasToken({
-      address,
+  it.skip('Check if address has specific token', async () => {
+    const hasToken = await rpcNDSSolana.hasToken({
+      address: '2RtGg6fsFiiF1EQzHqbd66AhW7R5bWeQGpTbv2UMkCdW',
       collectionHash: 'FCk24cq1pYhQo5MQYKHf5N9VnY8tdrToF7u6gvvsnGrn',
     })
 
-    expect(hasToken).toBeTruthy()
+    expect(hasToken).toBe(true)
   })
 })

@@ -97,12 +97,10 @@ export class MoralisEDSSolana extends CryptoCompareEDS {
       }
     )
 
-    const pricesHistory = pricesHistoryResponse.data.result.map<TTokenPricesHistoryResponse>(price => ({
+    return pricesHistoryResponse.data.result.map<TTokenPricesHistoryResponse>(price => ({
       timestamp: new Date(price.timestamp).getTime(),
       token: params.token,
       usdPrice: price.close,
     }))
-
-    return pricesHistory
   }
 }

@@ -1,4 +1,4 @@
-import type { TBSNetwork } from '@cityofzion/blockchain-service'
+import { BSUtilsHelper, TBSNetwork } from '@cityofzion/blockchain-service'
 import { BSNeo3Constants } from '../constants/BSNeo3Constants'
 import { BSNeo3Helper } from '../helpers/BSNeo3Helper'
 import { FlamingoForthewinEDSNeo3 } from '../services/exchange-data/FlamingoForthewinEDSNeo3'
@@ -8,11 +8,19 @@ import { BSNeo3 } from '../BSNeo3'
 let flamingoForthewinEDSNeo3: FlamingoForthewinEDSNeo3
 let network: TBSNetwork<TBSNeo3NetworkId>
 
-describe('FlamingoForthewinEDSNeo3', () => {
+// Avoid API key error
+describe.skip('FlamingoForthewinEDSNeo3', () => {
   beforeAll(() => {
     network = BSNeo3Constants.MAINNET_NETWORK
+
     const service = new BSNeo3(network)
+
     flamingoForthewinEDSNeo3 = new FlamingoForthewinEDSNeo3(service)
+  })
+
+  beforeEach(async () => {
+    // Wait to avoid rate limit
+    await BSUtilsHelper.wait(4000)
   })
 
   it('Should return a list with prices of tokens using USD', async () => {

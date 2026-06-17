@@ -37,8 +37,7 @@ describe('ClaimServiceNeo3', () => {
     expect(Number(unclaimed)).toBeGreaterThan(0)
 
     const transaction = await claimService.claim(account)
-
-    const claimEvent = claimService._buildTransactionEvent(account.address)
+    const claimEvent = await claimService._buildTransactionEvent(account.address)
 
     expect(transaction).toEqual({
       txId: expect.any(String),
@@ -51,6 +50,7 @@ describe('ClaimServiceNeo3', () => {
       networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
       systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
       view: 'default',
+      data: { isClaim: true },
       events: [
         claimEvent,
         {
@@ -65,7 +65,6 @@ describe('ClaimServiceNeo3', () => {
           token: claimService.burnToken,
         },
       ],
-      data: { isClaim: true },
     })
   })
 
@@ -73,6 +72,7 @@ describe('ClaimServiceNeo3', () => {
     const transport = await TransportNodeHid.create()
 
     bsNeo3 = new BSNeo3(network, async () => transport)
+    claimService = new ClaimServiceNeo3(bsNeo3)
 
     const account = await bsNeo3.ledgerService.getAccount(transport, 0)
     const fee = await claimService.calculateFee(account)
@@ -84,6 +84,7 @@ describe('ClaimServiceNeo3', () => {
     const transport = await TransportNodeHid.create()
 
     bsNeo3 = new BSNeo3(network, async () => transport)
+    claimService = new ClaimServiceNeo3(bsNeo3)
 
     const account = await bsNeo3.ledgerService.getAccount(transport, 0)
     const unclaimed = await claimService.getUnclaimed(account.address)
@@ -91,8 +92,7 @@ describe('ClaimServiceNeo3', () => {
     expect(Number(unclaimed)).toBeGreaterThan(0)
 
     const transaction = await claimService.claim(account)
-
-    const claimEvent = claimService._buildTransactionEvent(account.address)
+    const claimEvent = await claimService._buildTransactionEvent(account.address)
 
     expect(transaction).toEqual({
       txId: expect.any(String),
@@ -101,9 +101,11 @@ describe('ClaimServiceNeo3', () => {
       invocationCount: expect.any(Number),
       blockchain: 'neo3',
       isPending: true,
+      relatedAddress: account.address,
       networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
       systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
       view: 'default',
+      data: { isClaim: true },
       events: [
         claimEvent,
         {
@@ -118,7 +120,6 @@ describe('ClaimServiceNeo3', () => {
           token: claimService.burnToken,
         },
       ],
-      data: { isClaim: true },
     })
   })
 })

@@ -1,5 +1,5 @@
-import { BSError, BSUtilsHelper, type TWalletConnectServiceMethodHandler } from '@cityofzion/blockchain-service'
-import { ethers } from 'ethers'
+import { BSError, type TWalletConnectServiceMethodHandler } from '@cityofzion/blockchain-service'
+import { JsonRpcProvider } from 'ethers'
 import { type TWalletConnectEthereumHandlers, WalletConnectServiceEthereum } from '@cityofzion/bs-ethereum'
 import { toHex } from 'viem'
 import axios from 'axios'
@@ -7,10 +7,12 @@ import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId, TWalletConnectServiceNeoxM
 import z from 'zod'
 
 const getCachedTransactionParamsSchema = z.tuple([z.string(), z.string()])
+const getNonceParamsSchema = z.union([z.string(), z.number()]).optional()
 
 type TWalletConnectNeoXHandlers = TWalletConnectEthereumHandlers & {
   eth_getTransactionCount: unknown
   eth_getCachedTransaction: z.infer<typeof getCachedTransactionParamsSchema>
+  eth_getNonce: z.infer<typeof getNonceParamsSchema>
 }
 
 export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<
@@ -22,13 +24,14 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<
   constructor(service: IBSNeoX) {
     super(service)
 
-    this.supportedMethods.push('eth_getTransactionCount', 'eth_getCachedTransaction')
-    this.autoApproveMethods.push('eth_getTransactionCount', 'eth_getCachedTransaction')
+    this.supportedMethods.push('eth_getTransactionCount', 'eth_getCachedTransaction', 'eth_getNonce')
+    this.autoApproveMethods.push('eth_getTransactionCount', 'eth_getCachedTransaction', 'eth_getNonce')
 
     this.handlers = {
       ...this.handlers,
       eth_getTransactionCount: this.#getTransactionCountHandler,
       eth_getCachedTransaction: this.#getCachedTransactionHandler,
+      eth_getNonce: this.#getNonce,
       eth_sendTransaction: this.#sendTransactionHandler,
     }
   }
@@ -36,10 +39,11 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<
   #getTransactionCountHandler: TWalletConnectServiceMethodHandler<TBSNeoXName> = {
     validate: async () => {},
     process: async args => {
-      const wallet = await this._service._generateSigner(args.account)
-      const provider = new ethers.providers.JsonRpcProvider(this._service.network.url)
+      const wallet = await this._service._getSigner(args.account)
+      const provider = new JsonRpcProvider(this._service.network.url)
       const connectedWallet = wallet.connect(provider)
-      return await connectedWallet.getTransactionCount('pending')
+
+      return await connectedWallet.getNonce('pending')
     },
   }
 
@@ -50,8 +54,8 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<
     validate: async params => await getCachedTransactionParamsSchema.parseAsync(params),
     process: async args => {
       const url = this._service.network.url
-      const wallet = await this._service._generateSigner(args.account)
-      const provider = new ethers.providers.JsonRpcProvider(url)
+      const wallet = await this._service._getSigner(args.account)
+      const provider = new JsonRpcProvider(url)
       const connectedWallet = wallet.connect(provider)
       const nonce = args.params[0]
       const signature = await connectedWallet.signMessage(nonce.toString())
@@ -69,15 +73,26 @@ export class WalletConnectServiceNeoX extends WalletConnectServiceEthereum<
     },
   }
 
+  #getNonce: TWalletConnectServiceMethodHandler<TBSNeoXName, z.infer<typeof getNonceParamsSchema>> = {
+    validate: async params => await getNonceParamsSchema.parseAsync(params),
+    process: async args => {
+      const wallet = await this._service._getSigner(args.account)
+
+      return await wallet.getNonce(args.params || 'pending')
+    },
+  }
+
   #sendTransactionHandler: TWalletConnectServiceMethodHandler<TBSNeoXName> = {
     validate: async params => await this._sendTransactionHandler.validate(params),
     process: async args => {
       const { transaction, connectedWallet } = await this._resolveTransactionParams(args)
-      const [response, error] = await BSUtilsHelper.tryCatch(() => connectedWallet.sendTransaction(transaction))
-      const transactionHash: string = response?.hash || error?.returnedHash
+      const provider = new JsonRpcProvider(this._service.network.url)
+      const populatedTransaction = await connectedWallet.populateTransaction(transaction)
+      const signedTransaction = await connectedWallet.signTransaction(populatedTransaction)
+      const transactionHash: string = await provider.send('eth_sendRawTransaction', [signedTransaction])
 
       if (!transactionHash) {
-        throw error || new BSError('Transaction error', 'TRANSACTION_ERROR')
+        throw new BSError('Transaction error', 'TRANSACTION_ERROR')
       }
 
       return transactionHash

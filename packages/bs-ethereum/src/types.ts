@@ -11,8 +11,7 @@ import type {
   TBSNetworkId,
   IBSWithFullTransactions,
 } from '@cityofzion/blockchain-service'
-import { TypedDataSigner } from '@ethersproject/abstract-signer'
-import { ethers } from 'ethers'
+import { type Signer } from 'ethers'
 
 export type TBSEthereumNetworkId = TBSNetworkId<
   | '1'
@@ -44,7 +43,7 @@ export interface IBSEthereum<N extends string = TBSEthereumName, A extends TBSNe
     IBSWithEncryption<N>,
     IBSWithWalletConnect<N>,
     IBSWithFullTransactions<N> {
-  _generateSigner(account: TBSAccount<N>): Promise<ethers.Signer & TypedDataSigner>
+  _getSigner(account: TBSAccount<N>): Promise<Signer>
 }
 
 export type TMoralisBDSEthereumNativeBalanceApiResponse = {

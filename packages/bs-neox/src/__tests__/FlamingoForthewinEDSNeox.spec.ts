@@ -1,14 +1,19 @@
-import type { TGetTokenPricesParams } from '@cityofzion/blockchain-service'
+import { BSUtilsHelper, TGetTokenPricesParams } from '@cityofzion/blockchain-service'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
 import { FlamingoForthewinEDSNeoX } from '../services/exchange-data/FlamingoForthewinEDSNeoX'
 import { BSNeoX } from '../BSNeoX'
 
 let flamingoForthewinEDSNeoX: FlamingoForthewinEDSNeoX
 
-describe('FlamingoForthewinEDSNeox', () => {
-  beforeEach(() => {
+// Avoid API key error
+describe.skip('FlamingoForthewinEDSNeox', () => {
+  beforeEach(async () => {
     const service = new BSNeoX()
+
     flamingoForthewinEDSNeoX = new FlamingoForthewinEDSNeoX(service)
+
+    // Wait to avoid rate limit
+    await BSUtilsHelper.wait(4000)
   })
 
   it('Should get token prices', async () => {
