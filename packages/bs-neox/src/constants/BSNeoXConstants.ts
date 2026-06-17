@@ -34,16 +34,17 @@ export class BSNeoXConstants {
       'https://neoxt4seed3.ngd.network',
     ],
   }
+
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeoXNetworkId> = {
     id: '47763',
-    name: 'Neo X Mainnet',
+    name: 'Mainnet',
     url: this.RPC_LIST_BY_NETWORK_ID['47763'][0],
     type: 'mainnet',
   }
 
   static readonly TESTNET_NETWORK: TBSNetwork<TBSNeoXNetworkId> = {
     id: '12227332',
-    name: 'Neo X Testnet',
+    name: 'Testnet',
     url: this.RPC_LIST_BY_NETWORK_ID['12227332'][0],
     type: 'testnet',
   }

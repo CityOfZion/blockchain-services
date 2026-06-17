@@ -9,8 +9,6 @@ export class BSBitcoinConstants {
     testnet: "m/84'/1'/0'/0/?",
   }
 
-  static readonly ONE_BTC_IN_SATOSHIS = 1_0000_0000
-
   static readonly NATIVE_TOKEN: TBSToken = {
     symbol: 'BTC',
     name: 'Bitcoin',
