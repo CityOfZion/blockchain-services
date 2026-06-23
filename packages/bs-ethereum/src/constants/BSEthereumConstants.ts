@@ -136,7 +136,7 @@ export class BSEthereumConstants {
       },
       {
         id: '11155111',
-        name: 'Sepolia Testnet',
+        name: 'Ethereum Testnet (Sepolia)',
         url: this.RPC_LIST_BY_NETWORK_ID['11155111'][0],
         type: 'testnet',
       },
@@ -186,7 +186,7 @@ export class BSEthereumConstants {
       },
       {
         id: '1101',
-        name: 'Polygon zkEVM Mainnet',
+        name: 'Polygon Mainnet (zkEVM)',
         url: this.RPC_LIST_BY_NETWORK_ID['1101'][0],
         type: 'mainnet',
       },
@@ -194,15 +194,15 @@ export class BSEthereumConstants {
     arbitrum: [
       {
         id: '42161',
-        name: 'Arbitrum Mainnet',
-        url: this.RPC_LIST_BY_NETWORK_ID[42161][0],
+        name: 'Mainnet',
+        url: this.RPC_LIST_BY_NETWORK_ID['42161'][0],
         type: 'mainnet',
       },
     ],
     base: [
       {
         id: '8453',
-        name: 'Base Protocol Mainnet',
+        name: 'Mainnet',
         url: this.RPC_LIST_BY_NETWORK_ID['8453'][0],
         type: 'mainnet',
       },
@@ -210,13 +210,13 @@ export class BSEthereumConstants {
     polygon: [
       {
         id: '137',
-        name: 'Polygon Mainnet',
+        name: 'Mainnet',
         url: this.RPC_LIST_BY_NETWORK_ID['137'][0],
         type: 'mainnet',
       },
       {
         id: '80002',
-        name: 'Polygon Testnet Amoy',
+        name: 'Testnet (Amoy)',
         url: this.RPC_LIST_BY_NETWORK_ID['80002'][0],
         type: 'testnet',
       },

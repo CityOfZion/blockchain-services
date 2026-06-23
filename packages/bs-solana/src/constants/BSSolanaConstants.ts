@@ -20,7 +20,7 @@ export class BSSolanaConstants {
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSSolanaNetworkId> = {
     id: 'mainnet-beta',
-    name: 'Mainnet Beta',
+    name: 'Mainnet (beta)',
     url: this.RPC_LIST_BY_NETWORK_ID['mainnet-beta'][0],
     type: 'mainnet',
   }
@@ -28,8 +28,9 @@ export class BSSolanaConstants {
   static readonly TESTNET_NETWORK: TBSNetwork<TBSSolanaNetworkId> = {
     id: 'devnet',
     name: 'Devnet',
-    url: this.RPC_LIST_BY_NETWORK_ID['devnet'][0],
+    url: this.RPC_LIST_BY_NETWORK_ID.devnet[0],
     type: 'testnet',
   }
+
   static readonly ALL_NETWORKS: TBSNetwork<TBSSolanaNetworkId>[] = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 }

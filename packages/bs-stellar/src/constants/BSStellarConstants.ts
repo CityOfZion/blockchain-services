@@ -25,12 +25,14 @@ export class BSStellarConstants {
     url: this.RPC_LIST_BY_NETWORK_ID.pubnet[0],
     type: 'mainnet',
   }
+
   static readonly TESTNET_NETWORK: TBSNetwork<TBSStellarNetworkId> = {
     id: 'testnet',
     name: 'Testnet',
     url: this.RPC_LIST_BY_NETWORK_ID.testnet[0],
     type: 'testnet',
   }
+
   static readonly ALL_NETWORKS = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 
   static readonly NETWORK_PASSPHRASE_BY_NETWORK_ID: Record<TBSStellarNetworkId, string> = {

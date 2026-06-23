@@ -249,15 +249,17 @@ export class BSNeo3Constants {
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeo3NetworkId> = {
     id: 'mainnet',
     name: 'Mainnet',
-    url: this.RPC_LIST_BY_NETWORK_ID['mainnet'][0],
+    url: this.RPC_LIST_BY_NETWORK_ID.mainnet[0],
     type: 'mainnet',
   }
+
   static readonly TESTNET_NETWORK: TBSNetwork<TBSNeo3NetworkId> = {
     id: 'testnet',
     name: 'Testnet',
-    url: this.RPC_LIST_BY_NETWORK_ID['testnet'][0],
+    url: this.RPC_LIST_BY_NETWORK_ID.testnet[0],
     type: 'testnet',
   }
+
   static readonly ALL_NETWORKS = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
 
   static readonly NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
