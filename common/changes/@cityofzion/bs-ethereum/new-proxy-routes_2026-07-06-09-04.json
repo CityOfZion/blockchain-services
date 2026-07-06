@@ -2,7 +2,7 @@
   "changes": [
     {
       "packageName": "@cityofzion/bs-ethereum",
-      "comment": "update api route",
+      "comment": "Update COZ API routes",
       "type": "none"
     }
   ],
