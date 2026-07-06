@@ -6,7 +6,7 @@ export class BSBitcoinXverseHelper {
   static #lastRequestTime = 0
 
   static getApi() {
-    const api = axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/bitcoin/xverse/mainnet` })
+    const api = axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/v2/p/bitcoin/xverse/mainnet` })
 
     api.interceptors.request.use(async config => {
       const requestTime = Date.now()

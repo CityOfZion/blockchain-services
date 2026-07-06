@@ -3,6 +3,6 @@ import { BSCommonConstants } from '@cityofzion/blockchain-service'
 
 export class BSBitcoinHiroHelper {
   static getApi() {
-    return axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/bitcoin/hiro/mainnet` })
+    return axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/v2/p/bitcoin/hiro/mainnet` })
   }
 }
