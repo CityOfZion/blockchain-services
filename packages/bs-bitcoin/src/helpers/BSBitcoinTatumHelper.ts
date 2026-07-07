@@ -10,7 +10,7 @@ export class BSBitcoinTatumHelper {
       throw new BSError('Only mainnet and testnet are supported', 'INVALID_NETWORK')
     }
 
-    const api = axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/bitcoin/tatum/${type}` })
+    const api = axios.create({ baseURL: `${BSCommonConstants.COZ_API_URL}/v2/p/bitcoin/tatum/${type}` })
 
     api.interceptors.request.use(config => {
       const isV4 = config.url?.startsWith('/v4')

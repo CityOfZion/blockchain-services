@@ -20,7 +20,7 @@ import type {
 } from '../../types'
 
 export class MoralisNDSEthereum<N extends string, A extends TBSNetworkId> implements INftDataService {
-  static readonly BASE_URL = `${BSCommonConstants.COZ_API_URL}/api/v2/meta`
+  static readonly BASE_URL = `${BSCommonConstants.COZ_API_URL}/v2/p/evm/meta`
   readonly #service: IBSEthereum<N, A>
   #apiInstance?: AxiosInstance
   readonly #nftsCacheMap: Map<string, TNftResponse> = new Map()

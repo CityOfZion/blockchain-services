@@ -15,8 +15,8 @@ export class BSStellarConstants {
   }
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSStellarNetworkId, string[]> = {
-    pubnet: [`${BSCommonConstants.COZ_API_URL}/api/v2/stellar/tatum/meta/mainnet`],
-    testnet: [`${BSCommonConstants.COZ_API_URL}/api/v2/stellar/tatum/meta/testnet`],
+    pubnet: [`${BSCommonConstants.COZ_API_URL}/v2/p/stellar/tatum/meta/mainnet`],
+    testnet: [`${BSCommonConstants.COZ_API_URL}/v2/p/stellar/tatum/meta/testnet`],
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSStellarNetworkId> = {
@@ -41,8 +41,8 @@ export class BSStellarConstants {
   }
 
   static readonly HORIZON_URL_BY_NETWORK_ID: Record<TBSStellarNetworkId, string> = {
-    pubnet: `${BSCommonConstants.COZ_API_URL}/api/v2/stellar/tatum/mainnet`,
-    testnet: `${BSCommonConstants.COZ_API_URL}/api/v2/stellar/tatum/testnet`,
+    pubnet: `${BSCommonConstants.COZ_API_URL}/v2/p/stellar/tatum/mainnet`,
+    testnet: `${BSCommonConstants.COZ_API_URL}/v2/p/stellar/tatum/testnet`,
   }
 
   static readonly INVALID_TRANSACTION_STATUS: stellarSDK.rpc.Api.SendTransactionStatus[] = ['ERROR', 'DUPLICATE']

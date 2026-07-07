@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-bitcoin",
+      "comment": "Update COZ API routes",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-bitcoin"
+}

@@ -31,7 +31,7 @@ import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
 
 export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extends RpcBDSEthereum<N, A> {
-  static readonly BASE_URL = `${BSCommonConstants.COZ_API_URL}/api/v2/meta`
+  static readonly BASE_URL = `${BSCommonConstants.COZ_API_URL}/v2/p/evm/meta`
 
   static getClient(network: TBSNetwork<TBSEthereumNetworkId>) {
     return axios.create({

@@ -14,8 +14,8 @@ export class BSSolanaConstants {
   }
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string[]> = {
-    'mainnet-beta': [`${BSCommonConstants.COZ_API_URL}/api/v2/solana/meta/mainnet`],
-    devnet: [`${BSCommonConstants.COZ_API_URL}/api/v2/solana/meta/devnet`],
+    'mainnet-beta': [`${BSCommonConstants.COZ_API_URL}/v2/p/solana/meta/mainnet`],
+    devnet: [`${BSCommonConstants.COZ_API_URL}/v2/p/solana/meta/devnet`],
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSSolanaNetworkId> = {

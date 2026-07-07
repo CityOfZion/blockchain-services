@@ -34,7 +34,7 @@ export class MoralisEDSSolana extends CryptoCompareEDS {
 
     this.#service = service
     this.#client = axios.create({
-      baseURL: `${BSCommonConstants.COZ_API_URL}/api/v2/solana/price`,
+      baseURL: `${BSCommonConstants.COZ_API_URL}/v2/p/solana/price`,
     })
   }
 
