@@ -40,8 +40,6 @@ src/
 
 ## Architecture
 
-`BSNeoLegacy` uses `@cityofzion/neon-core` and `@cityofzion/neon-api` **v4.8.x**, aliased as `neon-core-legacy` / `neon-api-legacy` to avoid conflicts with `bs-neo3` which uses v5. Do not conflate the two — the APIs differ significantly.
-
 **Transaction size limits:** The legacy network has a maximum transaction size. `BSNeoLegacy` has private methods (`_hasTransactionMoreThanMaxSize`, `_getRequiredTransactionFeeConfig`) to split or adjust fees for oversized transactions.
 
 **Signing callback:** Supports a `signingCallback` parameter on transfer, allowing external signing (e.g. Ledger).

@@ -19,8 +19,8 @@
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
     "@cityofzion/dora-ts": "0.6.2",
-    "@cityofzion/neon-core-legacy": "npm:@cityofzion/neon-core@4.8.2",
-    "@cityofzion/neon-api-legacy": "npm:@cityofzion/neon-api@4.8.3",
+    "@cityofzion/neon-core": "4.9.0",
+    "@cityofzion/neon-api": "4.9.0",
     "axios": "1.16.0"
   },
   "devDependencies": {
