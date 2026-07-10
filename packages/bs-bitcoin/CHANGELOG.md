@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-bitcoin
 
-This log was last generated on Wed, 17 Jun 2026 19:38:28 GMT and should not be manually modified.
+This log was last generated on Fri, 10 Jul 2026 20:46:50 GMT and should not be manually modified.
+
+## 3.1.19
+Fri, 10 Jul 2026 20:46:50 GMT
+
+### Updates
+
+- Remove unused variables
+- Update COZ API routes
 
 ## 3.1.18
 Wed, 17 Jun 2026 19:38:28 GMT

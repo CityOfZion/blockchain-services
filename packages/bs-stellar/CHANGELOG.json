@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-stellar",
   "entries": [
     {
+      "version": "3.1.19",
+      "tag": "@cityofzion/bs-stellar_v3.1.19",
+      "date": "Fri, 10 Jul 2026 20:46:50 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix lint"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.18",
       "tag": "@cityofzion/bs-stellar_v3.1.18",
       "date": "Wed, 17 Jun 2026 19:38:28 GMT",
