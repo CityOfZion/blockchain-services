@@ -31,7 +31,7 @@ import type {
 export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetworkId, IBSNeoX> {
   static readonly BASE_URL_BY_CHAIN_ID: Partial<Record<TBSNeoXNetworkId, string>> = {
     '47763': `${BSCommonConstants.COZ_API_URL}/api/neox/mainnet`,
-    '12227332': 'https://dora-stage.coz.io/api/neox/testnet',
+    '12227332': `${BSCommonConstants.COZ_API_STAGE_URL}/api/neox/testnet`,
   }
 
   static getClient(network: TBSNetwork<TBSNeoXNetworkId>) {
