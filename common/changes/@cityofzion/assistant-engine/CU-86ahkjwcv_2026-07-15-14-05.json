@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/assistant-engine",
+      "comment": "Init package",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/assistant-engine"
+}

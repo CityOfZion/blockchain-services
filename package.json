@@ -1,13 +1,13 @@
 {
   "name": "@cityofzion/blockchain-services",
   "version": "0.0.0",
-  "description": "Coz Blockchain Services",
+  "description": "Blockchain Services",
   "repository": {
     "type": "git",
     "url": "https://github.com/CityOfZion/blockchain-services"
   },
   "license": "GPL-3.0-only",
-  "author": "Coz",
+  "author": "COZ",
   "main": "index.js",
   "devDependencies": {
     "@eslint/js": "^10.0.1",

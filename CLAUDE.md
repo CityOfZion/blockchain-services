@@ -56,6 +56,7 @@ Test files live in `src/__tests__/*.spec.ts`. Vitest runs with a 60-second timeo
 | `bs-bitcoin` | Bitcoin |
 | `bs-multichain` | Cross-chain feature implementations |
 | `bs-electron` | Electron IPC bridge — exposes blockchain service API to renderer process |
+| `assistant-engine` | AI assistant — translates natural-language chat into typed wallet flow actions |
 
 ## Architecture
 

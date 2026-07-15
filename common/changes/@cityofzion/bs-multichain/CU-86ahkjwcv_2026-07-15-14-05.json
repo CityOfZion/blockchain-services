@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-multichain",
+      "comment": "Update author and repository URL",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-multichain"
+}
