@@ -1,8 +1,9 @@
 {
   "name": "@cityofzion/bs-neo-legacy",
   "version": "3.1.19",
+  "repository": "https://github.com/CityOfZion/blockchain-services/tree/main/packages/bs-neo-legacy",
   "license": "GPL-3.0-only",
-  "author": "Coz",
+  "author": "COZ",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

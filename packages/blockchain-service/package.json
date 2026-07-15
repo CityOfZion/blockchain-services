@@ -1,9 +1,9 @@
 {
   "name": "@cityofzion/blockchain-service",
   "version": "3.1.19",
-  "repository": "https://github.com/CityOfZion/blockchain-services",
+  "repository": "https://github.com/CityOfZion/blockchain-services/tree/main/packages/blockchain-service",
   "license": "GPL-3.0-only",
-  "author": "Coz",
+  "author": "COZ",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

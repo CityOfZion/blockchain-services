@@ -66,6 +66,12 @@
       "projectFolder": "packages/bs-bitcoin",
       "shouldPublish": true,
       "versionPolicyName": "lockstep-all"
+    },
+    {
+      "packageName": "@cityofzion/assistant-engine",
+      "projectFolder": "packages/assistant-engine",
+      "shouldPublish": true,
+      "versionPolicyName": "lockstep-all"
     }
   ]
 }

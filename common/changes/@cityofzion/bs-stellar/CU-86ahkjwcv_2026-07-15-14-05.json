@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-stellar",
+      "comment": "Update author, repository URL and add LICENSE",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-stellar"
+}
