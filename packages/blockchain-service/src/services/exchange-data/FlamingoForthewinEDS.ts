@@ -23,6 +23,7 @@ export class FlamingoForthewinEDS<N extends string, A extends TBSNetworkId>
 
   constructor(service: IBlockchainService<N, A>) {
     super()
+
     this._service = service
   }
 
@@ -30,6 +31,7 @@ export class FlamingoForthewinEDS<N extends string, A extends TBSNetworkId>
     if (!this.#forthewinApiInstance) {
       this.#forthewinApiInstance = axios.create({ baseURL: 'https://api.forthewin.network' })
     }
+
     return this.#forthewinApiInstance
   }
 
@@ -37,6 +39,7 @@ export class FlamingoForthewinEDS<N extends string, A extends TBSNetworkId>
     if (!this.#flamingoApiInstance) {
       this.#flamingoApiInstance = axios.create({ baseURL: 'https://neo-api.b-cdn.net/flamingo' })
     }
+
     return this.#flamingoApiInstance
   }
 
