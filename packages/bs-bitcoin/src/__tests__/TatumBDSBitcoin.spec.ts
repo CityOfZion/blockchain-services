@@ -221,6 +221,8 @@ describe('TatumBDSBitcoin', () => {
 
   it('Should be able to get the NFT transaction by hash', async () => {
     const firstHash = '6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799'
+    const firstName = `${firstHash}i0`
+    const firstSymbol = 'sub100'
     const firstNftTransaction = await blockchainDataService.getTransaction(firstHash)
 
     const secondHash = '050eeb6e675a8ebb43698e35614b904e1c349da3e5a6c00318fefff9af827a70'
@@ -240,14 +242,19 @@ describe('TatumBDSBitcoin', () => {
       totalAmount: '0.00009678',
       blockchain: 'bitcoin',
       isPending: false,
+      relatedAddress: undefined,
       nfts: [
         {
-          hash: `${firstHash}i0`,
-          name: '0',
+          hash: firstName,
+          name: firstName,
           image: expect.any(String),
           explorerUri: expect.any(String),
-          symbol: undefined,
-          collection: undefined,
+          symbol: firstSymbol,
+          collection: {
+            hash: firstSymbol,
+            name: firstSymbol,
+            url: expect.any(String),
+          },
           isSVG: false,
         },
       ],
@@ -280,6 +287,7 @@ describe('TatumBDSBitcoin', () => {
       totalAmount: '0.0001',
       blockchain: 'bitcoin',
       isPending: false,
+      relatedAddress: undefined,
       nfts: [
         {
           hash: `${secondHash}i0`,
@@ -324,6 +332,7 @@ describe('TatumBDSBitcoin', () => {
       totalAmount: '0.0000066',
       blockchain: 'bitcoin',
       isPending: false,
+      relatedAddress: undefined,
       nfts: [
         {
           hash: `${thirdHash}i0`,

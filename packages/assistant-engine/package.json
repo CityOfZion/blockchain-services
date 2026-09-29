@@ -1,7 +1,7 @@
 {
-  "name": "@cityofzion/bs-stellar",
-  "version": "3.1.19",
-  "repository": "https://github.com/CityOfZion/blockchain-services/tree/main/packages/bs-stellar",
+  "name": "@cityofzion/assistant-engine",
+  "version": "0.0.0",
+  "repository": "https://github.com/CityOfZion/blockchain-services/tree/main/packages/assistant-engine",
   "license": "GPL-3.0-only",
   "author": "COZ",
   "main": "dist/index.js",
@@ -10,23 +10,20 @@
     "/dist"
   ],
   "scripts": {
-    "build": "rm -rf ./dist && rm -f *.tgz && npm run typecheck && tsc --project tsconfig.build.json",
     "format": "eslint --fix",
     "lint": "eslint .",
-    "package": "npm run build && npm pack",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "build": "rm -rf ./dist && rm -f *.tgz && npm run lint && npm run typecheck && tsc --project tsconfig.build.json",
+    "package": "npm run build && npm pack"
   },
   "dependencies": {
     "@cityofzion/blockchain-service": "workspace:*",
-    "@ledgerhq/hw-app-str": "~7.7.1",
-    "@stellar/stellar-sdk": "~15.0.1",
+    "@cityofzion/bs-multichain": "workspace:*",
     "axios": "1.16.0",
     "zod": "~4.4.3"
   },
   "devDependencies": {
-    "@ledgerhq/hw-transport": "6.35.1",
-    "@ledgerhq/hw-transport-node-hid": "~6.33.1",
     "@types/node": "~25.6.0",
     "dotenv": "~17.4.2",
     "eslint": "~10.3.0",
