@@ -73,10 +73,13 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<
   readonly namespace = 'bip122'
   readonly chain: string
 
-  // prettier-ignore
   readonly supportedMethods: TWalletConnectServiceBitcoinMethod[] = [
-    'sendTransfer', 'getAccountAddresses', 'signPsbt', 'signMessage',
+    'sendTransfer',
+    'getAccountAddresses',
+    'signPsbt',
+    'signMessage',
   ]
+
   readonly supportedEvents = ['bip122_addressesChanged']
   readonly calculableMethods: TWalletConnectServiceBitcoinMethod[] = ['sendTransfer']
   readonly autoApproveMethods: TWalletConnectServiceBitcoinMethod[] = ['getAccountAddresses']

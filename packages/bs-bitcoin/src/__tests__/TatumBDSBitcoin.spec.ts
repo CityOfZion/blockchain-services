@@ -98,7 +98,7 @@ describe('TatumBDSBitcoin', () => {
 
   it('Should be able to get the balances from address', async () => {
     const balances = await blockchainDataService.getBalance(
-      'bc1pqhvy9kz07w7jw76nu89apvdd6mnddqg4uwgskhcmzfse2j8sx3jqjkykmr'
+      'bc1q5x9p784q6jkj4w3cw56h8vejz326yrf6u4tuksgg8kjnfkpg7l5qe8kpz6'
     )
 
     expect(balances.length > 1).toBe(true)

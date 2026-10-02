@@ -534,7 +534,6 @@ export class BSBitcoin implements IBSBitcoin {
       const { hex } = await this.blockchainDataService.getTransaction(txHash)
       const transaction = bitcoinjs.Transaction.fromHex(hex)
       const output = transaction.outs[index]
-
       const valueBigInt = new BSBigHumanAmount(value, BSBitcoinConstants.NATIVE_TOKEN.decimals).toUnit().toBigInt()
 
       const input: Parameters<bitcoinjs.Psbt['addInput']>[0] = {
@@ -557,8 +556,9 @@ export class BSBitcoin implements IBSBitcoin {
       psbt.addOutput({ address: intent.receiverAddress, value: valueBigInt })
     }
 
-    // Verify if exists change
-    if (changeBn.isGreaterThan(0)) {
+    const hasChange = changeBn.isGreaterThan(0)
+
+    if (hasChange) {
       psbt.addOutput({ address, value: changeBn.toUnit().toBigInt() })
     }
 
@@ -602,6 +602,17 @@ export class BSBitcoin implements IBSBitcoin {
           token,
         }
       })
+
+      if (hasChange) {
+        totalAmountBn = totalAmountBn.plus(changeBn)
+
+        outputs.push({
+          address,
+          addressUrl,
+          amount: changeBn.toFormatted(),
+          token: BSBitcoinConstants.NATIVE_TOKEN,
+        })
+      }
 
       return [
         {
