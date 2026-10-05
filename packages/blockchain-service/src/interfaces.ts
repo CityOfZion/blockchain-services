@@ -81,10 +81,17 @@ export type TTransferIntent = {
 export type TTransferParams<N extends string> = {
   senderAccount: TBSAccount<N>
   intents: TTransferIntent[]
+  memo?: string
 }
 
 export interface IBSWithFee<N extends string> {
   calculateTransferFee(params: TTransferParams<N>): Promise<string>
+}
+
+// Memo
+
+export interface IBSWithMemo {
+  validateMemo(memo: string): boolean
 }
 
 // Encryption
@@ -156,6 +163,7 @@ export type TTransactionBase = {
   notificationCount?: number
   networkFeeAmount?: string
   systemFeeAmount?: string
+  memo?: string
   data?: any
 }
 

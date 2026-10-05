@@ -147,6 +147,8 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
       networkFeeAmount: new BSBigUnitAmount(transaction.fee_charged, this.#service.feeToken.decimals)
         .toHuman()
         .toFormatted(),
+      // hash and return memos are binary (base64), so only text and id memos are exposed
+      memo: transaction.memo_type === 'text' || transaction.memo_type === 'id' ? transaction.memo : undefined,
       view: 'default',
       events,
     }

@@ -8,6 +8,9 @@ export class BSSolanaConstants {
 
   static readonly NATIVE_WRAPPED_HASH = 'So11111111111111111111111111111111111111112'
 
+  // The SPL Memo program has no hard limit, but the memo must fit in the transaction (1232 bytes) alongside the transfer instructions
+  static readonly MEMO_MAX_BYTES = 256
+
   static readonly PUBLIC_RPC_LIST_BY_NETWORK_ID: Record<TBSSolanaNetworkId, string> = {
     'mainnet-beta': 'https://api.mainnet-beta.solana.com',
     devnet: 'https://api.devnet.solana.com',

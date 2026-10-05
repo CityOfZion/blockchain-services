@@ -59,6 +59,13 @@ describe('BSStellar', () => {
     expect(bsStellar.validateKey(anotherInvalidKey)).toBeFalsy()
   })
 
+  it('Should be able to validate a memo', () => {
+    expect(bsStellar.validateMemo('123456789')).toBeTruthy()
+    expect(bsStellar.validateMemo('a'.repeat(BSStellarConstants.MEMO_TEXT_MAX_BYTES))).toBeTruthy()
+    expect(bsStellar.validateMemo('a'.repeat(BSStellarConstants.MEMO_TEXT_MAX_BYTES + 1))).toBeFalsy()
+    expect(bsStellar.validateMemo('é'.repeat(15))).toBeFalsy()
+  })
+
   it('Should be able to generate an account from mnemonic', async () => {
     const generatedAccount = await bsStellar.generateAccountFromMnemonic(mnemonic, 0)
 
@@ -143,6 +150,78 @@ describe('BSStellar', () => {
         ],
       },
     ])
+  })
+
+  it.skip('Should be able to transfer the native token with memo', async () => {
+    const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
+    const receiverAddress = keypair2.publicKey()
+    const memo = 'test memo'
+
+    const [transaction] = await bsStellar.transfer({
+      senderAccount,
+      intents: [{ amount: '0.0000001', receiverAddress, token: BSStellarConstants.NATIVE_TOKEN }],
+      memo,
+    })
+
+    expect(transaction.memo).toBe(memo)
+
+    await BSUtilsHelper.wait(5000)
+
+    const fetchedTransaction = await bsStellar.blockchainDataService.getTransaction(transaction.txId)
+
+    expect(fetchedTransaction.memo).toBe(memo)
+  })
+
+  it('Should not be able to transfer with an invalid memo', async () => {
+    const senderAccount = await bsStellar.generateAccountFromKey(keypair.secret())
+
+    await expect(
+      bsStellar.transfer({
+        senderAccount,
+        intents: [
+          { amount: '0.0000001', receiverAddress: keypair2.publicKey(), token: BSStellarConstants.NATIVE_TOKEN },
+        ],
+        memo: 'a'.repeat(BSStellarConstants.MEMO_TEXT_MAX_BYTES + 1),
+      })
+    ).rejects.toMatchObject({ code: 'INVALID_MEMO' })
+  })
+
+  it.skip('Should require a memo when the receiver account requires it (SEP-29)', async () => {
+    const senderKeypair = stellarSDK.Keypair.random()
+    const receiverKeypair = stellarSDK.Keypair.random()
+
+    await bsStellar.faucet(senderKeypair.publicKey())
+    await bsStellar.faucet(receiverKeypair.publicKey())
+
+    const receiverAccount = await bsStellar._ensureAccountOnChain(receiverKeypair.publicKey())
+    const setMemoRequiredTransaction = new stellarSDK.TransactionBuilder(receiverAccount, {
+      fee: stellarSDK.BASE_FEE,
+      networkPassphrase: BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[bsStellar.network.id],
+    })
+      .addOperation(stellarSDK.Operation.manageData({ name: 'config.memo_required', value: '1' }))
+      .setTimeout(30)
+      .build()
+
+    setMemoRequiredTransaction.sign(receiverKeypair)
+    await bsStellar._sorobanServer.sendTransaction(setMemoRequiredTransaction)
+    await BSUtilsHelper.wait(6000)
+
+    const senderAccount = await bsStellar.generateAccountFromKey(senderKeypair.secret())
+    const intents = [
+      { amount: '1', receiverAddress: receiverKeypair.publicKey(), token: BSStellarConstants.NATIVE_TOKEN },
+    ]
+
+    await expect(bsStellar.transfer({ senderAccount, intents })).rejects.toMatchObject({ code: 'MEMO_REQUIRED' })
+
+    const memo = '123456'
+    const [transaction] = await bsStellar.transfer({ senderAccount, intents, memo })
+
+    await BSUtilsHelper.wait(5000)
+
+    const response = await bsStellar._horizonServer.transactions().transaction(transaction.txId).call()
+
+    expect(response.memo_type).toBe('text')
+    expect(response.memo).toBe(memo)
   })
 
   it.skip('Should be able to transfer more than one intent', async () => {

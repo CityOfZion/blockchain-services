@@ -8,6 +8,7 @@ import type {
   TBSAccount,
   TBSToken,
   IBSWithFaucet,
+  IBSWithMemo,
   BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import type { Horizon, rpc, Transaction } from '@stellar/stellar-sdk'
@@ -25,7 +26,8 @@ export interface IBSStellar
     IBSWithExplorer,
     IBSWithLedger<TBSStellarName>,
     IBSWithWalletConnect<TBSStellarName>,
-    IBSWithFaucet<TBSStellarName> {
+    IBSWithFaucet<TBSStellarName>,
+    IBSWithMemo {
   trustlineService: TrustlineServiceStellar
 
   _sorobanServer: rpc.Server

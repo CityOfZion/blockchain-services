@@ -7,6 +7,8 @@ export class BSStellarConstants {
 
   static readonly SAC_TOKEN_DECIMALS = 7
 
+  static readonly MEMO_TEXT_MAX_BYTES = 28
+
   static readonly NATIVE_TOKEN: TBSToken = {
     symbol: 'XLM',
     name: 'Lumens',

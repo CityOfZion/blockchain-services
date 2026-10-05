@@ -58,6 +58,13 @@ describe('BSSolana', () => {
     expect(bsSolana.validateKey(invalidKey)).toBeFalsy()
   })
 
+  it('Should be able to validate a memo', () => {
+    expect(bsSolana.validateMemo('123456789')).toBeTruthy()
+    expect(bsSolana.validateMemo('a'.repeat(BSSolanaConstants.MEMO_MAX_BYTES))).toBeTruthy()
+    expect(bsSolana.validateMemo('a'.repeat(BSSolanaConstants.MEMO_MAX_BYTES + 1))).toBeFalsy()
+    expect(bsSolana.validateMemo('é'.repeat(BSSolanaConstants.MEMO_MAX_BYTES / 2 + 1))).toBeFalsy()
+  })
+
   it('Should be able to generate an account from mnemonic', async () => {
     const generatedAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 0)
 
@@ -94,6 +101,24 @@ describe('BSSolana', () => {
           token: BSSolanaConstants.NATIVE_TOKEN,
         },
       ],
+    })
+
+    expect(fee).toMatch(/^0\.0\d*[1-9]$/)
+  })
+
+  it('Should be able to calculate transfer fee of the native token with memo', async () => {
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+
+    const fee = await bsSolana.calculateTransferFee({
+      senderAccount,
+      intents: [
+        {
+          amount: '0.1',
+          receiverAddress: accountKeypair.base58Address,
+          token: BSSolanaConstants.NATIVE_TOKEN,
+        },
+      ],
+      memo: 'test memo',
     })
 
     expect(fee).toMatch(/^0\.0\d*[1-9]$/)
@@ -180,6 +205,40 @@ describe('BSSolana', () => {
         ],
       },
     ])
+  })
+
+  it.skip('Should be able to transfer the native token with memo', async () => {
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+    const receiverAccount = await bsSolana.generateAccountFromMnemonic(mnemonic, 1)
+    const memo = 'test memo'
+
+    const [transaction] = await bsSolana.transfer({
+      senderAccount,
+      intents: [{ amount: '0.001', receiverAddress: receiverAccount.address, token: BSSolanaConstants.NATIVE_TOKEN }],
+      memo,
+    })
+
+    expect(transaction.memo).toBe(memo)
+
+    await BSUtilsHelper.wait(15000)
+
+    const fetchedTransaction = await bsSolana.blockchainDataService.getTransaction(transaction.txId)
+
+    expect(fetchedTransaction.memo).toBe(memo)
+  })
+
+  it('Should not be able to transfer with an invalid memo', async () => {
+    const senderAccount = await bsSolana.generateAccountFromKey(accountKeypair.base58Key)
+
+    await expect(
+      bsSolana.transfer({
+        senderAccount,
+        intents: [
+          { amount: '0.001', receiverAddress: accountKeypair.base58Address, token: BSSolanaConstants.NATIVE_TOKEN },
+        ],
+        memo: 'a'.repeat(BSSolanaConstants.MEMO_MAX_BYTES + 1),
+      })
+    ).rejects.toMatchObject({ code: 'INVALID_MEMO' })
   })
 
   // Use https://spl-token-faucet.com to get some tokens to test this

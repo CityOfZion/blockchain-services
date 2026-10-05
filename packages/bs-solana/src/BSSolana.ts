@@ -27,6 +27,7 @@ import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
 import type { IBSSolana, TBSSolanaName, TBSSolanaNetworkId } from './types'
 import * as solanaKit from '@solana/kit'
+import * as solanaMemo from '@solana-program/memo'
 import * as solanaSystem from '@solana-program/system'
 import * as solanaToken from '@solana-program/token'
 import axios from 'axios'
@@ -97,6 +98,10 @@ export class BSSolana implements IBSSolana {
   }
 
   async #buildTransferParams(params: TTransferParams<TBSSolanaName>) {
+    if (params.memo && !this.validateMemo(params.memo)) {
+      throw new BSError(`Memo must be at most ${BSSolanaConstants.MEMO_MAX_BYTES} bytes`, 'INVALID_MEMO')
+    }
+
     const signer = solanaKit.createNoopSigner(solanaKit.address(params.senderAccount.address))
 
     const instructions: solanaKit.Instruction[] = []
@@ -156,6 +161,10 @@ export class BSSolana implements IBSSolana {
       })
 
       instructions.push(transferInstruction)
+    }
+
+    if (params.memo) {
+      instructions.push(solanaMemo.getAddMemoInstruction({ memo: params.memo, signers: [signer] }))
     }
 
     const { value: latestBlockhash } = await this._solanaKitRpc.getLatestBlockhash().send()
@@ -245,6 +254,10 @@ export class BSSolana implements IBSSolana {
     }
   }
 
+  validateMemo(memo: string): boolean {
+    return new TextEncoder().encode(memo).length <= BSSolanaConstants.MEMO_MAX_BYTES
+  }
+
   async generateAccountFromMnemonic(mnemonic: string, index: number): Promise<TBSAccount<TBSSolanaName>> {
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
     const keyBuffer = BSKeychainHelper.generateEd25519KeyFromMnemonic(mnemonic, bipPath)
@@ -291,7 +304,7 @@ export class BSSolana implements IBSSolana {
     const { transactionMessage } = await this.#buildTransferParams(params)
     const compiledTransaction = solanaKit.compileTransaction(transactionMessage)
     const fee = await this.#getFeeByMessageBytes(compiledTransaction.messageBytes)
-    const { intents, senderAccount } = params
+    const { intents, senderAccount, memo } = params
     const encodedSignedTransaction = await this._signTransaction(compiledTransaction, senderAccount)
     const txId = await this._solanaKitRpc.sendTransaction(encodedSignedTransaction, { encoding: 'base64' }).send()
     const { address } = senderAccount
@@ -307,6 +320,7 @@ export class BSSolana implements IBSSolana {
         txIdUrl: this.explorerService.buildTransactionUrl(txId),
         date: new Date().toJSON(),
         networkFeeAmount: fee,
+        memo,
         view: 'default',
         events: intents.map(({ amount, receiverAddress, token }) => {
           const tokenHash = token.hash
