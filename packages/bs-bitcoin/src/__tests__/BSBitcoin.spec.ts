@@ -628,6 +628,12 @@ describe('BSBitcoin', () => {
             amount: secondAmount,
             token: BSBitcoinConstants.NATIVE_TOKEN,
           },
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount: expect.any(String),
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
         ],
       },
     ])
@@ -692,6 +698,12 @@ describe('BSBitcoin', () => {
             address: senderAccount.address,
             addressUrl: expect.any(String),
             amount: secondAmount,
+            token: BSBitcoinConstants.NATIVE_TOKEN,
+          },
+          {
+            address: senderAccount.address,
+            addressUrl: expect.any(String),
+            amount: expect.any(String),
             token: BSBitcoinConstants.NATIVE_TOKEN,
           },
         ],

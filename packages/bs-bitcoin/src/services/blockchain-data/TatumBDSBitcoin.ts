@@ -96,7 +96,6 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
     const outputs = transaction.outputs.map<TTransactionUtxoInputOutput>(output => {
       const address = output.address || undefined
       const addressUrl = address ? this.#service.explorerService.buildAddressUrl(address) : undefined
-
       const amount = new BSBigUnitAmount(output.value, tokenDecimals).toHuman().toFormatted()
 
       totalAmountBn = totalAmountBn.plus(amount)
