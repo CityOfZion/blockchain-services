@@ -26,12 +26,13 @@ src/
 │   ├── BSBitcoinBIP32SingletonHelper   # BIP32 HD wallet singleton
 │   ├── BSBitcoinECPairSingletonHelper  # EC keypair singleton
 │   ├── BSBitcoinHiroHelper             # Hiro API client
+│   ├── BSBitcoinMoralisHelper          # Moralis API client
 │   ├── BSBitcoinOrdinalsHelper         # Ordinals/Inscriptions utilities
 │   ├── BSBitcoinTatumHelper            # Tatum API client
 │   └── BSBitcoinXverseHelper           # Xverse wallet integration
 ├── services/
 │   ├── blockchain-data/        # TatumBDSBitcoin (UTXO-aware)
-│   ├── exchange-data/          # CryptoCompareEDS
+│   ├── exchange-data/          # CryptoCompareMoralisEDSBitcoin
 │   ├── explorer/               # MempoolExplorerService
 │   ├── ledger/                 # LedgerServiceBitcoin
 │   ├── nft-data/               # XverseNftDataService (Ordinals)

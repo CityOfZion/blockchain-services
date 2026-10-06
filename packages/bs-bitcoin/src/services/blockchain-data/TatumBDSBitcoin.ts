@@ -14,7 +14,7 @@ import {
   type TTransactionUtxo,
   BSBigNumber,
 } from '@cityofzion/blockchain-service'
-import type {
+import {
   IBSBitcoin,
   TXverseBalancesResponse,
   TXverseTokenResponse,
@@ -22,17 +22,20 @@ import type {
   TTatumBalanceResponse,
   TTatumTransactionResponse,
   TBSBitcoinName,
+  TMoralisTokensResponse,
 } from '../../types'
 import { BSBitcoinConstants } from '../../constants/BSBitcoinConstants'
 import { BSBitcoinTatumHelper } from '../../helpers/BSBitcoinTatumHelper'
 import { BSBitcoinOrdinalsHelper } from '../../helpers/BSBitcoinOrdinalsHelper'
 import { BSBitcoinXverseHelper } from '../../helpers/BSBitcoinXverseHelper'
 import { AxiosInstance } from 'axios'
+import { BSBitcoinMoralisHelper } from '../../helpers/BSBitcoinMoralisHelper'
 
 export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
   readonly #service: IBSBitcoin
   readonly #cachedTokens = new Map<string, TBSToken>()
   readonly #tatumApi: AxiosInstance
+  readonly #moralisApi = BSBitcoinMoralisHelper.getApi()
   readonly #xverseApi = BSBitcoinXverseHelper.getApi()
   readonly #ordinalsApi = BSBitcoinOrdinalsHelper.getApi()
 
@@ -229,13 +232,15 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
   async getBalance(address: string): Promise<TBalanceResponse[]> {
     const balances: TBalanceResponse[] = []
 
-    const {
-      data: { balance },
-    } = await this.#tatumApi.get<TTatumBalanceResponse>('/v4/data/blockchains/balance', {
-      params: { address },
+    const [tatumBalance] = await BSUtilsHelper.tryCatch(async () => {
+      const { data } = await this.#tatumApi.get<TTatumBalanceResponse>('/v4/data/blockchains/balance', {
+        params: { address },
+      })
+
+      return data.balance
     })
 
-    const balanceBn = BSBigNumber.max(balance, 0)
+    const balanceBn = BSBigNumber.max(tatumBalance || 0, 0)
     const amountBn = new BSBigHumanAmount(balanceBn, BSBitcoinConstants.NATIVE_TOKEN.decimals)
 
     balances.push({
@@ -247,6 +252,25 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
       this.#validateMainnet()
     } catch {
       return balances
+    }
+
+    if (!tatumBalance) {
+      const [moralisBalance] = await BSUtilsHelper.tryCatch(async () => {
+        const { data } = await this.#moralisApi.get<TMoralisTokensResponse>(`wallets/${address}/tokens`, {
+          params: { chains: ['bitcoin'] },
+        })
+
+        const nativeToken = data.result.find(item =>
+          this.#service.tokenService.predicateBySymbol(item.symbol, BSBitcoinConstants.NATIVE_TOKEN)
+        )
+
+        return nativeToken?.balance
+      })
+
+      const balanceBn = BSBigNumber.max(moralisBalance || 0, 0)
+      const amountBn = new BSBigHumanAmount(balanceBn, BSBitcoinConstants.NATIVE_TOKEN.decimals)
+
+      balances[0].amount = amountBn.toFormatted()
     }
 
     const results: TXverseBalancesResponse['items'] = []
@@ -279,6 +303,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
       if (!token) continue
 
       const amount = new BSBigHumanAmount(result.availableBalance, token.decimals).toFormatted()
+
       balances.push({ amount, token })
     }
 

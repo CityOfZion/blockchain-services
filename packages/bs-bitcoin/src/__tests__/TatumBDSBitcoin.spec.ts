@@ -3,6 +3,8 @@ import { BSBitcoin } from '../BSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 import type { IBSBitcoin } from '../types'
 import { BSError } from '@cityofzion/blockchain-service'
+import { BSBitcoinTatumHelper } from '../helpers/BSBitcoinTatumHelper'
+import type { AxiosInstance } from 'axios'
 
 const expectedInputsOutputs = expect.arrayContaining([
   expect.objectContaining({
@@ -33,6 +35,8 @@ const expectedTransactions = expect.arrayContaining([
 const ordiHash = 'b61b0172d95e266c18aea0c624db987e971a5d6d4ebc2aaed85da4642d635735i0'
 const betHash = '886eaf50fed7a2ceb3961fdf7b03efab1130b351ae71e106e071176efca8edf9i0'
 
+const mainnetAddress = 'bc1q5x9p784q6jkj4w3cw56h8vejz326yrf6u4tuksgg8kjnfkpg7l5qe8kpz6'
+
 let service: IBSBitcoin
 let blockchainDataService: TatumBDSBitcoin
 
@@ -40,6 +44,10 @@ describe('TatumBDSBitcoin', () => {
   beforeEach(() => {
     service = new BSBitcoin()
     blockchainDataService = new TatumBDSBitcoin(service)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it("Shouldn't be able to get the contract", async () => {
@@ -97,9 +105,34 @@ describe('TatumBDSBitcoin', () => {
   })
 
   it('Should be able to get the balances from address', async () => {
-    const balances = await blockchainDataService.getBalance(
-      'bc1q5x9p784q6jkj4w3cw56h8vejz326yrf6u4tuksgg8kjnfkpg7l5qe8kpz6'
+    const balances = await blockchainDataService.getBalance(mainnetAddress)
+
+    expect(balances.length > 1).toBe(true)
+    expect(balances[0].token).toEqual(BSBitcoinConstants.NATIVE_TOKEN)
+    expect(balances).toEqual(
+      expect.arrayContaining([
+        {
+          amount: expect.any(String),
+          token: expect.objectContaining({
+            symbol: expect.any(String),
+            name: expect.any(String),
+            hash: expect.any(String),
+            decimals: expect.any(Number),
+          }),
+        },
+      ])
     )
+  })
+
+  it('Should be able to get the balances from address, especially the native token from Moralis', async () => {
+    vi.spyOn(BSBitcoinTatumHelper, 'getApi').mockReturnValue({
+      get: vi.fn().mockRejectedValue(new Error()),
+    } as unknown as AxiosInstance)
+
+    service = new BSBitcoin()
+    blockchainDataService = new TatumBDSBitcoin(service)
+
+    const balances = await blockchainDataService.getBalance(mainnetAddress)
 
     expect(balances.length > 1).toBe(true)
     expect(balances[0].token).toEqual(BSBitcoinConstants.NATIVE_TOKEN)

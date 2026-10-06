@@ -267,6 +267,59 @@ export type TTatumBroadcastResponse = {
   completed: boolean
 }
 
+export type TMoralisPriceResponse = {
+  chain: string
+  tokenName: string
+  tokenSymbol: string
+  tokenAddress: string | null
+  tokenLogo: string
+  tokenDecimals: number
+  usdPrice: number
+  '24hrChangeUsd': number
+  '24hrChangePercent': number
+  nativePrice: {
+    value: string
+    valueRaw: string
+    decimals: number
+    name: string
+    symbol: string
+  }
+  verifiedContract: boolean
+  securityScore: number
+  possibleSpam: boolean
+  updatedAt: { timestamp: string; blockNumber: number }
+  meta: { syncedAt: number }
+}
+
+export type TMoralisTokensResponse = {
+  address: string
+  addressType: string
+  cursor: string | null
+  meta: { syncedAt: { [chainId: string]: number } }
+  result: {
+    tokenAddress: string
+    chainId: string
+    balanceRaw: string
+    balance: string
+    name: string
+    symbol: string
+    decimals: number
+    logo: string
+    possibleSpam: boolean
+    verifiedContract: boolean
+    nativeToken: boolean
+    securityScore: number
+    portfolioPercentage: number
+    usdPrice: number
+    usdPrice24hrPercentChange: number
+    usdPrice24hrUsdChange: number
+    usdValue: number
+    usdValue24hrUsdChange: number | null
+    derivedAddress: string | null
+    derivedPath: string | null
+  }[]
+}
+
 export type TGetTransferDataParams = TTransferParams<TBSBitcoinName> & { shouldValidate?: boolean }
 
 export type TSignInput = {
