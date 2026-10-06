@@ -2,7 +2,7 @@
   {
     "policyName": "lockstep-all",
     "definitionName": "lockStepVersion",
-    "version": "3.1.19",
+    "version": "3.1.20",
     "nextBump": "patch"
   }
 ]

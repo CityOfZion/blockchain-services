@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-bitcoin
 
-This log was last generated on Fri, 10 Jul 2026 20:46:50 GMT and should not be manually modified.
+This log was last generated on Tue, 06 Oct 2026 16:52:57 GMT and should not be manually modified.
+
+## 3.1.20
+Tue, 06 Oct 2026 16:52:57 GMT
+
+### Updates
+
+- Add an output on transfer that is the change
 
 ## 3.1.19
 Fri, 10 Jul 2026 20:46:50 GMT

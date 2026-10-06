@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Fri, 10 Jul 2026 20:46:50 GMT and should not be manually modified.
+This log was last generated on Tue, 06 Oct 2026 16:52:58 GMT and should not be manually modified.
+
+## 3.1.20
+Tue, 06 Oct 2026 16:52:58 GMT
+
+### Updates
+
+- Add xGAS price
+- Update stage API domain
 
 ## 3.1.19
 Fri, 10 Jul 2026 20:46:50 GMT
