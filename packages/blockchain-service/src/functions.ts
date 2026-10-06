@@ -15,6 +15,7 @@ import type {
   IBSWithFullTransactions,
   TBSNetworkId,
   IBSWithFaucet,
+  IBSWithMemo,
   TBSBridgeName,
 } from './interfaces'
 
@@ -82,6 +83,12 @@ export function hasFaucet<N extends string, A extends TBSNetworkId>(
   service: IBlockchainService<N, A>
 ): service is IBlockchainService<N, A> & IBSWithFaucet<N> {
   return 'faucet' in service
+}
+
+export function hasMemo<N extends string, A extends TBSNetworkId>(
+  service: IBlockchainService<N, A>
+): service is IBlockchainService<N, A> & IBSWithMemo {
+  return 'validateMemo' in service
 }
 
 /**

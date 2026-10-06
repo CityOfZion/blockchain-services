@@ -111,7 +111,7 @@ export class BSStellar implements IBSStellar {
     return transaction
   }
 
-  async #buildTransferTransaction({ intents, senderAccount }: TTransferParams<TBSStellarName>) {
+  async #buildTransferTransaction({ intents, senderAccount, memo }: TTransferParams<TBSStellarName>) {
     const sourceAccount = await this._ensureAccountOnChain(senderAccount.address)
 
     const feeBn = await this._getFeeEstimate(intents.length)
@@ -120,6 +120,14 @@ export class BSStellar implements IBSStellar {
       fee: feeBn.toString(),
       networkPassphrase: BSStellarConstants.NETWORK_PASSPHRASE_BY_NETWORK_ID[this.network.id],
     })
+
+    if (memo) {
+      if (!this.validateMemo(memo)) {
+        throw new BSError(`Memo must be at most ${BSStellarConstants.MEMO_TEXT_MAX_BYTES} bytes`, 'INVALID_MEMO')
+      }
+
+      transaction.addMemo(stellarSDK.Memo.text(memo))
+    }
 
     for (const intent of intents) {
       let accountExists: boolean
@@ -294,6 +302,10 @@ export class BSStellar implements IBSStellar {
     return stellarSDK.StrKey.isValidEd25519SecretSeed(key)
   }
 
+  validateMemo(memo: string): boolean {
+    return new TextEncoder().encode(memo).length <= BSStellarConstants.MEMO_TEXT_MAX_BYTES
+  }
+
   async calculateTransferFee(params: TTransferParams<TBSStellarName>): Promise<string> {
     const feeBn = await this._getFeeEstimate(params.intents.length)
     return feeBn.toHuman().toFormatted()
@@ -302,6 +314,17 @@ export class BSStellar implements IBSStellar {
   async transfer(params: TTransferParams<TBSStellarName>): Promise<TTransactionDefault<TBSStellarName>[]> {
     const transaction = await this.#buildTransferTransaction(params)
     const { senderAccount } = params
+
+    try {
+      await this._horizonServer.checkMemoRequired(transaction)
+    } catch (error) {
+      if (error instanceof stellarSDK.AccountRequiresMemoError) {
+        throw new BSError(`Receiver account ${error.accountId} requires a memo`, 'MEMO_REQUIRED', error)
+      }
+
+      throw error
+    }
+
     const signedTransaction = await this._signTransaction(transaction, senderAccount)
     const response = await this._sorobanServer.sendTransaction(signedTransaction)
 
@@ -321,6 +344,7 @@ export class BSStellar implements IBSStellar {
         date: new Date().toJSON(),
         networkFeeAmount: new BSBigUnitAmount(transaction.fee, this.feeToken.decimals).toHuman().toFormatted(),
         relatedAddress: address,
+        memo: params.memo,
         view: 'default',
         events: params.intents.map(({ amount, receiverAddress, token }, index) => ({
           eventType: 'token',

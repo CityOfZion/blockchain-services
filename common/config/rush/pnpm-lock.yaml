@@ -454,6 +454,9 @@ importers:
       '@ledgerhq/hw-transport':
         specifier: 6.35.1
         version: 6.35.1
+      '@solana-program/memo':
+        specifier: 0.11.0
+        version: 0.11.0(@solana/kit@6.8.0(typescript@6.0.3))
       '@solana-program/system':
         specifier: 0.12.0
         version: 0.12.0(@solana/kit@6.8.0(typescript@6.0.3))
@@ -938,6 +941,11 @@ packages:
 
   '@scure/bip39@1.6.0':
     resolution: {integrity: sha512-+lF0BbLiJNwVlev4eKelw1WWLaiKXw7sSl8T6FvBlWkdX+94aGJ4o8XjUdlyhTCjd8c+B3KT3JfS8P0bLRNU6A==}
+
+  '@solana-program/memo@0.11.0':
+    resolution: {integrity: sha512-/WVM2y76hL5zWJJwaHsbvMREeIUzhKDHU+ftMXTf4aLPJFDKG6am4X5RID3CHsI3oYNEMywgVvsFdnorwgEuwA==}
+    peerDependencies:
+      '@solana/kit': ^6.0.0
 
   '@solana-program/system@0.12.0':
     resolution: {integrity: sha512-ZnAAWeGVMWNtJhw3GdifI2HnhZ0A0H0qs8tBkcFvxp/8wIavvO+GOM4Jd0N22u2+Lni2zcwvcrxrsxj6Mjphng==}
@@ -3641,6 +3649,10 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.8.0
       '@scure/base': 1.2.6
+
+  '@solana-program/memo@0.11.0(@solana/kit@6.8.0(typescript@6.0.3))':
+    dependencies:
+      '@solana/kit': 6.8.0(typescript@6.0.3)
 
   '@solana-program/system@0.12.0(@solana/kit@6.8.0(typescript@6.0.3))':
     dependencies:

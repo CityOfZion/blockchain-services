@@ -3,6 +3,7 @@ import type {
   IBSWithExplorer,
   IBSWithFee,
   IBSWithLedger,
+  IBSWithMemo,
   IBSWithNameService,
   IBSWithNft,
   IBSWithWalletConnect,
@@ -29,7 +30,8 @@ export interface IBSSolana
     IBSWithLedger<TBSSolanaName>,
     IBSWithNft,
     IBSWithExplorer,
-    IBSWithWalletConnect<TBSSolanaName> {
+    IBSWithWalletConnect<TBSSolanaName>,
+    IBSWithMemo {
   _solanaKitRpc: Rpc<SolanaRpcApi>
 
   _signTransaction(

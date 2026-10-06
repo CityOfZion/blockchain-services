@@ -16,6 +16,7 @@ import {
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
 import * as solanaKit from '@solana/kit'
 import * as solanaToken from '@solana-program/token'
+import * as solanaMemo from '@solana-program/memo'
 import * as solanaSystem from '@solana-program/system'
 import type { IBSSolana, TBSSolanaName, TMetaplexAssetResponse, TRpcBDSSolanaParsedInstruction } from '../../types'
 import axios from 'axios'
@@ -263,7 +264,18 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
       ...(transaction.meta.innerInstructions?.flatMap(item => item.instructions) ?? []),
     ]
 
+    const memos: string[] = []
+
     for (const instruction of allInstructions) {
+      if (
+        instruction.programId.toString() === solanaMemo.MEMO_PROGRAM_ADDRESS.toString() &&
+        'parsed' in instruction &&
+        typeof instruction.parsed === 'string'
+      ) {
+        memos.push(instruction.parsed)
+        continue
+      }
+
       const event = await this.#parseInstruction(instruction).catch(() => undefined)
       if (event) {
         events.push(event)
@@ -284,6 +296,7 @@ export class RpcBDSSolana implements IBlockchainDataService<TBSSolanaName> {
       networkFeeAmount: new BSBigUnitAmount(transaction.meta.fee, this.#service.feeToken.decimals)
         .toHuman()
         .toFormatted(),
+      memo: memos.length > 0 ? memos.join('\n') : undefined,
       view: 'default',
       events,
     }

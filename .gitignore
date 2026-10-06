@@ -64,6 +64,7 @@ docs/
 # https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
 .idea/
 *.iml
+.vscode/
 
 # Rush temporary files
 common/deploy/
