@@ -1,9 +1,9 @@
 {
   "name": "@cityofzion/bs-ethereum",
   "version": "3.1.19",
-  "repository": "https://github.com/CityOfZion/blockchain-services",
+  "repository": "https://github.com/CityOfZion/blockchain-services/tree/main/packages/bs-ethereum",
   "license": "GPL-3.0-only",
-  "author": "Coz",
+  "author": "COZ",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

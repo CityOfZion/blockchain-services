@@ -99,6 +99,7 @@ rush-pnpm --subspace default patch-commit /ABSOLUTE_PATH/blockchain-services/com
 | @cityofzion/bs-solana          | Implementation of interfaces and methods for the Solana blockchain                                                                                             |
 | @cityofzion/bs-stellar         | Implementation of interfaces and methods for the Stellar blockchain                                                                                            |
 | @cityofzion/bs-bitcoin         | Implementation of interfaces and methods for the Bitcoin blockchain                                                                                            |
+| @cityofzion/assistant-engine   | AI wrapper library that chat with the user and emits specific actions to drive the interface                                                                   |
 
 ## Conventions
 - Protected methods should start with `_` (e.g. `_myMethod`) since `bs-electron` excludes methods prefixed with `_` from the exposed API.
