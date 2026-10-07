@@ -18,7 +18,7 @@ import {
   BSBigNumber,
 } from '@cityofzion/blockchain-service'
 import { TatumBDSBitcoin } from './services/blockchain-data/TatumBDSBitcoin'
-import { CryptoCompareEDSBitcoin } from './services/exchange-data/CryptoCompareEDSBitcoin'
+import { CryptoCompareMoralisEDSBitcoin } from './services/exchange-data/CryptoCompareMoralisEDSBitcoin'
 import { MempoolESBitcoin } from './services/explorer/MempoolESBitcoin'
 import { LedgerServiceBitcoin } from './services/ledger/LedgerServiceBitcoin'
 import { XverseNDSBitcoin } from './services/nft-data/XverseNDSBitcoin'
@@ -73,7 +73,7 @@ export class BSBitcoin implements IBSBitcoin {
   ledgerService: LedgerServiceBitcoin
   tokenService: ITokenService = new TokenServiceBitcoin(this)
   explorerService: IExplorerService = new MempoolESBitcoin(this)
-  exchangeDataService: IExchangeDataService = new CryptoCompareEDSBitcoin(this)
+  exchangeDataService: IExchangeDataService = new CryptoCompareMoralisEDSBitcoin(this)
   nftDataService: INftDataService = new XverseNDSBitcoin(this)
 
   constructor(network?: TBSNetwork<TBSBitcoinNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSBitcoinName>) {

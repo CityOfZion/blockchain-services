@@ -1,6 +1,6 @@
-import { BSUtilsHelper, type TBSToken } from '@cityofzion/blockchain-service'
+import { BSUtilsHelper, CryptoCompareEDS, type TBSToken } from '@cityofzion/blockchain-service'
 import { BSBitcoin } from '../BSBitcoin'
-import { CryptoCompareEDSBitcoin } from '../services/exchange-data/CryptoCompareEDSBitcoin'
+import { CryptoCompareMoralisEDSBitcoin } from '../services/exchange-data/CryptoCompareMoralisEDSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 
 const ordiToken: TBSToken = {
@@ -17,14 +17,12 @@ const satsToken: TBSToken = {
   decimals: 18,
 }
 
-let exchangeDataService: CryptoCompareEDSBitcoin
+let exchangeDataService: CryptoCompareMoralisEDSBitcoin
 
 // Avoid API key error
-describe.skip('CryptoCompareEDSBitcoin', () => {
+describe.skip('CryptoCompareMoralisEDSBitcoin', () => {
   beforeEach(() => {
-    const service = new BSBitcoin()
-
-    exchangeDataService = new CryptoCompareEDSBitcoin(service)
+    exchangeDataService = new CryptoCompareMoralisEDSBitcoin(new BSBitcoin())
   })
 
   beforeEach(async () => {
@@ -32,7 +30,11 @@ describe.skip('CryptoCompareEDSBitcoin', () => {
     await BSUtilsHelper.wait(4000)
   })
 
-  it('Should be able to get the token prices', async () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('Should be able to get the token prices from CryptoCompare', async () => {
     const tokenPrices = await exchangeDataService.getTokenPrices({
       tokens: [BSBitcoinConstants.NATIVE_TOKEN, ordiToken, satsToken],
     })
@@ -55,7 +57,32 @@ describe.skip('CryptoCompareEDSBitcoin', () => {
     )
   })
 
-  it('Should be able to get the token price history', async () => {
+  it('Should be able to get the token prices from Moralis', async () => {
+    const getTokenPricesSpy: ReturnType<typeof vi.spyOn> = vi.spyOn(CryptoCompareEDS.prototype, 'getTokenPrices')
+
+    getTokenPricesSpy.mockResolvedValue([{ token: ordiToken, usdPrice: 1 }])
+
+    exchangeDataService = new CryptoCompareMoralisEDSBitcoin(new BSBitcoin())
+
+    const firstTokenPrices = await exchangeDataService.getTokenPrices({
+      tokens: [BSBitcoinConstants.NATIVE_TOKEN, ordiToken],
+    })
+
+    expect(firstTokenPrices).toEqual([
+      { usdPrice: expect.any(Number), token: BSBitcoinConstants.NATIVE_TOKEN },
+      { usdPrice: expect.any(Number), token: ordiToken },
+    ])
+
+    getTokenPricesSpy.mockResolvedValue([])
+
+    const secondTokenPrices = await exchangeDataService.getTokenPrices({
+      tokens: [BSBitcoinConstants.NATIVE_TOKEN],
+    })
+
+    expect(secondTokenPrices).toEqual([{ usdPrice: expect.any(Number), token: BSBitcoinConstants.NATIVE_TOKEN }])
+  })
+
+  it('Should be able to get the token price history from CryptoCompare', async () => {
     const btcTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({
       token: BSBitcoinConstants.NATIVE_TOKEN,
       limit: 24,
@@ -111,19 +138,19 @@ describe.skip('CryptoCompareEDSBitcoin', () => {
     )
   })
 
-  it('Should be able to get the BRL currency ratio', async () => {
+  it('Should be able to get the BRL currency ratio from CryptoCompare', async () => {
     const currencyRatio = await exchangeDataService.getCurrencyRatio('BRL')
 
     expect(currencyRatio).toEqual(expect.any(Number))
   })
 
-  it('Should be able to get the EUR currency ratio', async () => {
+  it('Should be able to get the EUR currency ratio from CryptoCompare', async () => {
     const currencyRatio = await exchangeDataService.getCurrencyRatio('EUR')
 
     expect(currencyRatio).toEqual(expect.any(Number))
   })
 
-  it('Should be able to get the GBP currency ratio', async () => {
+  it('Should be able to get the GBP currency ratio from CryptoCompare', async () => {
     const currencyRatio = await exchangeDataService.getCurrencyRatio('GBP')
 
     expect(currencyRatio).toEqual(expect.any(Number))
