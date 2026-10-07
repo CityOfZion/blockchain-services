@@ -2,6 +2,12 @@
   "name": "@cityofzion/bs-multichain",
   "entries": [
     {
+      "version": "3.1.21",
+      "tag": "@cityofzion/bs-multichain_v3.1.21",
+      "date": "Wed, 07 Oct 2026 19:42:56 GMT",
+      "comments": {}
+    },
+    {
       "version": "3.1.20",
       "tag": "@cityofzion/bs-multichain_v3.1.20",
       "date": "Tue, 06 Oct 2026 16:52:58 GMT",

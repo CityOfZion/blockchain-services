@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-bitcoin
 
-This log was last generated on Tue, 06 Oct 2026 16:52:57 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Oct 2026 19:42:56 GMT and should not be manually modified.
+
+## 3.1.21
+Wed, 07 Oct 2026 19:42:56 GMT
+
+### Updates
+
+- Use Moralis as a fallback for some Bitcoin requests
 
 ## 3.1.20
 Tue, 06 Oct 2026 16:52:57 GMT
