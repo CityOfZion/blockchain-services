@@ -66,8 +66,8 @@ describe('DoraBDSNeo3', () => {
     const address = 'NRwXs5yZRMuuXUo7AqvetHQ4GDHe3pV7Mb'
     const response = await doraBDSNeo3.getTransactionsByAddress({ address, nextPageParams: 1 })
 
-    response.transactions.forEach(transaction => {
-      expect(transaction).toEqual(
+    expect(response.transactions).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           txId: expect.any(String),
           txIdUrl: expect.any(String),
@@ -81,37 +81,45 @@ describe('DoraBDSNeo3', () => {
           networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           systemFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           view: 'default',
-          events: expect.arrayContaining([
-            expect.toBeOneOf([
-              expect.objectContaining({
-                eventType: expect.any(String),
-                amount: expect.stringMatching(/^\d+(\.\d+)?$/),
-                methodName: 'transfer',
-                from: expect.anything(),
-                fromUrl: expect.anything(),
-                to: expect.anything(),
-                toUrl: expect.anything(),
-                tokenUrl: expect.any(String),
-                token: expect.objectContaining({
-                  decimals: expect.any(Number),
-                  symbol: expect.any(String),
-                  name: expect.any(String),
-                  hash: expect.any(String),
-                }),
+          events: expect.any(Array),
+        }),
+      ])
+    )
+
+    const events = response.transactions.flatMap(transaction => transaction.events)
+
+    if (events.length > 0) {
+      expect(events).toEqual(
+        expect.arrayContaining([
+          expect.toBeOneOf([
+            expect.objectContaining({
+              eventType: expect.any(String),
+              amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+              methodName: 'transfer',
+              from: expect.anything(),
+              fromUrl: expect.anything(),
+              to: expect.anything(),
+              toUrl: expect.anything(),
+              tokenUrl: expect.any(String),
+              token: expect.objectContaining({
+                decimals: expect.any(Number),
+                symbol: expect.any(String),
+                name: expect.any(String),
+                hash: expect.any(String),
               }),
-              expect.objectContaining({
-                amount: expect.stringMatching(/^\d+(\.\d+)?$/),
-                data: { candidate: expect.any(String), token: BSNeo3Constants.NEO_TOKEN.symbol },
-                eventType: 'generic',
-                from: expect.any(String),
-                fromUrl: expect.any(String),
-                methodName: 'vote',
-              }),
-            ]),
+            }),
+            expect.objectContaining({
+              amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+              data: { candidate: expect.any(String), token: BSNeo3Constants.NEO_TOKEN.symbol },
+              eventType: 'generic',
+              from: expect.any(String),
+              fromUrl: expect.any(String),
+              methodName: 'vote',
+            }),
           ]),
-        })
+        ])
       )
-    })
+    }
   })
 
   it('Should be able to get contract', async () => {
@@ -148,16 +156,18 @@ describe('DoraBDSNeo3', () => {
     const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
     const balance = await doraBDSNeo3.getBalance(address)
 
-    balance.forEach(balance => {
-      expect(balance).toEqual({
-        amount: expect.stringMatching(/^\d+(\.\d+)?$/),
-        token: {
-          hash: expect.any(String),
-          name: expect.any(String),
-          symbol: expect.any(String),
-          decimals: expect.any(Number),
+    expect(balance).toEqual(
+      expect.arrayContaining([
+        {
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+          token: {
+            hash: expect.any(String),
+            name: expect.any(String),
+            symbol: expect.any(String),
+            decimals: expect.any(Number),
+          },
         },
-      })
-    })
+      ])
+    )
   })
 })

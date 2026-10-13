@@ -1,9 +1,9 @@
 import { BSCommonConstants, BSError, type TBSNetwork } from '@cityofzion/blockchain-service'
 import type { TBSBitcoinNetworkId } from '../types'
-import axios, { type AxiosInstance } from 'axios'
+import axios from 'axios'
 
 export class BSBitcoinTatumHelper {
-  static getApi({ type }: TBSNetwork<TBSBitcoinNetworkId>): AxiosInstance {
+  static getApi({ type }: TBSNetwork<TBSBitcoinNetworkId>) {
     const isMainnet = type === 'mainnet'
 
     if (!isMainnet && type !== 'testnet') {

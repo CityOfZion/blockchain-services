@@ -63,8 +63,8 @@ describe('BSNeoLegacy', () => {
   it('Should be able to generate an account from wif', async () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
     const account = await service.generateAccountFromMnemonic(mnemonic, 0)
-
     const accountFromWif = await service.generateAccountFromKey(account.key)
+
     expect(account).toEqual(expect.objectContaining(accountFromWif))
   })
 
@@ -74,6 +74,7 @@ describe('BSNeoLegacy', () => {
     const password = 'TestPassword'
     const encryptedKey = await service.encrypt(account.key, password)
     const decryptedAccount = await service.decrypt(encryptedKey, password)
+
     expect(account).toEqual(expect.objectContaining(decryptedAccount))
   })
 
@@ -82,6 +83,7 @@ describe('BSNeoLegacy', () => {
     const account = await service.generateAccountFromMnemonic(mnemonic, 0)
     const password = 'TestPassword'
     const encryptedKey = await service.encrypt(account.key, password)
+
     expect(encryptedKey).toEqual(expect.any(String))
   })
 

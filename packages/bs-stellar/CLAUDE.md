@@ -24,7 +24,7 @@ src/
 ├── constants/              # BSStellarConstants (networks, tokens)
 ├── services/
 │   ├── blockchain-data/        # HorizonBDSStellar
-│   ├── exchange/               # RpcEDSStellar
+│   ├── exchange/               # DefiLlamaRpcEDSStellar
 │   ├── explorer/               # StellarChainExplorerService
 │   ├── ledger/                 # LedgerServiceStellar
 │   ├── token/                  # TokenServiceStellar

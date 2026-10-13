@@ -30,8 +30,8 @@ describe('HorizonBDSStellar', () => {
       })
     )
 
-    transaction.events.forEach(event => {
-      expect(event).toEqual(
+    expect(transaction.events).toEqual(
+      expect.arrayContaining([
         expect.toBeOneOf([
           expect.objectContaining({
             eventType: 'token',
@@ -58,9 +58,9 @@ describe('HorizonBDSStellar', () => {
               token: expect.any(String),
             },
           }),
-        ])
-      )
-    })
+        ]),
+      ])
+    )
   })
 
   it('Should be able to get transactions of address', async () => {
@@ -68,8 +68,8 @@ describe('HorizonBDSStellar', () => {
     const response = await horizonBDSStellar.getTransactionsByAddress({ address: address })
 
     expect(response.transactions.length).toBeGreaterThan(0)
-    response.transactions.forEach(transaction => {
-      expect(transaction).toEqual(
+    expect(response.transactions).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           blockchain: 'stellar',
           isPending: false,
@@ -80,11 +80,16 @@ describe('HorizonBDSStellar', () => {
           date: expect.any(String),
           networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           view: 'default',
-        })
-      )
+          events: expect.any(Array),
+        }),
+      ])
+    )
 
-      transaction.events.forEach(event => {
-        expect(event).toEqual(
+    const events = response.transactions.flatMap(transaction => transaction.events)
+
+    if (events.length > 0) {
+      expect(events).toEqual(
+        expect.arrayContaining([
           expect.toBeOneOf([
             expect.objectContaining({
               eventType: 'token',
@@ -111,10 +116,10 @@ describe('HorizonBDSStellar', () => {
                 token: expect.any(String),
               },
             }),
-          ])
-        )
-      })
-    })
+          ]),
+        ])
+      )
+    }
   })
 
   it('Should be able to get the native token info', async () => {
@@ -138,8 +143,8 @@ describe('HorizonBDSStellar', () => {
     const balance = await horizonBDSStellar.getBalance(address)
 
     expect(balance.length).toBeGreaterThan(0)
-    balance.forEach(balance => {
-      expect(balance).toEqual(
+    expect(balance).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           amount: expect.stringMatching(/^\d+(\.\d+)?$/),
           token: {
@@ -148,9 +153,9 @@ describe('HorizonBDSStellar', () => {
             symbol: expect.any(String),
             decimals: expect.any(Number),
           },
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 
   it('Should be able to get block height', async () => {

@@ -40,7 +40,7 @@ cd packages/bs-ethereum
 rushx test src/__tests__/BSEthereum.spec.ts
 ```
 
-Test files live in `src/__tests__/*.spec.ts`. Vitest runs with a 60-second timeout and dotenv loaded automatically.
+Test files live in `src/__tests__/*.spec.ts`. Vitest runs with a 60-second timeout and dotenv loaded automatically. Each package has a `.env.example` (copy to `.env`); `TEST_COZ_API_KEY` is required for tests hitting COZ API endpoints. Each package's `vitest.setup.ts` calls `setupTests({ axios })` to inject that key as the `x-api-key` header — see `packages/blockchain-service/CLAUDE.md`.
 
 ## Packages
 

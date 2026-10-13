@@ -36,8 +36,8 @@ describe('ClaimServiceNeo3', () => {
 
     expect(Number(unclaimed)).toBeGreaterThan(0)
 
-    const transaction = await claimService.claim(account)
     const claimEvent = await claimService._buildTransactionEvent(account.address)
+    const transaction = await claimService.claim(account)
 
     expect(transaction).toEqual({
       txId: expect.any(String),
@@ -91,8 +91,8 @@ describe('ClaimServiceNeo3', () => {
 
     expect(Number(unclaimed)).toBeGreaterThan(0)
 
-    const transaction = await claimService.claim(account)
     const claimEvent = await claimService._buildTransactionEvent(account.address)
+    const transaction = await claimService.claim(account)
 
     expect(transaction).toEqual({
       txId: expect.any(String),

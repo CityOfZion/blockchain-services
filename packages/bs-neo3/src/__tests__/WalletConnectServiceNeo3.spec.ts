@@ -13,9 +13,7 @@ describe('WalletConnectServiceNeo3', () => {
   beforeEach(async () => {
     service = new BSNeo3(BSNeo3Constants.TESTNET_NETWORK)
     walletConnectService = new WalletConnectServiceNeo3(service)
-
-    const mnemonic = BSKeychainHelper.generateMnemonic()
-    account = await service.generateAccountFromMnemonic(mnemonic, 0)
+    account = await service.generateAccountFromMnemonic(BSKeychainHelper.generateMnemonic(), 0)
   })
 
   it('Should have correct namespace and chain', () => {

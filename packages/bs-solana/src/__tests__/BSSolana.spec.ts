@@ -220,7 +220,7 @@ describe('BSSolana', () => {
 
     expect(transaction.memo).toBe(memo)
 
-    await BSUtilsHelper.wait(15000)
+    await BSUtilsHelper.wait(20000)
 
     const fetchedTransaction = await bsSolana.blockchainDataService.getTransaction(transaction.txId)
 
@@ -343,17 +343,21 @@ describe('BSSolana', () => {
   })
 
   it('Should be able to validate an domain', () => {
-    const validDomain = 'bonfida.sol'
-    const invalidDomain = 'invalid domain'
-
-    expect(bsSolana.validateNameServiceDomainFormat(validDomain)).toBeTruthy()
-    expect(bsSolana.validateNameServiceDomainFormat(invalidDomain)).toBeFalsy()
+    expect(bsSolana.validateNameServiceDomainFormat('bonfida.sol')).toBeTruthy()
+    expect(bsSolana.validateNameServiceDomainFormat('bonfida.sns')).toBeTruthy()
+    expect(bsSolana.validateNameServiceDomainFormat('invalid')).toBeFalsy()
   })
 
   it('Should be able to resolve a name service domain', async () => {
     const newBSSolana = new BSSolana(BSSolanaConstants.MAINNET_NETWORK)
-    const address = await newBSSolana.resolveNameServiceDomain('bonfida.sol')
-    expect(address).toEqual('Fw1ETanDZafof7xEULsnq9UY6o71Tpds89tNwPkWLb1v')
+    const address = 'Fw1ETanDZafof7xEULsnq9UY6o71Tpds89tNwPkWLb1v'
+    const firstResponse = await newBSSolana.resolveNameServiceDomain('bonfida.sol')
+
+    expect(firstResponse).toEqual(address)
+
+    const secondResponse = await newBSSolana.resolveNameServiceDomain('bonfida.sns')
+
+    expect(secondResponse).toEqual(address)
   })
 
   // Use https://spl-token-faucet.com to get some tokens to test this

@@ -27,7 +27,7 @@ src/
 │   └── BSNeoLegacyNeonJsSingletonHelper    # Singleton neon-js v4 instance
 ├── services/
 │   ├── blockchain-data/        # DoraBDS (legacy endpoints)
-│   ├── exchange-data/          # CryptoCompareEDS
+│   ├── exchange-data/          # DefiLlamaEDSNeoLegacy
 │   ├── explorer/               # NeoTubeExplorerService
 │   ├── full-transactions-data/ # DoraFullTransactionsData
 │   ├── ledger/                 # NeonJsLedgerService

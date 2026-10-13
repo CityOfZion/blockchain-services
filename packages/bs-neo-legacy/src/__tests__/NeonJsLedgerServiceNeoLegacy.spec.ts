@@ -5,25 +5,23 @@ import { BSNeoLegacyConstants } from '../constants/BSNeoLegacyConstants'
 import { BSNeoLegacy } from '../BSNeoLegacy'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
-let ledgerService: NeonJsLedgerServiceNeoLegacy
-let transport: Transport
 let bsNeoLegacy: BSNeoLegacy
+let transport: Transport
+let ledgerService: NeonJsLedgerServiceNeoLegacy
 
 describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
   beforeAll(async () => {
-    const network = BSNeoLegacyConstants.TESTNET_NETWORK
-    bsNeoLegacy = new BSNeoLegacy(network)
-
+    bsNeoLegacy = new BSNeoLegacy(BSNeoLegacyConstants.TESTNET_NETWORK)
     transport = await TransportNodeHid.create()
     ledgerService = new NeonJsLedgerServiceNeoLegacy(bsNeoLegacy, async () => transport)
   })
 
   it('Should be able to get all accounts automatically', async () => {
     const accounts = await ledgerService.getAccounts(transport)
-    expect(accounts.length).toBeGreaterThan(1)
 
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts.length).toBeGreaterThan(1)
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -31,7 +29,7 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
           bipPath: BSKeychainHelper.getBipPath(bsNeoLegacy.bipDerivationPath, index),
         })
       )
-    })
+    )
   })
 
   it('Should be able to get all accounts until index', async () => {
@@ -43,8 +41,8 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
     })
 
     expect(accounts.length).toBe(7)
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -52,11 +50,12 @@ describe.skip('NeonJsLedgerServiceNeoLegacy', () => {
           bipPath: BSKeychainHelper.getBipPath(bsNeoLegacy.bipDerivationPath, index),
         })
       )
-    })
+    )
   })
 
   it('Should be able to get account', async () => {
     const account = await ledgerService.getAccount(transport, 0)
+
     expect(account).toEqual(
       expect.objectContaining({
         address: expect.any(String),
