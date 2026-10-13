@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     reporters: ['verbose'],
-    setupFiles: ['dotenv/config'],
+    setupFiles: ['dotenv/config', './vitest.setup.ts'],
     testTimeout: 60000,
   },
 })

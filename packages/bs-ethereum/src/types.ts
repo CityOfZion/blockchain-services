@@ -46,11 +46,11 @@ export interface IBSEthereum<N extends string = TBSEthereumName, A extends TBSNe
   _getSigner(account: TBSAccount<N>): Promise<Signer>
 }
 
-export type TMoralisBDSEthereumNativeBalanceApiResponse = {
+export type TMoralisEthereumNativeBalanceResponse = {
   balance: string
 }
 
-export type TMoralisBDSEthereumERC20BalanceApiResponse = {
+export type TMoralisEthereumErc20BalanceResponse = {
   token_address: string
   name: string
   symbol: string
@@ -59,13 +59,13 @@ export type TMoralisBDSEthereumERC20BalanceApiResponse = {
   possible_spam: boolean
 }
 
-export type TMoralisBDSEthereumERC20MetadataApiResponse = {
+export type TMoralisEthereumErc20MetadataResponse = {
   name: string
   symbol: string
   decimals: string
 }
 
-export type TMoralisBDSEthereumTransactionApiResponse = {
+export type TMoralisEthereumTransactionResponse = {
   from_address: string
   to_address: string
   value: string
@@ -85,7 +85,7 @@ export type TMoralisBDSEthereumTransactionApiResponse = {
   }[]
 }
 
-export type TMoralisWalletHistoryApiResponse = {
+export type TMoralisEthereumWalletHistoryResponse = {
   cursor?: string
   result: {
     hash: string
@@ -118,11 +118,11 @@ export type TMoralisWalletHistoryApiResponse = {
   }[]
 }
 
-export type TMoralisTokenMetadataApiResponse = {
+export type TMoralisEthereumTokenMetadataResponse = {
   name: string
 }
 
-export type TMoralisEDSEthereumERC20PriceApiResponse = {
+export type TMoralisEthereumErc20PricesResponse = {
   tokenName: string
   tokenSymbol: string
   tokenDecimals: string
@@ -131,7 +131,7 @@ export type TMoralisEDSEthereumERC20PriceApiResponse = {
   blockTimestamp: string
 }
 
-type TMoralisNDSEthereumNftBaseApiResponse = {
+type TMoralisEthereumNftBaseResponse = {
   token_address: string
   token_id: string
   contract_type: string
@@ -179,7 +179,7 @@ type TMoralisNDSEthereumNftBaseApiResponse = {
   floor_price_currency?: string
 }
 
-export type TMoralisNDSEthereumNftMetadataApiResponse = TMoralisNDSEthereumNftBaseApiResponse & {
+export type TMoralisEthereumNftMetadataResponse = TMoralisEthereumNftBaseResponse & {
   owner_of?: string
   token_hash?: string
   block_number?: string
@@ -196,7 +196,7 @@ export type TMoralisNDSEthereumNftMetadataApiResponse = TMoralisNDSEthereumNftBa
   }
 }
 
-export type TMoralisNDSEthereumNftApiResponse = TMoralisNDSEthereumNftBaseApiResponse & {
+export type TMoralisEthereumNftResponse = TMoralisEthereumNftBaseResponse & {
   owner_of: string
   block_number: string
   block_number_minted: string
@@ -205,13 +205,14 @@ export type TMoralisNDSEthereumNftApiResponse = TMoralisNDSEthereumNftBaseApiRes
   last_metadata_sync: string
 }
 
-export type TMoralisNDSEthereumNftsByAddressApiResponse = {
-  result: TMoralisNDSEthereumNftApiResponse[]
+export type TMoralisEthereumNftsByAddressResponse = {
+  result: TMoralisEthereumNftResponse[]
   cursor?: string
   status?: string
   page?: number
   page_size?: number
 }
+
 export type TWalletConnectServiceEthereumMethod =
   | 'personal_sign'
   | 'eth_sign'

@@ -1,16 +1,22 @@
 import { BSUtilsHelper, TBSNetworkId } from '@cityofzion/blockchain-service'
-import { MoralisEDSEthereum } from '../services/exchange-data/MoralisEDSEthereum'
-import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
+import { DefiLlamaCryptoCompareMoralisEDSEthereum } from '../services/exchange-data/DefiLlamaCryptoCompareMoralisEDSEthereum'
 import { BSEthereum } from '../BSEthereum'
 
+const usdtToken = {
+  symbol: 'USDT',
+  name: 'Tether USD',
+  hash: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  decimals: 6,
+}
+
 let service: BSEthereum<'ethereum', TBSNetworkId>
-let moralisEDSEthereum: MoralisEDSEthereum<'ethereum', TBSNetworkId>
+let edsEthereum: DefiLlamaCryptoCompareMoralisEDSEthereum<'ethereum', TBSNetworkId>
 
 // Avoid API key error
-describe.skip('MoralisEDSEthereum', () => {
+describe.skip('DefiLlamaCryptoCompareMoralisEDSEthereum', () => {
   beforeAll(() => {
     service = new BSEthereum('ethereum')
-    moralisEDSEthereum = new MoralisEDSEthereum(service)
+    edsEthereum = new DefiLlamaCryptoCompareMoralisEDSEthereum(service)
   })
 
   beforeEach(async () => {
@@ -19,32 +25,16 @@ describe.skip('MoralisEDSEthereum', () => {
   })
 
   it('Should return the ETH and USDT prices in USD', async () => {
-    const ethToken = BSEthereumHelper.getNativeAsset(service.network)
+    const [ethToken] = service.nativeTokens
+    const response = await edsEthereum.getTokenPrices({ tokens: [ethToken, usdtToken] })
 
-    const usdtToken = {
-      hash: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
-      name: 'Tether USD',
-      symbol: 'USDT',
-      decimals: 6,
-    }
-
-    const tokenPriceList = await moralisEDSEthereum.getTokenPrices({ tokens: [ethToken, usdtToken] })
-
-    expect(tokenPriceList).toHaveLength(2)
-
-    expect(tokenPriceList[0]).toEqual({
-      usdPrice: expect.any(Number),
-      token: ethToken,
-    })
-
-    expect(tokenPriceList[1]).toEqual({
-      usdPrice: expect.any(Number),
-      token: usdtToken,
-    })
+    expect(response).toHaveLength(2)
+    expect(response[0]).toEqual({ usdPrice: expect.any(Number), token: ethToken })
+    expect(response[1]).toEqual({ usdPrice: expect.any(Number), token: usdtToken })
   })
 
   it('Should return a list with prices of tokens in USD', async () => {
-    const tokenPriceList = await moralisEDSEthereum.getTokenPrices({
+    const response = await edsEthereum.getTokenPrices({
       tokens: [
         {
           decimals: 18,
@@ -979,44 +969,59 @@ describe.skip('MoralisEDSEthereum', () => {
       ] as any,
     })
 
-    tokenPriceList.forEach(tokenPrice => {
-      expect(tokenPrice).toEqual({
-        usdPrice: expect.any(Number),
-        token: {
-          decimals: expect.any(Number),
-          hash: expect.any(String),
-          name: expect.any(String),
-          symbol: expect.any(String),
+    expect(response).toEqual(
+      expect.arrayContaining([
+        {
+          usdPrice: expect.any(Number),
+          token: {
+            symbol: expect.any(String),
+            name: expect.any(String),
+            hash: expect.any(String),
+            decimals: expect.any(Number),
+          },
         },
-      })
-    })
+      ])
+    )
+  })
+
+  it("Should return the token's price history (ETH)", async () => {
+    const [token] = service.nativeTokens
+    const response = await edsEthereum.getTokenPriceHistory({ token })
+
+    expect(response).toEqual(
+      expect.arrayContaining([
+        {
+          token,
+          usdPrice: expect.any(Number),
+          timestamp: expect.any(Number),
+        },
+      ])
+    )
+  })
+
+  it("Should return the token's price history (USDT)", async () => {
+    const response = await edsEthereum.getTokenPriceHistory({ token: usdtToken })
+
+    expect(response).toEqual(
+      expect.arrayContaining([
+        {
+          token: usdtToken,
+          usdPrice: expect.any(Number),
+          timestamp: expect.any(Number),
+        },
+      ])
+    )
   })
 
   it('Should return the BRL currency ratio', async () => {
-    const ratio = await moralisEDSEthereum.getCurrencyRatio('BRL')
+    const ratio = await edsEthereum.getCurrencyRatio('BRL')
 
     expect(ratio).toEqual(expect.any(Number))
   })
 
   it('Should return EUR currency ratio', async () => {
-    const ratio = await moralisEDSEthereum.getCurrencyRatio('EUR')
+    const ratio = await edsEthereum.getCurrencyRatio('EUR')
 
     expect(ratio).toEqual(expect.any(Number))
-  })
-
-  it("Should return the token's price history", async () => {
-    const tokenPriceHistory = await moralisEDSEthereum.getTokenPriceHistory({
-      token: BSEthereumHelper.getNativeAsset(service.network),
-      limit: 24,
-      type: 'hour',
-    })
-
-    tokenPriceHistory.forEach(tokenPrice => {
-      expect(tokenPrice).toEqual({
-        usdPrice: expect.any(Number),
-        timestamp: expect.any(Number),
-        token: BSEthereumHelper.getNativeAsset(service.network),
-      })
-    })
   })
 })

@@ -3,20 +3,19 @@ import { BSEthereum } from '../BSEthereum'
 import type { TBSAccount, TBSToken } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
-import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
+
+// Faucet: https://faucet.circle.com
+const usdcToken: TBSToken = {
+  symbol: 'USDC',
+  name: 'USDC',
+  hash: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+  decimals: 6,
+}
 
 let bsEthereum: BSEthereum<'ethereum'>
 let wallet: ethers.HDNodeWallet
 let account: TBSAccount<'ethereum'>
 let nativeToken: TBSToken
-
-// Faucet: https://faucet.circle.com/
-const usdcToken: TBSToken = {
-  name: 'USDC',
-  symbol: 'USDC',
-  decimals: 6,
-  hash: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
-}
 
 describe('BSEthereum', () => {
   beforeEach(async () => {
@@ -32,7 +31,7 @@ describe('BSEthereum', () => {
       blockchain: 'ethereum',
     }
 
-    nativeToken = BSEthereumHelper.getNativeAsset(network)
+    nativeToken = bsEthereum.nativeTokens[0]
   })
 
   it('Should be able to validate an address', () => {

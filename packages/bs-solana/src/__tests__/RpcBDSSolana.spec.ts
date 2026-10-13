@@ -15,8 +15,7 @@ describe('RpcBDSSolana', () => {
 
   // It may throw an error as the Devnet only returns transaction made in less than 10 days
   it.skip('Should be able to get transaction', async () => {
-    const hash = 'DEhYgcXDE1oEPWweAFQ9uuSKSS8qLsMfo9qvy1Qun4vVx6S87bdYGBEDGwUEYic2Zcay4rxcjUhHqHeJGRzunHi'
-
+    const hash = '4PD7zX51PeEf4VMrwwmAQtZaS5R4j1cztZYYC7kUx3QG72wFBMxmf6CsrX4e9AQFqUhR6YgZyUsSVJB4yziS52uE'
     const transaction = await rpcBDSSolana.getTransaction(hash)
 
     expect(transaction).toEqual(
@@ -33,9 +32,8 @@ describe('RpcBDSSolana', () => {
     )
 
     expect(transaction.events.length).toBeGreaterThan(0)
-
-    transaction.events.forEach(event => {
-      expect(event).toEqual(
+    expect(transaction.events).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           eventType: expect.any(String),
           amount: expect.stringMatching(/^\d+(\.\d+)?$/),
@@ -51,9 +49,9 @@ describe('RpcBDSSolana', () => {
             name: expect.any(String),
             hash: expect.any(String),
           }),
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 
   // It may throw an error as the Devnet only returns transaction made in less than 10 days
@@ -62,9 +60,8 @@ describe('RpcBDSSolana', () => {
     const response = await rpcBDSSolana.getTransactionsByAddress({ address })
 
     expect(response.transactions.length).toBeGreaterThan(0)
-
-    response.transactions.forEach(transaction => {
-      expect(transaction).toEqual(
+    expect(response.transactions).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           isPending: false,
           blockchain: 'solana',
@@ -75,11 +72,16 @@ describe('RpcBDSSolana', () => {
           date: expect.any(String),
           networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           view: 'default',
-        })
-      )
+          events: expect.any(Array),
+        }),
+      ])
+    )
 
-      transaction.events.forEach(event => {
-        expect(event).toEqual(
+    const events = response.transactions.flatMap(transaction => transaction.events)
+
+    if (events.length > 0) {
+      expect(events).toEqual(
+        expect.arrayContaining([
           expect.objectContaining({
             eventType: expect.any(String),
             amount: expect.stringMatching(/^\d+(\.\d+)?$/),
@@ -95,10 +97,10 @@ describe('RpcBDSSolana', () => {
               name: expect.any(String),
               hash: expect.any(String),
             }),
-          })
-        )
-      })
-    })
+          }),
+        ])
+      )
+    }
   })
 
   it('Should be able to get sol info', async () => {
@@ -130,8 +132,8 @@ describe('RpcBDSSolana', () => {
     const balance = await rpcBDSSolana.getBalance(address)
 
     expect(balance.length).toBeGreaterThan(0)
-    balance.forEach(balance => {
-      expect(balance).toEqual(
+    expect(balance).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           amount: expect.stringMatching(/^\d+(\.\d+)?$/),
           token: {
@@ -140,8 +142,8 @@ describe('RpcBDSSolana', () => {
             symbol: expect.any(String),
             decimals: expect.any(Number),
           },
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 })

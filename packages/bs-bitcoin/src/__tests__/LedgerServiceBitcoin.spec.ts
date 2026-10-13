@@ -9,8 +9,8 @@ import * as bitcoinjs from 'bitcoinjs-lib'
 import { BSBitcoinTatumHelper } from '../helpers/BSBitcoinTatumHelper'
 
 let service: IBSBitcoin
-let ledgerService: LedgerServiceBitcoin
 let transport: Transport
+let ledgerService: LedgerServiceBitcoin
 let getLedgerTransport: TGetLedgerTransport<TBSBitcoinName>
 
 describe.skip('LedgerServiceBitcoin', () => {
@@ -29,9 +29,8 @@ describe.skip('LedgerServiceBitcoin', () => {
     const accounts = await ledgerService.getAccounts(transport)
 
     expect(accounts.length).toBeGreaterThan(1)
-
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -41,7 +40,7 @@ describe.skip('LedgerServiceBitcoin', () => {
           blockchain: 'bitcoin',
         })
       )
-    })
+    )
   })
 
   it.skip('Should be able to get all accounts until index', async () => {
@@ -53,9 +52,8 @@ describe.skip('LedgerServiceBitcoin', () => {
     })
 
     expect(accounts.length).toBe(7)
-
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -65,7 +63,7 @@ describe.skip('LedgerServiceBitcoin', () => {
           blockchain: 'bitcoin',
         })
       )
-    })
+    )
   })
 
   it.skip('Should be able to get account', async () => {
@@ -98,9 +96,8 @@ describe.skip('LedgerServiceBitcoin', () => {
     const accounts = await ledgerService.getAccounts(transport)
 
     expect(accounts.length).toBeGreaterThan(1)
-
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -110,7 +107,7 @@ describe.skip('LedgerServiceBitcoin', () => {
           blockchain: 'bitcoin',
         })
       )
-    })
+    )
   })
 
   it.skip('Should be able to get all accounts until index using Testnet', async () => {
@@ -125,9 +122,8 @@ describe.skip('LedgerServiceBitcoin', () => {
     })
 
     expect(accounts.length).toBe(7)
-
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -137,7 +133,7 @@ describe.skip('LedgerServiceBitcoin', () => {
           blockchain: 'bitcoin',
         })
       )
-    })
+    )
   })
 
   it.skip('Should be able to get account using Testnet', async () => {

@@ -15,8 +15,8 @@ export * from './helpers/BSAccountHelper'
 export * from './helpers/BSKeychainHelper'
 export * from './helpers/BSStringHelper'
 
-export * from './services/exchange-data/CryptoCompareEDS'
-export * from './services/exchange-data/FlamingoForthewinEDS'
+export * from './services/exchange-data/DefiLlamaCryptoCompareEDS'
+export * from './services/exchange-data/DefiLlamaCryptoCompareFlamingoForthewinEDS'
 export * from './services/token/TokenService'
 export * from './services/nft-data/GhostMarketNDS'
 
@@ -25,5 +25,7 @@ export * from './functions'
 export * from './interfaces'
 
 export * from './error'
+
+export * from './tests'
 
 export * from './types'

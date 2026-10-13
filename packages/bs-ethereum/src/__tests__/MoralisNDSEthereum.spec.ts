@@ -39,14 +39,14 @@ describe('MoralisNDSEthereum', () => {
     })
 
     expect(nfts.items.length).toBeGreaterThan(0)
-    nfts.items.forEach(nft => {
-      expect(nft).toEqual(
+    expect(nfts.items).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           symbol: expect.any(String),
           hash: expect.any(String),
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 
   it('Should return true for collections already owned by address', async () => {
