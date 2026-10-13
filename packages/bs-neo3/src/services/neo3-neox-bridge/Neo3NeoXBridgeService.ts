@@ -41,11 +41,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
 
     this.gasToken = { ...BSNeo3Constants.GAS_TOKEN, blockchain: service.name, multichainId: 'gas' }
     this.neoToken = { ...BSNeo3Constants.NEO_TOKEN, blockchain: service.name, multichainId: 'neo' }
-    this.ndmemeToken = {
-      ...ndmemeToken,
-      blockchain: service.name,
-      multichainId: 'ndmeme',
-    }
+    this.ndmemeToken = { ...ndmemeToken, blockchain: service.name, multichainId: 'ndmeme' }
     this.tokens = [this.gasToken, this.neoToken, this.ndmemeToken]
   }
 
@@ -55,16 +51,11 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
 
   async getBridgeConstants(token: TBridgeToken<TBSNeo3Name>): Promise<TNeo3NeoXBridgeServiceConstants> {
     const { TypeChecker, NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
-
-    const invoker = await NeonInvoker.init({
-      rpcAddress: this.#service.network.url,
-    })
-
-    const isNativeToken = this.#service.tokenService.predicateByHash(token, BSNeo3Constants.GAS_TOKEN)
-
+    const invoker = await NeonInvoker.init({ rpcAddress: this.#service.network.url })
+    const isGasToken = this.#service.tokenService.predicateByHash(token, BSNeo3Constants.GAS_TOKEN)
     let invocations: ContractInvocation[]
 
-    if (isNativeToken) {
+    if (isGasToken) {
       invocations = [
         { operation: 'nativeDepositFee', scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, args: [] },
         { operation: 'minNativeDeposit', scriptHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, args: [] },
@@ -90,30 +81,25 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
       ]
     }
 
-    const response = await invoker.testInvoke({
-      invocations,
-    })
-
+    const response = await invoker.testInvoke({ invocations })
     const [depositFeeItem, minDepositItem, maxDepositItem] = response.stack
 
     if (
       !TypeChecker.isStackTypeInteger(depositFeeItem) ||
       !TypeChecker.isStackTypeInteger(minDepositItem) ||
       !TypeChecker.isStackTypeInteger(maxDepositItem)
-    )
+    ) {
       throw new BSError('Invalid response', 'INVALID_RESPONSE')
+    }
 
     const bridgeFee = new BSBigUnitAmount(depositFeeItem.value, BSNeo3Constants.GAS_TOKEN.decimals)
       .toHuman()
       .toFormatted()
+
     const bridgeMinAmount = new BSBigUnitAmount(minDepositItem.value, token.decimals).toHuman().toFormatted()
     const bridgeMaxAmount = new BSBigUnitAmount(maxDepositItem.value, token.decimals).toHuman().toFormatted()
 
-    return {
-      bridgeFee,
-      bridgeMinAmount,
-      bridgeMaxAmount,
-    }
+    return { bridgeFee, bridgeMinAmount, bridgeMaxAmount }
   }
 
   async bridge(params: TNeo3NeoXBridgeServiceBridgeParam<TBSNeo3Name>): Promise<string> {
@@ -155,9 +141,9 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
       allowedContracts: [Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BSNeo3Constants.GAS_TOKEN.hash],
     }
 
-    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
+    const isGasToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
 
-    if (!isNativeToken) {
+    if (!isGasToken) {
       contractInvocation.operation = 'depositToken'
       contractInvocation.args!.unshift({ type: 'Hash160', value: params.token.hash })
       signer.allowedContracts!.push(params.token.hash)
@@ -171,8 +157,10 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
 
   async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<TBSNeo3Name>): Promise<string> {
     let log: LogResponse | undefined
+
     try {
       const api = DoraBDSNeo3.getClient()
+
       log = await api.log(params.transactionHash, this.#service.network.id)
     } catch (error) {
       throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', error)
@@ -182,21 +170,21 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
       throw new BSError('Transaction invalid', 'INVALID_TRANSACTION')
     }
 
-    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
-
+    const isGasToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
+    const notifications = log?.notifications as unknown as Notification[]
     let nonce: string | null
 
-    const notifications = log?.notifications as unknown as Notification[]
-
-    if (isNativeToken) {
+    if (isGasToken) {
       const notification = notifications.find(item => item.event_name === 'NativeDeposit')
       const values = notification?.state as StateResponse
       const value = values?.value as TypedResponse[]
+
       nonce = value?.[0].value ?? null
     } else {
       const notification = notifications.find(item => item.event_name === 'TokenDeposit')
       const values = notification?.state as StateResponse
       const value = values?.value as TypedResponse[]
+
       nonce = value?.[2].value ?? null
     }
 
@@ -211,8 +199,9 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
     params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<TBSNeo3Name>
   ): Promise<string> {
     let data: TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse | undefined
+
     try {
-      const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
+      const isGasToken = this.#service.tokenService.predicateByHash(params.token, BSNeo3Constants.GAS_TOKEN)
 
       const response = await axios.post<TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse>(
         'https://neofura.ngd.network',
@@ -221,12 +210,13 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeo3Name
           method: 'GetBridgeTxByNonce',
           params: {
             ContractHash: Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH,
-            TokenHash: isNativeToken ? '' : BSNeo3Constants.NEO_TOKEN.hash,
+            TokenHash: isGasToken ? '' : BSNeo3Constants.NEO_TOKEN.hash,
             Nonce: Number(params.nonce),
           },
           id: 1,
         }
       )
+
       data = response.data
     } catch (error) {
       throw new BSError('Failed to get transaction by nonce', 'FAILED_TO_GET_TRANSACTION_BY_NONCE', error)

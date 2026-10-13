@@ -8,9 +8,9 @@ import {
   type TGetTransactionsByAddressResponse,
   type TTransactionDefault,
   BSBigUnitAmount,
+  BSError,
 } from '@cityofzion/blockchain-service'
 import { ethers, JsonRpcProvider } from 'ethers'
-import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import type { IBSEthereum } from '../../types'
 
@@ -19,9 +19,9 @@ export class RpcBDSEthereum<
   A extends TBSNetworkId,
   S extends IBSEthereum<N, A> = IBSEthereum<N, A>,
 > implements IBlockchainDataService<N> {
-  readonly maxTimeToConfirmTransactionInMs: number = 1000 * 60 * 5 // 5 minutes
   readonly _tokenCache: Map<string, TBSToken> = new Map()
   readonly _service: S
+  readonly maxTimeToConfirmTransactionInMs = 1000 * 60 * 5 // 5 minutes
 
   #providerInstance?: JsonRpcProvider
 
@@ -39,19 +39,18 @@ export class RpcBDSEthereum<
 
   async getTransaction(hash: string): Promise<TTransactionDefault<N>> {
     const transaction = await this.#provider.getTransaction(hash)
-    if (!transaction || !transaction.to) throw new Error('Transaction not found')
+
+    if (!transaction || !transaction.to) throw new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND')
 
     const receipt = await this.#provider.getTransactionReceipt(hash)
-    if (!receipt) throw new Error('Receipt not found')
+
+    if (!receipt) throw new BSError('Receipt not found', 'RECEIPT_NOT_FOUND')
 
     const effectiveGasPrice = receipt.gasPrice ?? transaction.gasPrice
     const fee = (effectiveGasPrice || BigInt(0)) * receipt.gasUsed
-
-    const token = BSEthereumHelper.getNativeAsset(this._service.network)
-
+    const [token] = this._service.nativeTokens
     const fromUrl = this._service.explorerService.buildAddressUrl(transaction.from)
     const toUrl = this._service.explorerService.buildAddressUrl(transaction.to)
-
     const block = await this.#provider.getBlock(receipt.blockNumber)
     const timestamp = block?.timestamp || 0
 
@@ -91,9 +90,9 @@ export class RpcBDSEthereum<
   }
 
   async getTokenInfo(hash: string): Promise<TBSToken> {
-    const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
+    const [nativeToken] = this._service.nativeTokens
 
-    if (this._service.tokenService.predicateByHash(nativeAsset, hash)) return nativeAsset
+    if (this._service.tokenService.predicateByHash(nativeToken, hash)) return nativeToken
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!
@@ -118,8 +117,7 @@ export class RpcBDSEthereum<
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
     const balance = await this.#provider.getBalance(address)
-
-    const token = BSEthereumHelper.getNativeAsset(this._service.network)
+    const [token] = this._service.nativeTokens
 
     return [
       {

@@ -10,7 +10,6 @@ import {
   type INftDataService,
   type ITokenService,
   type TBSNetwork,
-  type TBSToken,
   type TPingNetworkResponse,
   type TTransferParams,
   type TTransactionDefault,
@@ -23,7 +22,7 @@ import { Web3LedgerServiceSolana } from './services/ledger/Web3LedgerServiceSola
 import { RpcBDSSolana } from './services/blockchain-data/RpcBDSSolana'
 import { RpcNDSSolana } from './services/nft-data/RpcNDSSolana'
 import { SolScanESSolana } from './services/explorer/SolScanESSolana'
-import { MoralisEDSSolana } from './services/exchange/MoralisEDSSolana'
+import { DefiLlamaCryptoCompareMoralisEDSSolana } from './services/exchange/DefiLlamaCryptoCompareMoralisEDSSolana'
 import { TokenServiceSolana } from './services/token/TokenServiceSolana'
 import type { IBSSolana, TBSSolanaName, TBSSolanaNetworkId } from './types'
 import * as solanaKit from '@solana/kit'
@@ -38,19 +37,17 @@ const KEY_BYTES_LENGTH = 64
 
 export class BSSolana implements IBSSolana {
   readonly name = 'solana'
-  readonly bipDerivationPath: string
-
+  readonly bipDerivationPath = BSSolanaConstants.DEFAULT_BIP_DERIVATION_PATH
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
-
-  readonly feeToken!: TBSToken
-  readonly tokens!: TBSToken[]
-  readonly nativeTokens!: TBSToken[]
+  readonly nativeTokens = [BSSolanaConstants.NATIVE_TOKEN]
+  readonly tokens = this.nativeTokens
+  readonly feeToken = BSSolanaConstants.NATIVE_TOKEN
+  readonly availableNetworks = BSSolanaConstants.ALL_NETWORKS
+  readonly defaultNetwork = BSSolanaConstants.MAINNET_NETWORK
 
   network!: TBSNetwork<TBSSolanaNetworkId>
   networkUrls!: string[]
-  readonly availableNetworks: TBSNetwork<TBSSolanaNetworkId>[]
-  readonly defaultNetwork: TBSNetwork<TBSSolanaNetworkId>
 
   ledgerService: Web3LedgerServiceSolana
   exchangeDataService!: IExchangeDataService
@@ -63,17 +60,9 @@ export class BSSolana implements IBSSolana {
   _solanaKitRpc!: solanaKit.Rpc<solanaKit.SolanaRpcApi>
 
   constructor(network?: TBSNetwork<TBSSolanaNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSSolanaName>) {
-    this.bipDerivationPath = BSSolanaConstants.DEFAULT_BIP_DERIVATION_PATH
     this.ledgerService = new Web3LedgerServiceSolana(this, getLedgerTransport)
 
-    this.tokens = [BSSolanaConstants.NATIVE_TOKEN]
-    this.nativeTokens = [BSSolanaConstants.NATIVE_TOKEN]
-    this.feeToken = BSSolanaConstants.NATIVE_TOKEN
-
-    this.availableNetworks = BSSolanaConstants.ALL_NETWORKS
-    this.defaultNetwork = BSSolanaConstants.MAINNET_NETWORK
-
-    this.setNetwork(network ?? this.defaultNetwork)
+    this.setNetwork(network || this.defaultNetwork)
   }
 
   async _signTransaction(
@@ -81,19 +70,22 @@ export class BSSolana implements IBSSolana {
     senderAccount: TBSAccount<TBSSolanaName>
   ): Promise<solanaKit.Base64EncodedWireTransaction> {
     if (senderAccount.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide getLedgerTransport function to use Ledger')
+      if (!this.ledgerService.getLedgerTransport) {
+        throw new BSError('You must provide getLedgerTransport function to use Ledger', 'NO_GET_LEGER_TRANSPORT')
+      }
 
       if (!senderAccount.bipPath) {
-        throw new Error('Account must have BIP path to use Ledger')
+        throw new BSError('Account must have BIP path to use Ledger', 'NO_BIP_PATH')
       }
 
       const transport = await this.ledgerService.getLedgerTransport(senderAccount)
+
       return await this.ledgerService.signTransaction(transport, transaction, senderAccount)
     }
 
     const keypair = await solanaKit.createKeyPairFromBytes(solanaKit.getBase58Encoder().encode(senderAccount.key))
     const signedTransaction = await solanaKit.partiallySignTransaction([keypair], transaction)
+
     return solanaKit.getBase64EncodedWireTransaction(signedTransaction)
   }
 
@@ -103,15 +95,14 @@ export class BSSolana implements IBSSolana {
     }
 
     const signer = solanaKit.createNoopSigner(solanaKit.address(params.senderAccount.address))
-
     const instructions: solanaKit.Instruction[] = []
 
     for (const intent of params.intents) {
       const amount = new BSBigHumanAmount(intent.amount, intent.token.decimals).toUnit().toBigInt()
       const receiverAddress = solanaKit.address(intent.receiverAddress)
+      const isNativeToken = this.tokenService.isNativeToken(intent.token.hash)
 
-      const isNative = this.tokenService.predicate(intent.token, BSSolanaConstants.NATIVE_TOKEN)
-      if (isNative) {
+      if (isNativeToken) {
         const transferInstruction = solanaSystem.getTransferSolInstruction({
           source: signer,
           destination: receiverAddress,
@@ -176,9 +167,7 @@ export class BSSolana implements IBSSolana {
       tx => solanaKit.appendTransactionMessageInstructions(instructions, tx)
     )
 
-    return {
-      transactionMessage,
-    }
+    return { transactionMessage }
   }
 
   async #getFeeByMessageBytes(messageBytes: ReadonlyUint8Array): Promise<string> {
@@ -210,7 +199,7 @@ export class BSSolana implements IBSSolana {
     this.blockchainDataService = new RpcBDSSolana(this)
     this.nftDataService = new RpcNDSSolana(this)
     this.explorerService = new SolScanESSolana(this)
-    this.exchangeDataService = new MoralisEDSSolana(this)
+    this.exchangeDataService = new DefiLlamaCryptoCompareMoralisEDSSolana(this)
     this.walletConnectService = new WalletConnectServiceSolana(this)
 
     this._solanaKitRpc = solanaKit.createSolanaRpc(this.network.url)
@@ -248,6 +237,7 @@ export class BSSolana implements IBSSolana {
   validateKey(key: string): boolean {
     try {
       const keyBuffer = solanaKit.getBase58Encoder().encode(key)
+
       return keyBuffer?.length === KEY_BYTES_LENGTH
     } catch {
       return false
@@ -309,7 +299,6 @@ export class BSSolana implements IBSSolana {
     const txId = await this._solanaKitRpc.sendTransaction(encodedSignedTransaction, { encoding: 'base64' }).send()
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
-    const nativeTokenHash = BSSolanaConstants.NATIVE_TOKEN.hash
 
     return [
       {
@@ -324,12 +313,11 @@ export class BSSolana implements IBSSolana {
         view: 'default',
         events: intents.map(({ amount, receiverAddress, token }) => {
           const tokenHash = token.hash
-          const isNativeToken = this.tokenService.predicateByHash(nativeTokenHash, tokenHash)
 
           return {
             eventType: 'token',
             amount,
-            methodName: isNativeToken ? 'transfer' : 'transferChecked',
+            methodName: this.tokenService.isNativeToken(tokenHash) ? 'transfer' : 'transferChecked',
             from: address,
             fromUrl: addressUrl,
             to: receiverAddress,
@@ -349,9 +337,9 @@ export class BSSolana implements IBSSolana {
     return await this.#getFeeByMessageBytes(compiledTransaction.messageBytes)
   }
 
-  async resolveNameServiceDomain(domainName: string): Promise<string> {
-    const domain = domainName.replace('.sol', '')
-    const response = await axios.get(`https://sns-sdk-proxy.bonfida.workers.dev/resolve/${domain}`)
+  async resolveNameServiceDomain(domainName: string) {
+    const domain = domainName.replace(/\.sol$/, '.sns')
+    const response = await axios.get(`https://sdk-proxy-v2.sns.id/resolve/${domain}`)
 
     if (response.status !== 200) {
       throw new BSError(`Failed to resolve domain ${domainName}`, 'DOMAIN_NOT_FOUND')
@@ -366,7 +354,7 @@ export class BSSolana implements IBSSolana {
     return result
   }
 
-  validateNameServiceDomainFormat(domainName: string): boolean {
-    return domainName.endsWith('.sol')
+  validateNameServiceDomainFormat(domainName: string) {
+    return domainName.endsWith('.sol') || domainName.endsWith('.sns')
   }
 }

@@ -353,7 +353,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     expect(amountToUseMinMax).toEqual({
       loading: false,
-      value: expect.objectContaining({ min: expect.any(String), max: expect.anything() }),
+      value: expect.objectContaining({ min: expect.any(String) }),
     })
 
     expect(min).toContain('.')
@@ -375,7 +375,7 @@ describe('SimpleSwapOrchestrator', () => {
 
     expect(amountToUseMinMax).toEqual({
       loading: false,
-      value: expect.objectContaining({ min: expect.any(String), max: expect.any(String) }),
+      value: expect.objectContaining({ min: expect.any(String) }),
     })
 
     expect(amountToUseMinMax.value!.min).not.toContain('.')

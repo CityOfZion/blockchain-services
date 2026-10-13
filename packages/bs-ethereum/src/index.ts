@@ -6,17 +6,11 @@ export * from './constants/BSEthereumConstants'
 
 export * from './services/blockchain-data/MoralisBDSEthereum'
 export * from './services/blockchain-data/RpcBDSEthereum'
-
-export * from './services/exchange-data/MoralisEDSEthereum'
-
+export * from './services/exchange-data/DefiLlamaCryptoCompareMoralisEDSEthereum'
 export * from './services/explorer/BlockscoutESEthereum'
-
 export * from './services/ledger/EthersLedgerServiceEthereum'
-
 export * from './services/nft-data/MoralisNDSEthereum'
-
 export * from './services/token/TokenServiceEthereum'
-
 export * from './services/wallet-connect/WalletConnectServiceEthereum'
 
 export * from './assets/abis/ERC20'

@@ -27,7 +27,7 @@ src/
 ├── helpers/                # BSNeoXHelper
 ├── services/
 │   ├── blockchain-data/        # BlockscoutBDS
-│   ├── exchange-data/          # FlamingoForthewinEDS
+│   ├── exchange-data/          # DefiLlamaCryptoCompareFlamingoForthewinEDSNeoX
 │   ├── explorer/               # BlockscoutExplorerService
 │   ├── full-transactions-data/ # BlockscoutFullTransactionsData
 │   ├── nft-data/               # GhostMarketNDS
@@ -54,6 +54,6 @@ src/
 
 **Data provider:** Blockscout (not Moralis — NeoX uses Blockscout for all chain data).
 
-**Exchange data:** FlamingoForthewin (not Moralis) — data comes from Flamingo DEX.
+**Exchange data:** `DefiLlamaCryptoCompareFlamingoForthewinEDSNeoX` (not Moralis) — chains DefiLlama → CryptoCompare → Flamingo → Forthewin, with GAS/NEO/xGAS remapping. GAS and NEO resolve via DefiLlama (`coingecko:gas` / `coingecko:neo`).
 
 **Dependencies on other workspace packages:** `blockchain-service`, `bs-ethereum`, `bs-neo3`.

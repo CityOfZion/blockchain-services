@@ -1,6 +1,7 @@
 declare global {
   namespace NodeJS {
     interface ProcessEnv {
+      TEST_COZ_API_KEY: string
       TEST_PRIVATE_KEY: string
       TEST_PRIVATE_KEY_TO_SWAP_TOKEN: string
       TEST_ETHEREUM_PRIVATE_KEY: string

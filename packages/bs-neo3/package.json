@@ -27,7 +27,7 @@
     "@cityofzion/neon-core": "5.9.0",
     "@cityofzion/neon-dappkit": "~1.0.0",
     "@cityofzion/neon-js": "5.9.0",
-    "axios": "1.16.0"
+    "axios": "1.20.0"
   },
   "devDependencies": {
     "@cityofzion/neon-dappkit-types": "~1.0.0",
@@ -38,7 +38,7 @@
     "dotenv": "~17.4.2",
     "eslint": "~10.3.0",
     "typescript": "~6.0.3",
-    "vitest": "~4.1.5",
+    "vitest": "4.1.12",
     "zod": "~4.4.3"
   }
 }

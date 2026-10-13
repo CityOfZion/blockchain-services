@@ -42,7 +42,7 @@ src/
 ├── helpers/            # BSEthereumHelper (chain ID resolution)
 ├── services/
 │   ├── blockchain-data/        # Moralis RPC BDS
-│   ├── exchange-data/          # MoralisEDS (token prices)
+│   ├── exchange-data/          # DefiLlamaCryptoCompareMoralisEDSEthereum (token prices)
 │   ├── explorer/               # BlockscoutExplorerService
 │   ├── full-transactions-data/ # MoralisFullTransactionsData
 │   ├── ledger/                 # EthersLedgerService
@@ -60,7 +60,7 @@ src/
 
 **Key library:** `ethers` v5 for wallet operations, signing, and contract interactions.
 
-**Data provider:** Moralis is the primary source for blockchain data, exchange rates, NFTs, and full transaction history. Blockscout is used for the explorer service.
+**Data provider:** Moralis is the primary source for blockchain data, NFTs, and full transaction history. Exchange rates come from the `DefiLlamaCryptoCompareMoralisEDSEthereum` service, which chains DefiLlama → CryptoCompare → Moralis (for ERC20 prices). Blockscout is used for the explorer service.
 
 **Hardware wallets:** `@ledgerhq/hw-app-eth` via `EthersLedgerService`.
 

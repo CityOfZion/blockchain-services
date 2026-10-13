@@ -7,9 +7,9 @@ import { BSStellarConstants } from '../constants/BSStellarConstants'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 import * as stellarSDK from '@stellar/stellar-sdk'
 
-let ledgerService: LedgerServiceStellar
-let transport: Transport
 let bsStellar: BSStellar
+let transport: Transport
+let ledgerService: LedgerServiceStellar
 const network = BSStellarConstants.TESTNET_NETWORK
 
 describe.skip('LedgerServiceStellar', () => {
@@ -23,9 +23,8 @@ describe.skip('LedgerServiceStellar', () => {
     const accounts = await ledgerService.getAccounts(transport)
 
     expect(accounts.length).toBeGreaterThan(1)
-
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -33,7 +32,7 @@ describe.skip('LedgerServiceStellar', () => {
           bipPath: BSKeychainHelper.getBipPath(bsStellar.bipDerivationPath, index),
         })
       )
-    })
+    )
   })
 
   it('Should be able to get account', async () => {

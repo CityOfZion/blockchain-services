@@ -8,13 +8,15 @@ export class BSNeoLegacyConstants {
     hash: '0x602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7',
     decimals: 8,
   }
+
   static readonly NEO_ASSET: TBSToken = {
     symbol: 'NEO',
     name: 'NEO',
     hash: '0xc56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b',
     decimals: 0,
   }
-  static readonly NATIVE_ASSETS = [BSNeoLegacyConstants.NEO_ASSET, BSNeoLegacyConstants.GAS_ASSET]
+
+  static readonly NATIVE_ASSETS = [BSNeoLegacyConstants.GAS_ASSET, BSNeoLegacyConstants.NEO_ASSET]
 
   static readonly RPC_LIST_BY_NETWORK_ID: Record<TBSNeoLegacyNetworkId, string[]> = {
     mainnet: [
@@ -26,11 +28,6 @@ export class BSNeoLegacyConstants {
       'http://seed9.ngd.network:10332',
     ],
     testnet: ['http://seed1.ngd.network:20332', 'http://seed2.ngd.network:20332', 'http://seed5.ngd.network:20332'],
-  }
-
-  static readonly LEGACY_NETWORK_BY_NETWORK_ID: Record<TBSNeoLegacyNetworkId, string> = {
-    mainnet: 'MainNet',
-    testnet: 'TestNet',
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeoLegacyNetworkId> = {

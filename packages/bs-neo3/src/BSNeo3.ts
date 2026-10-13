@@ -22,7 +22,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { BSNeo3Helper } from './helpers/BSNeo3Helper'
 import { DoraBDSNeo3 } from './services/blockchain-data/DoraBDSNeo3'
-import { FlamingoForthewinEDSNeo3 } from './services/exchange-data/FlamingoForthewinEDSNeo3'
+import { DefiLlamaCryptoCompareFlamingoForthewinEDSNeo3 } from './services/exchange-data/DefiLlamaCryptoCompareFlamingoForthewinEDSNeo3'
 import { DoraESNeo3 } from './services/explorer/DoraESNeo3'
 import { NeonDappKitLedgerServiceNeo3 } from './services/ledger/NeonDappKitLedgerServiceNeo3'
 import { GhostMarketNDSNeo3 } from './services/nft-data/GhostMarketNDSNeo3'
@@ -40,19 +40,17 @@ import { ClaimServiceNeo3 } from './services/claim/ClaimServiceNeo3'
 
 export class BSNeo3 implements IBSNeo3 {
   readonly name = 'neo3'
-  readonly bipDerivationPath: string
+  readonly bipDerivationPath = BSNeo3Constants.DEFAULT_BIP_DERIVATION_PATH
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = true
-
-  tokens!: TBSToken[]
-
-  readonly nativeTokens!: TBSToken[]
-  readonly feeToken!: TBSToken
+  readonly nativeTokens = BSNeo3Constants.NATIVE_ASSETS
+  readonly feeToken = BSNeo3Constants.GAS_TOKEN
+  readonly defaultNetwork = BSNeo3Constants.MAINNET_NETWORK
+  readonly availableNetworks = BSNeo3Constants.ALL_NETWORKS
 
   network!: TBSNetwork<TBSNeo3NetworkId>
   networkUrls!: string[]
-  readonly defaultNetwork: TBSNetwork<TBSNeo3NetworkId>
-  readonly availableNetworks: TBSNetwork<TBSNeo3NetworkId>[]
+  tokens!: TBSToken[]
 
   blockchainDataService!: IBlockchainDataService<TBSNeo3Name>
   nftDataService!: INftDataService
@@ -68,15 +66,8 @@ export class BSNeo3 implements IBSNeo3 {
 
   constructor(network?: TBSNetwork<TBSNeo3NetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeo3Name>) {
     this.ledgerService = new NeonDappKitLedgerServiceNeo3(this, getLedgerTransport)
-    this.bipDerivationPath = BSNeo3Constants.DEFAULT_BIP_DERIVATION_PATH
 
-    this.nativeTokens = BSNeo3Constants.NATIVE_ASSETS
-    this.feeToken = BSNeo3Constants.GAS_TOKEN
-
-    this.availableNetworks = BSNeo3Constants.ALL_NETWORKS
-    this.defaultNetwork = BSNeo3Constants.MAINNET_NETWORK
-
-    this.setNetwork(network ?? this.defaultNetwork)
+    this.setNetwork(network || this.defaultNetwork)
   }
 
   #setTokens(network: TBSNetwork<TBSNeo3NetworkId>) {
@@ -115,13 +106,13 @@ export class BSNeo3 implements IBSNeo3 {
 
     if (network.type === 'custom') {
       if (typeof network.url !== 'string' || network.url.length === 0) {
-        throw new Error('You must provide a valid url to use a custom network')
+        throw new BSError('You must provide a valid url to use a custom network', 'INVALID_CUSTOM_URL')
       }
     } else {
       const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
       if (!isValidNetwork) {
-        throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+        throw new BSError(`Network with id ${network.id} is not available for ${this.name}`, 'INVALID_NETWORK')
       }
     }
 
@@ -136,7 +127,7 @@ export class BSNeo3 implements IBSNeo3 {
     this.voteService = new VoteServiceNeo3(this)
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
     this.blockchainDataService = new DoraBDSNeo3(this)
-    this.exchangeDataService = new FlamingoForthewinEDSNeo3(this)
+    this.exchangeDataService = new DefiLlamaCryptoCompareFlamingoForthewinEDSNeo3(this)
     this.claimService = new ClaimServiceNeo3(this)
     this.walletConnectService = new WalletConnectServiceNeo3(this)
     this.fullTransactionsDataService = new DoraFullTransactionsDataServiceNeo3(this)
@@ -145,6 +136,7 @@ export class BSNeo3 implements IBSNeo3 {
   // This method is done manually because we need to ensure that the request is aborted after timeout
   async pingNetwork(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
+
     const timeout = setTimeout(() => {
       abortController.abort()
     }, 5000)
@@ -166,11 +158,7 @@ export class BSNeo3 implements IBSNeo3 {
 
     const latency = Date.now() - timeStart
 
-    return {
-      latency,
-      url,
-      height: response.data.result,
-    }
+    return { latency, url, height: response.data.result }
   }
 
   async _generateSigningCallback(account: TBSAccount<TBSNeo3Name>): Promise<{
@@ -205,16 +193,19 @@ export class BSNeo3 implements IBSNeo3 {
 
   validateAddress(address: string): boolean {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+
     return wallet.isAddress(address, 53)
   }
 
   validateEncrypted(encryptedKey: string): boolean {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+
     return wallet.isNEP2(encryptedKey)
   }
 
   validateKey(key: string): boolean {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
@@ -235,7 +226,7 @@ export class BSNeo3 implements IBSNeo3 {
   async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<TBSNeo3Name>> {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
 
-    if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
+    if (!wallet.isPublicKey(publicKey)) throw new BSError('Invalid public key', 'INVALID_PUBLIC_KEY')
 
     const account = new wallet.Account(publicKey)
 
@@ -266,13 +257,14 @@ export class BSNeo3 implements IBSNeo3 {
 
   async decrypt(encryptedKey: string, password: string): Promise<TBSAccount<TBSNeo3Name>> {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
-
     const key = await wallet.decrypt(encryptedKey, password)
+
     return await this.generateAccountFromKey(key)
   }
 
   async encrypt(key: string, password: string): Promise<string> {
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
+
     return await wallet.encrypt(key, password)
   }
 
@@ -312,7 +304,6 @@ export class BSNeo3 implements IBSNeo3 {
     }
 
     const { address } = senderAccount
-
     const invocations = await this.#buildTransferInvocation(params, neonJsAccount)
     const invocationMulti = { invocations, signers: [] }
 
@@ -321,6 +312,7 @@ export class BSNeo3 implements IBSNeo3 {
       account: neonJsAccount,
       signingCallback: signingCallback,
     })
+
     const fees = await invoker.calculateFee(invocationMulti)
     const txId = await invoker.invokeFunction(invocationMulti)
 
@@ -373,10 +365,10 @@ export class BSNeo3 implements IBSNeo3 {
     })
 
     if (response.stack.length === 0) {
-      throw new Error(response.exception ?? 'unrecognized response')
+      throw new BSError(response.exception || 'Unrecognized response', 'RESPONSE_ERROR')
     }
 
-    const parsed = NeonParser.parseRpcResponse(response.stack[0] as any, {
+    const parsed = NeonParser.parseRpcResponse(response.stack[0], {
       type: 'Hash160',
     })
 

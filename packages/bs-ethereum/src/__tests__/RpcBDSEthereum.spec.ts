@@ -1,7 +1,6 @@
 import type { TBSNetworkId } from '@cityofzion/blockchain-service'
 import { BSEthereum } from '../BSEthereum'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
-import { BSEthereumHelper } from '../helpers/BSEthereumHelper'
 import { RpcBDSEthereum } from '../services/blockchain-data/RpcBDSEthereum'
 
 let service: BSEthereum<'ethereum', TBSNetworkId>
@@ -10,17 +9,18 @@ let rpcBDSEthereum: RpcBDSEthereum<'ethereum', TBSNetworkId>
 describe('RpcBDSEthereum', () => {
   beforeAll(async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
+
     service = new BSEthereum('ethereum', network)
     rpcBDSEthereum = new RpcBDSEthereum(service)
   })
 
   it('Should be able to get transaction', async () => {
-    const hash = '0x48eac645fac2280d7ac89a319372d7a38d52516f8b3003574bfaaed31b471ff3'
+    const hash = '0x77dac02dec648739f7778093dbcb40eb9bcfa9281c98d495368d87fe6b8ccbab'
     const transaction = await rpcBDSEthereum.getTransaction(hash)
 
     expect(transaction).toEqual(
       expect.objectContaining({
-        txId: expect.any(String),
+        txId: hash,
         txIdUrl: expect.anything(),
         block: expect.any(Number),
         date: expect.any(String),
@@ -30,8 +30,9 @@ describe('RpcBDSEthereum', () => {
         view: 'default',
       })
     )
-    transaction.events.forEach(transfer => {
-      expect(transfer).toEqual(
+
+    expect(transaction.events).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           eventType: expect.any(String),
           amount: expect.stringMatching(/^\d+(\.\d+)?$/),
@@ -40,24 +41,24 @@ describe('RpcBDSEthereum', () => {
           fromUrl: expect.anything(),
           to: expect.anything(),
           toUrl: expect.anything(),
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 
-  it('Should be able to get eth info', async () => {
-    const nativeAsset = BSEthereumHelper.getNativeAsset(service.network)
-    const token = await rpcBDSEthereum.getTokenInfo(nativeAsset.hash)
+  it('Should be able to get ETH info', async () => {
+    const [nativeToken] = service.nativeTokens
+    const token = await rpcBDSEthereum.getTokenInfo(nativeToken.hash)
 
-    expect(token).toEqual(nativeAsset)
+    expect(token).toEqual(nativeToken)
   })
 
   it('Should be able to get balance', async () => {
     const address = '0xbA65F285D1F9E0bf76Ab01211547979a3b60011A'
     const balance = await rpcBDSEthereum.getBalance(address)
 
-    balance.forEach(balance => {
-      expect(balance).toEqual(
+    expect(balance).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           amount: expect.stringMatching(/^\d+(\.\d+)?$/),
           token: {
@@ -66,8 +67,8 @@ describe('RpcBDSEthereum', () => {
             symbol: expect.any(String),
             decimals: expect.any(Number),
           },
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 })

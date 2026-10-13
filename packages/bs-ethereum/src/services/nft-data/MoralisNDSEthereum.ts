@@ -15,15 +15,16 @@ import axios, { AxiosInstance } from 'axios'
 import type {
   IBSEthereum,
   TBSEthereumNetworkId,
-  TMoralisNDSEthereumNftMetadataApiResponse,
-  TMoralisNDSEthereumNftsByAddressApiResponse,
+  TMoralisEthereumNftMetadataResponse,
+  TMoralisEthereumNftsByAddressResponse,
 } from '../../types'
 
 export class MoralisNDSEthereum<N extends string, A extends TBSNetworkId> implements INftDataService {
   static readonly BASE_URL = `${BSCommonConstants.COZ_API_URL}/v2/p/evm/meta`
   readonly #service: IBSEthereum<N, A>
-  #apiInstance?: AxiosInstance
   readonly #nftsCacheMap: Map<string, TNftResponse> = new Map()
+
+  #apiInstance?: AxiosInstance
 
   constructor(service: IBSEthereum<N, A>) {
     this.#service = service
@@ -42,10 +43,11 @@ export class MoralisNDSEthereum<N extends string, A extends TBSNetworkId> implem
     if (!this.#apiInstance) {
       this.#apiInstance = MoralisNDSEthereum.getClient(this.#service.network)
     }
+
     return this.#apiInstance
   }
 
-  #parseResponse(data: TMoralisNDSEthereumNftMetadataApiResponse): TNftResponse {
+  #parseResponse(data: TMoralisEthereumNftMetadataResponse): TNftResponse {
     let explorerUri: string | undefined
     let collectionUrl: string | undefined
     const contractHash = data.token_address
@@ -55,6 +57,7 @@ export class MoralisNDSEthereum<N extends string, A extends TBSNetworkId> implem
         tokenHash: data.token_id,
         collectionHash: contractHash,
       })
+
       collectionUrl = this.#service.explorerService.buildContractUrl(contractHash)
     }
 
@@ -85,7 +88,7 @@ export class MoralisNDSEthereum<N extends string, A extends TBSNetworkId> implem
   }
 
   async getNftsByAddress({ address, nextPageParams }: TGetNftsByAddressParams): Promise<TNftsResponse> {
-    const { data } = await this.#api.get<TMoralisNDSEthereumNftsByAddressApiResponse>(`${address}/nft`, {
+    const { data } = await this.#api.get<TMoralisEthereumNftsByAddressResponse>(`${address}/nft`, {
       params: {
         limit: 25,
         cursor: nextPageParams,
@@ -110,18 +113,19 @@ export class MoralisNDSEthereum<N extends string, A extends TBSNetworkId> implem
 
     const cacheKey = this.#buildNftCacheKey(tokenHash, collectionHash)
     const nftFromCache = this.#nftsCacheMap.get(cacheKey)
+
     if (nftFromCache) {
       return nftFromCache
     }
 
-    const { data } = await this.#api.get<TMoralisNDSEthereumNftMetadataApiResponse>(
-      `/nft/${collectionHash}/${tokenHash}`,
-      {
-        params: { normalizeMetadata: true },
-      }
-    )
+    const { data } = await this.#api.get<TMoralisEthereumNftMetadataResponse>(`/nft/${collectionHash}/${tokenHash}`, {
+      params: { normalizeMetadata: true },
+    })
+
     const nft = this.#parseResponse(data)
+
     this.#nftsCacheMap.set(cacheKey, nft)
+
     return nft
   }
 
@@ -129,14 +133,14 @@ export class MoralisNDSEthereum<N extends string, A extends TBSNetworkId> implem
     try {
       if (!collectionHash) return false
 
-      const { data } = await this.#api.get<TMoralisNDSEthereumNftsByAddressApiResponse>(`${address}/nft`, {
+      const { data } = await this.#api.get<TMoralisEthereumNftsByAddressResponse>(`${address}/nft`, {
         params: {
           limit: 1,
           token_addresses: [collectionHash],
         },
       })
 
-      return (data.result?.length ?? 0) > 0
+      return (data.result?.length || 0) > 0
     } catch {
       return false
     }
