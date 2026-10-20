@@ -1,4 +1,4 @@
-export type TGhostMarketNDSNeo3AssetApiResponse = {
+export type TGhostMarketAssetResponse = {
   tokenId: string
   contract: {
     chain?: string
@@ -29,22 +29,22 @@ export type TGhostMarketNDSNeo3AssetApiResponse = {
   }
 }
 
-export type TGhostMarketNDSNeo3GetAssetsApiResponse = {
-  assets: TGhostMarketNDSNeo3AssetApiResponse[]
+export type TGhostMarketAssetsResponse = {
+  assets: TGhostMarketAssetResponse[]
   next: string
 }
 
-export type TFlamingoForthewinEDSFlamingoPricesApiResponse = {
+export type TFlamingoPricesResponse = {
   symbol: string
   usd_price: number
   hash: string
 }[]
 
-export type TFlamingoForthewinEDSForthewinPricesApiResponse = {
+export type TForthewinPricesResponse = {
   [key: string]: number
 }
 
-export type TCryptoCompareEDSDataResponse = {
+export type TCryptoCompareDataResponse = {
   RAW: {
     [symbol: string]: {
       [currency: string]: {
@@ -54,11 +54,37 @@ export type TCryptoCompareEDSDataResponse = {
   }
 }
 
-export type TCryptoCompareEDSHistoryResponse = {
+export type TCryptoCompareHistoryResponse = {
   Data: {
     time: number
     close: number
   }[]
+}
+
+export type TDefiLlamaPricesResponse = {
+  coins: {
+    [id: string]: {
+      price: number
+      symbol?: string
+      timestamp?: number
+      confidence?: number
+      decimals?: number
+    }
+  }
+}
+
+export type TDefiLlamaChartResponse = {
+  coins: {
+    [id: string]: {
+      symbol?: string
+      confidence?: number
+      decimals?: number
+      prices: {
+        timestamp: number
+        price: number
+      }[]
+    }
+  }
 }
 
 export type THexString = `0x${string}`

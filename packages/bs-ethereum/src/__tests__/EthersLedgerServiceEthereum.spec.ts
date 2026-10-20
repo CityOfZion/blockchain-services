@@ -6,15 +6,15 @@ import { BSEthereum } from '../BSEthereum'
 import { BSEthereumConstants } from '../constants/BSEthereumConstants'
 import { BSKeychainHelper } from '@cityofzion/blockchain-service'
 
-let ledgerService: EthersLedgerServiceEthereum<'ethereum'>
-let transport: Transport
 let bsEthereum: BSEthereum<'ethereum'>
+let transport: Transport
+let ledgerService: EthersLedgerServiceEthereum<'ethereum'>
 
 describe.skip('EthersLedgerServiceEthereum', () => {
   beforeAll(async () => {
     const network = BSEthereumConstants.NETWORKS_BY_EVM.ethereum.find(network => network.type === 'testnet')!
-    bsEthereum = new BSEthereum('ethereum', network)
 
+    bsEthereum = new BSEthereum('ethereum', network)
     transport = await TransportNodeHid.create()
     ledgerService = new EthersLedgerServiceEthereum(bsEthereum, async () => transport)
   })
@@ -23,15 +23,16 @@ describe.skip('EthersLedgerServiceEthereum', () => {
     const account = await ledgerService.getAccount(transport, 0)
     const signer = ledgerService.getSigner(transport, account.bipPath!)
     const address = await signer.getAddress()
+
     expect(address).toBeDefined()
   })
 
   it('Should be able to sign a message', async () => {
     const account = await ledgerService.getAccount(transport, 0)
     const signer = ledgerService.getSigner(transport, account.bipPath!)
-
     const message = 'Hello, World!'
     const signedMessage = await signer.signMessage(message)
+
     expect(signedMessage).toBeDefined()
   })
 
@@ -50,7 +51,6 @@ describe.skip('EthersLedgerServiceEthereum', () => {
     }
 
     const transaction = Transaction.from(transactionRecord)
-
     const firstSignedTransaction = await signer.signTransaction(transaction)
     const secondSignedTransaction = await signer.signTransaction(transactionRecord)
 
@@ -119,10 +119,10 @@ describe.skip('EthersLedgerServiceEthereum', () => {
 
   it('Should be able to get all accounts automatically', async () => {
     const accounts = await ledgerService.getAccounts(transport)
-    expect(accounts.length).toBeGreaterThan(1)
 
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts.length).toBeGreaterThan(1)
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -130,7 +130,7 @@ describe.skip('EthersLedgerServiceEthereum', () => {
           bipPath: BSKeychainHelper.getBipPath(bsEthereum.bipDerivationPath, index),
         })
       )
-    })
+    )
   })
 
   it('Should be able to get all accounts until index', async () => {
@@ -143,8 +143,8 @@ describe.skip('EthersLedgerServiceEthereum', () => {
     })
 
     expect(accounts.length).toBe(7)
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -152,11 +152,12 @@ describe.skip('EthersLedgerServiceEthereum', () => {
           bipPath: BSKeychainHelper.getBipPath(bsEthereum.bipDerivationPath, index),
         })
       )
-    })
+    )
   })
 
   it('Should be able to get account', async () => {
     const account = await ledgerService.getAccount(transport, 0)
+
     expect(account).toEqual(
       expect.objectContaining({
         address: expect.any(String),

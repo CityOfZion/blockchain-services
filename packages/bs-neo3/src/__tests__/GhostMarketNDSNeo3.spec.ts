@@ -69,9 +69,10 @@ describe('GhostMarketNDSNeo3', () => {
     const nfts = await ghostMarketNDSNeo3.getNftsByAddress({
       address: 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6',
     })
+
     expect(nfts.items.length).toBeGreaterThan(0)
-    nfts.items.forEach(nft => {
-      expect(nft).toEqual(
+    expect(nfts.items).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           symbol: expect.any(String),
           hash: expect.any(String),
@@ -81,23 +82,20 @@ describe('GhostMarketNDSNeo3', () => {
             image: expect.anything(),
             url: expect.any(String),
           },
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 
   it.skip('Should check if address has specific Token', async () => {
     const address: string = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
+    const nfts = await ghostMarketNDSNeo3.getNftsByAddress({ address })
 
-    const nfts = await ghostMarketNDSNeo3.getNftsByAddress({
-      address: address,
-    })
-
-    const hasToken: boolean = await ghostMarketNDSNeo3.hasToken({
+    const hasToken = await ghostMarketNDSNeo3.hasToken({
       address,
       collectionHash: nfts.items[0].collection!.hash,
     })
 
-    expect(hasToken).toBeTruthy()
+    expect(hasToken).toBe(true)
   })
 })

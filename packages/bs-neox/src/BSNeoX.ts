@@ -13,7 +13,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { BlockscoutBDSNeoX } from './services/blockchain-data/BlockscoutBDSNeoX'
 import { WalletConnectServiceNeoX } from './services/wallet-connect/WalletConnectServiceNeoX'
-import { FlamingoForthewinEDSNeoX } from './services/exchange-data/FlamingoForthewinEDSNeoX'
+import { DefiLlamaCryptoCompareFlamingoForthewinEDSNeoX } from './services/exchange-data/DefiLlamaCryptoCompareFlamingoForthewinEDSNeoX'
 import { BlockscoutESNeoX } from './services/explorer/BlockscoutESNeoX'
 import { GhostMarketNDSNeoX } from './services/nft-data/GhostMarketNDSNeoX'
 import { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
@@ -28,20 +28,17 @@ import { BlockscoutFullTransactionsDataService } from './services/full-transacti
 import { BSNeoXHelper } from './helpers/BSNeoXHelper'
 
 export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements IBSNeoX {
+  readonly availableNetworks = BSNeoXConstants.ALL_NETWORKS
+  readonly defaultNetwork = BSNeoXConstants.MAINNET_NETWORK
+
+  nativeTokens = [BSNeoXConstants.NATIVE_ASSET]
+  feeToken = BSNeoXConstants.NATIVE_ASSET
+
   neo3NeoXBridgeService!: Neo3NeoXBridgeService
   walletConnectService!: WalletConnectServiceNeoX
 
-  readonly defaultNetwork: TBSNetwork<TBSNeoXNetworkId>
-  readonly availableNetworks: TBSNetwork<TBSNeoXNetworkId>[]
-
   constructor(network?: TBSNetwork<TBSNeoXNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeoXName>) {
     super('neox', undefined, getLedgerTransport)
-
-    this.nativeTokens = [BSNeoXConstants.NATIVE_ASSET]
-    this.feeToken = BSNeoXConstants.NATIVE_ASSET
-
-    this.availableNetworks = BSNeoXConstants.ALL_NETWORKS
-    this.defaultNetwork = BSNeoXConstants.MAINNET_NETWORK
 
     this.setNetwork(network || this.defaultNetwork)
   }
@@ -69,6 +66,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
 
     try {
       const estimatedGas = await signer.estimateGas(transactionParams)
+
       transactionParams.gasLimit = new BSBigUnitAmount(
         estimatedGas.toString(),
         BSEthereumConstants.DEFAULT_DECIMALS
@@ -76,6 +74,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     } catch {
       transactionParams.gasLimit = BSEthereumConstants.DEFAULT_GAS_LIMIT_BN.toString()
     }
+
     transactionParams.maxPriorityFeePerGas = gasPriceBn.toString()
     transactionParams.maxFeePerGas = gasPriceBn.toString()
 
@@ -91,6 +90,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
       if (firstTransactionError) throw firstTransactionError
 
       const fee = gasPriceBn.multipliedBy(transactionParams.gasLimit).toHuman().toFormatted()
+
       return { transactionHash: firstTransactionResponse!.hash, fee }
     }
 
@@ -110,7 +110,6 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     })
 
     const cachedTransaction = cachedTransactionResponse.data.result as THexString
-
     const consensusContract = new ethers.Contract(BSNeoXConstants.CONSENSUS_SCRIPT_HASH, CONSENSUS_ABI, signer)
     const consensusSize = await consensusContract.consensusSize()
     const consensusSizeBigInt = new BSBigNumber(consensusSize.toString()).toBigInt()
@@ -131,7 +130,6 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     )
 
     const { encryptedKey, encryptedMsg } = publicKey.encrypt(toBytes(cachedTransaction))
-
     const parsedTransaction = parseTransaction(cachedTransaction)
 
     const envelopedData = concat([
@@ -185,11 +183,11 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     this.network = network
     this.networkUrls = networkUrls
 
-    this.tokens = [BSNeoXConstants.NATIVE_ASSET, BSNeoXHelper.getNeoToken(this.network)]
+    this.tokens = [...this.nativeTokens, BSNeoXHelper.getNeoToken(this.network)]
 
     this.nftDataService = new GhostMarketNDSNeoX(this)
     this.explorerService = new BlockscoutESNeoX(this)
-    this.exchangeDataService = new FlamingoForthewinEDSNeoX(this)
+    this.exchangeDataService = new DefiLlamaCryptoCompareFlamingoForthewinEDSNeoX(this)
     this.neo3NeoXBridgeService = new Neo3NeoXBridgeService(this)
     this.blockchainDataService = new BlockscoutBDSNeoX(this)
     this.tokenService = new TokenServiceEthereum(this)

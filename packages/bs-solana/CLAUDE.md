@@ -24,7 +24,7 @@ src/
 ├── constants/              # BSSolanaConstants (networks, tokens)
 ├── services/
 │   ├── blockchain-data/        # RpcBDSSolana (RPC-based)
-│   ├── exchange/               # MoralisEDSSolana
+│   ├── exchange/               # DefiLlamaCryptoCompareMoralisEDSSolana
 │   ├── explorer/               # SolScanExplorerService
 │   ├── ledger/                 # Web3LedgerServiceSolana
 │   ├── nft-data/               # RpcNftDataServiceSolana
@@ -47,4 +47,4 @@ src/
 
 **Hardware wallets:** `@ledgerhq/hw-app-solana` via `Web3LedgerServiceSolana`.
 
-**Data provider:** Direct Solana RPC for blockchain data; Moralis for exchange rates.
+**Data provider:** Direct Solana RPC for blockchain data; exchange rates via `DefiLlamaCryptoCompareMoralisEDSSolana` (DefiLlama → CryptoCompare → Moralis).

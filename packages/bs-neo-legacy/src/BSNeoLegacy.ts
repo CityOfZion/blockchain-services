@@ -2,7 +2,6 @@ import {
   BSUtilsHelper,
   BSKeychainHelper,
   type TBSAccount,
-  type TBSToken,
   type TGetLedgerTransport,
   type ITokenService,
   type TBSNetwork,
@@ -16,7 +15,7 @@ import {
   BSBigUnitAmount,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
-import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
+import { DefiLlamaCryptoCompareEDSNeoLegacy } from './services/exchange-data/DefiLlamaCryptoCompareEDSNeoLegacy'
 import { DoraBDSNeoLegacy } from './services/blockchain-data/DoraBDSNeoLegacy'
 import { NeoTubeESNeoLegacy } from './services/explorer/NeoTubeESNeoLegacy'
 import { NeonJsLedgerServiceNeoLegacy } from './services/ledger/NeonJsLedgerServiceNeoLegacy'
@@ -29,19 +28,17 @@ import { DoraFullTransactionsDataServiceNeoLegacy } from './services/full-transa
 
 export class BSNeoLegacy implements IBSNeoLegacy {
   readonly name = 'neoLegacy'
-  readonly bipDerivationPath: string
+  readonly bipDerivationPath = BSNeoLegacyConstants.DEFAULT_BIP_DERIVATION_PATH
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
-
-  readonly tokens!: TBSToken[]
-  readonly nativeTokens!: TBSToken[]
-  readonly feeToken!: TBSToken
+  readonly nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
+  readonly tokens = this.nativeTokens
+  readonly feeToken = BSNeoLegacyConstants.GAS_ASSET
+  readonly defaultNetwork = BSNeoLegacyConstants.MAINNET_NETWORK
+  readonly availableNetworks = BSNeoLegacyConstants.ALL_NETWORKS
 
   network!: TBSNetwork<TBSNeoLegacyNetworkId>
   networkUrls!: string[]
-  _legacyNetwork!: string
-  readonly defaultNetwork: TBSNetwork<TBSNeoLegacyNetworkId>
-  readonly availableNetworks: TBSNetwork<TBSNeoLegacyNetworkId>[]
 
   blockchainDataService!: IBlockchainDataService<TBSNeoLegacyName>
   exchangeDataService!: IExchangeDataService
@@ -53,16 +50,8 @@ export class BSNeoLegacy implements IBSNeoLegacy {
 
   constructor(network?: TBSNetwork<TBSNeoLegacyNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSNeoLegacyName>) {
     this.ledgerService = new NeonJsLedgerServiceNeoLegacy(this, getLedgerTransport)
-    this.bipDerivationPath = BSNeoLegacyConstants.DEFAULT_BIP_DERIVATION_PATH
 
-    this.nativeTokens = BSNeoLegacyConstants.NATIVE_ASSETS
-    this.feeToken = BSNeoLegacyConstants.GAS_ASSET
-    this.tokens = this.nativeTokens
-
-    this.availableNetworks = BSNeoLegacyConstants.ALL_NETWORKS
-    this.defaultNetwork = BSNeoLegacyConstants.MAINNET_NETWORK
-
-    this.setNetwork(network ?? this.defaultNetwork)
+    this.setNetwork(network || this.defaultNetwork)
   }
 
   _hasTransactionMoreThanMaxSize(config: any) {
@@ -101,6 +90,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
       config.script = nep5ScriptBuilder.str
       config = await api.createInvocationTx(config)
     }
+
     config = await api.modifyTransactionForEmptyTransaction(config)
     config = await api.addAttributeIfExecutingAsSmartContract(config)
     config = await api.signTx(config)
@@ -111,7 +101,6 @@ export class BSNeoLegacy implements IBSNeoLegacy {
 
   async _sendTransfer(config: any, nep5ScriptBuilder?: any) {
     const { api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
     const sharedConfig = await api.fillBalance(config)
     let signedConfig = await this.#signTransfer({ ...sharedConfig }, nep5ScriptBuilder)
 
@@ -128,7 +117,6 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     account: TBSAccount<TBSNeoLegacyName>
   ): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }> {
     const { wallet, api } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
     const neonJsAccount = new wallet.Account(account.key)
 
     if (account.isHardware) {
@@ -162,13 +150,12 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     }
 
     this.network = network
-    this._legacyNetwork = BSNeoLegacyConstants.LEGACY_NETWORK_BY_NETWORK_ID[network.id]
     this.networkUrls = networkUrls
 
     this.tokenService = new TokenServiceNeoLegacy(this)
     this.explorerService = new NeoTubeESNeoLegacy(this)
     this.blockchainDataService = new DoraBDSNeoLegacy(this)
-    this.exchangeDataService = new CryptoCompareEDSNeoLegacy(this)
+    this.exchangeDataService = new DefiLlamaCryptoCompareEDSNeoLegacy(this)
     this.claimService = new ClaimServiceNeoLegacy()
     this.fullTransactionsDataService = new DoraFullTransactionsDataServiceNeoLegacy(this)
   }
@@ -198,25 +185,24 @@ export class BSNeoLegacy implements IBSNeoLegacy {
 
     clearTimeout(timeout)
 
-    return {
-      latency,
-      url,
-      height: response.data.result,
-    }
+    return { latency, url, height: response.data.result }
   }
 
   validateAddress(address: string): boolean {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     return wallet.isAddress(address)
   }
 
   validateEncrypted(key: string): boolean {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     return wallet.isNEP2(key)
   }
 
   validateKey(key: string): boolean {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
+
     return wallet.isWIF(key) || wallet.isPrivateKey(key)
   }
 
@@ -232,11 +218,12 @@ export class BSNeoLegacy implements IBSNeoLegacy {
 
   async generateAccountFromKey(key: string): Promise<TBSAccount<TBSNeoLegacyName>> {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
+
     if (!type) throw new Error('Invalid key')
 
     const { address } = new wallet.Account(key)
+
     return { address, key, type, blockchain: this.name }
   }
 
@@ -257,8 +244,8 @@ export class BSNeoLegacy implements IBSNeoLegacy {
 
   async decrypt(encryptedKey: string, password: string): Promise<TBSAccount<TBSNeoLegacyName>> {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
-
     const key = await wallet.decrypt(encryptedKey, password)
+
     return await this.generateAccountFromKey(key)
   }
 
@@ -284,6 +271,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
 
       if (nativeAsset) {
         nativeIntents.push(...api.makeIntent({ [nativeAsset.symbol]: Number(intent.amount) }, intent.receiverAddress))
+
         continue
       }
 

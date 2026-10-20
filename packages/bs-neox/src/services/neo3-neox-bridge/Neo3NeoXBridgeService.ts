@@ -33,12 +33,11 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
   static readonly BRIDGE_SCRIPT_HASH = '0x1212000000000000000000000000000000000004'
   static readonly BRIDGE_BASE_CONFIRMATION_URL = 'https://xexplorer.neo.org:8877/api/v1/transactions/deposits'
 
+  readonly #service: IBSNeoX
   readonly gasToken: TBridgeToken<TBSNeoXName>
   readonly neoToken: TBridgeToken<TBSNeoXName>
   readonly ndmemeToken: TBridgeToken<TBSNeoXName>
   readonly tokens: TBridgeToken<TBSNeoXName>[]
-
-  readonly #service: IBSNeoX
 
   constructor(service: IBSNeoX) {
     this.#service = service
@@ -48,13 +47,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
 
     this.gasToken = { ...BSNeoXConstants.NATIVE_ASSET, blockchain: service.name, multichainId: 'gas' }
     this.neoToken = { ...neoToken, blockchain: service.name, multichainId: 'neo' }
-
-    this.ndmemeToken = {
-      ...ndmemeToken,
-      blockchain: service.name,
-      multichainId: 'ndmeme',
-    }
-
+    this.ndmemeToken = { ...ndmemeToken, blockchain: service.name, multichainId: 'ndmeme' }
     this.tokens = [this.gasToken, this.neoToken, this.ndmemeToken]
   }
 
@@ -80,8 +73,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
     try {
       const provider = new JsonRpcProvider(this.#service.network.url)
       const bridgeContract = new ethers.Contract(Neo3NeoXBridgeService.BRIDGE_SCRIPT_HASH, BRIDGE_ABI, provider)
-
-      const isNativeToken = this.#service.tokenService.predicateByHash(token, BSNeoXConstants.NATIVE_ASSET)
+      const isNativeToken = this.#service.tokenService.isNativeToken(token.hash)
 
       const response = isNativeToken
         ? await bridgeContract.nativeBridge()
@@ -90,18 +82,16 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
       const bridgeFee = new BSBigUnitAmount(response.config.fee.toString(), BSNeoXConstants.NATIVE_ASSET.decimals)
         .toHuman()
         .toFormatted()
+
       const bridgeMinAmount = new BSBigUnitAmount(response.config.minAmount.toString(), token.decimals)
         .toHuman()
         .toFormatted()
+
       const bridgeMaxAmount = new BSBigUnitAmount(response.config.maxAmount.toString(), token.decimals)
         .toHuman()
         .toFormatted()
 
-      return {
-        bridgeFee,
-        bridgeMaxAmount,
-        bridgeMinAmount,
-      }
+      return { bridgeFee, bridgeMaxAmount, bridgeMinAmount }
     } catch (error) {
       throw new BSError('Failed to get bridge constants', 'BRIDGE_CONSTANTS_ERROR', error)
     }
@@ -109,13 +99,14 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
 
   async getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam<TBSNeoXName>): Promise<string> {
     try {
-      const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
+      const isNativeToken = this.#service.tokenService.isNativeToken(params.token.hash)
 
       if (isNativeToken) {
         throw new BSError('No allowance fee for native token', 'NO_ALLOWANCE_FEE')
       }
 
       const populatedApproveTransaction = await this.#buildApproveTransactionParam(params)
+
       if (!populatedApproveTransaction) {
         throw new BSError('Allowance is already sufficient', 'ALLOWANCE_ALREADY_SUFFICIENT')
       }
@@ -160,11 +151,10 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
     const to: THexString = `0x${wallet.getScriptHashFromAddress(params.receiverAddress)}`
     const bridgeFee = new BSBigHumanAmount(params.bridgeFee, BSNeoXConstants.NATIVE_ASSET.decimals).toUnit().toFixed()
-    const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
+    const isNativeToken = this.#service.tokenService.isNativeToken(params.token.hash)
     const provider = new JsonRpcProvider(this.#service.network.url)
     const { gasPrice } = await provider.getFeeData()
     const gasPriceBn = new BSBigUnitAmount(gasPrice?.toString() || '0', BSEthereumConstants.DEFAULT_DECIMALS)
-
     const transactionParams: TransactionRequest = { type: 2 }
 
     if (isNativeToken) {
@@ -207,13 +197,15 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
   async getNonce(params: TNeo3NeoXBridgeServiceGetNonceParams<TBSNeoXName>): Promise<string> {
     const [transactionLogsResponse, transactionLogsResponseError] = await BSUtilsHelper.tryCatch(async () => {
       const client = BlockscoutBDSNeoX.getClient(this.#service.network)
+
       return await client.get<TNeo3NeoXBridgeServiceTransactionLogApiResponse>(
         `/transactions/${params.transactionHash}/logs`
       )
     })
 
-    if (!transactionLogsResponse)
+    if (!transactionLogsResponse) {
       throw new BSError('Failed to get nonce from transaction log', 'FAILED_TO_GET_NONCE', transactionLogsResponseError)
+    }
 
     const [nonce, nonceError] = await BSUtilsHelper.tryCatch(async () => {
       const BridgeInterface = new Interface(BRIDGE_ABI)
@@ -244,8 +236,7 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
   ): Promise<string> {
     try {
       let url: string
-
-      const isNativeToken = this.#service.tokenService.predicateByHash(params.token, BSNeoXConstants.NATIVE_ASSET)
+      const isNativeToken = this.#service.tokenService.isNativeToken(params.token.hash)
 
       if (isNativeToken) {
         url = `${Neo3NeoXBridgeService.BRIDGE_BASE_CONFIRMATION_URL}/${params.nonce}`
@@ -254,12 +245,13 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
       }
 
       const response = await axios.get<TNeo3NeoXBridgeServiceGetTransactionByNonceApiReponse>(url)
+      const transactionHash = response.data?.txid
 
-      if (!response.data?.txid) {
+      if (!transactionHash) {
         throw new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND')
       }
 
-      return response.data.txid
+      return transactionHash
     } catch (error) {
       throw new BSError('Transaction ID not found in response', 'TXID_NOT_FOUND', error)
     }

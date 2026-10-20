@@ -3,7 +3,6 @@ import TypedEmitter from 'typed-emitter'
 import type { BSError } from './error'
 
 // Core
-
 export type TUntilIndexRecord<N extends string> = Partial<Record<N, Record<string, number>>>
 
 export type TBSAccount<N extends string> = {
@@ -34,7 +33,6 @@ export type TBSNetwork<T extends string = string> = {
 }
 
 // Blockchain Service
-
 export type TPingNetworkResponse = {
   latency: number
   url: string
@@ -71,7 +69,6 @@ export interface IBlockchainService<N extends string, A extends string = string>
 }
 
 // Transfer
-
 export type TTransferIntent = {
   receiverAddress: string
   amount: string
@@ -89,13 +86,11 @@ export interface IBSWithFee<N extends string> {
 }
 
 // Memo
-
 export interface IBSWithMemo {
   validateMemo(memo: string): boolean
 }
 
 // Encryption
-
 export interface IBSWithEncryption<N extends string> {
   decrypt(keyOrJson: string, password: string): Promise<TBSAccount<N>>
   encrypt(key: string, password: string): Promise<string>
@@ -103,20 +98,17 @@ export interface IBSWithEncryption<N extends string> {
 }
 
 // Name Service
-
 export interface IBSWithNameService {
   resolveNameServiceDomain(domainName: string): Promise<string>
   validateNameServiceDomainFormat(domainName: string): boolean
 }
 
 // Faucet
-
 export interface IBSWithFaucet<N extends string> {
   faucet(address: string): Promise<TTransaction<N>>
 }
 
 // Transaction
-
 export type TTransactionBaseEvent = {
   methodName?: string
   from?: string
@@ -200,7 +192,6 @@ export type TGetTransactionsByAddressResponse<N extends string, T extends TTrans
 }
 
 // Blockchain Data Service
-
 export type TContractParameter = {
   name: string
   type: string
@@ -234,7 +225,6 @@ export interface IBlockchainDataService<N extends string> {
 }
 
 // Full Transactions
-
 export type TGetFullTransactionsByAddressParams = {
   address: string
   dateFrom: string
@@ -261,7 +251,6 @@ export interface IBSWithFullTransactions<N extends string> {
 }
 
 // Claim
-
 export type TClaimServiceTransactionData = {
   isClaim: boolean
 }
@@ -280,26 +269,23 @@ export interface IBSWithClaim<N extends string> {
 }
 
 // Exchange
-
 export type TTokenPricesResponse = {
   usdPrice: number
   token: TBSToken
 }
 
 export type TTokenPricesHistoryResponse = {
+  token: TBSToken
   usdPrice: number
   timestamp: number
-  token: TBSToken
-}
-
-export type TGetTokenPriceHistoryParams = {
-  token: TBSToken
-  type: 'hour' | 'day'
-  limit: number
 }
 
 export type TGetTokenPricesParams = {
   tokens: TBSToken[]
+}
+
+export type TGetTokenPriceHistoryParams = {
+  token: TBSToken
 }
 
 export interface IExchangeDataService {
@@ -309,7 +295,6 @@ export interface IExchangeDataService {
 }
 
 // NFT
-
 export type TNftResponse = {
   hash: string
   explorerUri?: string
@@ -360,7 +345,6 @@ export interface IBSWithNft {
 }
 
 // Explorer
-
 export type TBuildNftUrlParams = {
   collectionHash?: string
   tokenHash: string
@@ -382,7 +366,6 @@ export interface IBSWithExplorer {
 }
 
 // Ledger
-
 export type TLedgerServiceEmitter = TypedEmitter<{
   getSignatureStart(): void | Promise<void>
   getSignatureEnd(): void | Promise<void>
@@ -403,7 +386,6 @@ export interface IBSWithLedger<N extends string> {
 }
 
 // Swap
-
 export type TSwapToken<N extends string> = {
   id: string
   blockchain?: N
@@ -419,6 +401,7 @@ export type TSwapToken<N extends string> = {
 }
 
 export type TSwapLoadableValue<T> = { loading: boolean; value: T | null }
+
 export type TSwapValidateValue<T> = TSwapLoadableValue<T> & { valid: boolean | null }
 
 export type TSwapMinMaxAmount = {
@@ -471,7 +454,6 @@ export interface ISwapOrchestrator<N extends string> {
 }
 
 // Bridge
-
 export type TBSBridgeName = 'neo3' | 'neox'
 
 export type TBridgeTokenMultichainId = 'neo' | 'gas' | 'ndmeme'
@@ -554,6 +536,7 @@ export interface INeo3NeoXBridgeService<N extends TBSBridgeName> {
   readonly neoToken: TBridgeToken<N>
   readonly ndmemeToken: TBridgeToken<N>
   readonly tokens: TBridgeToken<N>[]
+
   getApprovalFee(params: TNeo3NeoXBridgeServiceGetApprovalParam<N>): Promise<string>
   getBridgeConstants(token: TBridgeToken<N>): Promise<TNeo3NeoXBridgeServiceConstants>
   bridge(params: TNeo3NeoXBridgeServiceBridgeParam<N>): Promise<string>
@@ -568,7 +551,6 @@ export interface IBSWithNeo3NeoXBridge<N extends TBSBridgeName> {
 }
 
 // Token Service
-
 export type TTokenServicePredicateParams = {
   hash: string
   symbol?: string
@@ -595,7 +577,6 @@ export interface ITokenService {
 }
 
 // WalletConnect
-
 export type TWalletConnectServiceRequestMethodParams<N extends string, P = any> = {
   account: TBSAccount<N>
   params: P

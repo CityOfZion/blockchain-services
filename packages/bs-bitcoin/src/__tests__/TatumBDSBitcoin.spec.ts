@@ -124,7 +124,7 @@ describe('TatumBDSBitcoin', () => {
     )
   })
 
-  it('Should be able to get the balances from address, especially the native token from Moralis', async () => {
+  it('Should be able to get the balances from address (Moralis fallback for the native token)', async () => {
     vi.spyOn(BSBitcoinTatumHelper, 'getApi').mockReturnValue({
       get: vi.fn().mockRejectedValue(new Error()),
     } as unknown as AxiosInstance)

@@ -10,7 +10,6 @@ import {
   type ITokenService,
   type TBSAccount,
   type TBSNetwork,
-  type TBSToken,
   type TGetLedgerTransport,
   type TPingNetworkResponse,
   type TTransaction,
@@ -23,7 +22,7 @@ import * as stellarSDK from '@stellar/stellar-sdk'
 import axios from 'axios'
 import { TokenServiceStellar } from './services/token/TokenServiceStellar'
 import { HorizonBDSStellar } from './services/blockchain-data/HorizonBDSStellar'
-import { RpcEDSStellar } from './services/exchange/RpcEDSStellar'
+import { DefiLlamaCryptoCompareRpcEDSStellar } from './services/exchange/DefiLlamaCryptoCompareRpcEDSStellar'
 import { StellarChainESStellar } from './services/explorer/StellarChainESStellar'
 import { LedgerServiceStellar } from './services/ledger/LedgerServiceStellar'
 import { WalletConnectServiceStellar } from './services/wallet-connect/WalletConnectServiceStellar'
@@ -31,22 +30,21 @@ import { TrustlineServiceStellar } from './services/trustline/TrustlineServiceSt
 
 export class BSStellar implements IBSStellar {
   readonly name = 'stellar'
-
-  readonly bipDerivationPath: string
+  readonly bipDerivationPath = BSStellarConstants.DEFAULT_BIP_DERIVATION_PATH
   readonly isMultiTransferSupported = true
   readonly isCustomNetworkSupported = false
-  readonly amountToCreateAccount: string = '1'
+  readonly amountToCreateAccount = '1'
+  readonly nativeTokens = [BSStellarConstants.NATIVE_TOKEN]
+  readonly tokens = this.nativeTokens
+  readonly feeToken = BSStellarConstants.NATIVE_TOKEN
+  readonly defaultNetwork = BSStellarConstants.MAINNET_NETWORK
+  readonly availableNetworks = BSStellarConstants.ALL_NETWORKS
 
-  network!: TBSNetwork<TBSStellarNetworkId>
-  networkUrls!: string[]
-  readonly defaultNetwork: TBSNetwork<TBSStellarNetworkId>
-  readonly availableNetworks: TBSNetwork<TBSStellarNetworkId>[]
   _sorobanServer!: stellarSDK.rpc.Server
   _horizonServer!: stellarSDK.Horizon.Server
 
-  readonly feeToken: TBSToken
-  readonly tokens: TBSToken[]
-  readonly nativeTokens: TBSToken[]
+  network!: TBSNetwork<TBSStellarNetworkId>
+  networkUrls!: string[]
 
   exchangeDataService!: IExchangeDataService
   blockchainDataService!: IBlockchainDataService<TBSStellarName>
@@ -57,15 +55,6 @@ export class BSStellar implements IBSStellar {
   trustlineService!: TrustlineServiceStellar
 
   constructor(network?: TBSNetwork<TBSStellarNetworkId>, getLedgerTransport?: TGetLedgerTransport<TBSStellarName>) {
-    this.bipDerivationPath = BSStellarConstants.DEFAULT_BIP_DERIVATION_PATH
-
-    this.tokens = [BSStellarConstants.NATIVE_TOKEN]
-    this.nativeTokens = [BSStellarConstants.NATIVE_TOKEN]
-    this.feeToken = BSStellarConstants.NATIVE_TOKEN
-
-    this.availableNetworks = BSStellarConstants.ALL_NETWORKS
-    this.defaultNetwork = BSStellarConstants.MAINNET_NETWORK
-
     this.setNetwork(network || this.defaultNetwork)
 
     this.ledgerService = new LedgerServiceStellar(this, getLedgerTransport)
@@ -74,6 +63,7 @@ export class BSStellar implements IBSStellar {
   async _getFeeEstimate(length: number): Promise<BSBigUnitAmount> {
     const feeStats = await this._sorobanServer.getFeeStats()
     const feePerOperation = new BSBigUnitAmount(feeStats.sorobanInclusionFee.min, this.feeToken.decimals)
+
     return feePerOperation.multipliedBy(length)
   }
 
@@ -103,17 +93,19 @@ export class BSStellar implements IBSStellar {
       }
 
       const transport = await this.ledgerService.getLedgerTransport(senderAccount)
+
       return await this.ledgerService.signTransaction(transport, transaction, senderAccount)
     }
 
     const keypair = stellarSDK.Keypair.fromSecret(senderAccount.key)
+
     transaction.sign(keypair)
+
     return transaction
   }
 
   async #buildTransferTransaction({ intents, senderAccount, memo }: TTransferParams<TBSStellarName>) {
     const sourceAccount = await this._ensureAccountOnChain(senderAccount.address)
-
     const feeBn = await this._getFeeEstimate(intents.length)
 
     const transaction = new stellarSDK.TransactionBuilder(sourceAccount, {
@@ -140,9 +132,9 @@ export class BSStellar implements IBSStellar {
         accountExists = false
       }
 
-      const isNative = this.tokenService.predicateByHash(intent.token.hash, BSStellarConstants.NATIVE_TOKEN.hash)
+      const isNativeToken = this.tokenService.isNativeToken(intent.token.hash)
 
-      if (!isNative) {
+      if (!isNativeToken) {
         if (!accountExists) {
           throw new BSError(
             `Receiver account ${intent.receiverAddress} does not exist on the Stellar network. Please fund it with at least ${this.amountToCreateAccount} XLM before sending tokens.`,
@@ -214,12 +206,13 @@ export class BSStellar implements IBSStellar {
 
     this.network = network
     this.networkUrls = networkUrls
+
     this._sorobanServer = new stellarSDK.rpc.Server(this.network.url)
     this._horizonServer = new stellarSDK.Horizon.Server(BSStellarConstants.HORIZON_URL_BY_NETWORK_ID[network.id])
 
     this.tokenService = new TokenServiceStellar(this)
     this.blockchainDataService = new HorizonBDSStellar(this)
-    this.exchangeDataService = new RpcEDSStellar(this)
+    this.exchangeDataService = new DefiLlamaCryptoCompareRpcEDSStellar(this)
     this.explorerService = new StellarChainESStellar(this)
     this.walletConnectService = new WalletConnectServiceStellar(this)
     this.trustlineService = new TrustlineServiceStellar(this)
@@ -228,6 +221,7 @@ export class BSStellar implements IBSStellar {
   // This method is done manually because we need to ensure that the request is aborted after timeout
   async pingNetwork(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
+
     const timeout = setTimeout(() => {
       abortController.abort()
     }, 5000)
@@ -282,6 +276,7 @@ export class BSStellar implements IBSStellar {
 
   async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<TBSStellarName>> {
     const isPublicKeyValid = this.validateAddress(publicKey)
+
     if (!isPublicKeyValid) {
       throw new BSError('Invalid public key', 'INVALID_PUBLIC_KEY')
     }
@@ -308,6 +303,7 @@ export class BSStellar implements IBSStellar {
 
   async calculateTransferFee(params: TTransferParams<TBSStellarName>): Promise<string> {
     const feeBn = await this._getFeeEstimate(params.intents.length)
+
     return feeBn.toHuman().toFormatted()
   }
 
@@ -366,7 +362,7 @@ export class BSStellar implements IBSStellar {
       params: { addr: address },
     })
 
-    if (response.status !== 200 || response.data.successful !== true) {
+    if (response.status !== 200 || !response.data.successful) {
       throw new BSError(`Failed to fund account: ${response.statusText}`, 'FUNDING_FAILED')
     }
 
@@ -376,7 +372,6 @@ export class BSStellar implements IBSStellar {
     )
 
     const operation = transaction.operations[0] as stellarSDK.Operation.Payment
-
     const from = operation.source
     const to = operation.destination
     const txId = response.data.hash
@@ -385,7 +380,7 @@ export class BSStellar implements IBSStellar {
       blockchain: this.name,
       isPending: true,
       relatedAddress: address,
-      txId: txId,
+      txId,
       txIdUrl: this.explorerService.buildTransactionUrl(txId),
       date: new Date().toJSON(),
       view: 'default',

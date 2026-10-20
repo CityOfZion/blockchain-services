@@ -43,16 +43,15 @@ describe('RpcNDSSolana.spec', () => {
     })
 
     expect(nfts.items.length).toBeGreaterThan(0)
-
-    nfts.items.forEach(nft => {
-      expect(nft).toEqual(
+    expect(nfts.items).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           symbol: expect.any(String),
           name: expect.any(String),
           hash: expect.any(String),
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 
   // TODO: needs paid plan to work

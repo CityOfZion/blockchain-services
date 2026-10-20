@@ -8,21 +8,13 @@ export * from './helpers/BSNeo3NeonDappKitSingletonHelper'
 
 export * from './services/blockchain-data/DoraBDSNeo3'
 export * from './services/blockchain-data/RpcBDSNeo3'
-
-export * from './services/exchange-data/FlamingoForthewinEDSNeo3'
-
+export * from './services/exchange-data/DefiLlamaCryptoCompareFlamingoForthewinEDSNeo3'
 export * from './services/explorer/DoraESNeo3'
-
 export * from './services/ledger/NeonDappKitLedgerServiceNeo3'
-
 export * from './services/nft-data/GhostMarketNDSNeo3'
-
 export * from './services/vote/VoteServiceNeo3'
-
 export * from './services/neo3-neox-bridge/Neo3NeoXBridgeService'
-
 export * from './services/token/TokenServiceNeo3'
-
 export * from './services/wallet-connect/WalletConnectServiceNeo3'
 
 export * from './types'
