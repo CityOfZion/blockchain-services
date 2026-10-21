@@ -1,8 +1,15 @@
-import type { IBSBitcoin } from '../types'
+import type { IBSBitcoin, TBSBitcoinName } from '../types'
 import { BSBitcoin } from '../BSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
-import { BSBigHumanAmount, BSError, BSKeychainHelper, TTransferIntent } from '@cityofzion/blockchain-service'
+import {
+  BSBigHumanAmount,
+  BSError,
+  BSKeychainHelper,
+  type TTransactionUtxo,
+  TTransferIntent,
+} from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
+import * as bitcoinjs from 'bitcoinjs-lib'
 
 const invalidAddress = 'INVALID_ADDRESS'
 const invalidKey = 'INVALID_KEY'
@@ -144,6 +151,13 @@ describe('BSBitcoin', () => {
     expect(service.validateNameServiceDomainFormat('domain.btc')).toBe(true)
 
     expect(service.validateNameServiceDomainFormat('domain.eth')).toBe(false)
+  })
+
+  it('Should be able to validate a memo', () => {
+    expect(service.validateMemo('=:ETH.ETH:0x0000000000000000000000000000000000000000')).toBe(true)
+    expect(service.validateMemo('a'.repeat(BSBitcoinConstants.MEMO_MAX_BYTES))).toBe(true)
+    expect(service.validateMemo('a'.repeat(BSBitcoinConstants.MEMO_MAX_BYTES + 1))).toBe(false)
+    expect(service.validateMemo('é'.repeat(41))).toBe(false)
   })
 
   it('Should be able to generate an account from mnemonic', async () => {
@@ -410,6 +424,33 @@ describe('BSBitcoin', () => {
     expect(fee).toMatch(/^0\.0\d*[1-9]$/)
   })
 
+  it('Should be able to calculate fee with memo using Testnet', async () => {
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
+
+    const senderAccount = await service.generateAccountFromKey(testnetKey)
+    const intents = [{ amount: '0.0004', receiverAddress: testnetAddress, token: BSBitcoinConstants.NATIVE_TOKEN }]
+
+    const [fee, feeWithMemo] = await Promise.all([
+      service.calculateTransferFee({ senderAccount, intents }),
+      service.calculateTransferFee({ senderAccount, intents, memo: 'a'.repeat(BSBitcoinConstants.MEMO_MAX_BYTES) }),
+    ])
+
+    expect(feeWithMemo).toMatch(/^0\.0\d*[1-9]$/)
+    expect(new BSBigHumanAmount(feeWithMemo, 8).isGreaterThan(fee)).toBe(true)
+  })
+
+  it("Shouldn't be able to calculate fee with an invalid memo", async () => {
+    const senderAccount = await service.generateAccountFromKey(mainnetKey)
+
+    await expect(
+      service.calculateTransferFee({
+        senderAccount,
+        intents: [{ amount: '0.0004', receiverAddress: mainnetAddress, token: BSBitcoinConstants.NATIVE_TOKEN }],
+        memo: 'a'.repeat(BSBitcoinConstants.MEMO_MAX_BYTES + 1),
+      })
+    ).rejects.toMatchObject({ code: 'INVALID_MEMO' })
+  })
+
   it.skip('Should be able to calculate fee with tip using Testnet', async () => {
     service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
 
@@ -637,6 +678,28 @@ describe('BSBitcoin', () => {
         ],
       },
     ])
+  })
+
+  it.skip('Should be able to transfer with memo using Testnet', async () => {
+    service = new BSBitcoin(BSBitcoinConstants.TESTNET_NETWORK)
+
+    const senderAccount = await service.generateAccountFromKey(testnetKey)
+    const memo = '=:ETH.ETH:0x0000000000000000000000000000000000000000'
+
+    const [transaction] = await service.transfer({
+      senderAccount,
+      intents: [{ amount: '0.0002', receiverAddress: testnetAddress, token: BSBitcoinConstants.NATIVE_TOKEN }],
+      memo,
+    })
+
+    expect(transaction.memo).toBe(memo)
+
+    const memoOutput = bitcoinjs.Transaction.fromHex((transaction as TTransactionUtxo<TBSBitcoinName>).hex).outs.find(
+      output => output.script[0] === bitcoinjs.opcodes.OP_RETURN
+    )
+
+    expect(memoOutput?.value).toBe(0n)
+    expect(Buffer.from(bitcoinjs.payments.embed({ output: memoOutput?.script }).data![0]).toString()).toBe(memo)
   })
 
   it.skip('Should be able to transfer with Ledger using Testnet', async () => {

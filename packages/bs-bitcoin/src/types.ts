@@ -8,6 +8,7 @@ import type {
   TBSNetworkId,
   IBSWithEncryption,
   IBSWithWalletConnect,
+  IBSWithMemo,
   TTransferParams,
   TBSAccount,
 } from '@cityofzion/blockchain-service'
@@ -31,7 +32,8 @@ export interface IBSBitcoin
     IBSWithEncryption<TBSBitcoinName>,
     IBSWithNft,
     IBSWithLedger<TBSBitcoinName>,
-    IBSWithWalletConnect<TBSBitcoinName> {
+    IBSWithWalletConnect<TBSBitcoinName>,
+    IBSWithMemo {
   blockchainDataService: TatumBDSBitcoin
   ledgerService: LedgerServiceBitcoin
   _bitcoinjsNetwork: bitcoinjs.Network

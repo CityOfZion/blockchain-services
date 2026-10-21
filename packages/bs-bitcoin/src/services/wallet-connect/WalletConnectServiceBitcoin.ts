@@ -247,6 +247,7 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<
             token: BSBitcoinConstants.NATIVE_TOKEN,
           },
         ],
+        memo: transferParams.memo,
       })
 
       return { txid: txId }
@@ -266,12 +267,9 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<
       throw new BSError('Account should be equal change address', 'ACCOUNT_SHOULD_BE_CHANGE_ADDRESS')
     }
 
-    if (memo) {
-      throw new BSError('Memo not supported', 'MEMO_NOT_SUPPORTED')
-    }
-
     return {
       recipientAddress,
+      memo,
       amount: new BSBigUnitAmount(amount, BSBitcoinConstants.NATIVE_TOKEN.decimals).toHuman().toFormatted(),
     }
   }
@@ -296,6 +294,7 @@ export class WalletConnectServiceBitcoin implements IWalletConnectService<
           token: BSBitcoinConstants.NATIVE_TOKEN,
         },
       ],
+      memo: transferParams.memo,
     })
   }
 }

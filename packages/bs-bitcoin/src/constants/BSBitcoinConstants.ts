@@ -46,5 +46,8 @@ export class BSBitcoinConstants {
   static readonly P2PKH_OUTPUT_SIZE = 34
   static readonly P2SH_OUTPUT_SIZE = 32
 
+  // Memo is stored in an OP_RETURN output, standardness policy relays up to 80 bytes of data
+  static readonly MEMO_MAX_BYTES = 80
+
   static readonly AMOUNT_DUST_LIMIT_BN = new BSBigUnitAmount('546', this.NATIVE_TOKEN.decimals).toHuman()
 }

@@ -230,3 +230,19 @@ export type TWalletConnectServiceEthereumMethod =
   | 'wallet_requestPermissions'
   | 'wallet_addEthereumChain'
   | (string & {})
+
+export type TTransactionPayload = {
+  to: string
+  data: string
+  value?: string
+  gasLimit?: string
+  gasPrice?: string
+  maxFeePerGas?: string
+  maxPriorityFeePerGas?: string
+  chainId?: string
+}
+
+export type TSendTransactionPayloadParams<N extends string> = {
+  senderAccount: TBSAccount<N>
+  payload: TTransactionPayload
+}

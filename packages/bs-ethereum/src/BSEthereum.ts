@@ -1,40 +1,41 @@
 import {
-  BSKeychainHelper,
-  BSUtilsHelper,
-  type TBSAccount,
-  type TTransferIntent,
-  type TBSToken,
-  type TTransferParams,
-  type TGetLedgerTransport,
-  type ITokenService,
-  type TBSNetwork,
-  type IBlockchainDataService,
-  type IExchangeDataService,
-  type INftDataService,
-  type IExplorerService,
-  type TPingNetworkResponse,
-  type IFullTransactionsDataService,
-  type TTransactionDefault,
-  type TBSNetworkId,
-  BSBigUnitAmount,
   BSBigHumanAmount,
   BSBigNumber,
+  BSBigUnitAmount,
+  BSError,
+  BSKeychainHelper,
+  BSUtilsHelper,
+  type IBlockchainDataService,
+  type IExchangeDataService,
+  type IExplorerService,
+  type IFullTransactionsDataService,
+  type INftDataService,
+  type ITokenService,
+  type TBSAccount,
+  type TBSNetwork,
+  type TBSNetworkId,
+  type TBSToken,
+  type TGetLedgerTransport,
+  type TPingNetworkResponse,
+  type TTransactionDefault,
+  type TTransferIntent,
+  type TTransferParams,
 } from '@cityofzion/blockchain-service'
-import { ethers, computeAddress, isAddress, type TransactionRequest, JsonRpcProvider, type Signer } from 'ethers'
-import * as ethersJsonWallets from '@ethersproject/json-wallets'
 import * as ethersBytes from '@ethersproject/bytes'
+import * as ethersJsonWallets from '@ethersproject/json-wallets'
+import axios from 'axios'
+import { computeAddress, ethers, isAddress, JsonRpcProvider, type Signer, type TransactionRequest } from 'ethers'
 import { BSEthereumConstants } from './constants/BSEthereumConstants'
-import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServiceEthereum'
 import { BSEthereumHelper } from './helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from './services/blockchain-data/MoralisBDSEthereum'
 import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
-import { MoralisNDSEthereum } from './services/nft-data/MoralisNDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
-import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
-import type { IBSEthereum, TBSEthereumName, TBSEthereumNetworkId } from './types'
-import { WalletConnectServiceEthereum } from './services/wallet-connect/WalletConnectServiceEthereum'
-import axios from 'axios'
 import { MoralisFullTransactionsDataServiceEthereum } from './services/full-transactions-data/MoralisFullTransactionsDataServiceEthereum'
+import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServiceEthereum'
+import { MoralisNDSEthereum } from './services/nft-data/MoralisNDSEthereum'
+import { TokenServiceEthereum } from './services/token/TokenServiceEthereum'
+import { WalletConnectServiceEthereum } from './services/wallet-connect/WalletConnectServiceEthereum'
+import type { IBSEthereum, TBSEthereumName, TBSEthereumNetworkId, TSendTransactionPayloadParams } from './types'
 
 export class BSEthereum<
   N extends string = TBSEthereumName,
@@ -263,7 +264,10 @@ export class BSEthereum<
     return wallet.encrypt(password)
   }
 
-  async transfer({ senderAccount, intents }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+  async transfer({ senderAccount, intents, memo }: TTransferParams<N>): Promise<TTransactionDefault<N>[]> {
+    // This blockchain has no memo support, sending without it could cause loss of funds when the receiver requires it
+    if (memo) throw new BSError(`${this.name} does not support memo`, 'MEMO_NOT_SUPPORTED')
+
     const signer = await this._getSigner(senderAccount)
 
     const { address } = senderAccount
@@ -350,6 +354,109 @@ export class BSEthereum<
     }
 
     return feeBn.toHuman().toFormatted()
+  }
+
+  async sendTransactionPayload({
+    senderAccount,
+    payload,
+  }: TSendTransactionPayloadParams<N>): Promise<TTransactionDefault<N>> {
+    const chainId = parseInt(this.network.id)
+
+    if (payload.chainId !== undefined && Number(payload.chainId) !== chainId) {
+      throw new BSError(
+        `Transaction payload chain ID ${payload.chainId} does not match the current network chain ID ${chainId}`,
+        'CHAIN_ID_MISMATCH'
+      )
+    }
+
+    const signer = await this._getSigner(senderAccount)
+
+    const transactionParams: TransactionRequest = {
+      chainId,
+      to: payload.to,
+      data: payload.data,
+      value: payload.value,
+    }
+
+    // The payload fees are calculated when the order is built and may be stale by the time it is sent, so the fresh
+    // network fees are used as a floor to avoid the transaction getting stuck and dropped from the mempool
+    const provider = new JsonRpcProvider(this.network.url)
+    const feeData = await provider.getFeeData()
+
+    let gasPrice: bigint
+
+    if (feeData.maxFeePerGas !== null) {
+      const maxFeePerGas = BSEthereumHelper.getMaxBigInt(feeData.maxFeePerGas, payload.maxFeePerGas, payload.gasPrice)
+      const maxPriorityFeePerGas = BSEthereumHelper.getMaxBigInt(
+        feeData.maxPriorityFeePerGas,
+        payload.maxPriorityFeePerGas
+      )
+
+      transactionParams.type = 2
+      transactionParams.maxFeePerGas = maxFeePerGas.toString()
+      transactionParams.maxPriorityFeePerGas = (
+        maxPriorityFeePerGas > maxFeePerGas ? maxFeePerGas : maxPriorityFeePerGas
+      ).toString()
+      gasPrice = maxFeePerGas
+    } else {
+      gasPrice = BSEthereumHelper.getMaxBigInt(feeData.gasPrice, payload.gasPrice, payload.maxFeePerGas)
+
+      transactionParams.type = 0
+      transactionParams.gasPrice = gasPrice.toString()
+    }
+
+    const gasPriceBn = new BSBigUnitAmount(gasPrice.toString(), BSEthereumConstants.DEFAULT_DECIMALS)
+
+    let gasLimit: bigint
+
+    try {
+      const estimatedGas = await signer.estimateGas(transactionParams)
+      gasLimit = BSEthereumHelper.getMaxBigInt(estimatedGas, payload.gasLimit)
+    } catch (error) {
+      // The default gas limit only covers a plain transfer, so a contract call sent with it would always fail with
+      // "intrinsic gas too low". A failed estimation usually means the call reverts (e.g. missing ERC20 allowance)
+      if (!payload.gasLimit) {
+        throw new BSError(
+          'Could not estimate the gas of the transaction payload, the transaction would probably fail',
+          'GAS_ESTIMATION_FAILED',
+          error
+        )
+      }
+
+      gasLimit = BigInt(payload.gasLimit)
+    }
+
+    const gasLimitBn = new BSBigUnitAmount(gasLimit.toString(), BSEthereumConstants.DEFAULT_DECIMALS)
+
+    transactionParams.gasLimit = gasLimitBn.toString()
+
+    const transaction = await signer.sendTransaction(transactionParams)
+    const txId = transaction.hash
+
+    return {
+      blockchain: this.name,
+      isPending: true,
+      relatedAddress: senderAccount.address,
+      txId,
+      txIdUrl: this.explorerService.buildTransactionUrl(txId),
+      date: new Date().toJSON(),
+      networkFeeAmount: gasPriceBn.multipliedBy(gasLimitBn).toHuman().toFormatted(),
+      view: 'default',
+      events: [],
+    }
+  }
+
+  async waitForTransactionConfirmation(txId: string): Promise<void> {
+    const provider = new JsonRpcProvider(this.network.url)
+    const receipt = await provider.waitForTransaction(
+      txId,
+      1,
+      this.blockchainDataService.maxTimeToConfirmTransactionInMs
+    )
+
+    if (!receipt || receipt.status !== 1) {
+      throw new BSError(`Transaction ${txId} failed`, 'TRANSACTION_FAILED')
+    }
   }
 
   async resolveNameServiceDomain(domainName: string): Promise<string> {
