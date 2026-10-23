@@ -215,7 +215,7 @@ export class BSEthereum<
 
   async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<N>> {
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
-    const ethersMnemonic = ethers.Mnemonic.fromPhrase(Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic)
+    const ethersMnemonic = ethers.Mnemonic.fromPhrase(BSKeychainHelper.normalizeMnemonic(mnemonic))
     const hd = ethers.HDNodeWallet.fromMnemonic(ethersMnemonic, bipPath)
 
     return {

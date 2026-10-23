@@ -74,3 +74,5 @@ export type TBSStringHelperRemoveSpecialCharacterOptions = {
   allowDots?: boolean
   trimText?: boolean
 }
+
+export type TMnemonic = string | string[]
