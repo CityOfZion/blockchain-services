@@ -296,7 +296,11 @@ export class BSNeo3 implements IBSNeo3 {
   }
 
   async transfer(params: TTransferParams<TBSNeo3Name>): Promise<TTransactionDefault<TBSNeo3Name>[]> {
-    const { senderAccount } = params
+    const { senderAccount, memo } = params
+
+    // This blockchain has no memo support, sending without it could cause loss of funds when the receiver requires it
+    if (memo) throw new BSError(`${this.name} does not support memo`, 'MEMO_NOT_SUPPORTED')
+
     const { neonJsAccount, signingCallback } = await this._generateSigningCallback(senderAccount)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 

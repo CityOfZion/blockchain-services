@@ -383,6 +383,11 @@ export interface IBSWithExplorer {
 
 // Ledger
 
+export interface IBSWithLedger<N extends string> {
+  ledgerService: ILedgerService<N>
+  generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>>
+}
+
 export type TLedgerServiceEmitter = TypedEmitter<{
   getSignatureStart(): void | Promise<void>
   getSignatureEnd(): void | Promise<void>
@@ -397,80 +402,11 @@ export interface ILedgerService<N extends string> {
   getAccounts(transport: Transport, getUntilIndex?: TUntilIndexRecord<N>): Promise<TBSAccount<N>[]>
 }
 
-export interface IBSWithLedger<N extends string> {
-  ledgerService: ILedgerService<N>
-  generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<N>>
-}
-
-// Swap
-
-export type TSwapToken<N extends string> = {
-  id: string
-  blockchain?: N
-  imageUrl?: string
-  symbol: string
-  name: string
-  hash?: string
-  decimals?: number
-  addressTemplateUrl?: string
-  txTemplateUrl?: string
-  network?: string
-  hasExtraId: boolean
-}
-
-export type TSwapLoadableValue<T> = { loading: boolean; value: T | null }
-export type TSwapValidateValue<T> = TSwapLoadableValue<T> & { valid: boolean | null }
-
-export type TSwapMinMaxAmount = {
-  min: string
-  max: string | null
-}
-
-export type TSwapOrchestratorEvents<N extends string> = {
-  accountToUse: (account: TSwapValidateValue<TBSAccount<N>>) => void | Promise<void>
-  amountToUse: (amount: TSwapLoadableValue<string>) => void | Promise<void>
-  amountToUseMinMax: (minMax: TSwapLoadableValue<TSwapMinMaxAmount>) => void | Promise<void>
-  tokenToUse: (token: TSwapLoadableValue<TSwapToken<N>>) => void | Promise<void>
-  availableTokensToUse: (tokens: TSwapLoadableValue<TSwapToken<N>[]>) => void | Promise<void>
-  addressToReceive: (account: TSwapValidateValue<string>) => void | Promise<void>
-  extraIdToReceive: (extraIdToReceive: TSwapValidateValue<string>) => void
-  amountToReceive: (amount: TSwapLoadableValue<string>) => void | Promise<void>
-  tokenToReceive: (token: TSwapLoadableValue<TSwapToken<N>>) => void | Promise<void>
-  availableTokensToReceive: (tokens: TSwapLoadableValue<TSwapToken<N>[]>) => void | Promise<void>
-  error: (error: string) => void | Promise<void>
-}
-
-export type TSwapResponse<N extends string> = {
-  id: string
-  transaction?: TTransaction<N>
-  log?: string
-}
-
-export type TSwapServiceStatusResponse = {
-  status: 'finished' | 'confirming' | 'exchanging' | 'failed' | 'refunded'
-  txFrom?: string
-  txTo?: string
-  log?: string
-}
-
-export interface ISwapService {
-  getStatus(id: string): Promise<TSwapServiceStatusResponse>
-}
-
-export interface ISwapOrchestrator<N extends string> {
-  eventEmitter: TypedEmitter<TSwapOrchestratorEvents<N>>
-
-  setTokenToUse(token: TSwapToken<N> | null): Promise<void>
-  setAccountToUse(account: TBSAccount<N> | null): Promise<void>
-  setAmountToUse(amount: string | null): Promise<void>
-  setTokenToReceive(token: TSwapToken<N> | null): Promise<void>
-  setAddressToReceive(address: string | null): Promise<void>
-  setExtraIdToReceive(extraId: string | null): Promise<void>
-  swap(): Promise<TSwapResponse<N>>
-  calculateFee(): Promise<string>
-}
-
 // Bridge
+
+export interface IBSWithNeo3NeoXBridge<N extends TBSBridgeName> {
+  neo3NeoXBridgeService: INeo3NeoXBridgeService<N>
+}
 
 export type TBSBridgeName = 'neo3' | 'neox'
 
@@ -561,10 +497,6 @@ export interface INeo3NeoXBridgeService<N extends TBSBridgeName> {
   getTransactionHashByNonce(params: TNeo3NeoXBridgeServiceGetTransactionHashByNonceParams<N>): Promise<string>
   getTokenByMultichainId(multichainId: string): TBridgeToken<N> | undefined
   getTransactionData(transaction: TTransactionBase): TNeo3NeoXBridgeTransactionData<N> | undefined
-}
-
-export interface IBSWithNeo3NeoXBridge<N extends TBSBridgeName> {
-  neo3NeoXBridgeService: INeo3NeoXBridgeService<N>
 }
 
 // Token Service

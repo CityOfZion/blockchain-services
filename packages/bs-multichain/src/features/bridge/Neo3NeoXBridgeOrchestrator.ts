@@ -10,7 +10,6 @@ import {
   type TBridgeToken,
   type TBridgeValidateValue,
   type TBridgeValue,
-  type TSwapOrchestratorEvents,
   type INeo3NeoXBridgeService,
   type TBSBridgeName,
   BSBigHumanAmount,
@@ -48,7 +47,7 @@ export class Neo3NeoXBridgeOrchestrator implements IBridgeOrchestrator<TBSBridge
   #internalBridgeFee: TBridgeValue<string> = { value: null, loading: false, error: null }
 
   constructor(params: TNeo3NeoXBridgeOrchestratorInitParams) {
-    this.eventEmitter = new EventEmitter() as TypedEmitter<TSwapOrchestratorEvents<TBSBridgeName>>
+    this.eventEmitter = new EventEmitter() as TypedEmitter<TBridgeOrchestratorEvents<TBSBridgeName>>
 
     const isInitialNeoX = params.initialFromServiceName === params.neoXService.name
 

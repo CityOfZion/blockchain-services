@@ -656,7 +656,7 @@ describe('WalletConnectServiceBitcoin', () => {
     })
   })
 
-  it("Shouldn't be able to calculate request fee with memo", async () => {
+  it("Shouldn't be able to calculate request fee with an invalid memo", async () => {
     await expect(
       walletConnectServiceBitcoin.calculateRequestFee({
         account,
@@ -665,12 +665,12 @@ describe('WalletConnectServiceBitcoin', () => {
           account: account.address,
           recipientAddress: accountFromMnemonic.address,
           amount: '10000', // No decimals, the amount is 0.0001
-          memo: 'test',
+          memo: 'a'.repeat(BSBitcoinConstants.MEMO_MAX_BYTES + 1),
         },
       })
     ).rejects.toSatisfy((error: Error) => {
       expect(error).toBeInstanceOf(BSError)
-      expect((error as BSError).code).toBe('MEMO_NOT_SUPPORTED')
+      expect((error as BSError).code).toBe('INVALID_MEMO')
 
       return true
     })
@@ -751,7 +751,7 @@ describe('WalletConnectServiceBitcoin', () => {
     })
   })
 
-  it("Shouldn't be able to send transfer with memo", async () => {
+  it("Shouldn't be able to send transfer with an invalid memo", async () => {
     await expect(
       walletConnectServiceBitcoin.handlers.sendTransfer.process({
         account,
@@ -760,12 +760,12 @@ describe('WalletConnectServiceBitcoin', () => {
           account: account.address,
           recipientAddress: accountFromMnemonic.address,
           amount: '10000', // No decimals, the amount is 0.0001
-          memo: 'test',
+          memo: 'a'.repeat(BSBitcoinConstants.MEMO_MAX_BYTES + 1),
         },
       })
     ).rejects.toSatisfy((error: Error) => {
       expect(error).toBeInstanceOf(BSError)
-      expect((error as BSError).code).toBe('MEMO_NOT_SUPPORTED')
+      expect((error as BSError).code).toBe('INVALID_MEMO')
 
       return true
     })

@@ -209,22 +209,40 @@ export class BSBitcoin implements IBSBitcoin {
     throw new BSError('Invalid address', 'INVALID_ADDRESS')
   }
 
-  #getEstimatedSize(address: string, intents: TTransferIntent[], inputsQuantity: number) {
+  #getMemoOutputSize(memo: string) {
+    const dataSize = new TextEncoder().encode(memo).length
+
+    // OP_RETURN + push opcode (OP_PUSHDATA1 + length byte when data is bigger than 75 bytes)
+    const scriptSize = 1 + (dataSize > 75 ? 2 : 1) + dataSize
+
+    // Value (8 bytes) + script length (1 byte) + script
+    return 8 + 1 + scriptSize
+  }
+
+  #getEstimatedSize(address: string, intents: TTransferIntent[], inputsQuantity: number, memo?: string) {
     const inputSize = this.#getInputSize(address)
     const inputsSizeBn = new BSBigNumber(inputSize).multipliedBy(inputsQuantity)
 
     // Payments and change
-    const outputsSizeBn = intents.reduce(
+    let outputsSizeBn = intents.reduce(
       (accumulator, intent) => accumulator.plus(this.#getOutputSize(intent.receiverAddress)),
       new BSBigNumber(this.#getOutputSize(address))
     )
 
+    if (memo) {
+      outputsSizeBn = outputsSizeBn.plus(this.#getMemoOutputSize(memo))
+    }
+
     return inputsSizeBn.plus(outputsSizeBn).plus(BSBitcoinConstants.OVERHEAD_SIZE)
   }
 
-  async #getTransferData({ senderAccount, intents, shouldValidate = true }: TGetTransferDataParams) {
+  async #getTransferData({ senderAccount, intents, memo, shouldValidate = true }: TGetTransferDataParams) {
     if (intents.some(({ token }) => !this.tokenService.predicate(token, BSBitcoinConstants.NATIVE_TOKEN))) {
       throw new BSError("BRC-20 tokens aren't supported yet", 'BRC20_NOT_SUPPORTED')
+    }
+
+    if (memo && !this.validateMemo(memo)) {
+      throw new BSError(`Memo must be at most ${BSBitcoinConstants.MEMO_MAX_BYTES} bytes`, 'INVALID_MEMO')
     }
 
     const { address } = senderAccount
@@ -255,7 +273,7 @@ export class BSBitcoin implements IBSBitcoin {
 
       utxosAmountBn = utxosAmountBn.plus(utxo.value)
 
-      const estimatedSizeBn = this.#getEstimatedSize(address, intents, selectedUtxos.length)
+      const estimatedSizeBn = this.#getEstimatedSize(address, intents, selectedUtxos.length, memo)
 
       feeBn = new BSBigUnitAmount(
         estimatedSizeBn.multipliedBy(feeResponse.data.medium).integerValue(BSBigNumber.ROUND_CEIL),
@@ -403,6 +421,10 @@ export class BSBitcoin implements IBSBitcoin {
     }
   }
 
+  validateMemo(memo: string): boolean {
+    return new TextEncoder().encode(memo).length <= BSBitcoinConstants.MEMO_MAX_BYTES
+  }
+
   validateNameServiceDomainFormat(domainName: string): boolean {
     return domainName.endsWith('.bitcoin') || domainName.endsWith('.btc')
   }
@@ -513,7 +535,7 @@ export class BSBitcoin implements IBSBitcoin {
 
   async transfer(params: TTransferParams<TBSBitcoinName>): Promise<TTransactionUtxo<TBSBitcoinName>[]> {
     const { selectedUtxos, feeBn, changeBn } = await this.#getTransferData(params)
-    const { senderAccount, intents } = params
+    const { senderAccount, intents, memo } = params
     const { address, isHardware } = senderAccount
     const psbt = new bitcoinjs.Psbt({ network: this._bitcoinjsNetwork })
     const isP2PKHAddress = this._isP2PKHAddress(address)
@@ -554,6 +576,14 @@ export class BSBitcoin implements IBSBitcoin {
         .toBigInt()
 
       psbt.addOutput({ address: intent.receiverAddress, value: valueBigInt })
+    }
+
+    if (memo) {
+      const { output } = bitcoinjs.payments.embed({ data: [new TextEncoder().encode(memo)] })
+
+      if (output) {
+        psbt.addOutput({ script: output, value: 0n })
+      }
     }
 
     const hasChange = changeBn.isGreaterThan(0)
@@ -603,6 +633,15 @@ export class BSBitcoin implements IBSBitcoin {
         }
       })
 
+      if (memo) {
+        outputs.push({
+          address,
+          addressUrl,
+          amount: '0',
+          token: BSBitcoinConstants.NATIVE_TOKEN,
+        })
+      }
+
       if (hasChange) {
         totalAmountBn = totalAmountBn.plus(changeBn)
 
@@ -625,6 +664,7 @@ export class BSBitcoin implements IBSBitcoin {
           date: new Date().toJSON(),
           networkFeeAmount: feeBn.toFormatted(),
           totalAmount: totalAmountBn.toFormatted(),
+          memo,
           view: 'utxo',
           nfts: [],
           inputs: selectedUtxos.map(utxo => ({

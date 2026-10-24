@@ -278,6 +278,150 @@ describe('BSEthereum', () => {
     ])
   })
 
+  it('Should throw when transferring with a memo', async () => {
+    await expect(
+      bsEthereum.transfer({
+        senderAccount: account,
+        intents: [{ amount: '1', receiverAddress: account.address, token: nativeToken }],
+        memo: 'memo',
+      })
+    ).rejects.toMatchObject({ code: 'MEMO_NOT_SUPPORTED' })
+  })
+
+  it('Should keep the transaction payload gas params when they are higher than the network ones', async () => {
+    vi.spyOn(ethers.JsonRpcProvider.prototype, 'getFeeData').mockResolvedValue({
+      gasPrice: 1000000000n,
+      maxFeePerGas: 1500000000n,
+      maxPriorityFeePerGas: 500000000n,
+    } as ethers.FeeData)
+
+    const estimateGas = vi.fn().mockResolvedValue(20000n)
+    const sendTransaction = vi.fn().mockResolvedValue({ hash: '0xpayloadtx' })
+
+    vi.spyOn(bsEthereum, '_getSigner').mockResolvedValue({ estimateGas, sendTransaction } as any)
+
+    const transaction = await bsEthereum.sendTransactionPayload({
+      senderAccount: account,
+      payload: {
+        to: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5',
+        data: '0x1234',
+        value: '1000',
+        gasLimit: '21000',
+        maxFeePerGas: '2000000000',
+        maxPriorityFeePerGas: '1000000000',
+        chainId: bsEthereum.network.id,
+      },
+    })
+
+    expect(sendTransaction).toHaveBeenCalledWith({
+      chainId: parseInt(bsEthereum.network.id),
+      to: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5',
+      data: '0x1234',
+      value: '1000',
+      type: 2,
+      gasLimit: '21000',
+      maxFeePerGas: '2000000000',
+      maxPriorityFeePerGas: '1000000000',
+    })
+
+    expect(transaction).toEqual({
+      blockchain: 'ethereum',
+      isPending: true,
+      relatedAddress: account.address,
+      txId: '0xpayloadtx',
+      txIdUrl: bsEthereum.explorerService.buildTransactionUrl('0xpayloadtx'),
+      date: expect.any(String),
+      networkFeeAmount: '0.000042',
+      view: 'default',
+      events: [],
+    })
+  })
+
+  it('Should use the network gas params when the transaction payload ones are stale', async () => {
+    vi.spyOn(ethers.JsonRpcProvider.prototype, 'getFeeData').mockResolvedValue({
+      gasPrice: 3000000000n,
+      maxFeePerGas: 5000000000n,
+      maxPriorityFeePerGas: 1500000000n,
+    } as ethers.FeeData)
+
+    const estimateGas = vi.fn().mockResolvedValue(60000n)
+    const sendTransaction = vi.fn().mockResolvedValue({ hash: '0xpayloadtx' })
+
+    vi.spyOn(bsEthereum, '_getSigner').mockResolvedValue({ estimateGas, sendTransaction } as any)
+
+    await bsEthereum.sendTransactionPayload({
+      senderAccount: account,
+      payload: {
+        to: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5',
+        data: '0x1234',
+        gasLimit: '0xc350',
+        gasPrice: '0x3b9aca00',
+      },
+    })
+
+    expect(sendTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 2,
+        gasLimit: '60000',
+        maxFeePerGas: '5000000000',
+        maxPriorityFeePerGas: '1500000000',
+      })
+    )
+  })
+
+  it('Should use the legacy gas price when the network does not support EIP-1559', async () => {
+    vi.spyOn(ethers.JsonRpcProvider.prototype, 'getFeeData').mockResolvedValue({
+      gasPrice: 1000000000n,
+      maxFeePerGas: null,
+      maxPriorityFeePerGas: null,
+    } as ethers.FeeData)
+
+    const estimateGas = vi.fn().mockRejectedValue(new Error('estimate failed'))
+    const sendTransaction = vi.fn().mockResolvedValue({ hash: '0xpayloadtx' })
+
+    vi.spyOn(bsEthereum, '_getSigner').mockResolvedValue({ estimateGas, sendTransaction } as any)
+
+    const transaction = await bsEthereum.sendTransactionPayload({
+      senderAccount: account,
+      payload: { to: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5', data: '0x1234', gasLimit: '50000' },
+    })
+
+    expect(sendTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 0, gasLimit: '50000', gasPrice: '1000000000' })
+    )
+    expect(transaction.networkFeeAmount).toBe('0.00005')
+  })
+
+  it('Should throw instead of sending when the gas estimation fails and the payload has no gas limit', async () => {
+    vi.spyOn(ethers.JsonRpcProvider.prototype, 'getFeeData').mockResolvedValue({
+      gasPrice: 1000000000n,
+      maxFeePerGas: 2000000000n,
+      maxPriorityFeePerGas: 1000000000n,
+    } as ethers.FeeData)
+
+    const estimateGas = vi.fn().mockRejectedValue(new Error('execution reverted'))
+    const sendTransaction = vi.fn()
+
+    vi.spyOn(bsEthereum, '_getSigner').mockResolvedValue({ estimateGas, sendTransaction } as any)
+
+    await expect(
+      bsEthereum.sendTransactionPayload({
+        senderAccount: account,
+        payload: { to: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5', data: '0x1234' },
+      })
+    ).rejects.toMatchObject({ code: 'GAS_ESTIMATION_FAILED' })
+    expect(sendTransaction).not.toHaveBeenCalled()
+  })
+
+  it('Should throw when the transaction payload chain ID does not match the network', async () => {
+    await expect(
+      bsEthereum.sendTransactionPayload({
+        senderAccount: account,
+        payload: { to: '0xD81a8F3c3f8b006Ef1ae4a2Fd28699AD7E3e21C5', data: '0x1234', chainId: '137' },
+      })
+    ).rejects.toMatchObject({ code: 'CHAIN_ID_MISMATCH' })
+  })
+
   it('Should be able to resolve a name service domain', async () => {
     bsEthereum = new BSEthereum('ethereum')
 

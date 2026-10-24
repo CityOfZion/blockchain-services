@@ -1,4 +1,4 @@
 export * from './types'
-export * from './SimpleSwapApi'
-export * from './SimpleSwapService'
-export * from './SimpleSwapOrchestrator'
+export * from './SwapApi'
+export * from './SwapHelper'
+export * from './SwapOrchestrator'

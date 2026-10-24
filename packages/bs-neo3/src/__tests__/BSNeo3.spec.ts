@@ -13,6 +13,18 @@ describe('BSNeo3', () => {
     bsNeo3 = new BSNeo3(network)
   })
 
+  it('Should throw when transferring with a memo', async () => {
+    const senderAccount = await bsNeo3.generateAccountFromMnemonic(BSKeychainHelper.generateMnemonic(), 0)
+
+    await expect(
+      bsNeo3.transfer({
+        senderAccount,
+        intents: [{ amount: '1', receiverAddress: senderAccount.address, token: bsNeo3.feeToken }],
+        memo: 'memo',
+      })
+    ).rejects.toMatchObject({ code: 'MEMO_NOT_SUPPORTED' })
+  })
+
   it('Should be able to claim', () => {
     expect(isClaimable(bsNeo3)).toBeTruthy()
   })

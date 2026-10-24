@@ -200,7 +200,11 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
   async transfer({
     senderAccount,
     intents,
+    memo,
   }: TTransferParams<TBSNeoXName>): Promise<TTransactionDefault<TBSNeoXName>[]> {
+    // This blockchain has no memo support, sending without it could cause loss of funds when the receiver requires it
+    if (memo) throw new BSError(`${this.name} does not support memo`, 'MEMO_NOT_SUPPORTED')
+
     const signer = await this._getSigner(senderAccount)
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)

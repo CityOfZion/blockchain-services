@@ -7,4 +7,13 @@ export class BSEthereumHelper {
     const symbol = BSEthereumConstants.NATIVE_SYMBOL_BY_NETWORK_ID[network.id] ?? 'ETH'
     return { symbol, name: symbol, decimals: 18, hash: '-' }
   }
+
+  // Accepts decimal or hex strings (e.g. gas values from transaction payloads), ignoring empty values
+  static getMaxBigInt(...values: (string | bigint | null | undefined)[]): bigint {
+    return values.reduce<bigint>((max, value) => {
+      if (value === null || value === undefined || value === '') return max
+      const valueBigInt = BigInt(value)
+      return valueBigInt > max ? valueBigInt : max
+    }, 0n)
+  }
 }

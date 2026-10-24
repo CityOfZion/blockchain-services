@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo-legacy",
+      "comment": "Throw error when memo is passed since it is not supported",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo-legacy"
+}
