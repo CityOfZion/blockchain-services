@@ -221,9 +221,8 @@ export class BSNeoLegacy implements IBSNeoLegacy {
   }
 
   async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<TBSNeoLegacyName>> {
-    const mnemonicStr = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
-    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonicStr, bipPath)
+    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonic, bipPath)
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     const { address, WIF } = new wallet.Account(key)
 

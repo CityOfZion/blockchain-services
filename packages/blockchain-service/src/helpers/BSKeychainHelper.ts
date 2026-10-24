@@ -3,12 +3,15 @@ import * as bip39 from 'bip39'
 import elliptic from 'elliptic'
 import { BSError } from '../error'
 import { BSBigNumber } from './BSBigNumberHelper'
+import { TMnemonic } from '../types'
 
 export class BSKeychainHelper {
   static readonly #alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+  static readonly #mnemonic128BitsWords = 12
+  static readonly #mnemonic256BitsWords = 24
 
-  static generateNeoPrivateKeyFromMnemonic(mnemonic: string, path: string) {
-    const seed = bip39.mnemonicToSeedSync(mnemonic)
+  static generateNeoPrivateKeyFromMnemonic(mnemonic: TMnemonic, path: string) {
+    const seed = bip39.mnemonicToSeedSync(BSKeychainHelper.normalizeMnemonic(mnemonic))
 
     const masterKeyHmac = crypto
       .createHmac('sha512', Buffer.from('Nist256p1 seed'))
@@ -49,8 +52,8 @@ export class BSKeychainHelper {
     return key.toString('hex')
   }
 
-  static generateEd25519KeyFromMnemonic(mnemonic: string, path: string) {
-    const seed = bip39.mnemonicToSeedSync(mnemonic)
+  static generateEd25519KeyFromMnemonic(mnemonic: TMnemonic, path: string) {
+    const seed = bip39.mnemonicToSeedSync(BSKeychainHelper.normalizeMnemonic(mnemonic))
 
     const hmac = crypto.createHmac('sha512', 'ed25519 seed')
     const I = hmac.update(seed).digest()
@@ -92,16 +95,31 @@ export class BSKeychainHelper {
     return bip39.generateMnemonic(128)
   }
 
-  static isValidMnemonic(word: string | string[]) {
-    const wordArray = Array.isArray(word) ? word : word.trim().split(' ')
+  static getMnemonicWords(mnemonic: TMnemonic): string[] {
+    const text = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
 
-    return wordArray.length === 12 || wordArray.length === 24
+    return text
+      .toLowerCase()
+      .replace(/[^a-z\s]/g, '')
+      .split(/\s+/)
+      .filter(Boolean)
   }
 
-  static isMnemonic(word: string | string[]) {
-    const wordArray = Array.isArray(word) ? word : word.trim().split(' ')
+  static normalizeMnemonic(mnemonic: TMnemonic): string {
+    return BSKeychainHelper.getMnemonicWords(mnemonic).join(' ')
+  }
 
-    return wordArray.length > 1
+  static isValidMnemonic(word: TMnemonic) {
+    const mnemonicLength = BSKeychainHelper.getMnemonicWords(word).length
+
+    return (
+      mnemonicLength === BSKeychainHelper.#mnemonic128BitsWords ||
+      mnemonicLength === BSKeychainHelper.#mnemonic256BitsWords
+    )
+  }
+
+  static isMnemonic(word: TMnemonic) {
+    return BSKeychainHelper.getMnemonicWords(word).length > 1
   }
 
   static extractIndexFromPath(bipPath: string): number {

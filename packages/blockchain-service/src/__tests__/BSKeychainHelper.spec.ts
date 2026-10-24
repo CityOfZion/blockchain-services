@@ -10,6 +10,40 @@ describe('BSKeychainHelper', () => {
     const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
     const path = "m/44'/888'/0'/0/0"
     const privateKey = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonic, path)
-    expect(privateKey).toBe('38bcb1943801333aecdb9099b368ca8ea5b13a2c22862f8e1be77a46ed88738b')
+    expect(privateKey).toBe(process.env.TEST_NEO_MNEMONIC_PRIVATE_KEY)
+  })
+
+  it('Should normalize a mnemonic with invisible characters and different whitespaces', () => {
+    const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+    const dirtyMnemonic =
+      '\uFEFF abandon\u200B abandon\u00A0abandon\tabandon\nabandon\r\nabandon\u3000abandon  abandon \u200Dabandon\u2060 abandon abandon about \u200C'
+
+    expect(BSKeychainHelper.normalizeMnemonic(dirtyMnemonic)).toBe(mnemonic)
+    expect(BSKeychainHelper.isValidMnemonic(dirtyMnemonic)).toBe(true)
+    expect(BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(dirtyMnemonic, "m/44'/888'/0'/0/0")).toBe(
+      process.env.TEST_NEO_MNEMONIC_PRIVATE_KEY
+    )
+  })
+
+  it('Should lowercase a mnemonic when normalizing it', () => {
+    const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+    const differentMnemonic =
+      'Abandon ABANDON abandon abandon abandon abandon abandon abandon abandon abandon abandon About'
+
+    expect(BSKeychainHelper.normalizeMnemonic(differentMnemonic)).toBe(mnemonic)
+    expect(BSKeychainHelper.isValidMnemonic(differentMnemonic)).toBe(true)
+  })
+
+  it('Should validate the mnemonic length according to BIP39', () => {
+    const validMnemonicLengths = [12, 24]
+
+    const generateWords = (length: number) => Array(length).fill('abandon')
+
+    expect(BSKeychainHelper.isValidMnemonic(generateWords(13))).toBe(false)
+    expect(BSKeychainHelper.isValidMnemonic(generateWords(25))).toBe(false)
+
+    validMnemonicLengths.forEach(length => {
+      expect(BSKeychainHelper.isValidMnemonic(generateWords(length))).toBe(true)
+    })
   })
 })

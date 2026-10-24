@@ -68,3 +68,5 @@ export type TBSUtilsHelperRetryOptions = {
   delay?: number
   shouldRetry?: (error: any) => boolean
 }
+
+export type TMnemonic = string | string[]
