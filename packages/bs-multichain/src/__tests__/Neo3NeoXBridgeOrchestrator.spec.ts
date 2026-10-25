@@ -157,7 +157,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.init()
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     account.blockchain = 'neox'
 
@@ -176,7 +176,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const setAmountToUseSpy = vi.spyOn(neo3NeoXBridgeOrchestrator, 'setAmountToUse')
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
 
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
@@ -198,7 +198,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.init()
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
 
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
@@ -234,7 +234,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const validateAddressSpy = vi.spyOn(neo3NeoXBridgeOrchestrator.toService, 'validateAddress')
 
     const toAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
+      process.env.TEST_NEOX_PRIVATE_KEY
     )
 
     await neo3NeoXBridgeOrchestrator.setAddressToReceive(toAccount.address)
@@ -255,7 +255,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     const validateAddressSpy = vi.spyOn(neo3NeoXBridgeOrchestrator.toService, 'validateAddress')
 
     const toAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
+      process.env.TEST_NEOX_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAddressToReceive(toAccount.address)
 
@@ -333,7 +333,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
@@ -359,7 +359,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
@@ -386,7 +386,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
@@ -417,7 +417,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
@@ -442,7 +442,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
@@ -473,7 +473,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
@@ -516,7 +516,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.switchTokens()
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
+      process.env.TEST_NEOX_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
@@ -527,7 +527,7 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const receiverAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAddressToReceive(receiverAccount.address)
 
@@ -550,12 +550,12 @@ describe('Neo3NeoXBridgeOrchestrator', () => {
     await neo3NeoXBridgeOrchestrator.setTokenToUse(token)
 
     const account = await neo3NeoXBridgeOrchestrator.fromService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEO3_PRIVATE_KEY
+      process.env.TEST_NEO3_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAccountToUse(account)
 
     const receiverAccount = await neo3NeoXBridgeOrchestrator.toService.generateAccountFromKey(
-      process.env.TEST_BRIDGE_NEOX_PRIVATE_KEY
+      process.env.TEST_NEOX_PRIVATE_KEY
     )
     await neo3NeoXBridgeOrchestrator.setAddressToReceive(receiverAccount.address)
 

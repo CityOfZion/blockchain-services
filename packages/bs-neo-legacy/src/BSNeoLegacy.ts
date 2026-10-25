@@ -14,6 +14,7 @@ import {
   type IFullTransactionsDataService,
   type TTransactionDefault,
   BSBigUnitAmount,
+  BSError,
 } from '@cityofzion/blockchain-service'
 import { BSNeoLegacyConstants } from './constants/BSNeoLegacyConstants'
 import { CryptoCompareEDSNeoLegacy } from './services/exchange-data/CryptoCompareEDSNeoLegacy'
@@ -271,7 +272,11 @@ export class BSNeoLegacy implements IBSNeoLegacy {
   async transfer({
     senderAccount,
     intents,
+    memo,
   }: TTransferParams<TBSNeoLegacyName>): Promise<TTransactionDefault<TBSNeoLegacyName>[]> {
+    // This blockchain has no memo support, sending without it could cause loss of funds when the receiver requires it
+    if (memo) throw new BSError(`${this.name} does not support memo`, 'MEMO_NOT_SUPPORTED')
+
     const { neonJsAccount, signingCallback } = await this._generateSigningCallback(senderAccount)
     const { api, sc, u, wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     const apiProvider = new api.neoCli.instance(this.network.url)

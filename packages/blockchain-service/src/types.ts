@@ -68,3 +68,9 @@ export type TBSUtilsHelperRetryOptions = {
   delay?: number
   shouldRetry?: (error: any) => boolean
 }
+
+export type TBSStringHelperRemoveSpecialCharacterOptions = {
+  allowSpaces?: boolean
+  allowDots?: boolean
+  trimText?: boolean
+}

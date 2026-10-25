@@ -12,6 +12,18 @@ describe('BSNeoLegacy', () => {
     service = new BSNeoLegacy(network)
   })
 
+  it('Should throw when transferring with a memo', async () => {
+    const senderAccount = await service.generateAccountFromMnemonic(BSKeychainHelper.generateMnemonic(), 0)
+
+    await expect(
+      service.transfer({
+        senderAccount,
+        intents: [{ amount: '1', receiverAddress: senderAccount.address, token: service.feeToken }],
+        memo: 'memo',
+      })
+    ).rejects.toMatchObject({ code: 'MEMO_NOT_SUPPORTED' })
+  })
+
   it('Should be able to claim', () => {
     expect(isClaimable(service)).toBeTruthy()
   })

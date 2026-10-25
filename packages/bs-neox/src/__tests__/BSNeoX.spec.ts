@@ -1,6 +1,6 @@
 import { BSNeoX } from '../BSNeoX'
 import { BSNeoXConstants } from '../constants/BSNeoXConstants'
-import type { TBSNetwork } from '@cityofzion/blockchain-service'
+import { BSKeychainHelper, type TBSNetwork } from '@cityofzion/blockchain-service'
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid'
 import type { TBSNeoXNetworkId } from '../types'
 import { BSNeoXHelper } from '../helpers/BSNeoXHelper'
@@ -23,6 +23,19 @@ const neoToken = BSNeoXHelper.getNeoToken(testnetNetwork)
 let bsNeoX: BSNeoX
 
 describe('BSNeoX', () => {
+  it('Should throw when transferring with a memo', async () => {
+    bsNeoX = new BSNeoX(testnetNetwork)
+    const senderAccount = await bsNeoX.generateAccountFromMnemonic(BSKeychainHelper.generateMnemonic(), 0)
+
+    await expect(
+      bsNeoX.transfer({
+        senderAccount,
+        intents: [{ amount: '1', receiverAddress: senderAccount.address, token: bsNeoX.feeToken }],
+        memo: 'memo',
+      })
+    ).rejects.toMatchObject({ code: 'MEMO_NOT_SUPPORTED' })
+  })
+
   it.skip('Should be able to transfer the native token (GAS) on Testnet', async () => {
     bsNeoX = new BSNeoX(testnetNetwork)
 
