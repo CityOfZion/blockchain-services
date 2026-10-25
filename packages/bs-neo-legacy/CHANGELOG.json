@@ -2,6 +2,18 @@
   "name": "@cityofzion/bs-neo-legacy",
   "entries": [
     {
+      "version": "3.1.22",
+      "tag": "@cityofzion/bs-neo-legacy_v3.1.22",
+      "date": "Sun, 25 Oct 2026 11:58:16 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Throw error when memo is passed since it is not supported"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.21",
       "tag": "@cityofzion/bs-neo-legacy_v3.1.21",
       "date": "Wed, 07 Oct 2026 19:42:56 GMT",

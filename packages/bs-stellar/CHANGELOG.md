@@ -1,6 +1,13 @@
 # Change Log - @cityofzion/bs-stellar
 
-This log was last generated on Wed, 07 Oct 2026 19:42:56 GMT and should not be manually modified.
+This log was last generated on Sun, 25 Oct 2026 11:58:16 GMT and should not be manually modified.
+
+## 3.1.22
+Sun, 25 Oct 2026 11:58:16 GMT
+
+### Updates
+
+- Update token info test expectation
 
 ## 3.1.21
 Wed, 07 Oct 2026 19:42:56 GMT
