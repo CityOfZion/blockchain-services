@@ -1,0 +1,9 @@
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      TEST_NEO3_PRIVATE_KEY: string
+    }
+  }
+}
+
+export {}

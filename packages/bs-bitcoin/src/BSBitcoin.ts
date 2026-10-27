@@ -434,7 +434,7 @@ export class BSBitcoin implements IBSBitcoin {
       throw new BSError('Invalid mnemonic', 'INVALID_MNEMONIC')
     }
 
-    const mnemonicText = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
+    const mnemonicText = BSKeychainHelper.normalizeMnemonic(mnemonic)
     const seed = bip39.mnemonicToSeedSync(mnemonicText)
     const bip32 = BSBitcoinBIP32SingletonHelper.getInstance()
     const root = bip32.fromSeed(seed, this._bitcoinjsNetwork)

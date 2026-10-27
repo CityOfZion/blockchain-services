@@ -223,9 +223,8 @@ export class BSNeo3 implements IBSNeo3 {
   }
 
   async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<TBSNeo3Name>> {
-    const mnemonicText = Array.isArray(mnemonic) ? mnemonic.join(' ') : mnemonic
     const bipPath = BSKeychainHelper.getBipPath(this.bipDerivationPath, index)
-    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonicText, bipPath)
+    const key = BSKeychainHelper.generateNeoPrivateKeyFromMnemonic(mnemonic, bipPath)
     const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
     const { address, WIF } = new wallet.Account(key)
 
