@@ -152,6 +152,7 @@ export class WalletConnectServiceSolana implements IWalletConnectService<
 
       const signature = await this.#service._solanaKitRpc
         .sendTransaction(signedTransaction, {
+          encoding: 'base64',
           maxRetries: options.maxRetries,
           preflightCommitment: options.preflightCommitment,
           minContextSlot: options.minContextSlot,

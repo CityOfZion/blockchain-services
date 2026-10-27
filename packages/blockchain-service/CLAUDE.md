@@ -33,15 +33,37 @@ src/
 │   ├── BSKeychainHelper            # Encryption/decryption utilities
 │   └── BSUtilsHelper               # Misc utilities (address validation, etc.)
 ├── services/
-│   ├── exchange-data/              # CryptoCompareEDS, FlamingoForthewinEDS
+│   ├── exchange-data/              # DefiLlamaCryptoCompareEDS, DefiLlamaCryptoCompareFlamingoForthewinEDS
 │   ├── token/                      # TokenService (base)
 │   └── nft-data/                   # GhostMarketNDS
 ├── interfaces.ts       # All core interfaces and capability mixin types
 ├── functions.ts        # Type guard functions
 ├── error.ts            # BSError custom error class
 ├── types.ts            # Shared types
+├── tests.ts            # Test setup (see below)
 └── index.ts
 ```
+
+## Test API key injection
+
+Tests hit COZ API endpoints (`api.coz.io` / `api-stage.coz.io`) that require an `x-api-key` header, read from the `TEST_COZ_API_KEY` env var. `tests.ts` exports a single `setupTests({ axios })`, which each package calls from its `vitest.setup.ts`:
+
+```typescript
+import axios from 'axios'
+import { setupTests } from '@cityofzion/blockchain-service'
+
+setupTests({ axios })
+```
+
+`setupTests` no-ops when `TEST_COZ_API_KEY` is unset, then patches every HTTP transport to add the header for COZ domains only:
+
+| Transport | Patches | Example consumer |
+|---|---|---|
+| axios | the axios instance + `axios.create` | most data services |
+| fetch | `globalThis.fetch` | `@solana/kit` RPC |
+| node `http`/`https` | `http.request` / `https.request` | `@stellar/stellar-sdk`'s internal axios (covers both Soroban rpc and Horizon) |
+
+Patching happens at the transport layer because SDK namespaces (`@solana/kit`, `@stellar/stellar-sdk`) expose read-only bindings and can't be monkeypatched directly. All patches are idempotent.
 
 ## Architecture
 

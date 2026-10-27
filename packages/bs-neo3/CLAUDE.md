@@ -28,7 +28,7 @@ src/
 │   └── BSNeo3NeonDappKitSingletonHelper   # Singleton NeonDappKit instance
 ├── services/
 │   ├── blockchain-data/        # Dora + RPC BDS
-│   ├── exchange-data/          # FlamingoForthewinEDS
+│   ├── exchange-data/          # DefiLlamaCryptoCompareFlamingoForthewinEDSNeo3
 │   ├── explorer/               # DoraExplorerService
 │   ├── full-transactions-data/ # DoraFullTransactionsData
 │   ├── ledger/                 # NeonDappKitLedgerService

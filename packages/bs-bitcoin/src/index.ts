@@ -11,15 +11,10 @@ export * from './helpers/BSBitcoinBIP32SingletonHelper'
 export * from './helpers/BSBitcoinECPairSingletonHelper'
 
 export * from './services/blockchain-data/TatumBDSBitcoin'
-
-export * from './services/exchange-data/CryptoCompareMoralisEDSBitcoin'
-
+export * from './services/exchange-data/DefiLlamaCryptoCompareMoralisEDSBitcoin'
 export * from './services/explorer/MempoolESBitcoin'
-
 export * from './services/ledger/LedgerServiceBitcoin'
-
 export * from './services/nft-data/XverseNDSBitcoin'
-
 export * from './services/token/TokenServiceBitcoin'
 
 export * from './types'

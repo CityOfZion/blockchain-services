@@ -28,7 +28,7 @@ import { computeAddress, ethers, isAddress, JsonRpcProvider, type Signer, type T
 import { BSEthereumConstants } from './constants/BSEthereumConstants'
 import { BSEthereumHelper } from './helpers/BSEthereumHelper'
 import { MoralisBDSEthereum } from './services/blockchain-data/MoralisBDSEthereum'
-import { MoralisEDSEthereum } from './services/exchange-data/MoralisEDSEthereum'
+import { DefiLlamaCryptoCompareMoralisEDSEthereum } from './services/exchange-data/DefiLlamaCryptoCompareMoralisEDSEthereum'
 import { BlockscoutESEthereum } from './services/explorer/BlockscoutESEthereum'
 import { MoralisFullTransactionsDataServiceEthereum } from './services/full-transactions-data/MoralisFullTransactionsDataServiceEthereum'
 import { EthersLedgerServiceEthereum } from './services/ledger/EthersLedgerServiceEthereum'
@@ -42,19 +42,17 @@ export class BSEthereum<
   A extends TBSNetworkId = TBSEthereumNetworkId,
 > implements IBSEthereum<N, A> {
   readonly name: N
-  readonly bipDerivationPath: string
-
+  readonly bipDerivationPath = BSEthereumConstants.DEFAULT_BIP_DERIVATION_PATH
   readonly isMultiTransferSupported = false
   readonly isCustomNetworkSupported = false
-
-  tokens!: TBSToken[]
-  nativeTokens!: TBSToken[]
-  feeToken!: TBSToken
+  readonly defaultNetwork!: TBSNetwork<A>
+  readonly availableNetworks!: TBSNetwork<A>[]
 
   network!: TBSNetwork<A>
   networkUrls!: string[]
-  readonly defaultNetwork!: TBSNetwork<A>
-  readonly availableNetworks!: TBSNetwork<A>[]
+  nativeTokens!: TBSToken[]
+  tokens!: TBSToken[]
+  feeToken!: TBSToken
 
   blockchainDataService!: IBlockchainDataService<N>
   exchangeDataService!: IExchangeDataService
@@ -68,9 +66,9 @@ export class BSEthereum<
   constructor(name: N, network?: TBSNetwork<A>, getLedgerTransport?: TGetLedgerTransport<N>) {
     this.name = name
     this.ledgerService = new EthersLedgerServiceEthereum(this, getLedgerTransport)
-    this.bipDerivationPath = BSEthereumConstants.DEFAULT_BIP_DERIVATION_PATH
 
     const networks = (BSEthereumConstants.NETWORKS_BY_EVM as any)[name]
+
     // This case is hit when the user tries to initialize the service with a custom network that is not in our predefined list. We want to allow that, but in that case we won't have the default network and available networks list.
     if (!networks || !networks.length) {
       return
@@ -79,7 +77,7 @@ export class BSEthereum<
     this.availableNetworks = networks as TBSNetwork<A>[]
     this.defaultNetwork = this.availableNetworks.find(network => network.type === 'mainnet')! as TBSNetwork<A>
 
-    this.setNetwork(network ?? this.defaultNetwork)
+    this.setNetwork(network || this.defaultNetwork)
   }
 
   async _getSigner(account: TBSAccount<N>): Promise<Signer> {
@@ -112,33 +110,30 @@ export class BSEthereum<
       chainId: parseInt(this.network.id),
     }
 
-    const isNative = this.tokenService.predicateByHash(this.feeToken, intent.token.hash)
+    const isNativeToken = this.tokenService.isNativeToken(intent.token.hash)
 
-    if (isNative) {
+    if (isNativeToken) {
       transactionParams.to = intent.receiverAddress
       transactionParams.value = amount
     } else {
       const contract = new ethers.Contract(intent.token.hash, [
         'function transfer(address to, uint amount) returns (bool)',
       ])
+
       const populatedTransaction = await contract.transfer.populateTransaction(intent.receiverAddress, amount)
-      transactionParams = {
-        ...populatedTransaction,
-        ...transactionParams,
-      }
+
+      transactionParams = { ...populatedTransaction, ...transactionParams }
     }
 
-    return {
-      transactionParams,
-      gasPriceBn,
-    }
+    return { transactionParams, gasPriceBn }
   }
 
   _setTokens(network: TBSNetwork<A>) {
-    const nativeAsset = BSEthereumHelper.getNativeAsset(network)
-    this.tokens = [nativeAsset]
-    this.nativeTokens = [nativeAsset]
-    this.feeToken = nativeAsset
+    const nativeToken = BSEthereumHelper.getNativeAsset(network)
+
+    this.nativeTokens = [nativeToken]
+    this.tokens = this.nativeTokens
+    this.feeToken = nativeToken
   }
 
   setNetwork(network: TBSNetwork<A>) {
@@ -146,7 +141,7 @@ export class BSEthereum<
     const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
-      throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+      throw new BSError(`Network with id ${network.id} is not available for ${this.name}`, 'INVALID_NETWORK')
     }
 
     this._setTokens(network)
@@ -156,7 +151,7 @@ export class BSEthereum<
 
     this.nftDataService = new MoralisNDSEthereum(this)
     this.explorerService = new BlockscoutESEthereum(this)
-    this.exchangeDataService = new MoralisEDSEthereum(this)
+    this.exchangeDataService = new DefiLlamaCryptoCompareMoralisEDSEthereum(this)
     this.blockchainDataService = new MoralisBDSEthereum(this)
     this.tokenService = new TokenServiceEthereum(this)
     this.walletConnectService = new WalletConnectServiceEthereum(this)
@@ -166,6 +161,7 @@ export class BSEthereum<
   // This method is done manually because we need to ensure that the request is aborted after timeout
   async pingNetwork(url: string): Promise<TPingNetworkResponse> {
     const abortController = new AbortController()
+
     const timeout = setTimeout(() => {
       abortController.abort()
     }, 5000)
@@ -200,7 +196,7 @@ export class BSEthereum<
   validateKey(key: string): boolean {
     try {
       if (!key.startsWith('0x')) {
-        key = '0x' + key
+        key = `0x${key}`
       }
 
       return ethersBytes.hexDataLength(key) === 32
@@ -251,6 +247,7 @@ export class BSEthereum<
 
   async decrypt(json: string, password: string): Promise<TBSAccount<N>> {
     const wallet = await ethers.Wallet.fromEncryptedJson(json, password)
+
     return {
       address: wallet.address,
       key: wallet.privateKey,
@@ -261,6 +258,7 @@ export class BSEthereum<
 
   async encrypt(key: string, password: string): Promise<string> {
     const wallet = new ethers.Wallet(key)
+
     return wallet.encrypt(password)
   }
 
@@ -269,7 +267,6 @@ export class BSEthereum<
     if (memo) throw new BSError(`${this.name} does not support memo`, 'MEMO_NOT_SUPPORTED')
 
     const signer = await this._getSigner(senderAccount)
-
     const { address } = senderAccount
     const addressUrl = this.explorerService.buildAddressUrl(address)
     const transactions: TTransactionDefault<N>[] = []
@@ -283,8 +280,10 @@ export class BSEthereum<
         transactionParams.nonce = nonce++
 
         let gasLimitBn: BSBigUnitAmount
+
         try {
           const estimatedGas = await signer.estimateGas(transactionParams)
+
           gasLimitBn = new BSBigUnitAmount(estimatedGas.toString(), BSEthereumConstants.DEFAULT_DECIMALS)
         } catch {
           gasLimitBn = BSEthereumConstants.DEFAULT_GAS_LIMIT_BN
@@ -400,7 +399,6 @@ export class BSEthereum<
       gasPrice = maxFeePerGas
     } else {
       gasPrice = BSEthereumHelper.getMaxBigInt(feeData.gasPrice, payload.gasPrice, payload.maxFeePerGas)
-
       transactionParams.type = 0
       transactionParams.gasPrice = gasPrice.toString()
     }
@@ -411,6 +409,7 @@ export class BSEthereum<
 
     try {
       const estimatedGas = await signer.estimateGas(transactionParams)
+
       gasLimit = BSEthereumHelper.getMaxBigInt(estimatedGas, payload.gasLimit)
     } catch (error) {
       // The default gas limit only covers a plain transfer, so a contract call sent with it would always fail with
@@ -462,7 +461,9 @@ export class BSEthereum<
   async resolveNameServiceDomain(domainName: string): Promise<string> {
     const provider = new JsonRpcProvider(this.network.url)
     const address = await provider.resolveName(domainName)
-    if (!address) throw new Error('No address found for domain name')
+
+    if (!address) throw new BSError('No address found for domain name', 'ADDRESS_NOT_FOUND')
+
     return address
   }
 }

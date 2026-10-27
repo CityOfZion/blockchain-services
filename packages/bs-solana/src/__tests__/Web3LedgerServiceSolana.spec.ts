@@ -24,9 +24,8 @@ describe.skip('Web3LedgerServiceSolana', () => {
     const accounts = await ledgerService.getAccounts(transport)
 
     expect(accounts.length).toBeGreaterThan(1)
-
-    accounts.forEach((account, index) => {
-      expect(account).toEqual(
+    expect(accounts).toEqual(
+      accounts.map((_, index) =>
         expect.objectContaining({
           address: expect.any(String),
           key: expect.any(String),
@@ -34,7 +33,7 @@ describe.skip('Web3LedgerServiceSolana', () => {
           bipPath: BSKeychainHelper.getBipPath(bsSolana.bipDerivationPath, index),
         })
       )
-    })
+    )
   })
 
   it('Should be able to get account', async () => {

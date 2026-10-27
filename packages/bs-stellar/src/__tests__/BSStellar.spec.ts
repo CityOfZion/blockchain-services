@@ -203,6 +203,7 @@ describe('BSStellar', () => {
       .build()
 
     setMemoRequiredTransaction.sign(receiverKeypair)
+
     await bsStellar._sorobanServer.sendTransaction(setMemoRequiredTransaction)
     await BSUtilsHelper.wait(6000)
 

@@ -11,7 +11,6 @@ import {
 } from '@cityofzion/blockchain-service'
 import type { IBSEthereum, TBSEthereumNetworkId } from '../../types'
 import { api } from '@cityofzion/dora-ts'
-import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 
 export class MoralisFullTransactionsDataServiceEthereum<
   N extends string,
@@ -48,8 +47,8 @@ export class MoralisFullTransactionsDataServiceEthereum<
       pageLimit: params.pageSize ?? 50,
     })
 
-    const items = response.data ?? []
-    const nativeToken = BSEthereumHelper.getNativeAsset(this.#service.network)
+    const items = response.data || []
+    const [nativeToken] = this.#service.nativeTokens
 
     const itemPromises = items.map(async ({ networkFeeAmount, ...item }, index) => {
       const txId = item.transactionID
@@ -71,9 +70,9 @@ export class MoralisFullTransactionsDataServiceEthereum<
 
       const eventPromises = item.events.map(async (event, eventIndex) => {
         const { methodName, tokenID: tokenHash, contractHash } = event
-        const from = event.from ?? undefined
-        const to = event.to ?? undefined
-        const standard = event.supportedStandards?.[0]?.toLowerCase() ?? ''
+        const from = event.from || undefined
+        const to = event.to || undefined
+        const standard = event.supportedStandards?.[0]?.toLowerCase() || ''
         const isErc1155 = MoralisFullTransactionsDataServiceEthereum.ERC1155_STANDARDS.includes(standard)
         const isErc721 = MoralisFullTransactionsDataServiceEthereum.ERC721_STANDARDS.includes(standard)
         const isNft = (isErc1155 || isErc721) && !!tokenHash

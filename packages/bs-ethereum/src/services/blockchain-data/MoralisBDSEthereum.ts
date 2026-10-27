@@ -15,17 +15,16 @@ import {
   BSBigHumanAmount,
 } from '@cityofzion/blockchain-service'
 import axios, { AxiosInstance } from 'axios'
-import { BSEthereumHelper } from '../../helpers/BSEthereumHelper'
 import { ERC20_ABI } from '../../assets/abis/ERC20'
 import type {
   IBSEthereum,
   TBSEthereumNetworkId,
-  TMoralisBDSEthereumERC20BalanceApiResponse,
-  TMoralisBDSEthereumERC20MetadataApiResponse,
-  TMoralisBDSEthereumNativeBalanceApiResponse,
-  TMoralisBDSEthereumTransactionApiResponse,
-  TMoralisTokenMetadataApiResponse,
-  TMoralisWalletHistoryApiResponse,
+  TMoralisEthereumErc20BalanceResponse,
+  TMoralisEthereumErc20MetadataResponse,
+  TMoralisEthereumNativeBalanceResponse,
+  TMoralisEthereumTransactionResponse,
+  TMoralisEthereumTokenMetadataResponse,
+  TMoralisEthereumWalletHistoryResponse,
 } from '../../types'
 import { RpcBDSEthereum } from './RpcBDSEthereum'
 import { BSEthereumConstants } from '../../constants/BSEthereumConstants'
@@ -67,9 +66,9 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
     const {
       data: { balance: nativeBalance },
-    } = await this.#api.get<TMoralisBDSEthereumNativeBalanceApiResponse>(`${address}/balance`)
+    } = await this.#api.get<TMoralisEthereumNativeBalanceResponse>(`${address}/balance`)
 
-    const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
+    const [nativeToken] = this._service.nativeTokens
 
     const balances: TBalanceResponse[] = [
       {
@@ -78,9 +77,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       },
     ]
 
-    const { data: erc20Balances } = await this.#api.get<TMoralisBDSEthereumERC20BalanceApiResponse[]>(
-      `${address}/erc20`
-    )
+    const { data: erc20Balances } = await this.#api.get<TMoralisEthereumErc20BalanceResponse[]>(`${address}/erc20`)
 
     erc20Balances.forEach(balance => {
       if (balance.possible_spam || !balance.decimals || !balance.token_address || !balance.symbol) return
@@ -88,10 +85,10 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       balances.push({
         amount: new BSBigUnitAmount(balance.balance, balance.decimals).toHuman().toFormatted(),
         token: this._service.tokenService.normalizeToken({
-          decimals: balance.decimals,
-          hash: balance.token_address,
-          name: balance.name ?? '',
           symbol: balance.symbol,
+          name: balance.name || '',
+          hash: balance.token_address,
+          decimals: balance.decimals,
         }),
       })
     })
@@ -104,15 +101,15 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       return super.getTokenInfo(hash)
     }
 
-    const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
+    const [nativeToken] = this._service.nativeTokens
 
-    if (this._service.tokenService.predicateByHash(nativeAsset, hash)) return nativeAsset
+    if (this._service.tokenService.predicateByHash(nativeToken, hash)) return nativeToken
 
     if (this._tokenCache.has(hash)) {
       return this._tokenCache.get(hash)!
     }
 
-    const response = await this.#api.get<TMoralisBDSEthereumERC20MetadataApiResponse[]>('/erc20/metadata', {
+    const response = await this.#api.get<TMoralisEthereumErc20MetadataResponse[]>('/erc20/metadata', {
       params: {
         addresses: [hash],
       },
@@ -137,11 +134,11 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       return super.getTransaction(hash)
     }
 
-    const { data } = await this.#api.get<TMoralisBDSEthereumTransactionApiResponse>(`/transaction/${hash}/verbose`)
+    const { data } = await this.#api.get<TMoralisEthereumTransactionResponse>(`/transaction/${hash}/verbose`)
     const events: TTransactionDefaultEvent[] = []
 
     if (data.value && Number(data.value) > 0) {
-      const nativeToken = BSEthereumHelper.getNativeAsset(this._service.network)
+      const [nativeToken] = this._service.nativeTokens
       const fromUrl = this._service.explorerService.buildAddressUrl(data.from_address)
       const toUrl = this._service.explorerService.buildAddressUrl(data.to_address)
 
@@ -231,7 +228,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       return super.getTransactionsByAddress(params)
     }
 
-    const { data } = await this.#api.get<TMoralisWalletHistoryApiResponse>(`/wallets/${params.address}/history`, {
+    const { data } = await this.#api.get<TMoralisEthereumWalletHistoryResponse>(`/wallets/${params.address}/history`, {
       params: {
         limit: 15,
         cursor: params.nextPageParams,
@@ -239,7 +236,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     })
 
     const transactions: TTransactionDefault<N>[] = []
-    const nativeAsset = BSEthereumHelper.getNativeAsset(this._service.network)
+    const [nativeToken] = this._service.nativeTokens
 
     const promises = data.result.map(async (item, index) => {
       const events: TTransactionDefaultEvent[] = []
@@ -250,14 +247,14 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
 
         events.push({
           eventType: 'token',
-          amount: new BSBigUnitAmount(transfer.value, nativeAsset.decimals).toHuman().toFormatted(),
+          amount: new BSBigUnitAmount(transfer.value, nativeToken.decimals).toHuman().toFormatted(),
           methodName: 'transfer',
           from: transfer.from_address,
           fromUrl,
           to: transfer.to_address,
           toUrl,
-          tokenUrl: this._service.explorerService.buildContractUrl(nativeAsset.hash),
-          token: nativeAsset,
+          tokenUrl: this._service.explorerService.buildContractUrl(nativeToken.hash),
+          token: nativeToken,
         })
       })
 
@@ -336,7 +333,7 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
     }
 
     try {
-      const { data } = await this.#api.get<TMoralisTokenMetadataApiResponse[]>('erc20/metadata', {
+      const { data } = await this.#api.get<TMoralisEthereumTokenMetadataResponse[]>('erc20/metadata', {
         params: {
           addresses: [hash],
         },
@@ -353,16 +350,12 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
         }))
 
         methods.push({
-          name: abi.name ?? '',
-          parameters: parameters ?? [],
+          name: abi.name || '',
+          parameters: parameters || [],
         })
       })
 
-      return {
-        hash,
-        name: data[0].name,
-        methods,
-      }
+      return { hash, name: data[0].name, methods }
     } catch {
       throw new Error('Contract not found or not an ERC20 token')
     }

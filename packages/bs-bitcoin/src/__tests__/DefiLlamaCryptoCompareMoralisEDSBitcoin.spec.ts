@@ -1,6 +1,6 @@
-import { BSUtilsHelper, CryptoCompareEDS, type TBSToken } from '@cityofzion/blockchain-service'
+import { BSUtilsHelper, DefiLlamaCryptoCompareEDS, type TBSToken } from '@cityofzion/blockchain-service'
 import { BSBitcoin } from '../BSBitcoin'
-import { CryptoCompareMoralisEDSBitcoin } from '../services/exchange-data/CryptoCompareMoralisEDSBitcoin'
+import { DefiLlamaCryptoCompareMoralisEDSBitcoin } from '../services/exchange-data/DefiLlamaCryptoCompareMoralisEDSBitcoin'
 import { BSBitcoinConstants } from '../constants/BSBitcoinConstants'
 
 const ordiToken: TBSToken = {
@@ -17,12 +17,12 @@ const satsToken: TBSToken = {
   decimals: 18,
 }
 
-let exchangeDataService: CryptoCompareMoralisEDSBitcoin
+let exchangeDataService: DefiLlamaCryptoCompareMoralisEDSBitcoin
 
 // Avoid API key error
-describe.skip('CryptoCompareMoralisEDSBitcoin', () => {
+describe.skip('DefiLlamaCryptoCompareMoralisEDSBitcoin', () => {
   beforeEach(() => {
-    exchangeDataService = new CryptoCompareMoralisEDSBitcoin(new BSBitcoin())
+    exchangeDataService = new DefiLlamaCryptoCompareMoralisEDSBitcoin(new BSBitcoin())
   })
 
   beforeEach(async () => {
@@ -34,7 +34,7 @@ describe.skip('CryptoCompareMoralisEDSBitcoin', () => {
     vi.restoreAllMocks()
   })
 
-  it('Should be able to get the token prices from CryptoCompare', async () => {
+  it('Should be able to get the token prices', async () => {
     const tokenPrices = await exchangeDataService.getTokenPrices({
       tokens: [BSBitcoinConstants.NATIVE_TOKEN, ordiToken, satsToken],
     })
@@ -57,55 +57,20 @@ describe.skip('CryptoCompareMoralisEDSBitcoin', () => {
     )
   })
 
-  it('Should be able to get the token prices from Moralis', async () => {
-    const getTokenPricesSpy: ReturnType<typeof vi.spyOn> = vi.spyOn(CryptoCompareEDS.prototype, 'getTokenPrices')
-
-    getTokenPricesSpy.mockResolvedValue([{ token: ordiToken, usdPrice: 1 }])
-
-    exchangeDataService = new CryptoCompareMoralisEDSBitcoin(new BSBitcoin())
-
-    const firstTokenPrices = await exchangeDataService.getTokenPrices({
-      tokens: [BSBitcoinConstants.NATIVE_TOKEN, ordiToken],
-    })
-
-    expect(firstTokenPrices).toEqual([
-      { usdPrice: expect.any(Number), token: BSBitcoinConstants.NATIVE_TOKEN },
-      { usdPrice: expect.any(Number), token: ordiToken },
-    ])
-
-    getTokenPricesSpy.mockResolvedValue([])
-
-    const secondTokenPrices = await exchangeDataService.getTokenPrices({
-      tokens: [BSBitcoinConstants.NATIVE_TOKEN],
-    })
-
-    expect(secondTokenPrices).toEqual([{ usdPrice: expect.any(Number), token: BSBitcoinConstants.NATIVE_TOKEN }])
-  })
-
-  it('Should be able to get the token price history from CryptoCompare', async () => {
+  it('Should be able to get the token price history', async () => {
     const btcTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({
       token: BSBitcoinConstants.NATIVE_TOKEN,
-      limit: 24,
-      type: 'hour',
     })
 
     // Wait to avoid rate limit
     await BSUtilsHelper.wait(4000)
 
-    const ordiTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({
-      token: ordiToken,
-      limit: 24,
-      type: 'hour',
-    })
+    const ordiTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({ token: ordiToken })
 
     // Wait to avoid rate limit
     await BSUtilsHelper.wait(4000)
 
-    const satsTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({
-      token: satsToken,
-      limit: 24,
-      type: 'hour',
-    })
+    const satsTokenPriceHistory = await exchangeDataService.getTokenPriceHistory({ token: satsToken })
 
     expect(btcTokenPriceHistory).toEqual(
       expect.arrayContaining([
@@ -138,19 +103,47 @@ describe.skip('CryptoCompareMoralisEDSBitcoin', () => {
     )
   })
 
-  it('Should be able to get the BRL currency ratio from CryptoCompare', async () => {
+  it('Should be able to get the token prices (Moralis fallback for the native token)', async () => {
+    const getTokenPricesSpy: ReturnType<typeof vi.spyOn> = vi.spyOn(
+      DefiLlamaCryptoCompareEDS.prototype,
+      'getTokenPrices'
+    )
+
+    getTokenPricesSpy.mockResolvedValue([{ token: ordiToken, usdPrice: 1 }])
+
+    exchangeDataService = new DefiLlamaCryptoCompareMoralisEDSBitcoin(new BSBitcoin())
+
+    const firstTokenPrices = await exchangeDataService.getTokenPrices({
+      tokens: [BSBitcoinConstants.NATIVE_TOKEN, ordiToken],
+    })
+
+    expect(firstTokenPrices).toEqual([
+      { usdPrice: expect.any(Number), token: BSBitcoinConstants.NATIVE_TOKEN },
+      { usdPrice: expect.any(Number), token: ordiToken },
+    ])
+
+    getTokenPricesSpy.mockResolvedValue([])
+
+    const secondTokenPrices = await exchangeDataService.getTokenPrices({
+      tokens: [BSBitcoinConstants.NATIVE_TOKEN],
+    })
+
+    expect(secondTokenPrices).toEqual([{ usdPrice: expect.any(Number), token: BSBitcoinConstants.NATIVE_TOKEN }])
+  })
+
+  it('Should be able to get the BRL currency ratio', async () => {
     const currencyRatio = await exchangeDataService.getCurrencyRatio('BRL')
 
     expect(currencyRatio).toEqual(expect.any(Number))
   })
 
-  it('Should be able to get the EUR currency ratio from CryptoCompare', async () => {
+  it('Should be able to get the EUR currency ratio', async () => {
     const currencyRatio = await exchangeDataService.getCurrencyRatio('EUR')
 
     expect(currencyRatio).toEqual(expect.any(Number))
   })
 
-  it('Should be able to get the GBP currency ratio from CryptoCompare', async () => {
+  it('Should be able to get the GBP currency ratio', async () => {
     const currencyRatio = await exchangeDataService.getCurrencyRatio('GBP')
 
     expect(currencyRatio).toEqual(expect.any(Number))

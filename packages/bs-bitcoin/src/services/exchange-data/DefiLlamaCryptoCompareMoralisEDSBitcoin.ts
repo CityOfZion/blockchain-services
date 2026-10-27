@@ -1,7 +1,9 @@
 import {
   BSError,
   BSUtilsHelper,
-  CryptoCompareEDS,
+  DefiLlamaCryptoCompareEDS,
+  type IExchangeDataService,
+  type TBSToken,
   type TGetTokenPriceHistoryParams,
   type TGetTokenPricesParams,
   type TTokenPricesHistoryResponse,
@@ -11,7 +13,7 @@ import { IBSBitcoin, TMoralisPriceResponse } from '../../types'
 import { BSBitcoinMoralisHelper } from '../../helpers/BSBitcoinMoralisHelper'
 import { BSBitcoinConstants } from '../../constants/BSBitcoinConstants'
 
-export class CryptoCompareMoralisEDSBitcoin extends CryptoCompareEDS {
+export class DefiLlamaCryptoCompareMoralisEDSBitcoin extends DefiLlamaCryptoCompareEDS implements IExchangeDataService {
   readonly #service: IBSBitcoin
   readonly #moralisApi = BSBitcoinMoralisHelper.getApi()
 
@@ -19,6 +21,14 @@ export class CryptoCompareMoralisEDSBitcoin extends CryptoCompareEDS {
     super()
 
     this.#service = service
+  }
+
+  protected _getDefiLlamaId({ hash }: TBSToken) {
+    if (this.#service.tokenService.isNativeToken(hash)) {
+      return `coingecko:${this.#service.name}`
+    }
+
+    return `${this.#service.name}:${hash}`
   }
 
   #validateMainnet() {
