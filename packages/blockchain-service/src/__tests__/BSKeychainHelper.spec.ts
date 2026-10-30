@@ -1,8 +1,17 @@
 import { BSKeychainHelper } from '../helpers/BSKeychainHelper'
 
 describe('BSKeychainHelper', () => {
-  it('Should be able to generate a mnemonic', () => {
+  it('Should be able to generate a 12 words mnemonic', () => {
+    const mnemonic = BSKeychainHelper.generateMnemonic(128)
+
+    expect(BSKeychainHelper.getMnemonicWords(mnemonic)).toHaveLength(12)
+    expect(BSKeychainHelper.isValidMnemonic(mnemonic)).toBe(true)
+  })
+
+  it('Should be able to generate a 24 words mnemonic', () => {
     const mnemonic = BSKeychainHelper.generateMnemonic()
+
+    expect(BSKeychainHelper.getMnemonicWords(mnemonic)).toHaveLength(24)
     expect(BSKeychainHelper.isValidMnemonic(mnemonic)).toBe(true)
   })
 
