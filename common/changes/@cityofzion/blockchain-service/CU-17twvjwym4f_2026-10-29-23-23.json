@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/blockchain-service",
+      "comment": "Add optional strength parameter to generateMnemonic to support 12 and 24 words mnemonic",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/blockchain-service"
+}

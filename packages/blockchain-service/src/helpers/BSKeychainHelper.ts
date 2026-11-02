@@ -46,7 +46,7 @@ export class BSKeychainHelper {
       const protoKey = k1.plus(k2).mod(c).toString(16)
 
       key = Buffer.from(protoKey.padStart(64, '0'), 'hex')
-      chainCode = intermediary.slice(32, intermediary.length)
+      chainCode = intermediary.subarray(32, intermediary.length)
     }
 
     return key.toString('hex')
@@ -91,8 +91,8 @@ export class BSKeychainHelper {
     return key
   }
 
-  static generateMnemonic() {
-    return bip39.generateMnemonic(128)
+  static generateMnemonic(strength: 128 | 256 = 256) {
+    return bip39.generateMnemonic(strength)
   }
 
   static getMnemonicWords(mnemonic: TMnemonic): string[] {
