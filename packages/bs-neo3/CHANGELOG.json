@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "3.1.23",
+      "tag": "@cityofzion/bs-neo3_v3.1.23",
+      "date": "Wed, 04 Nov 2026 18:44:15 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Normalize string when importing mnemonic"
+          },
+          {
+            "comment": "Use DefiLlama feature for prices"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.22",
       "tag": "@cityofzion/bs-neo3_v3.1.22",
       "date": "Sun, 25 Oct 2026 11:58:16 GMT",
