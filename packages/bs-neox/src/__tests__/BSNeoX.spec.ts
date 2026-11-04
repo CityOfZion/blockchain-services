@@ -25,6 +25,7 @@ let bsNeoX: BSNeoX
 describe('BSNeoX', () => {
   it('Should throw when transferring with a memo', async () => {
     bsNeoX = new BSNeoX(testnetNetwork)
+
     const senderAccount = await bsNeoX.generateAccountFromMnemonic(BSKeychainHelper.generateMnemonic(), 0)
 
     await expect(

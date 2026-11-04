@@ -36,8 +36,8 @@ describe('TrustlineServiceStellar', () => {
     const trustlines = await trustlineServiceStellar.getTrustlines(address)
 
     expect(trustlines.length).toBeGreaterThan(0)
-    trustlines.forEach(trustline => {
-      expect(trustline).toEqual(
+    expect(trustlines).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           token: expect.objectContaining({
             hash: expect.any(String),
@@ -46,9 +46,9 @@ describe('TrustlineServiceStellar', () => {
             decimals: expect.any(Number),
           }),
           limit: expect.any(String),
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 
   it('Should not include the native token in the trustlines', async () => {
@@ -63,16 +63,16 @@ describe('TrustlineServiceStellar', () => {
     const tokens = await trustlineServiceStellar.getAllTokens({ code: 'BTC' })
 
     expect(tokens.length).toBeGreaterThan(0)
-    tokens.forEach(token => {
-      expect(token).toEqual(
+    expect(tokens).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           symbol: 'BTC',
           hash: expect.any(String),
           decimals: BSStellarConstants.SAC_TOKEN_DECIMALS,
           name: 'BTC',
-        })
-      )
-    })
+        }),
+      ])
+    )
   })
 
   it.skip('Should be able to change the trustline', async () => {

@@ -26,7 +26,6 @@ export interface IBSNeoLegacy
   _generateSigningCallback(
     account: TBSAccount<TBSNeoLegacyName>
   ): Promise<{ neonJsAccount: any; signingCallback: TSigningCallback }>
-  _legacyNetwork: string
   _hasTransactionMoreThanMaxSize(config: any): boolean
   _getRequiredTransactionFeeConfig(config: any): any
   _sendTransfer(config: any, nep5ScriptBuilder?: any): Promise<string>

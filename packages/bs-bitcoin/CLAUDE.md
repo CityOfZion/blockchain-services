@@ -32,7 +32,7 @@ src/
 │   └── BSBitcoinXverseHelper           # Xverse wallet integration
 ├── services/
 │   ├── blockchain-data/        # TatumBDSBitcoin (UTXO-aware)
-│   ├── exchange-data/          # CryptoCompareMoralisEDSBitcoin
+│   ├── exchange-data/          # DefiLlamaMoralisEDSBitcoin
 │   ├── explorer/               # MempoolExplorerService
 │   ├── ledger/                 # LedgerServiceBitcoin
 │   ├── nft-data/               # XverseNftDataService (Ordinals)

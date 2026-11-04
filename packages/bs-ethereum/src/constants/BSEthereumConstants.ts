@@ -119,6 +119,8 @@ export class BSEthereumConstants {
       'https://ethereum-sepolia-rpc.publicnode.com',
       'https://ethereum-sepolia.rpc.subquery.network/public',
       'https://1rpc.io/sepolia',
+      'https://xrpc.cl/sepolia',
+      'https://eth-sepolia-testnet.api.pocket.network',
       'https://eth-sepolia.api.onfinality.io/public',
       'https://eth-sepolia.public.blastapi.io',
       'https://eth-sepolia-public.unifra.io',

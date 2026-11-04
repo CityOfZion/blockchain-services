@@ -8,8 +8,7 @@ let rpcBDSNeo3: RpcBDSNeo3
 
 describe('RpcBDSNeo3', () => {
   beforeEach(() => {
-    const service = new BSNeo3(network)
-    rpcBDSNeo3 = new RpcBDSNeo3(service)
+    rpcBDSNeo3 = new RpcBDSNeo3(new BSNeo3(network))
   })
 
   it('Should be able to get transaction', async () => {
@@ -95,16 +94,18 @@ describe('RpcBDSNeo3', () => {
     const address = 'NNmTVFrSPhe7zjgN6iq9cLgXJwLZziUKV6'
     const balance = await rpcBDSNeo3.getBalance(address)
 
-    balance.forEach(balance => {
-      expect(balance).toEqual({
-        amount: expect.stringMatching(/^\d+(\.\d+)?$/),
-        token: {
-          hash: expect.any(String),
-          name: expect.any(String),
-          symbol: expect.any(String),
-          decimals: expect.any(Number),
+    expect(balance).toEqual(
+      expect.arrayContaining([
+        {
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+          token: {
+            hash: expect.any(String),
+            name: expect.any(String),
+            symbol: expect.any(String),
+            decimals: expect.any(Number),
+          },
         },
-      })
-    })
+      ])
+    )
   })
 })

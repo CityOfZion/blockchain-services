@@ -1,6 +1,7 @@
 import {
   BSBigUnitAmount,
   BSCommonConstants,
+  BSError,
   BSUtilsHelper,
   type TBalanceResponse,
   type TBSNetwork,
@@ -36,6 +37,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
   static getClient(network: TBSNetwork<TBSNeoXNetworkId>) {
     const baseURL = BlockscoutBDSNeoX.BASE_URL_BY_CHAIN_ID[network.id]
+
     if (!baseURL) throw new Error('Unsupported network')
 
     return axios.create({ baseURL })
@@ -60,13 +62,13 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     const { data: response } = await this.#api.get<TBlockscoutBDSNeoXTransactionApiResponse>(`/transactions/${txid}`)
 
     if (!response || 'message' in response) {
-      throw new Error('Transaction not found')
+      throw new BSError('Transaction not found', 'TRANSACTION_NOT_FOUND')
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
     const events: TTransactionDefaultEvent[] = []
-
     const hasNativeTokenBeingTransferred = response.value !== '0'
+
     if (hasNativeTokenBeingTransferred) {
       const from = response.from.hash
       const to = response.to.hash
@@ -87,6 +89,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     }
 
     const hasTokenTransfers = response.token_transfers && response.token_transfers.length > 0
+
     if (hasTokenTransfers) {
       const promises = response.token_transfers.map(async (tokenTransfer, currentIndex) => {
         const index = hasNativeTokenBeingTransferred ? currentIndex + 1 : currentIndex
@@ -174,7 +177,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     )
 
     if (!data || 'message' in data) {
-      throw new Error('Transactions not found')
+      throw new BSError('Transactions not found', 'TRANSACTIONS_NOT_FOUND')
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
@@ -331,8 +334,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
     const { data: nativeBalance } = await this.#api.get<{ coin_balance: string }>(`/addresses/${address}`)
+
     if (!nativeBalance || 'message' in nativeBalance) {
-      throw new Error('Native balance not found')
+      throw new BSError('Native balance not found', 'NATIVE_BALANCE_NOT_FOUND')
     }
 
     const nativeToken = BSNeoXConstants.NATIVE_ASSET
@@ -347,8 +351,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     const { data: erc20Balances } = await this.#api.get<TBlockscoutBDSNeoXBalanceApiResponse[]>(
       `/addresses/${address}/token-balances`
     )
+
     if (!erc20Balances || 'message' in erc20Balances) {
-      throw new Error('ERC20 balance not found')
+      throw new BSError('ERC20 balance not found', 'ERC_20_BALANCE_NOT_FOUND')
     }
 
     erc20Balances.forEach(balance => {
@@ -358,10 +363,10 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         }
 
         const token: TBSToken = this._service.tokenService.normalizeToken({
-          decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
-          hash: balance.token.address,
-          name: balance.token.symbol,
           symbol: balance.token.symbol,
+          name: balance.token.symbol,
+          hash: balance.token.address,
+          decimals: balance.token.decimals ? parseInt(balance.token.decimals) : BSEthereumConstants.DEFAULT_DECIMALS,
         })
 
         balances.push({
@@ -378,8 +383,9 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
 
   async getBlockHeight(): Promise<number> {
     const { data } = await this.#api.get<TBlockscoutBDSNeoXBlocksApiResponse>('/blocks')
+
     if (!data || 'message' in data) {
-      throw new Error('Block not found')
+      throw new BSError('Block not found', 'BLOCK_NOT_FOUND')
     }
 
     return data.items[0].height

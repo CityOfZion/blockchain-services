@@ -10,7 +10,7 @@ import type {
   TNftsResponse,
 } from '../../interfaces'
 import qs from 'query-string'
-import type { TGhostMarketNDSNeo3AssetApiResponse, TGhostMarketNDSNeo3GetAssetsApiResponse } from '../../types'
+import type { TGhostMarketAssetResponse, TGhostMarketAssetsResponse } from '../../types'
 import { hasExplorerService } from '../../functions'
 import { BSError } from '../../error'
 
@@ -57,10 +57,11 @@ export abstract class GhostMarketNDS<
       },
       { arrayFormat: 'bracket' }
     )
+
     return `${GhostMarketNDS.BASE_URL}/assets?${parameters}`
   }
 
-  #parse(data: TGhostMarketNDSNeo3AssetApiResponse): TNftResponse {
+  #parse(data: TGhostMarketAssetResponse): TNftResponse {
     let explorerUri: string | undefined
     let collectionUrl: string | undefined
     const contractHash = data.contract.hash
@@ -100,12 +101,15 @@ export abstract class GhostMarketNDS<
       owners: [address],
       cursor: nextPageParams,
     })
-    const { data } = await axios.get<TGhostMarketNDSNeo3GetAssetsApiResponse>(url)
-    const nfts = data.assets ?? []
+
+    const { data } = await axios.get<TGhostMarketAssetsResponse>(url)
+    const nfts = data.assets || []
 
     const items = nfts.map(nft => {
       const item = this.#parse(nft)
+
       this.#nftsCacheMap.set(this.#buildNftsCacheKey(nft.contract.hash, nft.tokenId), item)
+
       return item
     })
 
@@ -119,6 +123,7 @@ export abstract class GhostMarketNDS<
 
     const cacheKey = this.#buildNftsCacheKey(collectionHash, tokenHash)
     const nftFromCache = this.#nftsCacheMap.get(cacheKey)
+
     if (nftFromCache) {
       return nftFromCache
     }
@@ -127,8 +132,8 @@ export abstract class GhostMarketNDS<
       contract: collectionHash,
       tokenIds: [tokenHash],
     })
-    const { data } = await axios.get<TGhostMarketNDSNeo3GetAssetsApiResponse>(url)
 
+    const { data } = await axios.get<TGhostMarketAssetsResponse>(url)
     const nft = this.#parse(data.assets[0])
 
     this.#nftsCacheMap.set(cacheKey, nft)

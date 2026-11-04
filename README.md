@@ -39,6 +39,13 @@ rush rebuild # hasn't cache (recommended)
 ```
 
 ## Test
+Copy the `.env.example` file to `.env` in the package and fill the variables. `TEST_COZ_API_KEY` is required by tests that hit COZ API endpoints (`api.coz.io` / `api-stage.coz.io`), it's sent as the `x-api-key` header:
+```bash
+# cd packages/PACKAGE_NAME
+
+cp .env.example .env
+```
+
 Test the package:
 ```bash
 # cd packages/PACKAGE_NAME

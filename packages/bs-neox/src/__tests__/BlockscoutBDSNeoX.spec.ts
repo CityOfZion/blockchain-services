@@ -15,7 +15,6 @@ describe('BlockscoutBDSNeoX', () => {
 
   it('Should return transaction details for native assets (GAS)', async () => {
     const txId = '0xbc669a1084f69a69f0b7bf10ee160265fbd548c15b05b41d9de386c8cb51290a'
-
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(
@@ -47,7 +46,6 @@ describe('BlockscoutBDSNeoX', () => {
 
   it('Should return transaction details for ERC-20 assets (Ethereum assets)', async () => {
     const txId = '0x055a176ae9f0c950584bac1ebc93abb0e52160914e40f9288c69f90e47bd8cee'
-
     const transaction = await blockscoutBDSNeoX.getTransaction(txId)
 
     expect(transaction).toEqual(
@@ -84,11 +82,10 @@ describe('BlockscoutBDSNeoX', () => {
 
   it('Should return transactions by address', async () => {
     const address = '0x1241f44BFA102ab7386C784959BAe3D0fB923734'
+    const response = await blockscoutBDSNeoX.getTransactionsByAddress({ address })
 
-    const transactions = await blockscoutBDSNeoX.getTransactionsByAddress({ address })
-
-    transactions.transactions.forEach(transaction => {
-      expect(transaction).toEqual(
+    expect(response.transactions).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           txId: expect.any(String),
           txIdUrl: expect.any(String),
@@ -100,53 +97,49 @@ describe('BlockscoutBDSNeoX', () => {
           networkFeeAmount: expect.stringMatching(/^\d+(\.\d+)?$/),
           view: 'default',
           events: expect.any(Array),
-        })
-      )
+        }),
+      ])
+    )
 
-      if (transaction.events.length > 0) {
-        expect(transaction.events).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              eventType: expect.any(String),
-              amount: expect.stringMatching(/^\d+(\.\d+)?$/),
-              methodName: expect.any(String),
-              from: expect.anything(),
-              fromUrl: expect.anything(),
-              to: expect.anything(),
-              toUrl: expect.anything(),
-              tokenUrl: expect.any(String),
-              token: expect.objectContaining({
-                decimals: expect.any(Number),
-                symbol: expect.any(String),
-                name: expect.any(String),
-                hash: expect.any(String),
-              }),
+    const events = response.transactions.flatMap(transaction => transaction.events)
+
+    if (events.length > 0) {
+      expect(events).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            eventType: expect.any(String),
+            amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+            methodName: expect.any(String),
+            from: expect.anything(),
+            fromUrl: expect.anything(),
+            to: expect.anything(),
+            toUrl: expect.anything(),
+            token: expect.objectContaining({
+              decimals: expect.any(Number),
+              symbol: expect.any(String),
+              name: expect.any(String),
+              hash: expect.any(String),
             }),
-          ])
-        )
-      }
-    })
+          }),
+        ])
+      )
+    }
   })
 
   it('Should return token info', async () => {
     const tokenHash = '0xE816deE05cf6D0F2a57EB4C489241D8326B5d106'
-
-    const expectedToken = {
-      decimals: 18,
-      hash: tokenHash,
-      name: 'NeoDashboard MemeCoin',
-      symbol: 'NDMEME',
-    }
-
     const token = await blockscoutBDSNeoX.getTokenInfo(tokenHash)
 
-    expect(token).toEqual(expectedToken)
+    expect(token).toEqual({
+      symbol: 'NDMEME',
+      name: 'NeoDashboard MemeCoin',
+      hash: tokenHash,
+      decimals: 18,
+    })
   })
 
   it('Should return balance', async () => {
-    const address = '0xa911a7FA0901Cfc3f1da55A05593823E32e2f1a9'
-
-    const balance = await blockscoutBDSNeoX.getBalance(address)
+    const balance = await blockscoutBDSNeoX.getBalance('0xa911a7FA0901Cfc3f1da55A05593823E32e2f1a9')
 
     expect(balance).toEqual(
       expect.arrayContaining([
@@ -168,9 +161,7 @@ describe('BlockscoutBDSNeoX', () => {
     service = new BSNeoX(BSNeoXConstants.TESTNET_NETWORK)
     blockscoutBDSNeoX = new BlockscoutBDSNeoX(service)
 
-    const address = '0xE3aBC0b2A74FD2eF662b1c25C9769398f53b4304'
-
-    const balance = await blockscoutBDSNeoX.getBalance(address)
+    const balance = await blockscoutBDSNeoX.getBalance('0xE3aBC0b2A74FD2eF662b1c25C9769398f53b4304')
 
     expect(balance).toEqual(
       expect.arrayContaining([

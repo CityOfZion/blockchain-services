@@ -261,7 +261,7 @@ export class TatumBDSBitcoin implements IBlockchainDataService<TBSBitcoinName> {
         })
 
         const nativeToken = data.result.find(item =>
-          this.#service.tokenService.predicateBySymbol(item.symbol, BSBitcoinConstants.NATIVE_TOKEN)
+          this.#service.tokenService.predicateBySymbol(item.symbol, BSBitcoinConstants.NATIVE_TOKEN.symbol)
         )
 
         return nativeToken?.balance
