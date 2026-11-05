@@ -203,6 +203,7 @@ describe('Neo3NeoXBridgeService', () => {
     const gasBalance = balances.find(balance =>
       bsNeo3Service.tokenService.predicateByHash(neo3NeoXBridgeService.gasToken, balance.token)
     )
+
     if (!gasBalance) {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
@@ -230,6 +231,7 @@ describe('Neo3NeoXBridgeService', () => {
     const neoBalance = balances.find(balance =>
       bsNeo3Service.tokenService.predicateByHash(neo3NeoXBridgeService.neoToken, balance.token)
     )
+
     if (!neoBalance) {
       throw new Error('It seems you do not have GAS balance to bridge')
     }
@@ -257,6 +259,7 @@ describe('Neo3NeoXBridgeService', () => {
     const ndmemeBalance = balances.find(balance =>
       bsNeo3Service.tokenService.predicateByHash(neo3NeoXBridgeService.ndmemeToken, balance.token)
     )
+
     if (!ndmemeBalance) {
       throw new Error('It seems you do not have NDMEME balance to bridge')
     }

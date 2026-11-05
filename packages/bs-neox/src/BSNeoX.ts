@@ -51,7 +51,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     const chainId = parseInt(this.network.id)
 
     if (isNaN(chainId)) {
-      throw new Error('Invalid chainId')
+      throw new BSError('Invalid chainId', 'INVALID_CHAIN_ID')
     }
 
     transactionParams.chainId = chainId
@@ -59,7 +59,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     const nonce = await signer.getNonce('pending')
 
     if (isNaN(nonce)) {
-      throw new Error('Invalid nonce')
+      throw new BSError('Invalid nonce', 'INVALID_NONCE')
     }
 
     transactionParams.nonce = nonce
@@ -95,7 +95,7 @@ export class BSNeoX extends BSEthereum<TBSNeoXName, TBSNeoXNetworkId> implements
     }
 
     if (!firstTransactionError?.error || firstTransactionError.error.message !== 'transaction cached') {
-      throw new Error('Transaction not cached')
+      throw new BSError('Transaction not cached', 'TRANSACTION_NOT_CACHED')
     }
 
     const hexNonce = toHex(nonce)

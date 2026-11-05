@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-solana",
+      "comment": "Use BSError instead of Error",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-solana"
+}

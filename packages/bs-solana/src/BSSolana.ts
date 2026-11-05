@@ -189,7 +189,7 @@ export class BSSolana implements IBSSolana {
     const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
-      throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+      throw new BSError(`Network with id ${network.id} is not available for ${this.name}`, 'INVALID_NETWORK')
     }
 
     this.network = network

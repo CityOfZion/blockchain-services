@@ -1,4 +1,5 @@
 import {
+  BSError,
   generateAccountForBlockchainService,
   BSKeychainHelper,
   type TBSAccount,
@@ -52,9 +53,9 @@ export class NeonDappKitLedgerServiceNeo3 implements ILedgerService<TBSNeo3Name>
   async getAccount(transport: Transport, index: number): Promise<TBSAccount<TBSNeo3Name>> {
     const bipPath = BSKeychainHelper.getBipPath(this.#service.bipDerivationPath, index)
     const bipPathHex = this.#bipPathToHex(bipPath)
-
     const isNeoN3App = await this.verifyAppName(transport)
-    if (!isNeoN3App) throw new Error('App is not NEO N3')
+
+    if (!isNeoN3App) throw new BSError('App is not NEO N3', 'INVALID_LEDGER_APP')
 
     const result = await this.#sendChunk(
       transport,
@@ -97,13 +98,14 @@ export class NeonDappKitLedgerServiceNeo3 implements ILedgerService<TBSNeo3Name>
   getSigningCallback(transport: Transport, account: TBSAccount<TBSNeo3Name>): api.SigningFunction {
     return async (transaction, { witnessIndex, network }) => {
       const isNeoN3App = await this.verifyAppName(transport)
-      if (!isNeoN3App) throw new Error('App is not NEO N3')
+
+      if (!isNeoN3App) throw new BSError('App is not NEO N3', 'INVALID_LEDGER_APP')
 
       try {
         this.emitter.emit('getSignatureStart')
 
         if (!account.bipPath) {
-          throw new Error('Account must have BIP path to sign with Ledger')
+          throw new BSError('Account must have BIP path to sign with Ledger', 'BIP_PATH_NOT_FOUND')
         }
 
         const { wallet } = BSNeo3NeonJsSingletonHelper.getInstance()
@@ -115,7 +117,7 @@ export class NeonDappKitLedgerServiceNeo3 implements ILedgerService<TBSNeo3Name>
         )
 
         if (neonJsAccount.scriptHash !== witnessScriptHash) {
-          throw new Error('Invalid witness script hash')
+          throw new BSError('Invalid witness script hash', 'INVALID_WITNESS_SCRIPT_HASH')
         }
 
         const bipPathHex = this.#bipPathToHex(account.bipPath)
@@ -171,7 +173,7 @@ export class NeonDappKitLedgerServiceNeo3 implements ILedgerService<TBSNeo3Name>
         )
 
         if (response.length <= 2) {
-          throw new Error('Invalid signature returned from Ledger')
+          throw new BSError('Invalid signature returned from Ledger', 'INVALID_LEDGER_SIGNATURE')
         }
 
         return this.#derSignatureToHex(response.toString('hex'))

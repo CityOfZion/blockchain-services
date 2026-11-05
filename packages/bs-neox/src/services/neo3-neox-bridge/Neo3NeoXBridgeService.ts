@@ -114,14 +114,14 @@ export class Neo3NeoXBridgeService implements INeo3NeoXBridgeService<TBSNeoXName
       const chainId = parseInt(this.#service.network.id)
 
       if (isNaN(chainId)) {
-        throw new Error('Invalid chainId')
+        throw new BSError('Invalid chainId', 'INVALID_CHAIN_ID')
       }
 
       const signer = await this.#service._getSigner(params.account)
       const nonce = await signer.getNonce('pending')
 
       if (isNaN(nonce)) {
-        throw new Error('Invalid nonce')
+        throw new BSError('Invalid nonce', 'INVALID_NONCE')
       }
 
       const approvedEstimated = await signer.estimateGas({ ...populatedApproveTransaction, chainId, nonce, type: 2 })

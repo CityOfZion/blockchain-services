@@ -170,11 +170,14 @@ export class BSNeo3 implements IBSNeo3 {
 
     if (account.isHardware) {
       if (!this.ledgerService.getLedgerTransport) {
-        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+        throw new BSError(
+          'You must provide a getLedgerTransport function to use Ledger',
+          'GET_LEDGER_TRANSPORT_NOT_FOUND'
+        )
       }
 
       if (!account.bipPath) {
-        throw new Error('Account must have BIP path to use Ledger')
+        throw new BSError('Account must have BIP path to use Ledger', 'BIP_PATH_NOT_FOUND')
       }
 
       const ledgerTransport = await this.ledgerService.getLedgerTransport(account)

@@ -38,7 +38,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
   static getClient(network: TBSNetwork<TBSNeoXNetworkId>) {
     const baseURL = BlockscoutBDSNeoX.BASE_URL_BY_CHAIN_ID[network.id]
 
-    if (!baseURL) throw new Error('Unsupported network')
+    if (!baseURL) throw new BSError('Unsupported network', 'UNSUPPORTED_NETWORK')
 
     return axios.create({ baseURL })
   }
@@ -213,7 +213,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
           const ERC20Interface = new Interface(ERC20_ABI)
           const result = ERC20Interface.decodeFunctionData('transfer', rawInput)
 
-          if (!result) throw new Error('Invalid ERC20 transfer')
+          if (!result) throw new BSError('Invalid ERC20 transfer', 'INVALID_ERC20_TRANSFER')
 
           const contractHash = item.to.hash
           const token = await this.getTokenInfo(contractHash)
@@ -269,7 +269,7 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
       )
 
       if (!data || 'message' in data) {
-        throw new Error('Contract not found')
+        throw new BSError('Contract not found', 'CONTRACT_NOT_FOUND')
       }
 
       const methods: TContractMethod[] = []
@@ -293,8 +293,8 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
         name: data.name,
         methods,
       }
-    } catch {
-      throw new Error('Contract not found or not supported')
+    } catch (error) {
+      throw new BSError('Contract not found or not supported', 'CONTRACT_NOT_FOUND', error)
     }
   }
 
@@ -307,17 +307,19 @@ export class BlockscoutBDSNeoX extends RpcBDSEthereum<TBSNeoXName, TBSNeoXNetwor
     }
 
     const cachedToken = this._tokenCache.get(tokenHash)
+
     if (cachedToken) {
       return cachedToken
     }
 
     const { data } = await this.#api.get<TBlockscoutBDSNeoXTokensApiResponse>(`/tokens/${tokenHash}`)
+
     if (!data || 'message' in data) {
-      throw new Error('Token not found')
+      throw new BSError('Token not found', 'TOKEN_NOT_FOUND')
     }
 
     if (data.type !== 'ERC-20') {
-      throw new Error('Token is not an ERC-20 token')
+      throw new BSError('Token is not an ERC-20 token', 'TOKEN_NOT_ERC20')
     }
 
     const token = this._service.tokenService.normalizeToken({

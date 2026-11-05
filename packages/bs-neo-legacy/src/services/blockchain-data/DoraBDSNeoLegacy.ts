@@ -1,4 +1,5 @@
 import {
+  BSError,
   type TBalanceResponse,
   type IBlockchainDataService,
   type TBSToken,
@@ -26,7 +27,7 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
   async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeoLegacyName>> {
     const data = await api.NeoLegacyREST.transaction(hash, this.#service.network.id)
 
-    if (!data || 'error' in data) throw new Error(`Transaction ${hash} not found`)
+    if (!data || 'error' in data) throw new BSError(`Transaction ${hash} not found`, 'TRANSACTION_NOT_FOUND')
 
     const vout: any[] = data.vout ?? []
     const events: TTransactionDefaultEvent[] = []
@@ -129,7 +130,8 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
 
   async getContract(contractHash: string): Promise<TContractResponse> {
     const response = await api.NeoLegacyREST.contract(contractHash, this.#service.network.id)
-    if (!response || 'error' in response) throw new Error(`Contract ${contractHash} not found`)
+
+    if (!response || 'error' in response) throw new BSError(`Contract ${contractHash} not found`, 'CONTRACT_NOT_FOUND')
 
     return {
       hash: response.hash,
@@ -149,7 +151,8 @@ export class DoraBDSNeoLegacy implements IBlockchainDataService<TBSNeoLegacyName
 
     if (!token) {
       const data = await api.NeoLegacyREST.asset(tokenHash, this.#service.network.id)
-      if (!data || 'error' in data) throw new Error(`Token ${tokenHash} not found`)
+
+      if (!data || 'error' in data) throw new BSError(`Token ${tokenHash} not found`, 'TOKEN_NOT_FOUND')
 
       token = {
         decimals: Number(data.decimals),

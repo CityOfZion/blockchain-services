@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neo3",
+      "comment": "Use BSError instead of Error",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neo3"
+}

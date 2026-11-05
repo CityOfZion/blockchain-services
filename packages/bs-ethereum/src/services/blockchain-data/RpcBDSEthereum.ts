@@ -82,11 +82,11 @@ export class RpcBDSEthereum<
   async getTransactionsByAddress(
     _params: TGetTransactionsByAddressParams
   ): Promise<TGetTransactionsByAddressResponse<N, TTransactionDefault<N>>> {
-    throw new Error('Method not supported.')
+    throw new BSError('Method not supported.', 'METHOD_NOT_SUPPORTED')
   }
 
   async getContract(_hash: string): Promise<TContractResponse> {
-    throw new Error('Method not supported.')
+    throw new BSError('Method not supported.', 'METHOD_NOT_SUPPORTED')
   }
 
   async getTokenInfo(hash: string): Promise<TBSToken> {

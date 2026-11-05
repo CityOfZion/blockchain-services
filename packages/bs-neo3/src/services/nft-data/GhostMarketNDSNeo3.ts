@@ -38,14 +38,15 @@ export class GhostMarketNDSNeo3 extends GhostMarketNDS<TBSNeo3Name, TBSNeo3Netwo
       })
 
       return NeonParser.parseRpcResponse(result.stack[0], { type: 'Integer' }) > 0
-    } catch {
-      throw new Error(`Token not found: ${collectionHash}`)
+    } catch (error) {
+      throw new BSError(`Token not found: ${collectionHash}`, 'TOKEN_NOT_FOUND', error)
     }
   }
 
   getChain(): string {
     const chain = GhostMarketNDSNeo3.CHAIN_BY_NETWORK_ID[this._service.network.id]
-    if (!chain) throw new Error('Network not supported')
+
+    if (!chain) throw new BSError('Network not supported', 'UNSUPPORTED_NETWORK')
 
     return chain
   }

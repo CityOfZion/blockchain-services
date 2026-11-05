@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-bitcoin",
+      "comment": "Use BSError instead of Error",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-bitcoin"
+}

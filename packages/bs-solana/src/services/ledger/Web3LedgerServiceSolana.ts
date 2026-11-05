@@ -1,4 +1,5 @@
 import {
+  BSError,
   BSUtilsHelper,
   BSKeychainHelper,
   generateAccountForBlockchainService,
@@ -68,7 +69,7 @@ export class Web3LedgerServiceSolana implements ILedgerService<TBSSolanaName> {
     account: TBSAccount<TBSSolanaName>
   ): Promise<solanaKit.Base64EncodedWireTransaction> {
     if (!account.bipPath) {
-      throw new Error('Account must have BIP path to sign with Ledger')
+      throw new BSError('Account must have BIP path to sign with Ledger', 'BIP_PATH_NOT_FOUND')
     }
 
     const ledgerApp = new LedgerSolanaApp(transport)

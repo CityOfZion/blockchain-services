@@ -109,6 +109,7 @@ rush-pnpm --subspace default patch-commit /ABSOLUTE_PATH/blockchain-services/com
 
 ## Conventions
 - Protected methods should start with `_` (e.g. `_myMethod`) since `bs-electron` excludes methods prefixed with `_` from the exposed API.
+- Errors should be thrown as `BSError` with a `code` (e.g. `throw new BSError('Invalid address', 'INVALID_ADDRESS')`) instead of `Error`, so consumers can handle them by `error.code` instead of the message. When rethrowing, pass the caught error as the third argument (`sourceError`).
 
 ## Technologies Used
 - **pnpm**
