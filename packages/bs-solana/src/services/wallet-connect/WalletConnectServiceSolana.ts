@@ -184,7 +184,7 @@ export class WalletConnectServiceSolana implements IWalletConnectService<
       .send()
 
     if (!feeResponse.value) {
-      throw new Error('Failed to calculate fee')
+      throw new BSError('Failed to calculate fee', 'FEE_CALCULATION_FAILED')
     }
 
     return new BSBigUnitAmount(feeResponse.value.toString(), this.#service.feeToken.decimals).toHuman().toFormatted()

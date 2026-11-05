@@ -1,7 +1,7 @@
-import { GET_EXPOSED_API_CHANNEL, TApi, TExposedApi, eraseApi, getValueFromPath } from './utils'
-import { buildIpcChannelName } from './utils'
+import { buildIpcChannelName, eraseApi, GET_EXPOSED_API_CHANNEL, getValueFromPath, serializeError } from './utils'
 import { ipcMain } from 'electron'
 import cloneDeep from 'lodash.clonedeep'
+import { TApi, TExposedApi } from './types'
 
 const exposedApis: Map<string, TExposedApi> = new Map()
 let initialized = false
@@ -11,15 +11,15 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
 
   // Class name
   const apiName = api.constructor.name
-
   const apiIsAlreadyExposed = exposedApis.has(apiName)
+
   if (apiIsAlreadyExposed) {
     console.warn(`API ${apiName} is already exposed to renderer`)
+
     return
   }
 
   const apiClone = cloneDeep(api)
-
   const { asyncMethods, properties, syncMethods } = eraseApi(apiClone)
 
   // For each property, we need to create a listener so renderer can request the property value
@@ -27,9 +27,10 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
     ipcMain.on(buildIpcChannelName(apiName, property), event => {
       try {
         const value = getValueFromPath(api, property)
+
         event.returnValue = { data: value }
       } catch (error: any) {
-        event.returnValue = { error: { message: error.message, stack: error.stack, name: error.name } }
+        event.returnValue = { error: serializeError(error) }
       }
     })
   })
@@ -40,9 +41,10 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
       try {
         const func = getValueFromPath(api, method)
         const data = func(...args)
+
         event.returnValue = { data }
       } catch (error: any) {
-        event.returnValue = { error: { message: error.message, stack: error.stack, name: error.name } }
+        event.returnValue = { error: serializeError(error) }
       }
     })
   })
@@ -53,9 +55,10 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
       try {
         const func = getValueFromPath(api, method)
         const data = await func(...args)
+
         return { data }
       } catch (error: any) {
-        return { error: { message: error.message, stack: error.stack, name: error.name } }
+        return { error: serializeError(error) }
       }
     })
   })
@@ -66,10 +69,10 @@ export function exposeApiToRenderer<T extends TApi>(api: T) {
 // This function is called only once to initialize the ipcMain listener so renderer can request the exposed api
 function init() {
   if (initialized) return
+
   initialized = true
 
   ipcMain.on(GET_EXPOSED_API_CHANNEL, (event, apiName: string) => {
-    const exposedApi = exposedApis.get(apiName)
-    event.returnValue = exposedApi
+    event.returnValue = exposedApis.get(apiName)
   })
 }

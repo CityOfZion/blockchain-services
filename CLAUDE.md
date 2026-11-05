@@ -99,6 +99,27 @@ Services declare optional capabilities via extension interfaces:
 
 Methods prefixed with `_` (e.g., `_generateSigner`, `_buildTransferParams`) are considered protected. `bs-electron` automatically excludes them from the IPC-exposed API surface.
 
+### Error handling
+
+Library code throws `BSError` (exported from `@cityofzion/blockchain-service`, defined in `packages/blockchain-service/src/error.ts`), never a plain `Error`. Tests may still use `Error`.
+
+```typescript
+new BSError(message: string, code: string, sourceError?: any, metadata?: Record<string, unknown>)
+```
+
+- `code` is an UPPER_SNAKE_CASE stable identifier consumers branch on. Reuse an existing code before creating a new one (e.g. `INVALID_NETWORK`, `ONLY_AVAILABLE_ON_MAINNET`, `METHOD_NOT_SUPPORTED`, `TOKEN_NOT_FOUND`, `TRANSACTION_NOT_FOUND`, `REQUIRED_PARAMETER_MISSING`, `INVALID_ADDRESS`).
+- When rethrowing inside a `catch`, pass the caught error as `sourceError`:
+
+```typescript
+try {
+  // ...
+} catch (error) {
+  throw new BSError(`Token not found: ${tokenHash}`, 'TOKEN_NOT_FOUND', error)
+}
+```
+
+`bs-electron` preserves `code` and `metadata` when errors cross the main → renderer IPC boundary.
+
 ## Tech Stack
 
 - **Language:** TypeScript 5.x (`strict: true`, `nodenext` modules, `ES2020` target)

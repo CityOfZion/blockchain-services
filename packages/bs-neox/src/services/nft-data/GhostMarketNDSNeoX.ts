@@ -1,5 +1,5 @@
 import { ERC20_ABI } from '@cityofzion/bs-ethereum'
-import { BSBigUnitAmount, GhostMarketNDS, type THasTokenParams } from '@cityofzion/blockchain-service'
+import { BSError, BSBigUnitAmount, GhostMarketNDS, type THasTokenParams } from '@cityofzion/blockchain-service'
 import { ethers, JsonRpcProvider } from 'ethers'
 import type { IBSNeoX, TBSNeoXName, TBSNeoXNetworkId } from '../../types'
 
@@ -30,7 +30,9 @@ export class GhostMarketNDSNeoX extends GhostMarketNDS<TBSNeoXName, TBSNeoXNetwo
 
   getChain(): string {
     const chain = GhostMarketNDSNeoX.CHAIN_BY_NETWORK_ID[this._service.network.id]
-    if (!chain) throw new Error('Network not supported')
+
+    if (!chain) throw new BSError('Network not supported', 'UNSUPPORTED_NETWORK')
+
     return chain
   }
 }

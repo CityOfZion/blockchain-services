@@ -1,13 +1,8 @@
+import { TExposedApi, TSerializedError } from './types'
+import { BSError } from '@cityofzion/blockchain-service/dist/error'
+
 export const CHANNEL_PREFIX = 'bsElectron'
 export const GET_EXPOSED_API_CHANNEL = `${CHANNEL_PREFIX}:getExposedApi`
-
-export type TApi = { [K in keyof any]: any }
-
-export type TExposedApi = {
-  properties: string[]
-  syncMethods: string[]
-  asyncMethods: string[]
-}
 
 export function fixSimpleObject(api: TExposedApi) {
   const methods = [...api.asyncMethods, ...api.syncMethods]
@@ -223,4 +218,25 @@ export function toPlainObject(obj: any): any {
   }
 
   return plain
+}
+
+export function serializeError(error: any): TSerializedError {
+  return {
+    name: error?.name,
+    message: error?.message,
+    code: error?.code,
+    stack: error?.stack,
+    metadata: error?.metadata ? toPlainObject(error.metadata) : undefined,
+  }
+}
+
+export function deserializeError(serializedError: TSerializedError) {
+  const error = serializedError.code
+    ? new BSError(serializedError.message, serializedError.code, undefined, serializedError.metadata)
+    : new Error(serializedError.message)
+
+  error.name = serializedError.name
+  error.stack = serializedError.stack
+
+  return error
 }

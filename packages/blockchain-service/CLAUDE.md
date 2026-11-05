@@ -67,6 +67,21 @@ It's never called from `src/index.ts`, so library consumers' HTTP transports are
 
 Patching happens at the transport layer because SDK namespaces (`@solana/kit`, `@stellar/stellar-sdk`) expose read-only bindings and can't be monkeypatched directly. All patches are idempotent.
 
+## BSError
+
+`error.ts` defines `BSError extends Error`, the error every package throws instead of a plain `Error`:
+
+```typescript
+new BSError(message: string, code: string, sourceError?: any, metadata?: Record<string, unknown>)
+```
+
+- `name` is always `'BSError'`; `code` is an UPPER_SNAKE_CASE identifier (e.g. `INVALID_NETWORK`, `TOKEN_NOT_FOUND`, `METHOD_NOT_SUPPORTED`). Reuse existing codes before creating new ones.
+- `sourceError` holds the original error when rethrowing from a `catch`.
+- `metadata` carries extra structured context.
+- `toString()` returns `[BSError - CODE]: message | Caused by: <sourceError>`.
+
+`bs-electron` serializes `code` and `metadata` across IPC and rebuilds a `BSError` in the renderer.
+
 ## Architecture
 
 ### Core interface

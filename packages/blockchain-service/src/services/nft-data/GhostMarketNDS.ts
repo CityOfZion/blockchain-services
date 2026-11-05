@@ -47,7 +47,7 @@ export abstract class GhostMarketNDS<
   #getUrlWithParams(params: Record<string, any>) {
     const chain = this.getChain()
 
-    if (!chain) throw new Error('GhostMarketNDSNeo3 does not support this network')
+    if (!chain) throw new BSError('Network not supported', 'UNSUPPORTED_NETWORK')
 
     const parameters = qs.stringify(
       {

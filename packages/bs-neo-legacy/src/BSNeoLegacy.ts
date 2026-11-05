@@ -121,11 +121,15 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     const neonJsAccount = new wallet.Account(account.key)
 
     if (account.isHardware) {
-      if (!this.ledgerService.getLedgerTransport)
-        throw new Error('You must provide a getLedgerTransport function to use Ledger')
+      if (!this.ledgerService.getLedgerTransport) {
+        throw new BSError(
+          'You must provide a getLedgerTransport function to use Ledger',
+          'GET_LEDGER_TRANSPORT_NOT_FOUND'
+        )
+      }
 
       if (!account.bipPath) {
-        throw new Error('Account must have BIP path to use Ledger')
+        throw new BSError('Account must have BIP path to use Ledger', 'BIP_PATH_NOT_FOUND')
       }
 
       const ledgerTransport = await this.ledgerService.getLedgerTransport(account)
@@ -147,7 +151,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     const isValidNetwork = BSUtilsHelper.validateNetwork(network, this.availableNetworks, networkUrls)
 
     if (!isValidNetwork) {
-      throw new Error(`Network with id ${network.id} is not available for ${this.name}`)
+      throw new BSError(`Network with id ${network.id} is not available for ${this.name}`, 'INVALID_NETWORK')
     }
 
     this.network = network
@@ -220,7 +224,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
     const type = wallet.isWIF(key) ? 'wif' : wallet.isPrivateKey(key) ? 'privateKey' : undefined
 
-    if (!type) throw new Error('Invalid key')
+    if (!type) throw new BSError('Invalid key', 'INVALID_KEY')
 
     const { address } = new wallet.Account(key)
 
@@ -230,7 +234,7 @@ export class BSNeoLegacy implements IBSNeoLegacy {
   async generateAccountFromPublicKey(publicKey: string): Promise<TBSAccount<TBSNeoLegacyName>> {
     const { wallet } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
 
-    if (!wallet.isPublicKey(publicKey)) throw new Error('Invalid public key')
+    if (!wallet.isPublicKey(publicKey)) throw new BSError('Invalid public key', 'INVALID_PUBLIC_KEY')
 
     const account = new wallet.Account(publicKey)
 

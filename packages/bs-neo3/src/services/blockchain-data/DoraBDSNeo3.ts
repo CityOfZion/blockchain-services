@@ -1,4 +1,5 @@
 import {
+  BSError,
   BSBigHumanAmount,
   BSBigUnitAmount,
   BSCommonConstants,
@@ -150,8 +151,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
         methods: data.manifest.abi?.methods ?? [],
         name: data.manifest.name,
       }
-    } catch {
-      throw new Error(`Contract not found: ${contractHash}`)
+    } catch (error) {
+      throw new BSError(`Contract not found: ${contractHash}`, 'CONTRACT_NOT_FOUND', error)
     }
   }
 
@@ -181,8 +182,8 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
       this._tokenCache.set(tokenHash, token)
 
       return token
-    } catch {
-      throw new Error(`TBSToken not found: ${tokenHash}`)
+    } catch (error) {
+      throw new BSError(`Token not found: ${tokenHash}`, 'TOKEN_NOT_FOUND', error)
     }
   }
 

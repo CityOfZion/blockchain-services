@@ -1,4 +1,5 @@
 import {
+  BSError,
   BSCommonConstants,
   BSUtilsHelper,
   type TBalanceResponse,
@@ -356,8 +357,8 @@ export class MoralisBDSEthereum<N extends string, A extends TBSNetworkId> extend
       })
 
       return { hash, name: data[0].name, methods }
-    } catch {
-      throw new Error('Contract not found or not an ERC20 token')
+    } catch (error) {
+      throw new BSError('Contract not found or not an ERC20 token', 'CONTRACT_NOT_FOUND', error)
     }
   }
 }

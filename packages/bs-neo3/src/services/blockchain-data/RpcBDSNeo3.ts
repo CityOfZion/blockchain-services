@@ -1,4 +1,5 @@
 import {
+  BSError,
   BSBigUnitAmount,
   BSUtilsHelper,
   type IBlockchainDataService,
@@ -157,15 +158,15 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
         events,
         data,
       }
-    } catch {
-      throw new Error(`Transaction not found: ${hash}`)
+    } catch (error) {
+      throw new BSError(`Transaction not found: ${hash}`, 'TRANSACTION_NOT_FOUND', error)
     }
   }
 
   async getTransactionsByAddress(
     _params: TGetTransactionsByAddressParams
   ): Promise<TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>> {
-    throw new Error('Method not supported.')
+    throw new BSError('Method not supported.', 'METHOD_NOT_SUPPORTED')
   }
 
   async getContract(contractHash: string): Promise<TContractResponse> {
@@ -188,8 +189,8 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
         name: contractState.manifest.name,
         methods,
       }
-    } catch {
-      throw new Error(`Contract not found: ${contractHash}`)
+    } catch (error) {
+      throw new BSError(`Contract not found: ${contractHash}`, 'CONTRACT_NOT_FOUND', error)
     }
   }
 
@@ -225,10 +226,15 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
           ],
         })
 
-        if (!TypeChecker.isStackTypeInteger(response.stack[0])) throw new Error('Invalid decimals')
-        if (!TypeChecker.isStackTypeByteString(response.stack[1])) throw new Error('Invalid symbol')
+        if (!TypeChecker.isStackTypeInteger(response.stack[0])) {
+          throw new BSError('Invalid decimals', 'INVALID_DECIMALS')
+        }
+
+        if (!TypeChecker.isStackTypeByteString(response.stack[1])) throw new BSError('Invalid symbol', 'INVALID_SYMBOL')
+
         const decimals = Number(response.stack[0].value)
         const symbol = u.base642utf8(response.stack[1].value)
+
         token = this._service.tokenService.normalizeToken({
           name: contractState.manifest.name,
           symbol,
@@ -240,8 +246,8 @@ export class RpcBDSNeo3 implements IBlockchainDataService<TBSNeo3Name> {
       this._tokenCache.set(tokenHash, token)
 
       return token
-    } catch {
-      throw new Error(`Token not found: ${tokenHash}`)
+    } catch (error) {
+      throw new BSError(`Token not found: ${tokenHash}`, 'TOKEN_NOT_FOUND', error)
     }
   }
 

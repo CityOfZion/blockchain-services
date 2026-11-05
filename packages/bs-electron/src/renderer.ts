@@ -1,24 +1,27 @@
+import { BSError } from '@cityofzion/blockchain-service/dist/error'
 import {
   GET_EXPOSED_API_CHANNEL,
-  TApi,
-  TExposedApi,
   buildIpcChannelName,
   populateObjectFromPath,
   toPlainObject,
+  deserializeError,
 } from './utils'
+import { TApi, TExposedApi } from './types'
 
 const boundApis: Map<string, TApi> = new Map()
 
 export function bindApiFromMain<T extends TApi = any>(apiName: string) {
   const boundApi = boundApis.get(apiName)
+
   if (boundApi) {
     return boundApi as T
   }
 
   // Request the exposed api from main
   const exposedApi: TExposedApi | undefined = window.ipcBsElectron.sendSync(GET_EXPOSED_API_CHANNEL, apiName)
+
   if (!exposedApi) {
-    throw new Error(`API ${apiName} is not exposed to renderer`)
+    throw new BSError(`API ${apiName} is not exposed to renderer`, 'API_NOT_EXPOSED')
   }
 
   const api = {} as T
@@ -28,12 +31,9 @@ export function bindApiFromMain<T extends TApi = any>(apiName: string) {
     populateObjectFromPath(api, String(property), {
       get: () => {
         const result = window.ipcBsElectron.sendSync(buildIpcChannelName(apiName, property))
-        if (result.error) {
-          const error = new Error(result.error.message)
-          error.name = result.error.name
-          error.stack = result.error.stack
-          throw error
-        }
+
+        if (result.error) throw deserializeError(result.error)
+
         return result.data
       },
     })
@@ -44,14 +44,10 @@ export function bindApiFromMain<T extends TApi = any>(apiName: string) {
     populateObjectFromPath(api, String(method), {
       value: (...args: any[]) => {
         const plainArgs = toPlainObject(args)
-
         const result = window.ipcBsElectron.sendSync(buildIpcChannelName(apiName, method), ...plainArgs)
-        if (result.error) {
-          const error = new Error(result.error.message)
-          error.name = result.error.name
-          error.stack = result.error.stack
-          throw error
-        }
+
+        if (result.error) throw deserializeError(result.error)
+
         return result.data
       },
     })
@@ -62,14 +58,10 @@ export function bindApiFromMain<T extends TApi = any>(apiName: string) {
     populateObjectFromPath(api, String(method), {
       value: async (...args: any[]) => {
         const plainArgs = toPlainObject(args)
-
         const result = await window.ipcBsElectron.invoke(buildIpcChannelName(apiName, method), ...plainArgs)
-        if (result.error) {
-          const error = new Error(result.error.message)
-          error.name = result.error.name
-          error.stack = result.error.stack
-          throw error
-        }
+
+        if (result.error) throw deserializeError(result.error)
+
         return result.data
       },
     })

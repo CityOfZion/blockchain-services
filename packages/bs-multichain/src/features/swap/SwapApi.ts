@@ -175,7 +175,6 @@ export class SwapApi {
   }
 
   // TODO: the GET /orders/addresses/:accountAddress endpoint is not deployed yet, so it returns mocked data for now.
-
   async getOrdersByAddress({
     address,
     limit,

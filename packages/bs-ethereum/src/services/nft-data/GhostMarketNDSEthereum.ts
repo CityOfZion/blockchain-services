@@ -1,4 +1,5 @@
 import {
+  BSError,
   BSBigUnitAmount,
   GhostMarketNDS,
   type TBSNetworkId,
@@ -46,7 +47,9 @@ export class GhostMarketNDSEthereum<N extends string, A extends TBSNetworkId> ex
 
   getChain(): string {
     const chain = GhostMarketNDSEthereum.CHAIN_BY_NETWORK_ID[this._service.network.id]
-    if (!chain) throw new Error('Network not supported')
+
+    if (!chain) throw new BSError('Network not supported', 'UNSUPPORTED_NETWORK')
+
     return chain
   }
 }

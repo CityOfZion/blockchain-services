@@ -6,6 +6,7 @@ import type {
   TNftResponse,
   TNftsResponse,
 } from '@cityofzion/blockchain-service'
+import { BSError } from '@cityofzion/blockchain-service'
 import type { IBSSolana, TMetaplexAssetByOwnerResponse, TMetaplexAssetResponse } from '../../types'
 import axios from 'axios'
 import { BSSolanaConstants } from '../../constants/BSSolanaConstants'
@@ -93,7 +94,7 @@ export class RpcNDSSolana implements INftDataService {
     const nft = await this.#parseResponse(result)
 
     if (!nft) {
-      throw new Error(`Nft not found for tokenHash: ${params.tokenHash}`)
+      throw new BSError(`Nft not found for tokenHash: ${params.tokenHash}`, 'NFT_NOT_FOUND')
     }
 
     this.#nftsCache.set(result.id, nft)

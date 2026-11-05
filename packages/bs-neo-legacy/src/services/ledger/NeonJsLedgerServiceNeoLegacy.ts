@@ -1,4 +1,5 @@
 import {
+  BSError,
   BSKeychainHelper,
   generateAccountForBlockchainService,
   type TBSAccount,
@@ -80,7 +81,7 @@ export class NeonJsLedgerServiceNeoLegacy implements ILedgerService<TBSNeoLegacy
         this.emitter.emit('getSignatureStart')
 
         if (!account.bipPath) {
-          throw new Error('Account must have BIP path to sign with Ledger')
+          throw new BSError('Account must have BIP path to sign with Ledger', 'BIP_PATH_NOT_FOUND')
         }
 
         const { wallet, tx } = BSNeoLegacyNeonJsSingletonHelper.getInstance()
@@ -90,7 +91,7 @@ export class NeonJsLedgerServiceNeoLegacy implements ILedgerService<TBSNeoLegacy
         const witnessScriptHash = wallet.getScriptHashFromPublicKey(publicKey)
 
         if (neonJsAccount.scriptHash !== witnessScriptHash) {
-          throw new Error('Public key does not match the account key')
+          throw new BSError('Public key does not match the account key', 'PUBLIC_KEY_MISMATCH')
         }
 
         const bipPathHex = this.#bipPathToHex(account.bipPath)
@@ -118,7 +119,7 @@ export class NeonJsLedgerServiceNeoLegacy implements ILedgerService<TBSNeoLegacy
         )
 
         if (response.readUIntBE(0, 2) === ENeonJsLedgerServiceNeoLegacyStatus.OK) {
-          throw new Error('No more data but Ledger did not return signature!')
+          throw new BSError('No more data but Ledger did not return signature!', 'INVALID_LEDGER_SIGNATURE')
         }
 
         const signature = this.#derSignatureToHex(response.toString('hex'))

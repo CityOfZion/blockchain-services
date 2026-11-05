@@ -1,4 +1,5 @@
 import {
+  BSError,
   BSBigHumanAmount,
   type TContractResponse,
   type IBlockchainDataService,
@@ -15,7 +16,7 @@ import * as stellarSDK from '@stellar/stellar-sdk'
 import { BSStellarConstants } from '../../constants/BSStellarConstants'
 
 export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName> {
-  maxTimeToConfirmTransactionInMs: number = 1 * 60 * 1000 // 1 minute
+  maxTimeToConfirmTransactionInMs: number = 60 * 1000 // 1 minute
 
   #service: IBSStellar
 
@@ -186,7 +187,7 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
   }
 
   async getContract(_contractHash: string): Promise<TContractResponse> {
-    throw new Error('Method not supported')
+    throw new BSError('Method not supported', 'METHOD_NOT_SUPPORTED')
   }
 
   async getTokenInfo(tokenHash: string): Promise<TBSToken> {
@@ -195,10 +196,10 @@ export class HorizonBDSStellar implements IBlockchainDataService<TBSStellarName>
     }
 
     const response = await this.#service._horizonServer.assets().forIssuer(tokenHash).limit(1).call()
-
     const { asset_code: code, asset_issuer: issuer } = response.records[0] || {}
+
     if (!code || !issuer) {
-      throw new Error(`Token not found: ${tokenHash}`)
+      throw new BSError(`Token not found: ${tokenHash}`, 'TOKEN_NOT_FOUND')
     }
 
     return {

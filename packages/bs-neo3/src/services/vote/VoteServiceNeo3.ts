@@ -1,4 +1,5 @@
 import {
+  BSError,
   BSBigHumanAmount,
   BSCommonConstants,
   TTransactionDefault,
@@ -91,7 +92,9 @@ export class VoteServiceNeo3 implements IVoteService {
   }
 
   async getCandidatesToVote(): Promise<TVoteServiceCandidate[]> {
-    if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
+    if (this._service.network.type !== 'mainnet') {
+      throw new BSError('Only Mainnet is supported', 'ONLY_AVAILABLE_ON_MAINNET')
+    }
 
     const { data } = await this.#api.get<TDoraVoteServiceNeo3GetCommitteeApiResponse[]>('/mainnet/committee')
 
@@ -115,9 +118,12 @@ export class VoteServiceNeo3 implements IVoteService {
   }
 
   async getVoteDetailsByAddress(address: string): Promise<TVoteServiceDetailsByAddressResponse> {
-    if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
-    if (!address) throw new Error('Missing address')
-    if (!this._service.validateAddress(address)) throw new Error('Invalid address')
+    if (this._service.network.type !== 'mainnet') {
+      throw new BSError('Only Mainnet is supported', 'ONLY_AVAILABLE_ON_MAINNET')
+    }
+
+    if (!address) throw new BSError('Missing address', 'REQUIRED_PARAMETER_MISSING')
+    if (!this._service.validateAddress(address)) throw new BSError('Invalid address', 'INVALID_ADDRESS')
 
     const { data } = await this.#api.get<TDoraVoteServiceNeo3GetVoteDetailsByAddressApiResponse>(
       `/mainnet/voter/${address}`
@@ -132,8 +138,11 @@ export class VoteServiceNeo3 implements IVoteService {
   }
 
   async vote({ account, candidatePubKey }: TVoteServiceVoteParams): Promise<TTransactionDefault<TBSNeo3Name>> {
-    if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
-    if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
+    if (this._service.network.type !== 'mainnet') {
+      throw new BSError('Only Mainnet is supported', 'ONLY_AVAILABLE_ON_MAINNET')
+    }
+
+    if (!candidatePubKey) throw new BSError('Missing candidatePubKey param', 'REQUIRED_PARAMETER_MISSING')
 
     const { neonJsAccount, signingCallback } = await this._service._generateSigningCallback(account)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
@@ -174,8 +183,11 @@ export class VoteServiceNeo3 implements IVoteService {
   }
 
   async calculateVoteFee({ account, candidatePubKey }: TVoteServiceVoteParams): Promise<string> {
-    if (this._service.network.type !== 'mainnet') throw new Error('Only Mainnet is supported')
-    if (!candidatePubKey) throw new Error('Missing candidatePubKey param')
+    if (this._service.network.type !== 'mainnet') {
+      throw new BSError('Only Mainnet is supported', 'ONLY_AVAILABLE_ON_MAINNET')
+    }
+
+    if (!candidatePubKey) throw new BSError('Missing candidatePubKey param', 'REQUIRED_PARAMETER_MISSING')
 
     const { neonJsAccount } = await this._service._generateSigningCallback(account)
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()

@@ -1,4 +1,5 @@
 import {
+  BSError,
   generateAccountForBlockchainService,
   BSUtilsHelper,
   BSKeychainHelper,
@@ -82,6 +83,7 @@ export class EthersLedgerSigner extends AbstractSigner {
       return Signature.from(signature).serialized
     } catch (error) {
       this.#emitter?.emit('getSignatureEnd')
+
       throw error
     }
   }
@@ -123,11 +125,11 @@ export class EthersLedgerSigner extends AbstractSigner {
   ): Promise<string> {
     try {
       const populated = await TypedDataEncoder.resolveNames(domain, types, value, async (name: string) => {
-        if (!this.provider) throw new Error('Cannot resolve ENS names without a provider')
+        if (!this.provider) throw new BSError('Cannot resolve ENS names without a provider', 'PROVIDER_NOT_FOUND')
 
         const resolved = await this.provider.resolveName(name)
 
-        if (!resolved) throw new Error('No address found for domain name')
+        if (!resolved) throw new BSError('No address found for domain name', 'ADDRESS_NOT_FOUND')
 
         return resolved
       })
@@ -159,6 +161,7 @@ export class EthersLedgerSigner extends AbstractSigner {
       return Signature.from(signature).serialized
     } catch (error) {
       this.#emitter?.emit('getSignatureEnd')
+
       throw error
     }
   }
