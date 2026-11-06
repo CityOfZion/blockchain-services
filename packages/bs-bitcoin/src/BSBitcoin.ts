@@ -29,15 +29,16 @@ import type {
   IBSBitcoin,
   TBSBitcoinName,
   TBSBitcoinNetworkId,
+  TBnsNameResponse,
+  TBnsZonefileResponse,
   TGetTransferDataParams,
-  THiroNameResponse,
   TSignTransactionParams,
   TTatumBroadcastResponse,
   TTatumFeesResponse,
   TTatumUtxo,
   TTatumUtxosResponse,
 } from './types'
-import { BSBitcoinHiroHelper } from './helpers/BSBitcoinHiroHelper'
+import { BSBitcoinBnsHelper } from './helpers/BSBitcoinBnsHelper'
 import { BSBitcoinTatumHelper } from './helpers/BSBitcoinTatumHelper'
 import { BSBitcoinBIP32SingletonHelper } from './helpers/BSBitcoinBIP32SingletonHelper'
 import { BSBitcoinECPairSingletonHelper } from './helpers/BSBitcoinECPairSingletonHelper'
@@ -51,7 +52,7 @@ import * as secp256k1 from '@bitcoinerlab/secp256k1'
 import { c32addressDecode } from 'c32check'
 
 export class BSBitcoin implements IBSBitcoin {
-  readonly #hiroApi = BSBitcoinHiroHelper.getApi()
+  readonly #bnsApi = BSBitcoinBnsHelper.getApi()
 
   readonly name = 'bitcoin'
   readonly nativeTokens = [BSBitcoinConstants.NATIVE_TOKEN]
@@ -175,6 +176,25 @@ export class BSBitcoin implements IBSBitcoin {
     }
 
     return transactionId
+  }
+
+  async #getBnsZonefileAddress(domain: string): Promise<string | undefined> {
+    try {
+      const { data } = await this.#bnsApi.get<TBnsZonefileResponse>(`/zonefile/${encodeURIComponent(domain)}/raw`)
+      const { zonefile } = data
+
+      if (!zonefile) return
+
+      const paymentAddresses = (zonefile.addresses || [])
+        .filter(({ type }) => type === 'payment')
+        .map(({ address }) => address)
+
+      return [zonefile.btc, ...paymentAddresses].find(
+        (address): address is string => !!address && this.validateAddress(address)
+      )
+    } catch {
+      return
+    }
   }
 
   #getInputSize(address: string) {
@@ -426,7 +446,7 @@ export class BSBitcoin implements IBSBitcoin {
   }
 
   validateNameServiceDomainFormat(domainName: string): boolean {
-    return domainName.endsWith('.bitcoin') || domainName.endsWith('.btc')
+    return domainName.endsWith('.btc')
   }
 
   async generateAccountFromMnemonic(mnemonic: string[] | string, index: number): Promise<TBSAccount<TBSBitcoinName>> {
@@ -497,28 +517,52 @@ export class BSBitcoin implements IBSBitcoin {
     return await this.generateAccountFromKey(key)
   }
 
-  async encrypt(key: string, password: string): Promise<string> {
+  async encrypt(key: string, password: string) {
     const decoded = wif.decode(key)
     const buffer = Buffer.from(decoded.privateKey)
 
     return bip38.encrypt(buffer, decoded.compressed, password)
   }
 
-  async calculateTransferFee(params: TTransferParams<TBSBitcoinName>): Promise<string> {
+  async calculateTransferFee(params: TTransferParams<TBSBitcoinName>) {
     const { feeBn } = await this.#getTransferData({ ...params, shouldValidate: false })
+
     return feeBn.toFormatted()
   }
 
-  async resolveNameServiceDomain(domainName: string): Promise<string> {
+  async resolveNameServiceDomain(domain: string) {
     if (this.network.type !== 'mainnet') {
-      throw new BSError('Only mainnet is supported', 'INVALID_NETWORK')
+      throw new BSError('Only Mainnet is supported', 'INVALID_NETWORK')
     }
 
-    const { data } = await this.#hiroApi.get<THiroNameResponse>(`/v1/names/${domainName}`)
-    const [version, hash160] = c32addressDecode(data.address)
+    if (!this.validateNameServiceDomainFormat(domain)) {
+      throw new BSError('Invalid domain', 'INVALID_DOMAIN')
+    }
+
+    let response: TBnsNameResponse
+
+    try {
+      const { data } = await this.#bnsApi.get<TBnsNameResponse>(`/names/${encodeURIComponent(domain)}`)
+
+      response = data
+    } catch (error) {
+      throw new BSError('Domain not found', 'DOMAIN_NOT_FOUND', error)
+    }
+
+    const { status, data } = response
+
+    if (status !== 'active' || data.revoked || !data.is_valid) {
+      throw new BSError("Domain isn't active", 'INACTIVE_DOMAIN')
+    }
+
+    const zonefileAddress = await this.#getBnsZonefileAddress(domain)
+
+    if (zonefileAddress) return zonefileAddress
+
+    const [version, hash160] = c32addressDecode(data.owner)
 
     if (version !== 22) {
-      throw new BSError("This domain isn't from mainnet", 'INVALID_DOMAIN_NAME')
+      throw new BSError("Domain isn't from Mainnet", 'INVALID_DOMAIN')
     }
 
     const { address } = bitcoinjs.payments.p2wpkh({

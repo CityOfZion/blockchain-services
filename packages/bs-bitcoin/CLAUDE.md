@@ -25,7 +25,7 @@ src/
 ├── helpers/
 │   ├── BSBitcoinBIP32SingletonHelper   # BIP32 HD wallet singleton
 │   ├── BSBitcoinECPairSingletonHelper  # EC keypair singleton
-│   ├── BSBitcoinHiroHelper             # Hiro API client
+│   ├── BSBitcoinBnsHelper              # BNS V2 API client (api.bnsv2.com)
 │   ├── BSBitcoinMoralisHelper          # Moralis API client
 │   ├── BSBitcoinOrdinalsHelper         # Ordinals/Inscriptions utilities
 │   ├── BSBitcoinTatumHelper            # Tatum API client
@@ -59,7 +59,7 @@ src/
 
 **Ordinals/NFTs:** Handled via Xverse wallet integration (`XverseNftDataService`). Ordinals are Bitcoin inscriptions treated as NFTs.
 
-**Name service:** Hiro API integration for BNS (Bitcoin Name System) domain resolution.
+**Name service:** BNS V2 API (`api.bnsv2.com`, called directly, not through the COZ API) for BNS (Bitcoin Name System) domain resolution, mainnet only. `resolveNameServiceDomain` checks the name is active via `/names/{domain}`, then returns the first valid BTC address from the owner's zonefile (`/zonefile/{domain}/raw`: `btc` field, then `addresses` entries of type `payment`). Zonefile is free-form owner data, so each candidate goes through `validateAddress`. Without a zonefile address it falls back to converting the owner Stacks address (c32-decoded hash160, version 22 only) into a P2WPKH address; that address is controlled by the Stacks key, which wallets usually derive on a different path than the BTC account.
 
 **Data provider:** Tatum for UTXO data and transaction history; Mempool.space for the explorer.
 

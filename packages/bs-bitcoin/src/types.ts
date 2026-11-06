@@ -56,14 +56,23 @@ export type TOrdinalsContentResponse = {
   lim: string
 }
 
-export type THiroNameResponse = {
-  address: string
-  blockchain: string
-  last_txid: string
+export type TBnsNameResponse = {
   status: string
-  zonefile_hash: string
-  expire_block: number
-  zonefile: string
+  data: {
+    owner: string
+    revoked: boolean
+    is_valid: boolean
+  }
+}
+
+export type TBnsZonefileResponse = {
+  zonefile?: {
+    btc?: string
+    addresses?: {
+      address: string
+      type: string
+    }[]
+  }
 }
 
 export type TXverseTokenResponse = {
