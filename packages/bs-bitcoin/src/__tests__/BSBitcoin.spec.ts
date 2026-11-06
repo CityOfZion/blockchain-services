@@ -139,17 +139,12 @@ describe('BSBitcoin', () => {
     const encryptedKey = await service.encrypt(testnetKey, 'password')
 
     expect(service.validateEncrypted(encryptedKey)).toBe(true)
-
     expect(service.validateEncrypted(testnetKey)).toBe(false)
-
     expect(service.validateEncrypted(invalidKey)).toBe(false)
   })
 
   it('Should be able to validate name service domain', () => {
-    expect(service.validateNameServiceDomainFormat('domain.bitcoin')).toBe(true)
-
     expect(service.validateNameServiceDomainFormat('domain.btc')).toBe(true)
-
     expect(service.validateNameServiceDomainFormat('domain.eth')).toBe(false)
   })
 
@@ -385,13 +380,13 @@ describe('BSBitcoin', () => {
   })
 
   it('Should be able to resolve a name service domain', async () => {
-    const address = await service.resolveNameServiceDomain('test.btc')
+    const address = await service.resolveNameServiceDomain('satoshi.btc')
 
-    expect(address).toEqual('bc1q049ukqxsd3gkxsw7ahllhm4ldev2m3kl2zsjf4')
+    expect(address).toEqual('bc1q66680cpztn90gk7znanf37d78vxllgx4aypceu')
   })
 
   it("Shouldn't be able to resolve an invalid name service domain", async () => {
-    await expect(service.resolveNameServiceDomain('test.eth')).rejects.toThrow()
+    await expect(service.resolveNameServiceDomain('satoshi.eth')).rejects.toThrow()
   })
 
   it("Shouldn't be able to resolve a name service domain using Testnet", async () => {

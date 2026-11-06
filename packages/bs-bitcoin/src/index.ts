@@ -4,7 +4,7 @@ export * from './constants/BSBitcoinConstants'
 
 export * from './helpers/BSBitcoinTatumHelper'
 export * from './helpers/BSBitcoinXverseHelper'
-export * from './helpers/BSBitcoinHiroHelper'
+export * from './helpers/BSBitcoinBnsHelper'
 export * from './helpers/BSBitcoinMoralisHelper'
 export * from './helpers/BSBitcoinOrdinalsHelper'
 export * from './helpers/BSBitcoinBIP32SingletonHelper'
