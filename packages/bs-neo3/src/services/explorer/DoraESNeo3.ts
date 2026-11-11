@@ -45,21 +45,25 @@ export class DoraESNeo3 implements IExplorerService {
 
   getAddressTemplateUrl() {
     if (!this.#baseUrl) return undefined
+
     return `${this.#baseUrl}/address/neo3/${this.#service.network.id}/{address}`
   }
 
   getTransactionTemplateUrl() {
     if (!this.#baseUrl) return undefined
+
     return `${this.#baseUrl}/transaction/neo3/${this.#service.network.id}/{txId}`
   }
 
   getNftTemplateUrl() {
     if (!this.#baseUrl) return undefined
+
     return `${this.#baseUrl}/nft/neo3/${this.#service.network.id}/{collectionHash}/{tokenHash}`
   }
 
   getContractTemplateUrl() {
     if (!this.#baseUrl) return undefined
+
     return `${this.#baseUrl}/contract/neo3/${this.#service.network.id}/{hash}`
   }
 }

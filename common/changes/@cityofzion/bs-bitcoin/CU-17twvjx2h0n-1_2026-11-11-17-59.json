@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-bitcoin",
+      "comment": "Fix API URLs",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-bitcoin"
+}

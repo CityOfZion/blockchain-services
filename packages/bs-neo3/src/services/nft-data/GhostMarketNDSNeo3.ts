@@ -19,8 +19,8 @@ export class GhostMarketNDSNeo3 extends GhostMarketNDS<TBSNeo3Name, TBSNeo3Netwo
     }
 
     const { NeonParser, NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
-
     const invoker = await NeonInvoker.init({ rpcAddress: this._service.network.url })
+
     try {
       const result = await invoker.testInvoke({
         invocations: [
