@@ -19,9 +19,10 @@ import { SwapHelper } from './SwapHelper'
 import type { BSAggregator } from '../../BSAggregator'
 import { v4 as uuidv4 } from 'uuid'
 
+// Order matters: the first matching regex wins
 const ERROR_CODE_BY_MESSAGE: [RegExp, string][] = [
-  [/below the minimum/i, 'AMOUNT_BELOW_MINIMUM'],
-  [/exceeds the maximum/i, 'AMOUNT_ABOVE_MAXIMUM'],
+  [/amount above maximum|exceeds the maximum/i, 'AMOUNT_ABOVE_MAXIMUM'],
+  [/amount below minimum|below the minimum/i, 'AMOUNT_BELOW_MINIMUM'],
   [/quote expired/i, 'QUOTE_EXPIRED'],
   [/unsupported pair|does not support this pair/i, 'UNSUPPORTED_PAIR'],
   [/no providers available/i, 'NO_PROVIDERS_AVAILABLE'],
@@ -31,9 +32,11 @@ const ERROR_CODE_BY_MESSAGE: [RegExp, string][] = [
 ]
 
 // e.g. "amount below minimum: 1 is below the minimum of 13.26 for this pair"
+// e.g. "amount below minimum: the smallest amount any provider accepts is 0.00001 ETH"
 const ERROR_METADATA_EXTRACTOR_BY_CODE: Record<string, (message: string) => Record<string, unknown> | undefined> = {
   AMOUNT_BELOW_MINIMUM: message => {
-    const minAmount = message.match(/minimum of\s+([\d.]+)/i)?.[1]
+    const match = message.match(/minimum of\s+([\d.]+)|accepts is\s+([\d.]+)/i)
+    const minAmount = match?.[1] || match?.[2]
     return minAmount ? { minAmount } : undefined
   },
   AMOUNT_ABOVE_MAXIMUM: message => {
@@ -56,8 +59,7 @@ export class SwapApi {
   get #api() {
     if (!this.#apiInstance) {
       this.#apiInstance = axios.create({
-        // TODO: change to BSCommonConstants.COZ_API_URL
-        baseURL: `${BSCommonConstants.COZ_API_STAGE_URL}/v2/p/swap`,
+        baseURL: `${BSCommonConstants.COZ_API_URL}/v2/p/swap`,
         headers: { 'X-Correlation-Id': this.correlationId },
       })
     }
