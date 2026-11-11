@@ -1,0 +1,10 @@
+{
+  "changes": [
+    {
+      "packageName": "@cityofzion/bs-neox",
+      "comment": "Improve getNeoToken method",
+      "type": "none"
+    }
+  ],
+  "packageName": "@cityofzion/bs-neox"
+}

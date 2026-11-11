@@ -4,17 +4,20 @@ import type { TBSNeoXNetworkId } from '../types'
 
 export class BSNeoXHelper {
   static getNeoToken(network: TBSNetwork<TBSNeoXNetworkId>) {
-    if (network.type === 'custom') {
+    const isMainnet = network.type === 'mainnet'
+
+    if (!isMainnet && network.type !== 'testnet') {
       throw new BSError('Invalid network', 'INVALID_NETWORK')
     }
 
-    let hash = '0xc28736dc83f4fd43d6fb832Fd93c3eE7bB26828f'
+    const symbol = 'NEO'
 
-    if (network.type === 'testnet') {
-      hash = '0xab0a26b8d903f36acb4bf9663f8d2de0672433cd'
+    return {
+      name: symbol,
+      symbol,
+      hash: isMainnet ? '0xc28736dc83f4fd43d6fb832Fd93c3eE7bB26828f' : '0xab0a26b8d903f36acb4bf9663f8d2de0672433cd',
+      decimals: 18,
     }
-
-    return { name: 'NEO', symbol: 'NEO', decimals: 18, hash }
   }
 
   static getNdmemeToken(network: TBSNetwork<TBSNeoXNetworkId>) {

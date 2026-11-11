@@ -114,11 +114,6 @@ export interface IVoteService {
   getTransactionData(transaction: TTransactionBase): TVoteServiceNeo3TransactionData | undefined
 }
 
-export type TRpcVoteServiceNeo3GetVoteCIMParams = {
-  address: string
-  candidatePubKey: string
-}
-
 export type TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse = { result: { Vmstate: string; txid: string } }
 
 export enum ENeonDappKitLedgerServiceNeo3Status {
