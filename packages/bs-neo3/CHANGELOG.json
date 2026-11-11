@@ -2,6 +2,21 @@
   "name": "@cityofzion/bs-neo3",
   "entries": [
     {
+      "version": "3.1.24",
+      "tag": "@cityofzion/bs-neo3_v3.1.24",
+      "date": "Wed, 11 Nov 2026 20:00:14 GMT",
+      "comments": {
+        "none": [
+          {
+            "comment": "Remove some types"
+          },
+          {
+            "comment": "Use BSError instead of Error"
+          }
+        ]
+      }
+    },
+    {
       "version": "3.1.23",
       "tag": "@cityofzion/bs-neo3_v3.1.23",
       "date": "Wed, 04 Nov 2026 18:44:15 GMT",

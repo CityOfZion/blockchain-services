@@ -1,6 +1,14 @@
 # Change Log - @cityofzion/bs-neox
 
-This log was last generated on Wed, 04 Nov 2026 18:44:15 GMT and should not be manually modified.
+This log was last generated on Wed, 11 Nov 2026 20:00:14 GMT and should not be manually modified.
+
+## 3.1.24
+Wed, 11 Nov 2026 20:00:14 GMT
+
+### Updates
+
+- Improve getNeoToken method
+- Use BSError instead of Error
 
 ## 3.1.23
 Wed, 04 Nov 2026 18:44:15 GMT
