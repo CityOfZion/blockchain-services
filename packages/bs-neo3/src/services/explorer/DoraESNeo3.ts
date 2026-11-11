@@ -1,5 +1,6 @@
 import { BSCommonConstants, type TBuildNftUrlParams, type IExplorerService } from '@cityofzion/blockchain-service'
 import type { IBSNeo3 } from '../../types'
+import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 
 export class DoraESNeo3 implements IExplorerService {
   readonly #service: IBSNeo3
@@ -8,7 +9,7 @@ export class DoraESNeo3 implements IExplorerService {
   constructor(service: IBSNeo3) {
     this.#service = service
 
-    if (service.network.type !== 'custom') {
+    if (!BSNeo3Helper.isAlternativeNetwork(service.network)) {
       this.#baseUrl = BSCommonConstants.DORA_URL
     }
   }
@@ -45,21 +46,25 @@ export class DoraESNeo3 implements IExplorerService {
 
   getAddressTemplateUrl() {
     if (!this.#baseUrl) return undefined
+
     return `${this.#baseUrl}/address/neo3/${this.#service.network.id}/{address}`
   }
 
   getTransactionTemplateUrl() {
     if (!this.#baseUrl) return undefined
+
     return `${this.#baseUrl}/transaction/neo3/${this.#service.network.id}/{txId}`
   }
 
   getNftTemplateUrl() {
     if (!this.#baseUrl) return undefined
+
     return `${this.#baseUrl}/nft/neo3/${this.#service.network.id}/{collectionHash}/{tokenHash}`
   }
 
   getContractTemplateUrl() {
     if (!this.#baseUrl) return undefined
+
     return `${this.#baseUrl}/contract/neo3/${this.#service.network.id}/{hash}`
   }
 }

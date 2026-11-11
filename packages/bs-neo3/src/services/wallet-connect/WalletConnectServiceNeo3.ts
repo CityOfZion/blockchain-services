@@ -9,6 +9,7 @@ import {
 import type { IBSNeo3, TBSNeo3Name, TWalletConnectServiceNeo3Method } from '../../types'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 import { BSNeo3NeonJsSingletonHelper } from '../../helpers/BSNeo3NeonJsSingletonHelper'
+import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import { z } from 'zod'
 
 const contractInvocationParamsSchema = z.object({
@@ -129,7 +130,9 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
   constructor(service: IBSNeo3) {
     this.#service = service
 
-    const networkId = service.network.type === 'custom' ? 'private' : this.#service.network.id.toString()
+    const networkId = BSNeo3Helper.isAlternativeNetwork(service.network)
+      ? 'private'
+      : this.#service.network.id.toString()
 
     this.chain = `${this.namespace}:${networkId}`
 
@@ -156,6 +159,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await contractInvocationParamsSchema.parseAsync(params),
     process: async args => {
       const invoker = await this.#getInvoker(args.account)
+
       return await invoker.invokeFunction(args.params)
     },
   }
@@ -165,6 +169,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
       validate: async params => await contractInvocationParamsSchema.parseAsync(params),
       process: async args => {
         const invoker = await this.#getInvoker(args.account)
+
         return await invoker.testInvoke(args.params)
       },
     }
@@ -176,6 +181,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await contractInvocationParamsSchema.parseAsync(params),
     process: async args => {
       const invoker = await this.#getInvoker(args.account)
+
       return await invoker.signTransaction(args.params)
     },
   }
@@ -187,6 +193,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await contractInvocationParamsSchema.parseAsync(params),
     process: async args => {
       const invoker = await this.#getInvoker(args.account)
+
       return await invoker.calculateFee(args.params)
     },
   }
@@ -195,6 +202,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await signMessageParamsSchema.parseAsync(params),
     process: async args => {
       const signer = await this.#getSigner(args.account)
+
       return await signer.signMessage(args.params)
     },
   }
@@ -203,6 +211,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await verifyMessageSchema.parseAsync(params),
     process: async args => {
       const signer = await this.#getSigner(args.account)
+
       return await signer.verifyMessage(args.params)
     },
   }
@@ -211,8 +220,8 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await encryptParamsSchema.parseAsync(params),
     process: async args => {
       const signer = await this.#getSigner(args.account)
-
       let publicKeys = args.params[1]
+
       if (!publicKeys || publicKeys.length === 0) {
         publicKeys = [signer.account!.getPublicKey()]
       }
@@ -225,6 +234,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await decryptParamsSchema.parseAsync(params),
     process: async args => {
       const signer = await this.#getSigner(args.account)
+
       return await signer.decrypt(args.params[0])
     },
   }
@@ -236,6 +246,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await decryptFromArrayParamsSchema.parseAsync(params),
     process: async args => {
       const signer = await this.#getSigner(args.account)
+
       return await signer.decryptFromArray(args.params[0])
     },
   }
@@ -246,6 +257,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
       const { rpc } = BSNeo3NeonJsSingletonHelper.getInstance()
       const rpcClient = new rpc.RPCClient(this.#service.network.url)
       const response = await rpcClient.getVersion()
+
       return {
         rpcAddress: this.#service.network.url,
         ...response,
@@ -260,6 +272,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     validate: async params => await traverseIteratorParamsSchema.parseAsync(params),
     process: async args => {
       const invoker = await this.#getInvoker(args.account)
+
       return await invoker.traverseIterator(args.params[0], args.params[1], args.params[2])
     },
   }
@@ -275,26 +288,20 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
 
   async #getInvoker(account: TBSAccount<TBSNeo3Name>) {
     const { neonJsAccount, signingCallback } = await this.#service._generateSigningCallback(account)
-
     const { NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
-    const invoker = await NeonInvoker.init({
+    return await NeonInvoker.init({
       rpcAddress: this.#service.network.url,
       account: neonJsAccount,
       signingCallback,
     })
-
-    return invoker
   }
 
   async #getSigner(account: TBSAccount<TBSNeo3Name>) {
     const { neonJsAccount } = await this.#service._generateSigningCallback(account)
-
     const { NeonSigner } = BSNeo3NeonDappKitSingletonHelper.getInstance()
 
-    const signer = new NeonSigner(neonJsAccount)
-
-    return signer
+    return new NeonSigner(neonJsAccount)
   }
 
   async calculateRequestFee(args: TWalletConnectServiceRequestMethodParams<TBSNeo3Name>): Promise<string> {
@@ -303,6 +310,7 @@ export class WalletConnectServiceNeo3 implements IWalletConnectService<TBSNeo3Na
     })
 
     const { total } = await this.#calculateFeeHandler.process({ ...args, params })
+
     return total.toString()
   }
 }

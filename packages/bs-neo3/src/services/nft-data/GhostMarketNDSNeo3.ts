@@ -4,7 +4,7 @@ import type { IBSNeo3, TBSNeo3Name, TBSNeo3NetworkId } from '../../types'
 import { BSNeo3NeonDappKitSingletonHelper } from '../../helpers/BSNeo3NeonDappKitSingletonHelper'
 
 export class GhostMarketNDSNeo3 extends GhostMarketNDS<TBSNeo3Name, TBSNeo3NetworkId, IBSNeo3> {
-  static readonly CHAIN_BY_NETWORK_ID: Record<TBSNeo3NetworkId, string> = {
+  static readonly CHAIN_BY_NETWORK_ID: Partial<Record<TBSNeo3NetworkId, string>> = {
     mainnet: 'n3',
     testnet: 'n3t',
   }
@@ -19,8 +19,8 @@ export class GhostMarketNDSNeo3 extends GhostMarketNDS<TBSNeo3Name, TBSNeo3Netwo
     }
 
     const { NeonParser, NeonInvoker } = BSNeo3NeonDappKitSingletonHelper.getInstance()
-
     const invoker = await NeonInvoker.init({ rpcAddress: this._service.network.url })
+
     try {
       const result = await invoker.testInvoke({
         invocations: [

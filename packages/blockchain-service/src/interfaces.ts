@@ -23,7 +23,7 @@ export type TBSToken = {
 
 export type TBSNetworkId<T extends string = string> = T | (string & {})
 
-export type TBSNetworkType = 'mainnet' | 'testnet' | 'custom'
+export type TBSNetworkType = 'mainnet' | 'testnet' | 'coz' | 'custom'
 
 export type TBSNetwork<T extends string = string> = {
   id: TBSNetworkId<T>

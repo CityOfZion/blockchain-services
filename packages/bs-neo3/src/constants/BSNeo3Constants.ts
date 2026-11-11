@@ -244,6 +244,7 @@ export class BSNeo3Constants {
       'http://seed4t5.neo.org:20332',
       'http://seed5t5.neo.org:20332',
     ],
+    coz: ['https://chain1.coz.io:443'],
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSNeo3NetworkId> = {
@@ -260,7 +261,14 @@ export class BSNeo3Constants {
     type: 'testnet',
   }
 
-  static readonly ALL_NETWORKS = [this.MAINNET_NETWORK, this.TESTNET_NETWORK]
+  static readonly COZ_NETWORK: TBSNetwork<TBSNeo3NetworkId> = {
+    id: 'coz',
+    name: 'COZ',
+    url: this.RPC_LIST_BY_NETWORK_ID.coz[0],
+    type: 'coz',
+  }
+
+  static readonly ALL_NETWORKS = [this.MAINNET_NETWORK, this.TESTNET_NETWORK, this.COZ_NETWORK]
 
   static readonly NEO_NS_HASH = '0x50ac1c37690cc2cfc594472833cf57505d5f46de'
 

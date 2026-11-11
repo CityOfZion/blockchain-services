@@ -170,4 +170,34 @@ describe('DoraBDSNeo3', () => {
       ])
     )
   })
+
+  it('Should be able to get balance on COZ', async () => {
+    service = new BSNeo3(BSNeo3Constants.COZ_NETWORK)
+    doraBDSNeo3 = new DoraBDSNeo3(service)
+
+    const balance = await doraBDSNeo3.getBalance('NWfQNiCVdiZP9qWJCfkyDck4qtPrS2xu5d')
+
+    expect(balance).toEqual(
+      expect.arrayContaining([
+        {
+          amount: expect.stringMatching(/^\d+(\.\d+)?$/),
+          token: {
+            hash: expect.any(String),
+            name: expect.any(String),
+            symbol: expect.any(String),
+            decimals: expect.any(Number),
+          },
+        },
+      ])
+    )
+  })
+
+  it('Should be able to get block height on COZ', async () => {
+    service = new BSNeo3(BSNeo3Constants.COZ_NETWORK)
+    doraBDSNeo3 = new DoraBDSNeo3(service)
+
+    const blockHeight = await doraBDSNeo3.getBlockHeight()
+
+    expect(blockHeight).toBeGreaterThan(0)
+  })
 })

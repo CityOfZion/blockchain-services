@@ -1,9 +1,7 @@
-import { BSBigUnitAmount, type TBSNetwork, type TBSToken } from '@cityofzion/blockchain-service'
+import { BSBigUnitAmount, BSCommonConstants, type TBSNetwork, type TBSToken } from '@cityofzion/blockchain-service'
 import type { TBSBitcoinNetworkId } from '../types'
 
 export class BSBitcoinConstants {
-  static readonly #API_URL = 'https://api.tatum.io'
-
   static readonly BIP_DERIVATION_PATHS_BY_NETWORK_ID: Record<TBSBitcoinNetworkId, string> = {
     mainnet: "m/84'/0'/0'/0/?",
     testnet: "m/84'/1'/0'/0/?",
@@ -17,8 +15,8 @@ export class BSBitcoinConstants {
   }
 
   static readonly API_URLS_BY_NETWORK_ID: Record<TBSBitcoinNetworkId, string> = {
-    mainnet: this.#API_URL,
-    testnet: this.#API_URL,
+    mainnet: `${BSCommonConstants.COZ_API_URL}/v2/p/bitcoin/tatum/mainnet`,
+    testnet: `${BSCommonConstants.COZ_API_URL}/v2/p/bitcoin/tatum/testnet`,
   }
 
   static readonly MAINNET_NETWORK: TBSNetwork<TBSBitcoinNetworkId> = {

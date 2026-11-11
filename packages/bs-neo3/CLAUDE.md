@@ -61,3 +61,5 @@ src/
 **Multi-transfer:** NEO N3 supports sending multiple token intents in a single transaction (`isMultiTransferSupported = true`).
 
 **Custom networks:** Supported — consumers can pass custom network URLs.
+
+**COZ:** `BSNeo3Constants.COZ_NETWORK` (`type: 'coz'`, RPC `https://chain1.coz.io:443`) is pre-set in `ALL_NETWORKS` and validated like testnet (fixed URL, other URLs throw `INVALID_NETWORK`). At runtime it behaves like a custom network: it isn't indexed by Dora, so data comes from RPC, there are no explorer URLs, and WalletConnect uses chain `neo3:private`. Use `BSNeo3Helper.isAlternativeNetwork(network)` (true for `custom` and `coz`) instead of checking `type === 'custom'`.

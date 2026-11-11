@@ -108,7 +108,7 @@ Optional capability interfaces follow the `IBSWith*` naming convention and are c
 
 - `TBSAccount<N>` — address, key, BIP path, type (`'wif'|'privateKey'`), hardware flag
 - `TBSToken` — symbol, name, hash, decimals, network, blockchain
-- `TBSNetwork<A>` — id, name, url, type (`'mainnet'|'testnet'|'custom'`)
+- `TBSNetwork<A>` — id, name, url, type (`'mainnet'|'testnet'|'coz'|'custom'`). `coz` is a pre-set network with a fixed URL that behaves like `custom` (currently Neo 3 only)
 - `TTransaction<N>` — union of `TTransactionDefault<N>` and `TTransactionUTXO<N>` (Bitcoin)
 - `TTransferParams<N>` — sender account, intents array, priorityFee, tipIntent
 

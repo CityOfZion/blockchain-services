@@ -12,6 +12,7 @@ import {
 } from '@cityofzion/blockchain-service'
 import { api } from '@cityofzion/dora-ts'
 import { RpcBDSNeo3 } from './RpcBDSNeo3'
+import { BSNeo3Helper } from '../../helpers/BSNeo3Helper'
 import type { IBSNeo3, TBSNeo3Name, TRpcBDSNeo3Notification } from '../../types'
 import { Notification } from '@cityofzion/dora-ts/dist/interfaces/api/neo'
 
@@ -35,7 +36,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   }
 
   async getTransaction(hash: string): Promise<TTransactionDefault<TBSNeo3Name>> {
-    if (this._service.network.type === 'custom') {
+    if (BSNeo3Helper.isAlternativeNetwork(this._service.network)) {
       return await super.getTransaction(hash)
     }
 
@@ -83,7 +84,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   }: TGetTransactionsByAddressParams): Promise<
     TGetTransactionsByAddressResponse<TBSNeo3Name, TTransactionDefault<TBSNeo3Name>>
   > {
-    if (this._service.network.type === 'custom') {
+    if (BSNeo3Helper.isAlternativeNetwork(this._service.network)) {
       return await super.getTransactionsByAddress({ address, nextPageParams })
     }
 
@@ -140,7 +141,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   }
 
   async getContract(contractHash: string): Promise<TContractResponse> {
-    if (this._service.network.type === 'custom') {
+    if (BSNeo3Helper.isAlternativeNetwork(this._service.network)) {
       return await super.getContract(contractHash)
     }
 
@@ -157,7 +158,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   }
 
   async getTokenInfo(tokenHash: string): Promise<TBSToken> {
-    if (this._service.network.type === 'custom') {
+    if (BSNeo3Helper.isAlternativeNetwork(this._service.network)) {
       return await super.getTokenInfo(tokenHash)
     }
 
@@ -188,7 +189,7 @@ export class DoraBDSNeo3 extends RpcBDSNeo3 {
   }
 
   async getBalance(address: string): Promise<TBalanceResponse[]> {
-    if (this._service.network.type === 'custom') {
+    if (BSNeo3Helper.isAlternativeNetwork(this._service.network)) {
       return await super.getBalance(address)
     }
 

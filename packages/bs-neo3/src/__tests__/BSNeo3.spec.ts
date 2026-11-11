@@ -106,6 +106,38 @@ describe('BSNeo3', () => {
     })
   })
 
+  it('Should have COZ in available networks', () => {
+    expect(bsNeo3.availableNetworks).toContainEqual({
+      id: 'coz',
+      name: 'COZ',
+      url: 'https://chain1.coz.io:443',
+      type: 'coz',
+    })
+  })
+
+  it('Should be able to set the COZ network', () => {
+    const service = new BSNeo3(BSNeo3Constants.COZ_NETWORK)
+
+    expect(service.network).toEqual(BSNeo3Constants.COZ_NETWORK)
+    expect(service.networkUrls).toEqual([BSNeo3Constants.COZ_NETWORK.url])
+  })
+
+  it('Should throw when setting the COZ network with a different url', () => {
+    expect(() => new BSNeo3({ ...BSNeo3Constants.COZ_NETWORK, url: 'https://invalid-url:443' })).toThrow(
+      expect.objectContaining({ code: 'INVALID_NETWORK' })
+    )
+  })
+
+  it('Should be able to ping COZ network', async () => {
+    const response = await bsNeo3.pingNetwork(BSNeo3Constants.COZ_NETWORK.url)
+
+    expect(response).toEqual({
+      url: BSNeo3Constants.COZ_NETWORK.url,
+      latency: expect.any(Number),
+      height: expect.any(Number),
+    })
+  })
+
   it('Should be able to resolve a name service domain', async () => {
     const owner = await bsNeo3.resolveNameServiceDomain('neo.neo')
     expect(owner).toEqual('Nj39M97Rk2e23JiULBBMQmvpcnKaRHqxFf')

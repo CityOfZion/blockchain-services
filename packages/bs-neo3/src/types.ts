@@ -21,7 +21,7 @@ import type { Neo3NeoXBridgeService } from './services/neo3-neox-bridge/Neo3NeoX
 import type { ClaimServiceNeo3 } from './services/claim/ClaimServiceNeo3'
 import type { VoteServiceNeo3 } from './services/vote/VoteServiceNeo3'
 
-export type TBSNeo3NetworkId = TBSNetworkId<'mainnet' | 'testnet'>
+export type TBSNeo3NetworkId = TBSNetworkId<'mainnet' | 'testnet' | 'coz'>
 
 export type TBSNeo3Name = 'neo3'
 export interface IBSNeo3
@@ -112,11 +112,6 @@ export interface IVoteService {
   vote(params: TVoteServiceVoteParams): Promise<TTransactionDefault<TBSNeo3Name>>
   calculateVoteFee(params: TVoteServiceVoteParams): Promise<string>
   getTransactionData(transaction: TTransactionBase): TVoteServiceNeo3TransactionData | undefined
-}
-
-export type TRpcVoteServiceNeo3GetVoteCIMParams = {
-  address: string
-  candidatePubKey: string
 }
 
 export type TNeo3NeoXBridgeServiceGetBridgeTxByNonceApiResponse = { result: { Vmstate: string; txid: string } }

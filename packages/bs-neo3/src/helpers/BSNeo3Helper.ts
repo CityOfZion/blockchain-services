@@ -9,6 +9,10 @@ export class BSNeo3Helper {
     return [...BSNeo3Constants.NATIVE_ASSETS, ...extraTokens]
   }
 
+  static isAlternativeNetwork(network: TBSNetwork<TBSNeo3NetworkId>) {
+    return network.type === 'custom' || network.type === 'coz'
+  }
+
   static getNdmemeToken(network: TBSNetwork<TBSNeo3NetworkId>) {
     if (network.type !== 'mainnet') {
       return { ...BSNeo3Constants.NDMEME_TOKEN, hash: '-' }

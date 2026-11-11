@@ -48,6 +48,15 @@ describe('DoraESNeo3', () => {
     expect(templateUrl).toBe(undefined)
   })
 
+  it('Should return undefined when call the template URL methods using the COZ network', () => {
+    service = new BSNeo3(BSNeo3Constants.COZ_NETWORK)
+    doraESNeo3 = new DoraESNeo3(service)
+
+    expect(doraESNeo3.getAddressTemplateUrl()).toBe(undefined)
+    expect(doraESNeo3.getTransactionTemplateUrl()).toBe(undefined)
+    expect(doraESNeo3.getContractTemplateUrl()).toBe(undefined)
+  })
+
   it('Should return an address template URL (Mainnet) when call the getAddressTemplateUrl method with a Mainnet network', () => {
     const templateUrl = doraESNeo3.getAddressTemplateUrl()
 

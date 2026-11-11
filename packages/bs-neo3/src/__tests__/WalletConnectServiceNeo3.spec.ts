@@ -33,6 +33,13 @@ describe('WalletConnectServiceNeo3', () => {
     expect(customWalletConnectService.chain).toBe('neo3:private')
   })
 
+  it('Should have correct chain for COZ network', () => {
+    const cozService = new BSNeo3(BSNeo3Constants.COZ_NETWORK)
+    const cozWalletConnectService = new WalletConnectServiceNeo3(cozService)
+
+    expect(cozWalletConnectService.chain).toBe('neo3:private')
+  })
+
   it('Should have supported methods', () => {
     expect(walletConnectService.supportedMethods).toContain('invokeFunction')
     expect(walletConnectService.supportedMethods).toContain('testInvoke')
