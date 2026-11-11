@@ -66,8 +66,7 @@ describe('SwapApi', () => {
     await swapApi.fetchDestinations(gasToken, bsAggregator)
 
     expect(axios.create).toHaveBeenCalledWith(
-      // TODO: change to BSCommonConstants.COZ_API_URL
-      expect.objectContaining({ baseURL: `${BSCommonConstants.COZ_API_STAGE_URL}/v2/p/swap` })
+      expect.objectContaining({ baseURL: `${BSCommonConstants.COZ_API_URL}/v2/p/swap` })
     )
   })
 
@@ -250,7 +249,7 @@ describe('SwapApi', () => {
   })
 
   it('Should throw an amount above maximum error when the backend rejects the amount', async () => {
-    postMock.mockRejectedValue(createAxiosError('amount below minimum: 1000 exceeds the maximum of 500 for this pair'))
+    postMock.mockRejectedValue(createAxiosError('amount above maximum: 1000 exceeds the maximum of 500 for this pair'))
 
     await expect(
       swapApi.createQuotes({
@@ -261,7 +260,40 @@ describe('SwapApi', () => {
         addressToReceive: 'receive-address',
         refundAddress: 'refund-address',
       })
-    ).rejects.toMatchObject({ code: 'AMOUNT_ABOVE_MAXIMUM' })
+    ).rejects.toMatchObject({ code: 'AMOUNT_ABOVE_MAXIMUM', metadata: { maxAmount: '500' } })
+  })
+
+  it.each([
+    [
+      'amount below minimum: the smallest amount any provider accepts is 0.00001 ETH',
+      { code: 'AMOUNT_BELOW_MINIMUM', metadata: { minAmount: '0.00001' } },
+    ],
+    [
+      'amount below minimum: the amount is too small for every provider',
+      { code: 'AMOUNT_BELOW_MINIMUM', metadata: undefined },
+    ],
+    [
+      'amount above maximum: not enough liquidity for this amount, try a smaller amount',
+      { code: 'AMOUNT_ABOVE_MAXIMUM', metadata: undefined },
+    ],
+    [
+      "amount above maximum: swap amount is above the provider's per-trade limit",
+      { code: 'AMOUNT_ABOVE_MAXIMUM', metadata: undefined },
+    ],
+    ['unsupported pair: no provider can quote this pair right now', { code: 'UNSUPPORTED_PAIR', metadata: undefined }],
+  ])('Should map the backend error "%s"', async (message, expected) => {
+    postMock.mockRejectedValue(createAxiosError(message))
+
+    await expect(
+      swapApi.createQuotes({
+        tokenToUse: gasToken,
+        tokenToReceive: xrpToken,
+        amount: '1',
+        sourceAddress: 'source-address',
+        addressToReceive: 'receive-address',
+        refundAddress: 'refund-address',
+      })
+    ).rejects.toMatchObject({ ...expected, message })
   })
 
   it('Should rethrow errors that are not from the backend', async () => {
